@@ -49,7 +49,7 @@ namespace Hadal.EditorTools
 
             var scene = EditorSceneManager.NewScene(NewSceneSetup.EmptyScene, NewSceneMode.Single);
             var bootstrapGo = new GameObject("GameBootstrap");
-            var bootstrap = bootstrapGo.AddComponent<GameBootstrap>();
+            var bootstrap = bootstrapGo.AddComponent<ProjectLifetimeScope>();
 
             var managersRoot = new GameObject("Managers");
             managersRoot.transform.SetParent(bootstrapGo.transform);

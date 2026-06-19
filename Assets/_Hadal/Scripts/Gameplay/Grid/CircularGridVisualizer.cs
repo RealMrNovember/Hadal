@@ -1,10 +1,10 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Hadal.Core.Contracts;
-using Hadal.Core.DI;
 using Hadal.Data.Enums;
 using Hadal.Data.Events;
 using Hadal.Data.Models;
+using VContainer;
 
 namespace Hadal.Gameplay.Grid
 {
@@ -24,13 +24,11 @@ namespace Hadal.Gameplay.Grid
         private readonly Dictionary<PolarGridSlotId, GridSlotView> _slotViews = new();
         private readonly List<UnderwaterDomeRingView> _ringViews = new();
 
-        private void Start()
+        [Inject]
+        public void Construct(ICircularGridService grid, IPoolService pool)
         {
-            if (GameContext.Current == null)
-                return;
-
-            GameContext.Current.TryResolve(out _grid);
-            GameContext.Current.TryResolve(out _pool);
+            _grid = grid;
+            _pool = pool;
             RebuildVisuals();
 
             if (_highlightEvent != null)

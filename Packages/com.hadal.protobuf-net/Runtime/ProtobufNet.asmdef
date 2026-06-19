@@ -1,0 +1,18 @@
+{
+    "name": "ProtobufNet",
+    "rootNamespace": "ProtoBuf",
+    "references": [],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": true,
+    "precompiledReferences": [
+        "protobuf-net.dll",
+        "protobuf-net.Core.dll",
+        "System.Collections.Immutable.dll"
+    ],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": true
+}

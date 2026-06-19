@@ -1,10 +1,10 @@
 using UnityEngine;
 using Hadal.Core.Contracts;
-using Hadal.Core.DI;
 using Hadal.Data.Config;
 using Hadal.Data.Enums;
 using Hadal.Data.Events;
 using Hadal.Data.Models;
+using VContainer;
 
 namespace Hadal.Gameplay.Grid
 {
@@ -83,10 +83,10 @@ namespace Hadal.Gameplay.Grid
         private PolarGridSlotId _selectedSlot;
         private GridHighlightState _currentState = GridHighlightState.None;
 
-        private void Start()
+        [Inject]
+        public void Construct(ICircularGridService grid)
         {
-            if (GameContext.Current != null)
-                GameContext.Current.TryResolve(out _grid);
+            _grid = grid;
         }
 
         public void HighlightSlot(PolarGridSlotId slotId, GridHighlightState state)

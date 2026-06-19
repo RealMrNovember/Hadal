@@ -4,7 +4,9 @@
     "references": [
         "Hadal.Core",
         "Hadal.Data",
-        "Hadal.Managers"
+        "Hadal.Managers",
+        "HADAL.Shared",
+        "VContainer"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

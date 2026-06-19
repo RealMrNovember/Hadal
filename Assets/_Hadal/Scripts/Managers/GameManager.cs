@@ -1,8 +1,7 @@
-using UnityEngine;
-using Hadal.Core.DI;
 using Hadal.Core.State;
 using Hadal.Data.Config;
 using Hadal.Managers.Base;
+using VContainer;
 
 namespace Hadal.Managers
 {
@@ -10,9 +9,12 @@ namespace Hadal.Managers
     {
         private GameStateMachine _stateMachine;
 
-        protected override void OnInitialize(GameConfigSO config)
+        protected override void OnInitialize(GameConfigSO config) { }
+
+        [Inject]
+        public void InjectStateMachine(GameStateMachine stateMachine)
         {
-            _stateMachine = GameContext.Current?.StateMachine;
+            _stateMachine = stateMachine;
         }
 
         public void RequestStateChange(GameStateType state) => _stateMachine?.ChangeState(state);

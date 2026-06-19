@@ -1,7 +1,8 @@
 using UnityEngine;
-using Hadal.Core.DI;
+using Hadal.Core.Contracts;
 using Hadal.Data.Config;
 using Hadal.Managers;
+using VContainer;
 
 namespace Hadal.Gameplay.Combat
 {
@@ -13,10 +14,10 @@ namespace Hadal.Gameplay.Combat
         private CombatManager _combatManager;
         private CombatEncounter _encounter;
 
-        private void Start()
+        [Inject]
+        public void Construct(CombatManager combatManager)
         {
-            if (GameContext.Current != null)
-                GameContext.Current.TryResolve(out _combatManager);
+            _combatManager = combatManager;
 
             if (_enemyDefinition != null)
             {

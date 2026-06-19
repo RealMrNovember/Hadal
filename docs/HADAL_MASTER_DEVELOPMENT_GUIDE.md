@@ -1,6 +1,6 @@
 # HADAL Master Development Guide
 
-**Version:** 3.0 — Production MMO Hardened  
+**Version:** 3.1 — Production MMO Hardened + Design Index  
 **Engine:** Unity 6 LTS · URP · C# · ASP.NET Core  
 **Genre:** AAA Mobile Strategy MMO
 
@@ -8,14 +8,43 @@
 
 ## Documentation Index
 
+### Game Design (01–16, 19–20)
+
+| # | Document | Purpose |
+|---|----------|---------|
+| 01 | [01_Executive_Vision.md](./01_Executive_Vision.md) | Tagline · vision · core loop |
+| 02 | [02_World_Lore.md](./02_World_Lore.md) | Setting · ancient civilization |
+| 03 | [03_Main_Story.md](./03_Main_Story.md) | Opening · Core narrative surprise |
+| 04 | [04_Gameplay_Overview.md](./04_Gameplay_Overview.md) | Systems map |
+| 05 | [05_Base_Building.md](./05_Base_Building.md) | Circular dome base |
+| 06 | [06_Resources.md](./06_Resources.md) | Oxygen · Hadalite · resources |
+| 07 | [07_Pressure_System.md](./07_Pressure_System.md) | Depth pressure mechanic |
+| 08 | [08_Expeditions.md](./08_Expeditions.md) | Hero + submarine expeditions |
+| 09 | [09_Enemies.md](./09_Enemies.md) | Creatures · bosses |
+| 10 | [10_Heroes.md](./10_Heroes.md) | Classes · factions · Aelis |
+| 11 | [11_World_Map.md](./11_World_Map.md) | Circular abyss map |
+| 12 | [12_PvP_Alliance.md](./12_PvP_Alliance.md) | Underwater cities · sieges |
+| 13 | [13_UI_UX.md](./13_UI_UX.md) | Sonar UX · immersion |
+| 14 | [14_Art_and_Sound.md](./14_Art_and_Sound.md) | Visual · audio direction |
+| 15 | [15_Monetization.md](./15_Monetization.md) | **Gacha · Quiet Luxury · server rolls** |
+| 16 | [16_Live_Ops.md](./16_Live_Ops.md) | Seasonal ops principles |
+| 19 | [19_Economy.md](./19_Economy.md) | Resource · Hadalite economy |
+| 20 | [20_End_Game.md](./20_End_Game.md) | The Core · organism reveal |
+
+### Technical Architecture (17–18, 21)
+
+| # | Document | Purpose |
+|---|----------|---------|
+| 17 | [17_Technical_Architecture.md](./17_Technical_Architecture.md) | Distributed MMO · StateSyncPipeline |
+| 18 | [18_Unity_Client_Architecture.md](./18_Unity_Client_Architecture.md) | VContainer · prediction · client view |
+| 21 | [21_HADAL_Shared_Protocol_And_Serialization.md](./21_HADAL_Shared_Protocol_And_Serialization.md) | Protobuf · HADAL.Shared |
+
+### Operations
+
 | Document | Purpose |
 |----------|---------|
-| [17_Technical_Architecture.md](./17_Technical_Architecture.md) | Distributed MMO, StateSyncPipeline |
-| [18_Unity_Client_Architecture.md](./18_Unity_Client_Architecture.md) | VContainer, prediction, client view |
-| [19_HADAL_Shared_Protocol_And_Serialization.md](./19_HADAL_Shared_Protocol_And_Serialization.md) | **Protobuf, HADAL.Shared, wire protocol** |
 | [HADAL_SERVER_INFRASTRUCTURE.md](./HADAL_SERVER_INFRASTRUCTURE.md) | `hadal.cicibyte.com` deployment |
 | [HadalDevelopmentRoadmap.md](./HadalDevelopmentRoadmap.md) | Phased delivery |
-| [ProjeDosyası.md](./ProjeDosyası.md) | Vision & gameplay design |
 
 ---
 
@@ -33,6 +62,7 @@
 | 8 | **Network → Translator → Local → UI** — strict event ownership |
 | 9 | Patch before MainMenu |
 | 10 | Cheat resistance by design |
+| 11 | **Gacha RNG server-only** — see [15_Monetization.md](./15_Monetization.md) |
 
 ---
 
@@ -47,6 +77,7 @@ Wire: Protobuf over WebSocket
 Patch: JSON manifest only (CDN)
 DI: VContainer (Project / Session / Game / UI scopes)
 Events: NetworkEventBus + LocalEventBus + Translator + EventValidationLayer
+Monetization: ExecuteGachaCommand → GachaResultDelta (Protobuf)
 ```
 
 ---
@@ -65,6 +96,8 @@ Events: NetworkEventBus + LocalEventBus + Translator + EventValidationLayer
 | 8 | Offline reward calculation on client |
 | 9 | `FindObjectOfType` in gameplay |
 | 10 | Implicit global state |
+| 11 | Client-side gacha RNG or reward selection |
+| 12 | Aggressive monetization pop-ups (Quiet Luxury violation) |
 
 ---
 
@@ -72,8 +105,8 @@ Events: NetworkEventBus + LocalEventBus + Translator + EventValidationLayer
 
 | System | Doc reference |
 |--------|---------------|
-| `HADAL.Shared` class library | Doc 19 |
-| `NetworkSerializationLayer` (Protobuf) | Doc 19 |
+| `HADAL.Shared` class library | Doc 21 |
+| `NetworkSerializationLayer` (Protobuf) | Doc 21 |
 | `StateSyncPipeline` | Doc 17 §3 |
 | `ClientPredictionSystem` + `PredictionBuffer` | Doc 18 §6 |
 | `CommandReconciliationSystem` + `RollbackAnimator` | Doc 18 §6 |
@@ -81,6 +114,7 @@ Events: NetworkEventBus + LocalEventBus + Translator + EventValidationLayer
 | `EventOwnershipPolicy` + `EventValidationLayer` | Doc 17 §7, Doc 18 §7 |
 | VContainer lifetime scopes | Doc 18 §1 |
 | PatchService | Doc 17 §9 |
+| Gacha command + result pipeline | Doc 15 · Doc 21 |
 
 ---
 
@@ -116,6 +150,7 @@ Boot → VContainer → Patch (JSON manifest) → Addressables
 | DB | PostgreSQL (`hadal` schema) |
 | Cache | Redis (isolated) |
 | CDN | `hadal.cicibyte.com` |
+| Premium store (UX) | **The Syndicate** |
 
 ---
 
@@ -123,7 +158,7 @@ Boot → VContainer → Patch (JSON manifest) → Addressables
 
 All gameplay: **Command (Protobuf) → Server validate → StateDelta → VisualStateCache → UI**
 
-Design intent: [ProjeDosyası.md](./ProjeDosyası.md)
+Design index: [01_Executive_Vision.md](./01_Executive_Vision.md) through [20_End_Game.md](./20_End_Game.md)
 
 ---
 
@@ -140,7 +175,7 @@ Design intent: [ProjeDosyası.md](./ProjeDosyası.md)
 
 ## 10. Production Compliance Statement
 
-Documentation v3.0 defines a **production-grade server-authoritative MMO architecture** suitable for Phase 0 implementation:
+Documentation v3.1 defines a **production-grade server-authoritative MMO architecture** suitable for Phase 0 implementation:
 
 - Wire protocol specified (Protobuf)
 - Shared contracts specified (HADAL.Shared)
@@ -148,8 +183,9 @@ Documentation v3.0 defines a **production-grade server-authoritative MMO archite
 - Event boundaries enforced (policy + validation)
 - State replication specified (pipeline + entity reconciliation)
 - Global access eliminated (VContainer only)
+- Monetization security specified (server-only gacha)
 
 ---
 
-**Document Version:** 3.0  
-**Supersedes:** v2.0 (conceptual JSON StateSync, incomplete prediction)
+**Document Version:** 3.1  
+**Supersedes:** v3.0 · monolithic `ProjeDosyası.md` (removed)

@@ -1,31 +1,29 @@
 using UnityEngine;
 using Hadal.Core.Contracts;
-using Hadal.Core.DI;
-using Hadal.Data.Config;
+using VContainer;
 
 namespace Hadal.Gameplay.Submarines
 {
     public class SubmarineController : MonoBehaviour
     {
-        [SerializeField] private SubmarineDefinitionSO _definition;
-        [SerializeField] private float _currentDepth;
+        [SerializeField] private float _depthMeters;
 
         private IPressureService _pressureService;
 
-        public float CurrentDepth => _currentDepth;
-
-        private void Start()
+        [Inject]
+        public void Construct(IPressureService pressureService)
         {
-            if (GameContext.Current != null)
-                GameContext.Current.TryResolve(out _pressureService);
+            _pressureService = pressureService;
         }
 
-        public void SetDepth(float depthMeters)
+        private void Update()
         {
-            _currentDepth = depthMeters;
-            _pressureService?.EvaluateDepth(_currentDepth);
-        }
+            if (_pressureService == null)
+                return;
 
-        public void Dive(float deltaDepth) => SetDepth(_currentDepth + deltaDepth);
+            var snapshot = _pressureService.EvaluateDepth(_depthMeters);
+            if (!snapshot.IsSurvivable)
+                Debug.LogWarning("[Submarine] Hull stress critical.");
+        }
     }
 }

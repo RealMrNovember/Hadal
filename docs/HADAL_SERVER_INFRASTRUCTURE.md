@@ -28,7 +28,7 @@ This server hosts **multiple active production projects**. All HADAL work MUST f
 
 HADAL backend serves **server-authoritative** game state. Unity client is a view + prediction display layer only.
 
-**Shared contracts:** Backend MUST deploy `HADAL.Shared` assembly (same Protobuf schemas as client). See [19_HADAL_Shared_Protocol_And_Serialization.md](./19_HADAL_Shared_Protocol_And_Serialization.md).
+**Shared contracts:** Backend MUST deploy `HADAL.Shared` assembly (same Protobuf schemas as client). See [21_HADAL_Shared_Protocol_And_Serialization.md](./21_HADAL_Shared_Protocol_And_Serialization.md).
 
 | Service | Role | Wire format |
 |---------|------|-------------|
@@ -315,7 +315,8 @@ ASPNETCORE_ENVIRONMENT=Production
 
 - [17_Technical_Architecture.md](./17_Technical_Architecture.md) — StateSyncPipeline, prediction
 - [18_Unity_Client_Architecture.md](./18_Unity_Client_Architecture.md) — client view layer
-- [19_HADAL_Shared_Protocol_And_Serialization.md](./19_HADAL_Shared_Protocol_And_Serialization.md) — Protobuf + HADAL.Shared
+- [21_HADAL_Shared_Protocol_And_Serialization.md](./21_HADAL_Shared_Protocol_And_Serialization.md) — Protobuf + HADAL.Shared
+- [15_Monetization.md](./15_Monetization.md) — Gacha · server authority
 - [HadalDevelopmentRoadmap.md](./HadalDevelopmentRoadmap.md) — Phase 0-R tasks
 
 ---

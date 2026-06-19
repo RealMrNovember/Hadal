@@ -1,21 +1,29 @@
-using UnityEngine;
+using System.Collections.Generic;
+using System.Linq;
 using Hadal.Core.Contracts;
-using Hadal.Core.DI;
-using Hadal.Data.Config;
+using Hadal.Core.StateSync;
 using Hadal.Managers.Base;
+using VContainer;
 
 namespace Hadal.Managers
 {
     public class SaveManager : ManagerBase
     {
-        protected override void OnInitialize(GameConfigSO config) { }
+        private IStateSyncService _stateSync;
+        private ManagerBase[] _managers = System.Array.Empty<ManagerBase>();
 
-        public override void ResolveDependencies(GameServiceContainer container) { }
+        protected override void OnInitialize(Data.Config.GameConfigSO config) { }
 
-        public void SaveNow()
+        [Inject]
+        public void InjectStateSync(IStateSyncService stateSync, ManagerBase[] managers)
         {
-            if (Container != null && Container.TryResolve<ISaveService>(out var save))
-                save.SaveAll();
+            _stateSync = stateSync;
+            _managers = managers ?? System.Array.Empty<ManagerBase>();
+        }
+
+        public void SyncNow()
+        {
+            _stateSync?.CaptureAll(_managers.OfType<ISaveParticipant>());
         }
     }
 }

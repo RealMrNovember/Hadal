@@ -4,8 +4,10 @@
     "references": [
         "Hadal.Core",
         "Hadal.Data",
+        "HADAL.Shared",
         "Unity.Addressables",
-        "Unity.ResourceManager"
+        "Unity.ResourceManager",
+        "VContainer"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

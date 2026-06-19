@@ -69,15 +69,6 @@ namespace Hadal.Core.Contracts
         void RestoreSave(SaveGameData data);
     }
 
-    public interface ISaveService
-    {
-        bool HasSave { get; }
-        void SaveAll();
-        bool TryLoadAll();
-        void DeleteSave();
-        void RegisterParticipant(ISaveParticipant participant);
-    }
-
     public interface IAssetProvider
     {
         void PreloadCatalog();

@@ -4,7 +4,7 @@ Unity 6 LTS · URP · Android / iOS
 **Role:** Rendering + Input + Optimistic Visual Feedback — **NOT** simulation authority.
 
 **Document Version:** 3.0 — Production Hardened  
-**Companion:** [19_HADAL_Shared_Protocol_And_Serialization.md](./19_HADAL_Shared_Protocol_And_Serialization.md)
+**Companion:** [21_HADAL_Shared_Protocol_And_Serialization.md](./21_HADAL_Shared_Protocol_And_Serialization.md) · [15_Monetization.md](./15_Monetization.md)
 
 ---
 

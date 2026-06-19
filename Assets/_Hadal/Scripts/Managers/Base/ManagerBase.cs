@@ -1,7 +1,7 @@
 using UnityEngine;
-using Hadal.Core.DI;
-using Hadal.Core.Services;
 using Hadal.Data.Config;
+using Hadal.Core.Services;
+using VContainer;
 
 namespace Hadal.Managers.Base
 {
@@ -9,37 +9,32 @@ namespace Hadal.Managers.Base
     {
         int Priority { get; }
         bool IsInitialized { get; }
-        void Initialize(GameConfigSO config, GameServiceContainer container);
-        void ResolveDependencies(GameServiceContainer container);
+        void OnPostInject();
     }
 
     public abstract class ManagerBase : MonoBehaviour, IManager
     {
         [SerializeField] private int _priority;
 
-        protected GameServiceContainer Container { get; private set; }
         protected GameConfigSO Config { get; private set; }
 
         public int Priority => _priority;
         public bool IsInitialized { get; private set; }
 
-        public void Initialize(GameConfigSO config, GameServiceContainer container)
+        [Inject]
+        public void InjectConfig(GameConfigSO config)
         {
             if (IsInitialized)
                 return;
 
             Config = config;
-            Container = container;
             OnInitialize(config);
             IsInitialized = true;
         }
 
-        public virtual void ResolveDependencies(GameServiceContainer container) { }
+        public virtual void OnPostInject() { }
 
-        public void Initialize()
-        {
-            Debug.LogWarning($"[{name}] Initialize() called without bootstrap context.");
-        }
+        public void Initialize() { }
 
         public virtual void Shutdown()
         {
@@ -48,7 +43,6 @@ namespace Hadal.Managers.Base
 
             OnShutdown();
             IsInitialized = false;
-            Container = null;
             Config = null;
         }
 

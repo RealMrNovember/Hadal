@@ -2,11 +2,11 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using Hadal.Core.Contracts;
-using Hadal.Core.DI;
 using Hadal.Data.Config;
 using Hadal.Data.Events;
 using Hadal.Data.Models;
 using Hadal.Managers.Base;
+using VContainer;
 
 namespace Hadal.Managers
 {
@@ -26,10 +26,11 @@ namespace Hadal.Managers
             _database = config.BuildingDatabase;
         }
 
-        public override void ResolveDependencies(GameServiceContainer container)
+        [Inject]
+        public void InjectServices(IResourceService resourceService, ICircularGridService gridService)
         {
-            container.TryResolve(out _resourceService);
-            container.TryResolve(out _gridService);
+            _resourceService = resourceService;
+            _gridService = gridService;
         }
 
         public bool TryPlaceBuilding(string buildingId, PolarGridSlotId slotId, float rotationDegrees, int level = 1)
@@ -120,9 +121,7 @@ namespace Hadal.Managers
                 var rotation = entry.rotation;
 
                 if (data.version < 2 && entry.cellSector == 0 && (entry.cellX != 0 || entry.cellY != 0))
-                {
                     slotId = new PolarGridSlotId(entry.cellRing, 0);
-                }
 
                 var instanceId = string.IsNullOrWhiteSpace(entry.instanceKey)
                     ? Guid.NewGuid().ToString("N")

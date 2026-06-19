@@ -2,67 +2,19 @@
 
 > *Beneath The Abyss. Humanity Begins Again.*
 
-**HADAL** is a next-generation, server-authoritative Mobile Strategy MMO built on a custom high-performance architecture. Set in the crushing depths of the ocean (11,000 meters below), it combines unforgiving survival mechanics, real-time grid building, and massive multiplayer ecosystems.
-
-Designed for uncompromising scalability and a seamless mobile experience.
-
----
-
-## ⚙️ Core Architecture (v3.0)
-
-This project strictly adheres to a **Server-Authoritative** model. The Unity client acts purely as a rendering, prediction, and input dispatch layer.
-
-* **Engine:** Unity 6 LTS (URP) / Mobile Optimized (60 FPS Target)
-* **Backend:** Distributed Game Server Cluster (ASP.NET Core / PostgreSQL / Redis)
-* **Networking:** WebSocket + REST Gateway with **Protobuf** binary serialization.
-* **Shared Codebase:** `HADAL.Shared` (.NET Standard 2.1) enforcing a single source of truth for all Commands, DTOs, and Simulation Formulas across Client and Server.
-* **Dependency Injection:** Strict scoped resolution via **VContainer** (Project / Session / Game). No implicit globals, no service locators.
-* **Latency Compensation:** Custom `ClientPredictionSystem` with asynchronous validation and smooth `RollbackAnimator` capabilities to ensure a fluid UX under 100-200ms latency.
-* **Asset Management:** Unity Addressables via external CDN `PatchService`.
-
-## 🏗️ Development Roadmap
-
-Currently executing **Phase 0-R (Architecture Hardening)**:
-- [x] MMO System Design & Documentation Audit
-- [x] Event System Consolidation (Local vs. Network Bus)
-- [ ] VContainer DI Implementation
-- [ ] Protobuf `NetworkSerializationLayer` & `HADAL.Shared` Integration
-- [ ] StateSync Pipeline (Snapshot + Delta Compression) Setup
-
-*(For full milestone tracking, see `/docs/HadalDevelopmentRoadmap.md`)*
-
-## 📂 Project Structure
-
-```text
-HADAL/
-├── Assets/
-│   └── _Hadal/
-│       ├── Scripts/
-│       │   ├── Core/          # DI, Patching, StateSync, Event Buses
-│       │   ├── Shared/        # Protobuf generated schemas & shared models
-│       │   ├── Presentation/  # Views, UI, Prediction Logic
-│       │   └── Data/          # ScriptableObject configs (Visuals only)
-│       └── Art/               # High-contrast, Bioluminescent 3D Assets
-├── docs/                      # v3.0 Master Architecture Documentation
-└── Packages/                  # Addressables, VContainer, Protobuf tools
-
-
-
-**AAA mobile strategy MMO** — build an underwater civilization from the shallows to the abyss.
+**HADAL** is a server-authoritative mobile strategy MMO set 11,000 meters beneath the ocean. Unity 6 client + ASP.NET Core backend · **protobuf-net** wire · VContainer DI.
 
 | | |
 |---|---|
 | **Engine** | Unity 6 LTS · URP · Android / iOS |
 | **Backend** | ASP.NET Core · PostgreSQL · Redis |
-| **Architecture** | v3.0 — Server-authoritative MMO (production hardened) |
+| **Architecture** | v3.1 — Production MMO hardened |
 | **Server** | [hadal.cicibyte.com](https://hadal.cicibyte.com) |
-| **Status** | Documentation complete · Phase 0-R implementation next |
+| **Status** | Phase 0-R in progress |
 
 ---
 
-## Overview
-
-HADAL is a server-authoritative mobile MMO strategy game. The Unity client handles **rendering, input, and optimistic visual feedback** only. All gameplay truth lives on the backend.
+## Architecture (v3)
 
 ```
 Input → ClientPredictionSystem → CommandDispatcher (Protobuf)
@@ -70,32 +22,70 @@ Input → ClientPredictionSystem → CommandDispatcher (Protobuf)
      → StateDelta → VisualStateCache → UI
 ```
 
----
-
-## Architecture (v3)
-
 | Layer | Technology |
 |-------|------------|
-| Wire protocol | **Protocol Buffers** (JSON forbidden on gameplay WebSocket) |
+| Wire protocol | **protobuf-net** (contract attributes) |
 | Shared contracts | **HADAL.Shared** (.NET Standard 2.1) |
-| Client DI | **VContainer** (Project / Session / Game / UI scopes) |
-| State replication | **StateSyncPipeline** — Snapshot + Delta → VisualStateCache |
-| Latency UX | **ClientPredictionSystem** + RollbackAnimator |
-| Events | NetworkEventBus → Translator → LocalEventBus → UI |
+| Client DI | **VContainer** |
+| State replication | **StateSyncPipeline** (stub in progress) |
+| Monetization | **Server-authoritative Gacha** — [15_Monetization.md](docs/15_Monetization.md) |
+
+Full rules: [HADAL_MASTER_DEVELOPMENT_GUIDE.md](docs/HADAL_MASTER_DEVELOPMENT_GUIDE.md)
 
 ---
 
-## Documentation
+## Phase 0-R Progress
 
-| Document | Description |
-|----------|-------------|
-| [HADAL_MASTER_DEVELOPMENT_GUIDE.md](docs/HADAL_MASTER_DEVELOPMENT_GUIDE.md) | Canonical development rules |
-| [17_Technical_Architecture.md](docs/17_Technical_Architecture.md) | Backend + StateSyncPipeline |
-| [18_Unity_Client_Architecture.md](docs/18_Unity_Client_Architecture.md) | VContainer, prediction, client view |
-| [19_HADAL_Shared_Protocol_And_Serialization.md](docs/19_HADAL_Shared_Protocol_And_Serialization.md) | Protobuf + HADAL.Shared |
-| [HadalDevelopmentRoadmap.md](docs/HadalDevelopmentRoadmap.md) | Phased delivery (Phase 0-R blocking) |
+- [x] MMO documentation audit & design split (01–21)
+- [x] VContainer DI · event bus stubs
+- [x] HADAL.Shared · protobuf-net · CommandDispatcher stub
+- [ ] WebSocket gateway · full StateSyncPipeline
+- [ ] ClientPredictionSystem · RollbackAnimator
+
+Details: [HadalDevelopmentRoadmap.md](docs/HadalDevelopmentRoadmap.md)
+
+---
+
+## Documentation Index
+
+### Game Design (01–20)
+
+| # | Document |
+|---|----------|
+| 01 | [Executive Vision](docs/01_Executive_Vision.md) |
+| 02 | [World Lore](docs/02_World_Lore.md) |
+| 03 | [Main Story](docs/03_Main_Story.md) |
+| 04 | [Gameplay Overview](docs/04_Gameplay_Overview.md) |
+| 05 | [Base Building](docs/05_Base_Building.md) |
+| 06 | [Resources](docs/06_Resources.md) |
+| 07 | [Pressure System](docs/07_Pressure_System.md) |
+| 08 | [Expeditions](docs/08_Expeditions.md) |
+| 09 | [Enemies](docs/09_Enemies.md) |
+| 10 | [Heroes](docs/10_Heroes.md) |
+| 11 | [World Map](docs/11_World_Map.md) |
+| 12 | [PvP & Alliance](docs/12_PvP_Alliance.md) |
+| 13 | [UI / UX](docs/13_UI_UX.md) |
+| 14 | [Art & Sound](docs/14_Art_and_Sound.md) |
+| 15 | [Monetization (Gacha)](docs/15_Monetization.md) |
+| 16 | [Live Ops](docs/16_Live_Ops.md) |
+| 19 | [Economy](docs/19_Economy.md) |
+| 20 | [End Game](docs/20_End_Game.md) |
+
+### Technical (17–18, 21)
+
+| # | Document |
+|---|----------|
+| 17 | [Technical Architecture](docs/17_Technical_Architecture.md) |
+| 18 | [Unity Client Architecture](docs/18_Unity_Client_Architecture.md) |
+| 21 | [HADAL.Shared & Protobuf](docs/21_HADAL_Shared_Protocol_And_Serialization.md) |
+
+### Operations
+
+| Document | Purpose |
+|----------|---------|
+| [HADAL_MASTER_DEVELOPMENT_GUIDE.md](docs/HADAL_MASTER_DEVELOPMENT_GUIDE.md) | Canonical dev rules |
+| [HadalDevelopmentRoadmap.md](docs/HadalDevelopmentRoadmap.md) | Phase plan |
 | [HADAL_SERVER_INFRASTRUCTURE.md](docs/HADAL_SERVER_INFRASTRUCTURE.md) | Server deployment |
-| [ProjeDosyası.md](docs/ProjeDosyası.md) | Vision, lore & gameplay design (TR) |
 
 ---
 
@@ -103,15 +93,10 @@ Input → ClientPredictionSystem → CommandDispatcher (Protobuf)
 
 ```
 Hadal/
-├── docs/                    # Architecture & design documentation (v3)
-├── shared/                  # HADAL.Shared + proto (Phase 0-R)
-├── Assets/_Hadal/Scripts/
-│   ├── Core/                # State machine, events, contracts
-│   ├── Managers/            # Services (pre–Phase 0-R — refactor pending)
-│   ├── Gameplay/            # Grid, buildings, combat, expeditions
-│   ├── Data/                # ScriptableObjects, models, enums
-│   ├── UI/
-│   └── Editor/
+├── docs/                              # 01–21 design + technical docs
+├── shared/HADAL.Shared/               # Commands, DTOs, ProtoContract types
+├── Packages/com.hadal.protobuf-net/ # protobuf-net 3.2.52
+├── Assets/_Hadal/                     # Unity client
 └── README.md
 ```
 
@@ -119,44 +104,11 @@ Hadal/
 
 ## Getting Started
 
-### Prerequisites
-
-- Unity 6 LTS
-- .NET SDK 8+ (for HADAL.Shared / server, Phase 0-R)
-- Git
-
-### Unity Client
-
 1. Clone the repository
-2. Open the project folder in Unity Hub
-3. Open `Assets/_Hadal` scenes after editor setup (`Hadal → Project Setup`)
-
-> **Note:** Current Unity code is pre–Phase 0-R. See [HadalDevelopmentRoadmap.md](docs/HadalDevelopmentRoadmap.md) for the blocking refactor before gameplay phases.
-
----
-
-## Development Rules (Summary)
-
-- Server is the **single source of truth**
-- **Protobuf** for all gameplay wire messages
-- **HADAL.Shared** for commands, DTOs, enums, formulas — no duplicates
-- **VContainer only** — no ServiceLocator, GameContext, or static singleton managers
-- Client stores **VisualStateCache** only — never authoritative state
-- Network events **never** bind directly to UI
-
-Full rules: [HADAL_MASTER_DEVELOPMENT_GUIDE.md](docs/HADAL_MASTER_DEVELOPMENT_GUIDE.md)
-
----
-
-## Roadmap
-
-| Phase | Focus |
-|-------|-------|
-| **0-R** | Architecture hardening (HADAL.Shared, Protobuf, VContainer, prediction) — **BLOCKING** |
-| **0** | Foundation post–0-R |
-| **1+** | Grid build, camera, combat, alliance, world events |
-
-Details: [HadalDevelopmentRoadmap.md](docs/HadalDevelopmentRoadmap.md)
+2. Open in Unity Hub (Unity 6 LTS)
+3. Unity resolves `com.hadal.protobuf-net` and `com.hadal.shared` automatically
+4. Optional backend build: `shared/build_and_copy.bat` (requires .NET SDK)
+5. Editor setup: `Hadal → Setup → Create Bootstrap Scene`
 
 ---
 

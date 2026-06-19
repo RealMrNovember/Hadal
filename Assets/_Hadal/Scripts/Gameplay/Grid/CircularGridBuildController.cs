@@ -1,9 +1,9 @@
 using UnityEngine;
 using Hadal.Core.Contracts;
-using Hadal.Core.DI;
 using Hadal.Data.Config;
 using Hadal.Data.Enums;
 using Hadal.Data.Models;
+using VContainer;
 
 namespace Hadal.Gameplay.Grid
 {
@@ -27,14 +27,12 @@ namespace Hadal.Gameplay.Grid
         private float _previewRotation;
         private PolarGridSlotId _hoverSlot;
 
-        private void Start()
+        [Inject]
+        public void Construct(ICircularGridService grid, IBuildingService buildingService, GameConfigSO config)
         {
-            if (GameContext.Current == null)
-                return;
-
-            _grid = GameContext.Current.Resolve<ICircularGridService>();
-            _buildingService = GameContext.Current.Resolve<IBuildingService>();
-            _buildingDatabase = GameContext.Current.Config.BuildingDatabase;
+            _grid = grid;
+            _buildingService = buildingService;
+            _buildingDatabase = config.BuildingDatabase;
 
             if (_buildCamera == null)
                 _buildCamera = Camera.main;

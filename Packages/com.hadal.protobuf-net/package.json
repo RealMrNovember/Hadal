@@ -1,0 +1,12 @@
+{
+  "name": "com.hadal.protobuf-net",
+  "version": "3.2.52",
+  "displayName": "protobuf-net (HADAL)",
+  "description": "Contract-based Protocol Buffers serializer (protobuf-net 3.2.52) for HADAL client and HADAL.Shared.",
+  "unity": "6000.0",
+  "author": {
+    "name": "Cicibyte",
+    "url": "https://github.com/RealMrNovember/Hadal"
+  },
+  "licensesUrl": "https://github.com/protobuf-net/protobuf-net/blob/main/License.txt"
+}

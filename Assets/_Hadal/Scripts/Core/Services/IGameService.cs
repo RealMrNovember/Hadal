@@ -1,10 +1,7 @@
-using System;
-using Hadal.Core.Services;
-
 namespace Hadal.Core.Services
 {
     /// <summary>
-    /// Lifecycle contract for runtime services registered in <see cref="DI.GameServiceContainer"/>.
+    /// Lifecycle contract for runtime services registered via VContainer.
     /// </summary>
     public interface IGameService
     {

@@ -1,7 +1,7 @@
 # HADAL Development Roadmap
 
 **Version:** 3.0 — Production MMO Hardened  
-**References:** [17](./17_Technical_Architecture.md) · [18](./18_Unity_Client_Architecture.md) · [19](./19_HADAL_Shared_Protocol_And_Serialization.md)
+**References:** [17](./17_Technical_Architecture.md) · [18](./18_Unity_Client_Architecture.md) · [21](./21_HADAL_Shared_Protocol_And_Serialization.md) · [15](./15_Monetization.md)
 
 ---
 

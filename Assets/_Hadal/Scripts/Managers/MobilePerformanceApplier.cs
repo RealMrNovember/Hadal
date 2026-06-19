@@ -6,6 +6,10 @@ namespace Hadal.Managers
 {
     public static class MobilePerformanceApplier
     {
+        private static IPoolService _poolService;
+
+        public static void Configure(IPoolService poolService) => _poolService = poolService;
+
         public static void Apply(GameConfigSO config)
         {
             if (config == null)
@@ -27,13 +31,12 @@ namespace Hadal.Managers
         public static void Shutdown()
         {
             Application.lowMemory -= OnLowMemory;
+            _poolService = null;
         }
 
         private static void OnLowMemory()
         {
-            if (DI.GameContext.Current != null && DI.GameContext.Current.TryResolve<IPoolService>(out var pool))
-                pool.ClearAll();
-
+            _poolService?.ClearAll();
             Resources.UnloadUnusedAssets();
             System.GC.Collect();
         }

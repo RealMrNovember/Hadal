@@ -1,14 +1,10 @@
 using UnityEngine;
-using Hadal.Core.DI;
 using Hadal.Core.State;
-using Hadal.Data.Config;
-using Hadal.Managers.Base;
 
 namespace Hadal.Gameplay.State
 {
     public abstract class HadalGameState : GameState
     {
-        protected IGameContext Context => GameContext.Current;
     }
 
     public sealed class MainMenuState : HadalGameState

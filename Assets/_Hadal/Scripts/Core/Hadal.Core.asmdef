@@ -3,6 +3,8 @@
     "rootNamespace": "Hadal.Core",
     "references": [
         "Hadal.Data",
+        "HADAL.Shared",
+        "ProtobufNet",
         "Unity.ResourceManager"
     ],
     "includePlatforms": [],

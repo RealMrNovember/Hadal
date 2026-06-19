@@ -12,12 +12,15 @@
 # IDE
 .vs/
 .idea/
-*.csproj
 *.unityproj
-*.sln
 *.suo
 *.user
 *.userprefs
+# Ignore generated csproj/sln except shared library (backend + CI)
+*.csproj
+*.sln
+!shared/**/*.csproj
+!shared/**/*.sln
 
 # OS
 .DS_Store
@@ -32,3 +35,11 @@ Thumbs.db
 *.private
 *.private.meta
 collabignore.txt
+
+# .NET build output (HADAL.Shared)
+shared/**/bin/
+shared/**/obj/
+
+# Precompiled plugin copy (Unity uses com.hadal.shared package sources)
+Assets/_Hadal/Plugins/Shared/*.dll
+Assets/_Hadal/Plugins/Shared/*.dll.meta

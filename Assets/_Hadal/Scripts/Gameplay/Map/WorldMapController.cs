@@ -1,30 +1,22 @@
-using Hadal.Data.Enums;
 using UnityEngine;
-using Hadal.Core.DI;
 using Hadal.Managers;
+using VContainer;
 
 namespace Hadal.Gameplay.Map
 {
     public class WorldMapController : MonoBehaviour
     {
-        [SerializeField] private Transform _mapRoot;
-        [SerializeField] private float _mapRadius = 100f;
-
         private MapManager _mapManager;
 
-        private void Start()
+        [Inject]
+        public void Construct(MapManager mapManager)
         {
-            if (GameContext.Current != null)
-                GameContext.Current.TryResolve(out _mapManager);
+            _mapManager = mapManager;
         }
 
-        public Vector3 GetZonePosition(DepthZone zone)
+        public void TravelToZone(Data.Enums.DepthZone zone)
         {
-            var t = (int)zone / (float)DepthZone.TheCore;
-            var angle = t * Mathf.PI * 2f;
-            return _mapRoot.position + new Vector3(Mathf.Cos(angle), 0f, Mathf.Sin(angle)) * _mapRadius;
+            _mapManager?.TryTravelToZone(zone);
         }
-
-        public bool TravelTo(DepthZone zone) => _mapManager != null && _mapManager.TryTravelToZone(zone);
     }
 }

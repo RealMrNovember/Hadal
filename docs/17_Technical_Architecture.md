@@ -3,7 +3,7 @@
 **Document Version:** 3.0 — Production Hardened  
 HADAL is a **server-authoritative mobile MMO**. PostgreSQL + Game Server own all gameplay truth. Unity client is **rendering, input, prediction display** only.
 
-**Companion docs:** [19_HADAL_Shared_Protocol_And_Serialization.md](./19_HADAL_Shared_Protocol_And_Serialization.md) · [18_Unity_Client_Architecture.md](./18_Unity_Client_Architecture.md)
+**Companion docs:** [21_HADAL_Shared_Protocol_And_Serialization.md](./21_HADAL_Shared_Protocol_And_Serialization.md) · [18_Unity_Client_Architecture.md](./18_Unity_Client_Architecture.md) · [15_Monetization.md](./15_Monetization.md)
 
 ---
 
@@ -112,6 +112,10 @@ ServerState (authoritative, in-memory + PostgreSQL)
 ```
 
 Commands MUST be: **idempotent** (`command_id`), **sequenced** (`client_sequence`), **Protobuf-encoded**.
+
+### Gacha command flow (no client RNG)
+
+See [15_Monetization.md](./15_Monetization.md): `ExecuteGachaCommand` → server Secure PRNG → `GachaResultDelta` → client VFX only.
 
 ---
 

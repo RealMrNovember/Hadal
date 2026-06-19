@@ -1,12 +1,12 @@
 using System.Collections.Generic;
 using UnityEngine;
 using Hadal.Core.Contracts;
-using Hadal.Core.DI;
 using Hadal.Core.Tick;
 using Hadal.Data.Config;
 using Hadal.Data.Events;
 using Hadal.Data.Models;
 using Hadal.Managers.Base;
+using VContainer;
 
 namespace Hadal.Managers
 {
@@ -27,13 +27,17 @@ namespace Hadal.Managers
             _maxHeroes = config.MaxHeroesPerExpedition;
         }
 
-        public override void ResolveDependencies(GameServiceContainer container)
+        [Inject]
+        public void InjectServices(IPressureService pressureService, IResourceService resourceService, TickManager tickManager)
         {
-            container.TryResolve(out _pressureService);
-            container.TryResolve(out _resourceService);
+            _pressureService = pressureService;
+            _resourceService = resourceService;
+            _tickManager = tickManager;
+        }
 
-            if (container.TryResolve(out _tickManager))
-                _tickManager.Register(this);
+        public override void OnPostInject()
+        {
+            _tickManager?.Register(this);
         }
 
         public bool TryStartExpedition(ExpeditionParty party, ExpeditionZoneDefinitionSO zone)

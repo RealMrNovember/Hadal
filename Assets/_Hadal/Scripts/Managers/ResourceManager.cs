@@ -2,13 +2,14 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using Hadal.Core.Contracts;
-using Hadal.Core.DI;
+using Hadal.Core.StateSync;
 using Hadal.Core.Tick;
 using Hadal.Data.Config;
 using Hadal.Data.Enums;
 using Hadal.Data.Events;
 using Hadal.Data.Models;
 using Hadal.Managers.Base;
+using VContainer;
 
 namespace Hadal.Managers
 {
@@ -20,6 +21,7 @@ namespace Hadal.Managers
         private ResourceDatabaseSO _database;
         private float _tickTimer;
         private TickManager _tickManager;
+        private IStateSyncService _stateSync;
 
         public int TickPriority => 10;
         public ResourceWallet Wallet => _wallet;
@@ -27,13 +29,21 @@ namespace Hadal.Managers
         protected override void OnInitialize(GameConfigSO config)
         {
             _database = config.ResourceDatabase;
-            SeedStartingResources();
         }
 
-        public override void ResolveDependencies(GameServiceContainer container)
+        [Inject]
+        public void InjectRuntime(TickManager tickManager, IStateSyncService stateSync)
         {
-            if (container.TryResolve(out _tickManager))
-                _tickManager.Register(this);
+            _tickManager = tickManager;
+            _stateSync = stateSync;
+        }
+
+        public override void OnPostInject()
+        {
+            if (!_stateSync.View.HasPersistedData)
+                SeedStartingResources();
+
+            _tickManager?.Register(this);
         }
 
         public void Tick(float deltaTime)

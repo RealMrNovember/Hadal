@@ -1,4 +1,4 @@
-# 19 — HADAL.Shared, Protocol Buffers & Network Serialization
+# 21 — HADAL.Shared, Protocol Buffers & Network Serialization
 
 **Status:** Mandatory production standard  
 **Applies to:** Unity Client · ASP.NET Core Gateway · Game Server  
@@ -77,11 +77,11 @@ message StateDeltaEnvelope {
 
 | Category | Examples |
 |----------|----------|
-| **Commands** | `PlaceBuildingCommand`, `RemoveBuildingCommand`, `UpgradeBuildingCommand`, `StartExpeditionCommand` |
-| **State DTOs** | `PlayerStateSnapshot`, `StateDelta`, `BuildingStateDto`, `ResourceStateDto` |
-| **Enums** | `ResourceType`, `GridSlotType`, `CommandResultCode`, `DepthZone` |
+| **Commands** | `PlaceBuildingCommand`, `RemoveBuildingCommand`, `UpgradeBuildingCommand`, `StartExpeditionCommand`, **`ExecuteGachaCommand`** |
+| **State DTOs** | `PlayerStateSnapshot`, `StateDelta`, `BuildingStateDto`, `ResourceStateDto`, **`GachaResultDelta`** |
+| **Enums** | `ResourceType`, `GridSlotType`, `CommandResultCode`, `DepthZone`, **`GachaType`**, **`HeroRarity`** |
 | **Network events** | `ResourceChangedNetworkEvent`, `BuildingPlacedNetworkEvent` |
-| **Simulation rules** | `PressureFormula`, `ResourceProductionFormula`, `DamageFormula` (pure static — **single definition**) |
+| **Simulation rules** | `PressureFormula`, `ResourceProductionFormula`, `DamageFormula`, **`GachaPityFormula`** (pure static — **single definition**) |
 | **Protobuf generated** | `Hadal.Protocol` namespace from `.proto` files |
 
 ### MUST NOT contain
@@ -106,8 +106,11 @@ message StateDeltaEnvelope {
     ├── hadal_common.proto
     ├── hadal_commands.proto
     ├── hadal_state.proto
-    └── hadal_events.proto
+    ├── hadal_events.proto
+    └── hadal_gacha.proto
 ```
+
+Monetization wire spec: [15_Monetization.md](./15_Monetization.md)
 
 ### Duplicate definition rule
 
