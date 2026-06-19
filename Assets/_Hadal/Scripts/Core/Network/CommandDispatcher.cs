@@ -31,18 +31,22 @@ namespace Hadal.Core.Network
         private readonly IWebSocketClient _webSocket;
         private readonly ICommandReconciliationSystem _reconciliation;
         private readonly IGatewaySessionState _session;
+        private readonly IPlacementAckSimulator _placementAckSimulator;
         private readonly Queue<BufferedCommand> _buffer = new();
 
         public CommandDispatcher(
             NetworkSerializationLayer serialization,
             IWebSocketClient webSocket,
             ICommandReconciliationSystem reconciliation,
-            IGatewaySessionState session)
+            IGatewaySessionState session,
+            IPlacementAckSimulator placementAckSimulator)
         {
             _serialization = serialization;
             _webSocket = webSocket;
             _reconciliation = reconciliation;
             _session = session;
+            _placementAckSimulator = placementAckSimulator;
+            _session.HandshakeCompleted += FlushBuffer;
         }
 
         public void Dispatch<T>(T command) where T : ICommand
@@ -50,14 +54,17 @@ namespace Hadal.Core.Network
             var commandType = ResolveCommandType(command);
             var wire = SerializeEnvelope(command, commandType);
 
+            _reconciliation.RegisterPendingCommand(command.CommandId, command.ClientSequence, commandType);
+
             if (!_session.IsHandshakeComplete)
             {
                 _buffer.Enqueue(new BufferedCommand(wire, command.CommandId, command.ClientSequence, commandType));
                 Debug.Log($"[CommandDispatcher] Buffered {commandType} — handshake pending (queue={_buffer.Count}).");
+                TrySimulatePlacementAck(command);
                 return;
             }
 
-            SendWire(wire, command.CommandId, command.ClientSequence, commandType);
+            SendWire(wire, commandType, command);
         }
 
         public void DispatchHandshake<T>(T command) where T : ICommand
@@ -73,7 +80,7 @@ namespace Hadal.Core.Network
             while (_buffer.Count > 0)
             {
                 var item = _buffer.Dequeue();
-                SendWire(item.Wire, item.CommandId, item.ClientSequence, item.CommandType);
+                SendWireOnly(item.Wire, item.CommandType, item.CommandId);
             }
         }
 
@@ -84,11 +91,22 @@ namespace Hadal.Core.Network
             return _serialization.Serialize(envelope);
         }
 
-        private void SendWire(byte[] wire, string commandId, ulong clientSequence, CommandType commandType)
+        private void SendWireOnly(byte[] wire, CommandType commandType, string commandId)
         {
-            _reconciliation.RegisterPendingCommand(commandId, clientSequence, commandType);
             _webSocket.Send(wire);
             Debug.Log($"[CommandDispatcher] Sent {commandType} id={commandId} wire={wire.Length}B");
+        }
+
+        private void SendWire<T>(byte[] wire, CommandType commandType, T command) where T : ICommand
+        {
+            SendWireOnly(wire, commandType, command.CommandId);
+            TrySimulatePlacementAck(command);
+        }
+
+        private void TrySimulatePlacementAck<T>(T command) where T : ICommand
+        {
+            if (command is PlaceBuildingCommand placeBuilding)
+                _placementAckSimulator?.SchedulePlacementAck(placeBuilding);
         }
 
         private static CommandType ResolveCommandType<T>(T command) where T : ICommand

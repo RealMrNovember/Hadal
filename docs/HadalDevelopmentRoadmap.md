@@ -58,12 +58,22 @@
 
 ## Phase 1 — Circular Grid Building
 
+**Goal:** Server-authoritative polar grid placement with responsive ghost UX under latency.
+
+| # | Sprint | Server | Client | Status |
+|---|--------|--------|--------|--------|
+| 1 | Polar grid & ghost preview | `GridSlot` + `CircularGridDefinition` in Shared | `CircularGridManager` · `IGridService` snap · `PreviewGhost` · `GridBuildController` (preview only) | [x] |
+| 2 | Server-authoritative placement | `PlaceBuildingCommand` stub validation (`LocalPlacementAckSimulator`) | `CommandDispatcher` dispatch · pending ghost · `CommandReconciliationSystem` ack · `BuildingStateView` · grid occupancy sync via `StateSyncService` | [x] |
+| 3 | Resource producer & sim tick | Production tick (Shared formulas) · `StateDelta` for resources | Resource HUD from replicated deltas · offline reconnect snapshot | [ ] |
+
 | Server | Client |
 |--------|--------|
 | `PlaceBuildingCommand` validation (Shared rules) | Ghost + prediction visual |
 | `RemoveBuildingCommand` | Destroy mode + rollback |
 | StateDelta for grid entities | GridStateView from VisualStateCache |
 | | RollbackAnimator on reject |
+
+**Phase 1 status (2026-06-19):** **SOLID through Sprint 2** — polar snap, command dispatch, stub gateway ack, authoritative building render, and grid occupancy sync are wired. Sprint 3 (resource producer + simulation tick) is next.
 
 **Output:** Server-confirmed building with responsive UX under latency.
 

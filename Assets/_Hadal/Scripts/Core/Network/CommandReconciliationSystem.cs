@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using HADAL.Shared.DTOs;
 using HADAL.Shared.Enums;
+using Hadal.Core.Events;
 using Hadal.Core.StateSync;
 using UnityEngine;
 using VContainer.Unity;
@@ -13,10 +14,13 @@ namespace Hadal.Core.Network
     /// </summary>
     public sealed class CommandReconciliationSystem : ICommandReconciliationSystem, ITickable
     {
+        private const float RejectionShakeDurationSeconds = 0.35f;
+
         private readonly Queue<NetworkInboundPacket> _pending = new();
         private readonly IStateSyncService _stateSync;
         private readonly NetworkSerializationLayer _serialization;
         private readonly IRollbackAnimator _rollbackAnimator;
+        private readonly ILocalEventBus _localBus;
 
         private string _lastCommandId = string.Empty;
         private ulong _lastClientSequence;
@@ -27,11 +31,13 @@ namespace Hadal.Core.Network
         public CommandReconciliationSystem(
             IStateSyncService stateSync,
             NetworkSerializationLayer serialization,
-            IRollbackAnimator rollbackAnimator)
+            IRollbackAnimator rollbackAnimator,
+            ILocalEventBus localBus)
         {
             _stateSync = stateSync;
             _serialization = serialization;
             _rollbackAnimator = rollbackAnimator;
+            _localBus = localBus;
         }
 
         public void EnqueueInbound(NetworkInboundPacket packet)
@@ -94,6 +100,8 @@ namespace Hadal.Core.Network
 
             if (ack.ClientSequence != 0 && ack.ClientSequence != _lastClientSequence)
                 return;
+
+            PublishPlacementResolution(ack);
 
             if (ack.Result == CommandResultCode.Rejected)
             {
@@ -170,6 +178,27 @@ namespace Hadal.Core.Network
                 };
 
                 _rollbackAnimator.RequestBuildingRollback(authoritative, commandId);
+            }
+        }
+
+        private void PublishPlacementResolution(CommandAckDto ack)
+        {
+            if (_lastCommandType != CommandType.PlaceBuilding)
+                return;
+
+            _localBus.Publish(new BuildingPlacementResolvedEvent
+            {
+                CommandId = ack.CommandId,
+                Result = ack.Result
+            });
+
+            if (ack.Result == CommandResultCode.Rejected)
+            {
+                _localBus.Publish(new GhostRejectionShakeEvent
+                {
+                    CommandId = ack.CommandId,
+                    DurationSeconds = RejectionShakeDurationSeconds
+                });
             }
         }
 

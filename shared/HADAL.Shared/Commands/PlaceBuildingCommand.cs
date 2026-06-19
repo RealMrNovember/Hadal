@@ -11,5 +11,7 @@ namespace HADAL.Shared.Commands
         [ProtoMember(4)] public int RingIndex { get; set; }
         [ProtoMember(5)] public int SectorIndex { get; set; }
         [ProtoMember(6)] public int RotationSteps { get; set; }
+        [ProtoMember(7)] public float Radius { get; set; }
+        [ProtoMember(8)] public float AngleDegrees { get; set; }
     }
 }

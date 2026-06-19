@@ -43,11 +43,29 @@ namespace Hadal.Managers.Bootstrap
             builder.RegisterInstance(_gameConfig);
             builder.Register<GameStateMachine>(Lifetime.Singleton);
             builder.Register<ClientStateView>(Lifetime.Singleton);
+
+            builder.Register<CircularGridManager>(Lifetime.Singleton)
+                .AsSelf()
+                .As<IGridService>()
+                .As<ICircularGridService>()
+                .As<ISaveParticipant>();
+            builder.RegisterEntryPoint<CircularGridManager>();
+
             builder.Register<IStateSyncService, StateSyncService>(Lifetime.Singleton);
 
             builder.Register<NetworkSerializationLayer>(Lifetime.Singleton);
             builder.Register<IWebSocketClient, NativeWebSocketClient>(Lifetime.Singleton);
             builder.RegisterEntryPoint<NativeWebSocketClient>();
+
+            builder.Register<IGatewaySessionState, GatewaySessionState>(Lifetime.Singleton);
+            builder.Register<IRollbackAnimator, RollbackAnimator>(Lifetime.Singleton);
+            builder.Register<ICommandReconciliationSystem, CommandReconciliationSystem>(Lifetime.Singleton);
+            builder.Register<ICommandDispatcher, CommandDispatcher>(Lifetime.Singleton);
+            builder.Register<INetworkStateReceiver, NetworkStateReceiver>(Lifetime.Singleton);
+            builder.Register<IPlacementAckSimulator, LocalPlacementAckSimulator>(Lifetime.Singleton);
+            builder.RegisterEntryPoint<CommandReconciliationSystem>();
+            builder.RegisterEntryPoint<NetworkStateReceiver>();
+            builder.RegisterEntryPoint<LocalPlacementAckSimulator>();
 
             builder.RegisterBuildCallback(_ => CreateSessionScope());
 

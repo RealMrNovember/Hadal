@@ -3,8 +3,11 @@ using System.Linq;
 using HADAL.Shared.DTOs;
 using HADAL.Shared.Serialization;
 using Hadal.Core.Contracts;
+using Hadal.Core.Events;
 using Hadal.Core.Network;
 using Hadal.Core.StateSync;
+using Hadal.Data.Models;
+using Hadal.Managers;
 using Hadal.Managers.Base;
 
 namespace Hadal.Managers.StateSync
@@ -16,11 +19,19 @@ namespace Hadal.Managers.StateSync
     {
         private readonly ClientStateView _view;
         private readonly NetworkSerializationLayer _serialization;
+        private readonly CircularGridManager _gridManager;
+        private readonly ILocalEventBus _localBus;
 
-        public StateSyncService(ClientStateView view, NetworkSerializationLayer serialization)
+        public StateSyncService(
+            ClientStateView view,
+            NetworkSerializationLayer serialization,
+            CircularGridManager gridManager,
+            ILocalEventBus localBus)
         {
             _view = view;
             _serialization = serialization;
+            _gridManager = gridManager;
+            _localBus = localBus;
         }
 
         public ClientStateView View => _view;
@@ -39,6 +50,7 @@ namespace Hadal.Managers.StateSync
                 return;
 
             ClientStateViewMutator.ApplySnapshot(_view, snapshot, _serialization);
+            SyncGridFromView();
         }
 
         public IReadOnlyList<CommandAckDto> ApplyDelta(StateDelta delta)
@@ -48,7 +60,14 @@ namespace Hadal.Managers.StateSync
 
             var commandAcks = new List<CommandAckDto>();
             ClientStateViewMutator.ApplyDelta(_view, delta, _serialization, commandAcks);
+            SyncGridFromView();
             return commandAcks;
+        }
+
+        private void SyncGridFromView()
+        {
+            _gridManager.SyncOccupancyFromBuildings(_view.Data.buildings);
+            _localBus.Publish(new BuildingStateChangedEvent());
         }
 
         public void CaptureAll(IEnumerable<ISaveParticipant> participants)
