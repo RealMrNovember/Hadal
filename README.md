@@ -1,5 +1,53 @@
 # HADAL
 
+> *Beneath The Abyss. Humanity Begins Again.*
+
+**HADAL** is a next-generation, server-authoritative Mobile Strategy MMO built on a custom high-performance architecture. Set in the crushing depths of the ocean (11,000 meters below), it combines unforgiving survival mechanics, real-time grid building, and massive multiplayer ecosystems.
+
+Designed for uncompromising scalability and a seamless mobile experience.
+
+---
+
+## ⚙️ Core Architecture (v3.0)
+
+This project strictly adheres to a **Server-Authoritative** model. The Unity client acts purely as a rendering, prediction, and input dispatch layer.
+
+* **Engine:** Unity 6 LTS (URP) / Mobile Optimized (60 FPS Target)
+* **Backend:** Distributed Game Server Cluster (ASP.NET Core / PostgreSQL / Redis)
+* **Networking:** WebSocket + REST Gateway with **Protobuf** binary serialization.
+* **Shared Codebase:** `HADAL.Shared` (.NET Standard 2.1) enforcing a single source of truth for all Commands, DTOs, and Simulation Formulas across Client and Server.
+* **Dependency Injection:** Strict scoped resolution via **VContainer** (Project / Session / Game). No implicit globals, no service locators.
+* **Latency Compensation:** Custom `ClientPredictionSystem` with asynchronous validation and smooth `RollbackAnimator` capabilities to ensure a fluid UX under 100-200ms latency.
+* **Asset Management:** Unity Addressables via external CDN `PatchService`.
+
+## 🏗️ Development Roadmap
+
+Currently executing **Phase 0-R (Architecture Hardening)**:
+- [x] MMO System Design & Documentation Audit
+- [x] Event System Consolidation (Local vs. Network Bus)
+- [ ] VContainer DI Implementation
+- [ ] Protobuf `NetworkSerializationLayer` & `HADAL.Shared` Integration
+- [ ] StateSync Pipeline (Snapshot + Delta Compression) Setup
+
+*(For full milestone tracking, see `/docs/HadalDevelopmentRoadmap.md`)*
+
+## 📂 Project Structure
+
+```text
+HADAL/
+├── Assets/
+│   └── _Hadal/
+│       ├── Scripts/
+│       │   ├── Core/          # DI, Patching, StateSync, Event Buses
+│       │   ├── Shared/        # Protobuf generated schemas & shared models
+│       │   ├── Presentation/  # Views, UI, Prediction Logic
+│       │   └── Data/          # ScriptableObject configs (Visuals only)
+│       └── Art/               # High-contrast, Bioluminescent 3D Assets
+├── docs/                      # v3.0 Master Architecture Documentation
+└── Packages/                  # Addressables, VContainer, Protobuf tools
+
+
+
 **AAA mobile strategy MMO** — build an underwater civilization from the shallows to the abyss.
 
 | | |
