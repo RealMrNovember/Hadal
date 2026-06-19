@@ -1,7 +1,7 @@
 # HADAL Development Roadmap
 
-**Version:** 3.0 — Production MMO Hardened  
-**References:** [17](./17_Technical_Architecture.md) · [18](./18_Unity_Client_Architecture.md) · [21](./21_HADAL_Shared_Protocol_And_Serialization.md) · [15](./15_Monetization.md)
+**Version:** 3.1 — Production MMO Hardened  
+**References:** [17](./17_Technical_Architecture.md) · [18](./18_Unity_Client_Architecture.md) · [21](./21_HADAL_Shared_Protocol_And_Serialization.md) · [15](./15_Monetization.md) · [22](./22_LiveOps_Admin_Terminal.md)
 
 ---
 
@@ -26,6 +26,8 @@
 | 13 | PatchService | Pre-MainMenu CDN check |
 | 14 | Server Phase A | Static CDN on hadal.cicibyte.com |
 | 15 | Gateway stub | Protobuf WebSocket + Hello handshake |
+| 16 | **Overseer Admin API stub** | JWT + 2FA scaffold · `AdminActionAuditLog` table |
+| 17 | **Overseer UI shell** | Next.js dark SPA · login + telemetry placeholder |
 
 ### Exit criteria (ALL required)
 
@@ -71,6 +73,8 @@
 |--------|--------|
 | Production/consumption tick (Shared formulas) | HUD from replicated deltas |
 | Offline reconciliation on reconnect | StateSnapshot — NOT client offline calc |
+
+> **LiveOps dependency:** Economy grants and manual compensation require **M7 Admin API** before soft-launch support workflows.
 
 ---
 
@@ -154,14 +158,23 @@ Server world event coordination.
 
 ## Server Milestones
 
-| # | Deliverable | Wire format |
-|---|-------------|-------------|
-| M1 | CDN + manifest | JSON (patch only) |
-| M2 | Auth API | JSON HTTP |
-| M3 | Gateway + schema handshake | Protobuf |
-| M4 | PlaceBuilding + StateSnapshot | Protobuf |
-| M5 | Resource tick + StateDelta | Protobuf |
-| M6 | Alliance + PvP shards | Protobuf |
+| # | Deliverable | Wire format | Overseer dependency |
+|---|-------------|-------------|---------------------|
+| M1 | CDN + manifest | JSON (patch only) | — |
+| M2 | Auth API | JSON HTTP | Admin login federation |
+| M3 | Gateway + schema handshake | Protobuf | CCU telemetry |
+| M4 | PlaceBuilding + StateSnapshot | Protobuf | Player CRM snapshot |
+| M5 | Resource tick + StateDelta | Protobuf | Economy grants |
+| M6 | Alliance + PvP shards | Protobuf | Alliance segment mail |
+| **M7** | **Admin API (The Overseer backend)** | JSON REST | **Blocks all GM ops** |
+| **M8** | **Overseer UI (Next.js panel)** | HTTPS static | GM daily operations |
+| **M9** | **Audit + 2FA + gacha hot-swap** | JSON REST | Production LiveOps |
+
+**Critical path:** M2 → M4 → M7 → M8 → M9 before monetization soft launch or public beta LiveOps.
+
+Parallel track: M7/M8 can begin after M2 (auth) even while M4–M6 gameplay milestones continue.
+
+See [22_LiveOps_Admin_Terminal.md](./22_LiveOps_Admin_Terminal.md) · [HADAL_SERVER_INFRASTRUCTURE.md](./HADAL_SERVER_INFRASTRUCTURE.md) Phase E.
 
 ---
 
@@ -184,7 +197,9 @@ Server world event coordination.
 | Prediction/Rollback | MEDIUM | Latency simulation suite |
 | Event boundaries | LOW | EventValidationLayer |
 | Delta compression | MEDIUM | Baseline tick protocol |
+| **Overseer / Admin API** | **HIGH** | JWT + 2FA + audit · no direct DB · IP allowlist |
+| **Gacha hot-swap** | **HIGH** | Staging publish · simulation · two-person approval |
 
 ---
 
-**Document Version:** 3.0
+**Document Version:** 3.1

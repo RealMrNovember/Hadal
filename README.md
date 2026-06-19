@@ -9,7 +9,7 @@
 | **Engine** | Unity 6 LTS · URP · Android / iOS |
 | **Backend** | ASP.NET Core · PostgreSQL · Redis |
 | **Architecture** | v3.1 — Production MMO hardened |
-| **Server** | [hadal.cicibyte.com](https://hadal.cicibyte.com) |
+| **Server** | [hadal.cicibyte.com](https://hadal.cicibyte.com) · GM: `/admin` (The Overseer) |
 | **Status** | Phase 0-R in progress |
 
 ---
@@ -36,7 +36,7 @@ Full rules: [HADAL_MASTER_DEVELOPMENT_GUIDE.md](docs/HADAL_MASTER_DEVELOPMENT_GU
 
 ## Phase 0-R Progress
 
-- [x] MMO documentation audit & design split (01–21)
+- [x] MMO documentation audit & design split (01–22)
 - [x] VContainer DI · event bus stubs
 - [x] HADAL.Shared · protobuf-net · CommandDispatcher stub
 - [ ] WebSocket gateway · full StateSyncPipeline
@@ -71,21 +71,22 @@ Details: [HadalDevelopmentRoadmap.md](docs/HadalDevelopmentRoadmap.md)
 | 19 | [Economy](docs/19_Economy.md) |
 | 20 | [End Game](docs/20_End_Game.md) |
 
-### Technical (17–18, 21)
+### Technical (17–18, 21–22)
 
 | # | Document |
 |---|----------|
 | 17 | [Technical Architecture](docs/17_Technical_Architecture.md) |
 | 18 | [Unity Client Architecture](docs/18_Unity_Client_Architecture.md) |
 | 21 | [HADAL.Shared & Protobuf](docs/21_HADAL_Shared_Protocol_And_Serialization.md) |
+| 22 | [LiveOps Admin Terminal (The Overseer)](docs/22_LiveOps_Admin_Terminal.md) |
 
 ### Operations
 
 | Document | Purpose |
 |----------|---------|
 | [HADAL_MASTER_DEVELOPMENT_GUIDE.md](docs/HADAL_MASTER_DEVELOPMENT_GUIDE.md) | Canonical dev rules |
-| [HadalDevelopmentRoadmap.md](docs/HadalDevelopmentRoadmap.md) | Phase plan |
-| [HADAL_SERVER_INFRASTRUCTURE.md](docs/HADAL_SERVER_INFRASTRUCTURE.md) | Server deployment |
+| [HadalDevelopmentRoadmap.md](docs/HadalDevelopmentRoadmap.md) | Phase plan · M7–M9 Overseer |
+| [HADAL_SERVER_INFRASTRUCTURE.md](docs/HADAL_SERVER_INFRASTRUCTURE.md) | Server deployment · `/admin` proxy |
 
 ---
 
@@ -93,7 +94,7 @@ Details: [HadalDevelopmentRoadmap.md](docs/HadalDevelopmentRoadmap.md)
 
 ```
 Hadal/
-├── docs/                              # 01–21 design + technical docs
+├── docs/                              # 01–22 design + technical docs
 ├── shared/HADAL.Shared/               # Commands, DTOs, ProtoContract types
 ├── Packages/com.hadal.protobuf-net/ # protobuf-net 3.2.52
 ├── Assets/_Hadal/                     # Unity client

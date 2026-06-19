@@ -4,7 +4,8 @@
 **Server IP:** `31.40.199.47`  
 **Web Root:** `/www/wwwroot/hadal.cicibyte.com`  
 **Status:** Planned — isolated deployment (does NOT touch other projects)  
-**Document Version:** 3.0  
+**Operator Access:** Full Cicibyte Corp authority within `/www/wwwroot/hadal.cicibyte.com/` and HADAL Docker stack only  
+**Document Version:** 3.1  
 **Protocol:** Protobuf (gameplay WebSocket) · JSON (patch manifest / auth HTTP only)
 
 ---
@@ -39,6 +40,10 @@ HADAL backend serves **server-authoritative** game state. Unity client is a view
 | **Redis** | Session cache, pub/sub replication | Binary blobs |
 | **PostgreSQL** | Persistent state (`hadal` schema) | Normalized / JSONB internal only |
 | **Analytics** | Optional — isolated pipeline | — |
+| **Admin API** | The Overseer Terminal backend — JWT + 2FA, audit log | JSON REST (admin only) |
+| **Overseer UI** | Next.js GM panel — Quiet Luxury dark SPA | Static / SSR via nginx |
+
+See [22_LiveOps_Admin_Terminal.md](./22_LiveOps_Admin_Terminal.md).
 
 ---
 
@@ -59,6 +64,7 @@ All paths under web root — **no files outside this tree for HADAL**:
 ├── gateway/                      # Reverse-proxy to WebSocket Gateway (internal)
 ├── static/                       # Landing, status page, legal
 ├── logs/                         # HADAL-only logs (rotated)
+├── admin/                        # Overseer UI static export (optional — or container)
 └── deploy/                       # Docker compose, env templates (NOT public)
     ├── docker-compose.hadal.yml
     ├── .env.example
@@ -78,6 +84,9 @@ All paths under web root — **no files outside this tree for HADAL**:
 | `wss://hadal.cicibyte.com/gateway` | WebSocket Gateway |
 | `https://hadal.cicibyte.com/api/v1/*` | REST API (auth, commands) |
 | `https://hadal.cicibyte.com/health` | Public health (no internal data) |
+| `https://hadal.cicibyte.com/admin` | **The Overseer Terminal** (GM UI — IP allowlist) |
+| `https://hadal.cicibyte.com/admin/api/v1/*` | Admin API (JWT + 2FA) |
+| `https://overseer.hadal.cicibyte.com` | Alternate isolated vhost (recommended prod) |
 
 ---
 
@@ -92,6 +101,8 @@ Use **internal ports only**; nginx terminates SSL and reverse-proxies.
 | HADAL Game Server (gRPC/internal) | `19003` | Not public |
 | Redis (HADAL instance) | `19004` | Dedicated container, NOT shared Redis |
 | PostgreSQL (HADAL) | `19005` | Dedicated container OR schema-only on isolated instance |
+| HADAL Admin API | `19006` | The Overseer backend — localhost only |
+| HADAL Overseer UI | `19007` | Next.js SSR/static — localhost only |
 
 > **Important:** If any port is taken, increment in +1 steps and update this document. Never reuse another project's ports.
 
@@ -134,6 +145,21 @@ services:
     networks: [hadal_net]
     ports: ["127.0.0.1:19002:8080"]
     depends_on: [hadal-postgres, hadal-redis]
+
+  hadal-admin-api:
+    # ASP.NET Core Admin API — The Overseer backend
+    networks: [hadal_net]
+    ports: ["127.0.0.1:19006:8080"]
+    depends_on: [hadal-postgres, hadal-redis, hadal-game-api]
+    environment:
+      ADMIN_JWT_SECRET: ${HADAL_ADMIN_JWT_SECRET}
+      ADMIN_TOTP_ISSUER: HADAL-Overseer
+
+  hadal-overseer-ui:
+    # Next.js GM panel — no DB credentials
+    networks: [hadal_net]
+    ports: ["127.0.0.1:19007:3000"]
+    depends_on: [hadal-admin-api]
 
 volumes:
   hadal_redis_data:
@@ -192,10 +218,49 @@ server {
         return 200 'ok';
         add_header Content-Type text/plain;
     }
+
+    # The Overseer Terminal — GM / LiveOps panel (HADAL vhost ONLY)
+    # IP allowlist: restrict to Cicibyte Corp egress in production
+    location /admin/api/ {
+        # Optional: allow 203.0.113.0/24; deny all;
+        proxy_pass http://127.0.0.1:19006/;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+        add_header Cache-Control "no-store";
+    }
+
+    location /admin {
+        proxy_pass http://127.0.0.1:19007;
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        add_header Cache-Control "no-store";
+        # SPA fallback handled by Next.js container
+    }
 }
 ```
 
-After edit: `nginx -t` → reload only if test passes.
+**Alternate vhost** (`overseer.hadal.cicibyte.com`): duplicate Admin locations only — no CDN/gateway exposure. Same `hadal_isolated_net` upstream ports.
+
+After edit: `nginx -t` → reload only if test passes. **Never edit other domain vhosts.**
+
+### Deployment topology (HADAL stack on `hadal_isolated_net`)
+
+```
+nginx (443, hadal.cicibyte.com)
+  ├── /cdn, /manifest     → static files
+  ├── /gateway            → hadal-gateway:19001
+  ├── /api/               → hadal-game-api:19002
+  ├── /admin              → hadal-overseer-ui:19007
+  └── /admin/api/         → hadal-admin-api:19006
+                                │
+                    hadal_isolated_net (Docker)
+  hadal-gateway ──┬── hadal-redis ── hadal-postgres
+  hadal-game-api ─┤
+  hadal-admin-api ─┘  (orchestrates — no public DB port)
+  hadal-overseer-ui   (UI only — no DB/Redis credentials)
+```
 
 ---
 
@@ -235,6 +300,10 @@ Core tables (server truth):
 - `alliances`, `alliance_members`
 - `world_tiles`, `world_events`
 - `sessions` — active session tokens (or Redis-only with PG backup)
+- `admin_users`, `admin_roles` — Overseer operators (separate from player accounts)
+- `admin_action_audit` — append-only GM audit log — [22_LiveOps_Admin_Terminal.md](./22_LiveOps_Admin_Terminal.md)
+- `gacha_drop_rates`, `gacha_banners`, `gift_codes` — economy hot-swap tables
+- `mail_campaigns`, `reward_packages` — LiveOps dispatch
 
 **Client NEVER writes directly.** All mutations via validated commands.
 
@@ -272,11 +341,24 @@ Core tables (server truth):
 - [ ] Log rotation under `logs/`
 - [ ] Backup job for `hadal_pg_data` volume only
 
+### Phase E — The Overseer Terminal (LiveOps GM)
+
+- [ ] Verify ports 19006–19007 free
+- [ ] Deploy `hadal-admin-api` + `hadal-overseer-ui` on `hadal_isolated_net`
+- [ ] Run admin schema migrations (`admin_action_audit`, `admin_users`)
+- [ ] nginx `/admin` + `/admin/api/` reverse proxy (hadal vhost only)
+- [ ] TOTP 2FA enrollment for GM accounts
+- [ ] IP allowlist on `/admin` paths
+- [ ] Telemetry dashboard smoke test (CCU, Redis, PG pool)
+
+See [22_LiveOps_Admin_Terminal.md](./22_LiveOps_Admin_Terminal.md).
+
 ---
 
 ## 10. SSH Access Notes
 
-- **Access:** Passwordless SSH available to deployment operator
+- **Server:** `31.40.199.47` — passwordless SSH for Cicibyte deployment operator
+- **Scope:** Full authority within `/www/wwwroot/hadal.cicibyte.com/` and HADAL Docker stack (`hadal-*` containers, `hadal_isolated_net`) only
 - **Pre-flight on connect:**
   ```bash
   docker ps --format "table {{.Names}}\t{{.Ports}}"
@@ -295,8 +377,12 @@ File: `deploy/.env.example` (copy to `.env`, never commit)
 HADAL_DB_PASSWORD=<generated>
 HADAL_REDIS_PASSWORD=<optional>
 HADAL_JWT_SECRET=<generated>
+HADAL_ADMIN_JWT_SECRET=<generated-separate-from-player-jwt>
+HADAL_ADMIN_TOTP_ENCRYPTION_KEY=<generated>
 HADAL_GATEWAY_PORT=19001
 HADAL_API_PORT=19002
+HADAL_ADMIN_API_PORT=19006
+HADAL_OVERSEER_UI_PORT=19007
 ASPNETCORE_ENVIRONMENT=Production
 ```
 
@@ -317,10 +403,12 @@ ASPNETCORE_ENVIRONMENT=Production
 - [18_Unity_Client_Architecture.md](./18_Unity_Client_Architecture.md) — client view layer
 - [21_HADAL_Shared_Protocol_And_Serialization.md](./21_HADAL_Shared_Protocol_And_Serialization.md) — Protobuf + HADAL.Shared
 - [15_Monetization.md](./15_Monetization.md) — Gacha · server authority
+- [16_Live_Ops.md](./16_Live_Ops.md) — LiveOps principles
+- [22_LiveOps_Admin_Terminal.md](./22_LiveOps_Admin_Terminal.md) — The Overseer GM panel
 - [HadalDevelopmentRoadmap.md](./HadalDevelopmentRoadmap.md) — Phase 0-R tasks
 
 ---
 
-**Document Version:** 3.0  
+**Document Version:** 3.1  
 **Last Updated:** 2026-06-19  
 **Owner:** HADAL Platform Team

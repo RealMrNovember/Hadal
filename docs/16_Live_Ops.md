@@ -27,3 +27,5 @@ Legacy monolithic design doc had no dedicated Live Ops section. Operasyonel faz 
 Faz teslimatları: [HadalDevelopmentRoadmap.md](./HadalDevelopmentRoadmap.md)
 
 Sunucu altyapısı: [HADAL_SERVER_INFRASTRUCTURE.md](./HADAL_SERVER_INFRASTRUCTURE.md)
+
+GM / LiveOps komuta merkezi: [22_LiveOps_Admin_Terminal.md](./22_LiveOps_Admin_Terminal.md) — **The Overseer Terminal**

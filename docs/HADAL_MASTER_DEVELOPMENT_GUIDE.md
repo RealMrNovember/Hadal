@@ -39,12 +39,16 @@
 | 18 | [18_Unity_Client_Architecture.md](./18_Unity_Client_Architecture.md) | VContainer · prediction · client view |
 | 21 | [21_HADAL_Shared_Protocol_And_Serialization.md](./21_HADAL_Shared_Protocol_And_Serialization.md) | Protobuf · HADAL.Shared |
 
-### Operations
+### Operations & LiveOps (22)
+
+| # | Document | Purpose |
+|---|----------|---------|
+| 22 | [22_LiveOps_Admin_Terminal.md](./22_LiveOps_Admin_Terminal.md) | **The Overseer GM panel · Admin API · telemetry** |
 
 | Document | Purpose |
 |----------|---------|
-| [HADAL_SERVER_INFRASTRUCTURE.md](./HADAL_SERVER_INFRASTRUCTURE.md) | `hadal.cicibyte.com` deployment |
-| [HadalDevelopmentRoadmap.md](./HadalDevelopmentRoadmap.md) | Phased delivery |
+| [HADAL_SERVER_INFRASTRUCTURE.md](./HADAL_SERVER_INFRASTRUCTURE.md) | `hadal.cicibyte.com` deployment · nginx `/admin` |
+| [HadalDevelopmentRoadmap.md](./HadalDevelopmentRoadmap.md) | Phased delivery · M7–M9 Overseer milestones |
 
 ---
 
