@@ -24,6 +24,9 @@ namespace Hadal.Managers.Bootstrap
         [SerializeField] private GameConfigSO _gameConfig;
         [SerializeField] private ManagerBase[] _managers = Array.Empty<ManagerBase>();
         [SerializeField] private Transform _poolRoot;
+        [SerializeField] private SessionLifetimeScope _sessionScopePrefab;
+
+        private SessionLifetimeScope _sessionScope;
 
         protected override void Awake()
         {
@@ -43,7 +46,10 @@ namespace Hadal.Managers.Bootstrap
             builder.Register<IStateSyncService, StateSyncService>(Lifetime.Singleton);
 
             builder.Register<NetworkSerializationLayer>(Lifetime.Singleton);
+            builder.Register<IWebSocketClient, NativeWebSocketClient>(Lifetime.Singleton);
             builder.Register<ICommandDispatcher, CommandDispatcher>(Lifetime.Singleton);
+
+            builder.RegisterBuildCallback(_ => CreateSessionScope());
 
             builder.Register<IPoolService>(resolver =>
             {
@@ -75,6 +81,25 @@ namespace Hadal.Managers.Bootstrap
 
             builder.RegisterInstance(_managers);
             builder.RegisterEntryPoint<GameBootstrapEntryPoint>();
+        }
+
+        private void CreateSessionScope()
+        {
+            _sessionScope = _sessionScopePrefab != null
+                ? Instantiate(_sessionScopePrefab, transform)
+                : CreateSessionScopeInstance();
+
+            using (LifetimeScope.EnqueueParent(this))
+            {
+                _sessionScope.Build();
+            }
+        }
+
+        private SessionLifetimeScope CreateSessionScopeInstance()
+        {
+            var go = new GameObject("SessionLifetimeScope");
+            go.transform.SetParent(transform, false);
+            return go.AddComponent<SessionLifetimeScope>();
         }
 
         private static void RegisterManager(IContainerBuilder builder, ManagerBase manager)
