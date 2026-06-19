@@ -1,0 +1,16 @@
+{
+    "name": "Hadal.Data",
+    "rootNamespace": "Hadal.Data",
+    "references": [
+        "Hadal.Core"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

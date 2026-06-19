@@ -1,0 +1,22 @@
+{
+    "name": "Hadal.Editor",
+    "rootNamespace": "Hadal.Editor",
+    "references": [
+        "Hadal.Core",
+        "Hadal.Data",
+        "Hadal.Managers",
+        "Hadal.Gameplay",
+        "Hadal.UI"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

@@ -1,0 +1,34 @@
+# Unity
+[Ll]ibrary/
+[Tt]emp/
+[Oo]bj/
+[Bb]uild/
+[Bb]uilds/
+[Ll]ogs/
+[Uu]ser[Ss]ettings/
+[Mm]emoryCaptures/
+[Rr]ecordings/
+
+# IDE
+.vs/
+.idea/
+*.csproj
+*.unityproj
+*.sln
+*.suo
+*.user
+*.userprefs
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Addressables
+[Aa]ssets/AddressableAssetsData/*/assetlinking.bin
+[Aa]ssets/AddressableAssetsData/*/catalog*.json
+[Aa]ssets/AddressableAssetsData/*/settings*.asset
+
+# Plastic / Collaborate
+*.private
+*.private.meta
+collabignore.txt
