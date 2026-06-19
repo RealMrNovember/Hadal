@@ -5,6 +5,7 @@
         "Hadal.Data",
         "HADAL.Shared",
         "ProtobufNet",
+        "colyseus.nativewebsocket",
         "Unity.ResourceManager"
     ],
     "includePlatforms": [],

@@ -47,7 +47,7 @@ namespace Hadal.Managers.Bootstrap
 
             builder.Register<NetworkSerializationLayer>(Lifetime.Singleton);
             builder.Register<IWebSocketClient, NativeWebSocketClient>(Lifetime.Singleton);
-            builder.Register<ICommandDispatcher, CommandDispatcher>(Lifetime.Singleton);
+            builder.RegisterEntryPoint<NativeWebSocketClient>();
 
             builder.RegisterBuildCallback(_ => CreateSessionScope());
 

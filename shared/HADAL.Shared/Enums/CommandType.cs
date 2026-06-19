@@ -11,5 +11,6 @@ namespace HADAL.Shared.Enums
         [ProtoEnum] UpgradeBuilding = 3,
         [ProtoEnum] StartExpedition = 4,
         [ProtoEnum] ExecuteGacha = 5,
+        [ProtoEnum] ClientAuth = 6,
     }
 }

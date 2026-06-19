@@ -10,7 +10,7 @@
 | **Backend** | ASP.NET Core · PostgreSQL · Redis |
 | **Architecture** | v3.1 — Production MMO hardened |
 | **Server** | [hadal.cicibyte.com](https://hadal.cicibyte.com) · GM: `/admin` (The Overseer) |
-| **Status** | Phase 0-R in progress |
+| **Status** | Phase 0-R complete · Phase 1 ready |
 
 ---
 
@@ -27,22 +27,23 @@ Input → ClientPredictionSystem → CommandDispatcher (Protobuf)
 | Wire protocol | **protobuf-net** (contract attributes) |
 | Shared contracts | **HADAL.Shared** (.NET Standard 2.1) |
 | Client DI | **VContainer** |
-| State replication | **StateSyncPipeline** (stub in progress) |
+| State replication | **StateSyncService** · ApplyDelta → ClientStateView |
 | Monetization | **Server-authoritative Gacha** — [15_Monetization.md](docs/15_Monetization.md) |
 
 Full rules: [HADAL_MASTER_DEVELOPMENT_GUIDE.md](docs/HADAL_MASTER_DEVELOPMENT_GUIDE.md)
 
 ---
 
-## Phase 0-R Progress
+## Phase 0-R Progress ✓
 
 - [x] MMO documentation audit & design split (01–22)
 - [x] VContainer DI · event bus stubs
-- [x] HADAL.Shared · protobuf-net · CommandDispatcher stub
-- [ ] WebSocket gateway · full StateSyncPipeline
-- [ ] ClientPredictionSystem · RollbackAnimator
+- [x] HADAL.Shared · protobuf-net · CommandDispatcher
+- [x] NativeWebSocket transport · gateway handshake · command buffer
+- [x] NetworkStateReceiver · CommandReconciliationSystem · RollbackAnimator
+- [x] StateSyncService.ApplyDelta / ApplySnapshot → ClientStateView (RAM only)
 
-Details: [HadalDevelopmentRoadmap.md](docs/HadalDevelopmentRoadmap.md)
+**Next:** [Phase 1 — Circular Grid Building](docs/HadalDevelopmentRoadmap.md#phase-1--circular-grid-building)
 
 ---
 

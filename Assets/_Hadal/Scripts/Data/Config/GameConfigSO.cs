@@ -23,7 +23,7 @@ namespace Hadal.Data.Config
         [SerializeField] private float _expeditionBaseDurationSeconds = 300f;
 
         [Header("Networking")]
-        [SerializeField] private string _gatewayUrl = "wss://gateway.hadal.game";
+        [SerializeField] private string _gatewayUrl = "wss://hadal.cicibyte.com/gateway";
         [SerializeField] private float _networkHeartbeatInterval = 15f;
 
         [Header("Addressables")]

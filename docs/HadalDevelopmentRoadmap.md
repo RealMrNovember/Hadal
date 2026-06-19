@@ -31,12 +31,14 @@
 
 ### Exit criteria (ALL required)
 
-- [ ] Zero gameplay JSON on WebSocket
-- [ ] Zero duplicate types outside HADAL.Shared
-- [ ] Zero static Resolve / ServiceLocator in gameplay assemblies
-- [ ] Prediction + rollback tested at 100ms and 200ms simulated latency
-- [ ] NetworkEventBus has zero Presentation assembly subscribers
-- [ ] No gameplay data in persistentDataPath
+- [x] Zero gameplay JSON on WebSocket
+- [x] Zero duplicate types outside HADAL.Shared
+- [x] Zero static Resolve / ServiceLocator in gameplay assemblies
+- [ ] Prediction + rollback tested at 100ms and 200ms simulated latency *(Phase 1 test harness)*
+- [x] NetworkEventBus has zero Presentation assembly subscribers
+- [x] No gameplay data in persistentDataPath
+
+**Phase 0-R status:** **COMPLETE** (2026-06-19) — ready for **Phase 1 (Grid Building System)**.
 
 ---
 
