@@ -47,6 +47,9 @@ Assets/_Hadal/Plugins/Shared/*.dll.meta
 # Backend projects (server/)
 !server/**/*.csproj
 
+# Headless Unity output (server/unity/unity.sh)
+artifacts/
+
 # dotnet output for HADAL.Shared (see shared/Directory.Build.props)
 obj~/
 bin~/

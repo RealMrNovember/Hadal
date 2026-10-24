@@ -1,0 +1,7 @@
+# Mounted as the editor container's ~/.gitconfig. The CT's uplink drops long HTTP/2 streams,
+# which broke UPM git clones (VContainer) with "curl 92 ... stream was not closed cleanly".
+[http]
+	version = HTTP/1.1
+	postBuffer = 524288000
+	lowSpeedLimit = 1000
+	lowSpeedTime = 120

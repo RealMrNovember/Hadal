@@ -1,0 +1,6 @@
+[Desktop Entry]
+Type=Application
+Name=Chrome (Hub sign-in)
+Exec=/usr/local/bin/hub-chrome %U
+NoDisplay=true
+MimeType=x-scheme-handler/http;x-scheme-handler/https;text/html;
