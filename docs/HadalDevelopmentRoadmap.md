@@ -1,5 +1,7 @@
 # HADAL Development Roadmap
 
+> **Master plan moved to [ROADMAP.md](../ROADMAP.md)** (2026-10-24). This file keeps the detailed v3 sprint history and server milestone mapping (M1–M9).
+
 **Version:** 3.1 — Production MMO Hardened  
 **References:** [17](./17_Technical_Architecture.md) · [18](./18_Unity_Client_Architecture.md) · [21](./21_HADAL_Shared_Protocol_And_Serialization.md) · [15](./15_Monetization.md) · [22](./22_LiveOps_Admin_Terminal.md)
 
