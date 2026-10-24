@@ -1,0 +1,30 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a31dbb64fd21ee5ebb658f080160dbb8, type: 3}
+  m_Name: GameConfig
+  m_EditorClassIdentifier: 
+  _mobilePerformanceConfig: {fileID: 11400000, guid: 85e3475e51b09f9549994e64b2d1f6d5, type: 2}
+  _circularGridConfig: {fileID: 11400000, guid: a06d1c9b110fa76a8bb1cd0bdbd3db9f, type: 2}
+  _baseTickIntervalSeconds: 1
+  _oxygenDepletionWarningThreshold: 0.15
+  _criticalPressureMultiplier: 1.5
+  _maxHeroesPerExpedition: 3
+  _expeditionBaseDurationSeconds: 300
+  _gatewayUrl: wss://hadal.cicibyte.com/gateway
+  _networkHeartbeatInterval: 15
+  _assetCatalog: {fileID: 11400000, guid: 051559a21525554e6ab1df757eba552b, type: 2}
+  _resourceDatabase: {fileID: 11400000, guid: 514f85757dbacf6489fbb91f359e17c5, type: 2}
+  _buildingDatabase: {fileID: 11400000, guid: e3281130eab26f2e087d4399c74fdae6, type: 2}
+  _heroDatabase: {fileID: 11400000, guid: 2996b781aedb18ac09b3433a0ba248fb, type: 2}
+  _enemyDatabase: {fileID: 11400000, guid: 5427d78fb0260c6b3a0e48f5fc365266, type: 2}
+  _depthZoneDatabase: {fileID: 11400000, guid: 7061da14e1dd9d6dba1a178602d502d8, type: 2}
+  _pressureDatabase: {fileID: 11400000, guid: ca87b18ce3ffb9bebbb258c6651f38e5, type: 2}

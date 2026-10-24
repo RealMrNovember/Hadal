@@ -1,0 +1,24 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 215908d0542298e5e98ac211aee0ced4, type: 3}
+  m_Name: MobilePerformanceConfig
+  m_EditorClassIdentifier: 
+  _targetFrameRate: 60
+  _backgroundFrameRate: 30
+  _enableVSync: 0
+  _defaultPoolCapacity: 16
+  _maxPoolSize: 128
+  _maxCachedAddressables: 64
+  _reduceUpdatesOnLowPower: 1
+  _lowPowerTickMultiplier: 0.5
+  _disableShadowsOnLowEnd: 0
+  _maxParticleBudget: 256

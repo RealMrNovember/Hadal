@@ -1,0 +1,107 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c16a50f3b7479812bb8dec4273fb2e98, type: 3}
+  m_Name: CircularGridConfig
+  m_EditorClassIdentifier: 
+  _slotYOffset: 0.05
+  _maxRings: 12
+  _startingUnlockedRings: 4
+  _rotationSnapDegrees: 60
+  _outerRingBaseSectors: 6
+  _outerRingSectorIncrement: 2
+  _outerRingMaxSectors: 16
+  _rings:
+  - _ringIndex: 0
+    _radius: 0
+    _sectorCount: 1
+    _startAngleOffset: 0
+    _defaultSlotType: 0
+    _expandable: 0
+    _sectors:
+    - _sectorIndex: 0
+      _slotType: 0
+      _preferredBuildingId: core_reactor
+      _allowedBuildingIds: []
+      _startsLocked: 0
+  - _ringIndex: 1
+    _radius: 5
+    _sectorCount: 3
+    _startAngleOffset: 0
+    _defaultSlotType: 1
+    _expandable: 0
+    _sectors:
+    - _sectorIndex: 0
+      _slotType: 1
+      _preferredBuildingId: oxygen_plant
+      _allowedBuildingIds: []
+      _startsLocked: 0
+    - _sectorIndex: 1
+      _slotType: 1
+      _preferredBuildingId: food_lab
+      _allowedBuildingIds: []
+      _startsLocked: 0
+    - _sectorIndex: 2
+      _slotType: 1
+      _preferredBuildingId: bio_lab
+      _allowedBuildingIds: []
+      _startsLocked: 0
+  - _ringIndex: 2
+    _radius: 10
+    _sectorCount: 3
+    _startAngleOffset: 0
+    _defaultSlotType: 2
+    _expandable: 0
+    _sectors:
+    - _sectorIndex: 0
+      _slotType: 2
+      _preferredBuildingId: research_center
+      _allowedBuildingIds: []
+      _startsLocked: 0
+    - _sectorIndex: 1
+      _slotType: 2
+      _preferredBuildingId: drone_factory
+      _allowedBuildingIds: []
+      _startsLocked: 0
+    - _sectorIndex: 2
+      _slotType: 2
+      _preferredBuildingId: submarine_dock
+      _allowedBuildingIds: []
+      _startsLocked: 0
+  - _ringIndex: 3
+    _radius: 15
+    _sectorCount: 3
+    _startAngleOffset: 0
+    _defaultSlotType: 3
+    _expandable: 0
+    _sectors:
+    - _sectorIndex: 0
+      _slotType: 3
+      _preferredBuildingId: military_dome
+      _allowedBuildingIds: []
+      _startsLocked: 0
+    - _sectorIndex: 1
+      _slotType: 3
+      _preferredBuildingId: shield_generator
+      _allowedBuildingIds: []
+      _startsLocked: 0
+    - _sectorIndex: 2
+      _slotType: 3
+      _preferredBuildingId: radar_center
+      _allowedBuildingIds: []
+      _startsLocked: 0
+  - _ringIndex: 4
+    _radius: 22
+    _sectorCount: 6
+    _startAngleOffset: 0
+    _defaultSlotType: 99
+    _expandable: 1
+    _sectors: []

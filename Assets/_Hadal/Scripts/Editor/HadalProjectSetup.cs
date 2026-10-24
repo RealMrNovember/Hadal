@@ -1,9 +1,11 @@
 #if UNITY_EDITOR
+using System.Collections.Generic;
 using System.IO;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.UI;
+using HADAL.Shared.Catalog;
 using HADAL.Shared.Enums;
 using Hadal.Data.Config;
 using Hadal.Data.Enums;
@@ -101,6 +103,9 @@ namespace Hadal.EditorTools
 
             EnsureFolder(ScenesPath);
             EditorSceneManager.SaveScene(scene, ScenesPath + "/Bootstrap.unity");
+
+            // First (and for now only) scene in player builds.
+            EditorBuildSettings.scenes = new[] { new EditorBuildSettingsScene(ScenesPath + "/Bootstrap.unity", true) };
             Debug.Log("[Hadal] Bootstrap scene created.");
         }
 
@@ -202,115 +207,100 @@ namespace Hadal.EditorTools
             AssetDatabase.CreateFolder(parent, folder);
         }
 
+        private const string CatalogPath = "shared/catalog/catalog.json";
+
+        private static GameCatalog _catalog;
+
+        /// <summary>
+        /// Resources, buildings and grid layout come from the shared catalog — the same file the
+        /// server validates and simulates with — so client data cannot drift from server rules.
+        /// </summary>
+        private static GameCatalog Catalog
+        {
+            get
+            {
+                if (_catalog != null)
+                    return _catalog;
+
+                var path = Path.Combine(Directory.GetCurrentDirectory(), CatalogPath);
+                if (!File.Exists(path))
+                    throw new FileNotFoundException("Shared game catalog not found.", path);
+
+                _catalog = GameCatalog.Create(JsonUtility.FromJson<GameCatalogData>(File.ReadAllText(path)));
+                return _catalog;
+            }
+        }
+
         private static ResourceDatabaseSO CreateResourceDatabase()
         {
             var db = GetOrCreate<ResourceDatabaseSO>(SettingsPath + "/ResourceDatabase.asset");
+            var resources = new List<Object>();
 
-            // PLACEHOLDER BALANCE: starting grants and storage caps are not specified in the design
-            // docs yet. They exist so the Sprint 3 economy loop has something to run on.
-            var resources = new[]
+            foreach (var data in Catalog.Data.resources)
             {
-                CreateResource("Resource_Oxygen", ResourceType.Oxygen, "Oxygen", "Base survival resource.", 500, 5000, true),
-                CreateResource("Resource_Energy", ResourceType.Energy, "Energy", "Reactor output.", 200, 2000, false),
-                CreateResource("Resource_Food", ResourceType.Food, "Food", "Crew sustenance.", 300, 3000, true),
-                CreateResource("Resource_Biomass", ResourceType.Biomass, "Biomass", "Organic material.", 100, 2000, false),
-                CreateResource("Resource_Titanium", ResourceType.Titanium, "Titanium", "Construction alloy.", 150, 5000, false),
-                CreateResource("Resource_Hadalite", ResourceType.Hadalite, "Hadalite", "Deep abyss crystal.", 0, 1000, false)
-            };
+                GameCatalog.TryParseResource(data.type, out var type);
+                var asset = GetOrCreate<ResourceDefinitionSO>(SettingsPath + "/Resource_" + type + ".asset");
+                var so = new SerializedObject(asset);
+                // intValue writes the enum's numeric value; enumValueIndex is the declaration index,
+                // which silently diverges from the wire value once the enum has gaps.
+                so.FindProperty("_type").intValue = (int)type;
+                so.FindProperty("_displayName").stringValue = data.displayName;
+                so.FindProperty("_description").stringValue = data.description;
+                so.FindProperty("_startingAmount").longValue = data.startingAmount;
+                so.FindProperty("_maxCapacity").longValue = data.maxCapacity;
+                so.FindProperty("_isCritical").boolValue = data.critical;
+                so.ApplyModifiedPropertiesWithoutUndo();
+                resources.Add(asset);
+            }
 
-            SetObjectList(db, "_resources", resources);
+            SetObjectList(db, "_resources", resources.ToArray());
             return db;
-        }
-
-        private static ResourceDefinitionSO CreateResource(string file, ResourceType type, string name, string desc,
-            long start, long capacity, bool critical)
-        {
-            var asset = GetOrCreate<ResourceDefinitionSO>(SettingsPath + "/" + file + ".asset");
-            var so = new SerializedObject(asset);
-            // intValue writes the enum's numeric value; enumValueIndex is the declaration index,
-            // which silently diverges from the wire value once the enum has gaps.
-            so.FindProperty("_type").intValue = (int)type;
-            so.FindProperty("_displayName").stringValue = name;
-            so.FindProperty("_description").stringValue = desc;
-            so.FindProperty("_startingAmount").longValue = start;
-            so.FindProperty("_maxCapacity").longValue = capacity;
-            so.FindProperty("_isCritical").boolValue = critical;
-            so.ApplyModifiedPropertiesWithoutUndo();
-            return asset;
         }
 
         private static BuildingDatabaseSO CreateBuildingDatabase()
         {
             var db = GetOrCreate<BuildingDatabaseSO>(SettingsPath + "/BuildingDatabase.asset");
+            var buildings = new List<Object>();
 
-            var reactor = CreateBuilding("core_reactor", "Core Reactor", BuildingCategory.Core, GridSlotType.Core, 0, 0);
-            var oxygen = CreateBuilding("oxygen_plant", "Oxygen Plant", BuildingCategory.Production, GridSlotType.Production, 1, 1);
-            var food = CreateBuilding("food_lab", "Food Lab", BuildingCategory.Production, GridSlotType.Production, 1, 1);
-            var bio = CreateBuilding("bio_lab", "Bio Lab", BuildingCategory.Production, GridSlotType.Production, 1, 1);
-
-            // PLACEHOLDER BALANCE (per simulation tick at level 1 — see SimulationTick.IntervalSeconds).
-            SetEconomy(reactor, production: new[] { (ResourceType.Energy, 4L) });
-            SetEconomy(oxygen, production: new[] { (ResourceType.Oxygen, 3L) },
-                consumption: new[] { (ResourceType.Energy, 1L) }, costs: new[] { (ResourceType.Titanium, 50L) });
-            SetEconomy(food, production: new[] { (ResourceType.Food, 2L) },
-                consumption: new[] { (ResourceType.Energy, 1L) }, costs: new[] { (ResourceType.Titanium, 40L) });
-            SetEconomy(bio, production: new[] { (ResourceType.Biomass, 1L) },
-                consumption: new[] { (ResourceType.Energy, 1L) }, costs: new[] { (ResourceType.Titanium, 60L) });
-
-            var buildings = new[]
+            foreach (var data in Catalog.Data.buildings)
             {
-                reactor, oxygen, food, bio,
-                CreateBuilding("research_center", "Research Center", BuildingCategory.Research, GridSlotType.Research, 2, 2),
-                CreateBuilding("drone_factory", "Drone Factory", BuildingCategory.Infrastructure, GridSlotType.Research, 2, 2),
-                CreateBuilding("submarine_dock", "Submarine Dock", BuildingCategory.Infrastructure, GridSlotType.Research, 2, 2),
-                CreateBuilding("military_dome", "Military Dome", BuildingCategory.Military, GridSlotType.Military, 3, 3),
-                CreateBuilding("shield_generator", "Shield Generator", BuildingCategory.Military, GridSlotType.Military, 3, 3),
-                CreateBuilding("radar_center", "Radar Center", BuildingCategory.Military, GridSlotType.Military, 3, 3),
-                CreateBuilding("mega_dome", "Mega Dome", BuildingCategory.Dome, GridSlotType.MegaDome, 4, 12, DomeType.Mega),
-                CreateBuilding("alliance_hub", "Alliance Hub", BuildingCategory.Infrastructure, GridSlotType.Alliance, 4, 12),
-                CreateBuilding("decoration_spire", "Decoration Spire", BuildingCategory.Infrastructure, GridSlotType.Decoration, 4, 12)
-            };
+                Catalog.TryGetBuilding(data.id, out var definition);
+                var asset = GetOrCreate<BuildingDefinitionSO>(SettingsPath + "/Building_" + data.id + ".asset");
+                var so = new SerializedObject(asset);
+                so.FindProperty("_id").stringValue = data.id;
+                so.FindProperty("_displayName").stringValue = data.displayName;
+                so.FindProperty("_category").intValue = (int)ParseClientEnum<BuildingCategory>(data.category, data.id);
+                so.FindProperty("_domeType").intValue = (int)ParseClientEnum<DomeType>(data.dome, data.id);
+                so.FindProperty("_requiredSlotType").intValue = (int)definition.SlotType;
+                so.FindProperty("_minRing").intValue = definition.MinRing;
+                so.FindProperty("_maxRing").intValue = definition.MaxRing;
+                WriteAmounts(so.FindProperty("_productionPerTick"), definition.Production);
+                WriteAmounts(so.FindProperty("_consumptionPerTick"), definition.Consumption);
+                WriteAmounts(so.FindProperty("_buildCosts"), definition.BuildCost);
+                so.ApplyModifiedPropertiesWithoutUndo();
+                buildings.Add(asset);
+            }
 
-            SetObjectList(db, "_buildings", buildings);
+            SetObjectList(db, "_buildings", buildings.ToArray());
             return db;
         }
 
-        private static BuildingDefinitionSO CreateBuilding(string id, string name, BuildingCategory cat, GridSlotType slotType, int minRing, int maxRing, DomeType dome = DomeType.None)
+        private static T ParseClientEnum<T>(string value, string context) where T : struct
         {
-            var asset = GetOrCreate<BuildingDefinitionSO>(SettingsPath + "/Building_" + id + ".asset");
-            var so = new SerializedObject(asset);
-            so.FindProperty("_id").stringValue = id;
-            so.FindProperty("_displayName").stringValue = name;
-            so.FindProperty("_category").enumValueIndex = (int)cat;
-            so.FindProperty("_domeType").enumValueIndex = (int)dome;
-            so.FindProperty("_requiredSlotType").enumValueIndex = (int)slotType;
-            so.FindProperty("_minRing").intValue = minRing;
-            so.FindProperty("_maxRing").intValue = maxRing;
-            so.ApplyModifiedPropertiesWithoutUndo();
-            return asset;
+            if (System.Enum.TryParse<T>(string.IsNullOrEmpty(value) ? "None" : value, out var parsed))
+                return parsed;
+
+            throw new System.FormatException($"Catalog building '{context}': unknown {typeof(T).Name} '{value}'.");
         }
 
-        private static void SetEconomy(BuildingDefinitionSO building,
-            (ResourceType type, long amount)[] production = null,
-            (ResourceType type, long amount)[] consumption = null,
-            (ResourceType type, long amount)[] costs = null)
+        private static void WriteAmounts(SerializedProperty list, IReadOnlyList<KeyValuePair<ResourceType, long>> amounts)
         {
-            var so = new SerializedObject(building);
-            WriteAmounts(so.FindProperty("_productionPerTick"), production);
-            WriteAmounts(so.FindProperty("_consumptionPerTick"), consumption);
-            WriteAmounts(so.FindProperty("_buildCosts"), costs);
-            so.ApplyModifiedPropertiesWithoutUndo();
-        }
-
-        private static void WriteAmounts(SerializedProperty list, (ResourceType type, long amount)[] amounts)
-        {
-            amounts ??= System.Array.Empty<(ResourceType, long)>();
-            list.arraySize = amounts.Length;
-            for (var i = 0; i < amounts.Length; i++)
+            list.arraySize = amounts.Count;
+            for (var i = 0; i < amounts.Count; i++)
             {
                 var element = list.GetArrayElementAtIndex(i);
-                element.FindPropertyRelative("Type").intValue = (int)amounts[i].type;
-                element.FindPropertyRelative("Amount").longValue = amounts[i].amount;
+                element.FindPropertyRelative("Type").intValue = (int)amounts[i].Key;
+                element.FindPropertyRelative("Amount").longValue = amounts[i].Value;
             }
         }
 
@@ -430,53 +420,58 @@ namespace Hadal.EditorTools
 
         private static CircularGridConfigSO CreateCircularGridConfig()
         {
+            var grid = Catalog.Grid;
             var config = GetOrCreate<CircularGridConfigSO>(SettingsPath + "/CircularGridConfig.asset");
             var so = new SerializedObject(config);
-            so.FindProperty("_startingUnlockedRings").intValue = 4;
-            so.FindProperty("_maxRings").intValue = 12;
-            so.FindProperty("_rotationSnapDegrees").floatValue = 60f;
+            so.FindProperty("_slotYOffset").floatValue = grid.slotYOffset;
+            so.FindProperty("_maxRings").intValue = grid.maxRings;
+            so.FindProperty("_startingUnlockedRings").intValue = grid.startingUnlockedRings;
+            so.FindProperty("_rotationSnapDegrees").floatValue = grid.rotationSnapDegrees;
+            so.FindProperty("_outerRingBaseSectors").intValue = grid.outerRingBaseSectors;
+            so.FindProperty("_outerRingSectorIncrement").intValue = grid.outerRingSectorIncrement;
+            so.FindProperty("_outerRingMaxSectors").intValue = grid.outerRingMaxSectors;
 
             var rings = so.FindProperty("_rings");
-            rings.arraySize = 5;
+            rings.arraySize = grid.rings.Length;
+            for (var r = 0; r < grid.rings.Length; r++)
+            {
+                var ring = grid.rings[r];
+                var ringProp = rings.GetArrayElementAtIndex(r);
+                ringProp.FindPropertyRelative("_ringIndex").intValue = ring.ring;
+                ringProp.FindPropertyRelative("_radius").floatValue = ring.radius;
+                ringProp.FindPropertyRelative("_sectorCount").intValue = ring.sectorCount;
+                ringProp.FindPropertyRelative("_startAngleOffset").floatValue = ring.startAngleOffset;
+                ringProp.FindPropertyRelative("_defaultSlotType").intValue = (int)SlotType(ring.defaultSlotType);
+                ringProp.FindPropertyRelative("_expandable").boolValue = ring.expandable;
 
-            WriteRing(rings.GetArrayElementAtIndex(0), 0, 0f, 1, 0f, GridSlotType.Core, false,
-                new[] { ("core_reactor", GridSlotType.Core, 0) });
+                var sectors = ringProp.FindPropertyRelative("_sectors");
+                var sectorData = ring.sectors ?? System.Array.Empty<SectorData>();
+                sectors.arraySize = sectorData.Length;
+                for (var s = 0; s < sectorData.Length; s++)
+                {
+                    var sector = sectorData[s];
+                    var sectorProp = sectors.GetArrayElementAtIndex(s);
+                    sectorProp.FindPropertyRelative("_sectorIndex").intValue = sector.sector;
+                    sectorProp.FindPropertyRelative("_slotType").intValue = (int)SlotType(sector.slotType);
+                    sectorProp.FindPropertyRelative("_preferredBuildingId").stringValue = sector.preferredBuildingId ?? string.Empty;
+                    sectorProp.FindPropertyRelative("_startsLocked").boolValue = sector.startsLocked;
 
-            WriteRing(rings.GetArrayElementAtIndex(1), 1, 5f, 3, 0f, GridSlotType.Production, false,
-                new[] { ("oxygen_plant", GridSlotType.Production, 0), ("food_lab", GridSlotType.Production, 1), ("bio_lab", GridSlotType.Production, 2) });
-
-            WriteRing(rings.GetArrayElementAtIndex(2), 2, 10f, 3, 0f, GridSlotType.Research, false,
-                new[] { ("research_center", GridSlotType.Research, 0), ("drone_factory", GridSlotType.Research, 1), ("submarine_dock", GridSlotType.Research, 2) });
-
-            WriteRing(rings.GetArrayElementAtIndex(3), 3, 15f, 3, 0f, GridSlotType.Military, false,
-                new[] { ("military_dome", GridSlotType.Military, 0), ("shield_generator", GridSlotType.Military, 1), ("radar_center", GridSlotType.Military, 2) });
-
-            WriteRing(rings.GetArrayElementAtIndex(4), 4, 22f, 6, 0f, GridSlotType.Universal, true,
-                System.Array.Empty<(string, GridSlotType, int)>());
+                    var allowed = sectorProp.FindPropertyRelative("_allowedBuildingIds");
+                    var ids = sector.allowedBuildingIds ?? System.Array.Empty<string>();
+                    allowed.arraySize = ids.Length;
+                    for (var i = 0; i < ids.Length; i++)
+                        allowed.GetArrayElementAtIndex(i).stringValue = ids[i];
+                }
+            }
 
             so.ApplyModifiedPropertiesWithoutUndo();
             return config;
         }
 
-        private static void WriteRing(SerializedProperty ringProp, int ringIndex, float radius, int sectorCount,
-            float angleOffset, GridSlotType defaultType, bool expandable, (string buildingId, GridSlotType slotType, int sector)[] sectors)
+        private static GridSlotType SlotType(string value)
         {
-            ringProp.FindPropertyRelative("_ringIndex").intValue = ringIndex;
-            ringProp.FindPropertyRelative("_radius").floatValue = radius;
-            ringProp.FindPropertyRelative("_sectorCount").intValue = sectorCount;
-            ringProp.FindPropertyRelative("_startAngleOffset").floatValue = angleOffset;
-            ringProp.FindPropertyRelative("_defaultSlotType").enumValueIndex = (int)defaultType;
-            ringProp.FindPropertyRelative("_expandable").boolValue = expandable;
-
-            var sectorArray = ringProp.FindPropertyRelative("_sectors");
-            sectorArray.arraySize = sectors.Length;
-            for (var i = 0; i < sectors.Length; i++)
-            {
-                var sectorProp = sectorArray.GetArrayElementAtIndex(i);
-                sectorProp.FindPropertyRelative("_sectorIndex").intValue = sectors[i].sector;
-                sectorProp.FindPropertyRelative("_slotType").enumValueIndex = (int)sectors[i].slotType;
-                sectorProp.FindPropertyRelative("_preferredBuildingId").stringValue = sectors[i].buildingId;
-            }
+            GameCatalog.TryParseSlotType(value, out var type);
+            return type;
         }
 
         private static void CreateGameConfig(ResourceDatabaseSO res, BuildingDatabaseSO bld,
