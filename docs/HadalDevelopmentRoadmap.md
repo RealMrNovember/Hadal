@@ -64,7 +64,7 @@
 |---|--------|--------|--------|--------|
 | 1 | Polar grid & ghost preview | `GridSlot` + `CircularGridDefinition` in Shared | `CircularGridManager` · `IGridService` snap · `PreviewGhost` · `GridBuildController` (preview only) | [x] |
 | 2 | Server-authoritative placement | `PlaceBuildingCommand` stub validation (`LocalPlacementAckSimulator`) | `CommandDispatcher` dispatch · pending ghost · `CommandReconciliationSystem` ack · `BuildingStateView` · grid occupancy sync via `StateSyncService` | [x] |
-| 3 | Resource producer & sim tick | Production tick (Shared formulas) · `StateDelta` for resources | Resource HUD from replicated deltas · offline reconnect snapshot | [~] |
+| 3 | Resource producer & sim tick | Production tick (Shared formulas) · `StateDelta` for resources | Resource HUD from replicated deltas · offline reconnect snapshot | [x] |
 
 | Server | Client |
 |--------|--------|
@@ -73,9 +73,9 @@
 | StateDelta for grid entities | GridStateView from VisualStateCache |
 | | RollbackAnimator on reject |
 
-**Phase 1 status (2026-09-25):** **SOLID through Sprint 2.** Sprint 3 is **code complete but UNVERIFIED** (`[~]`) — written without a Unity compile, Play Mode run, or test execution. Delivered: `ProductionFormulas`/`ProductionSimulator`/`ProductionCatalog` in HADAL.Shared, `LocalProductionTickSimulator` stub server, absolute-balance replication with stale-tick rejection, `ResourceHudView`, and consolidation of the duplicated `ResourceType` enum into HADAL.Shared.
+**Phase 1 status (2026-10-24):** **Sprints 1–3 verified.** The project now compiles, loads and boots in Unity 6000.0.32f1 (headless on DL380, `server/unity/unity.sh`); before this it had never compiled. Sprint 3 closed with 56/56 EditMode tests and a PlayMode smoke test that runs the generated Bootstrap scene end to end (seed snapshot → production tick → delta → StateSync → HUD). Results and the bugs this surfaced: [qa/Sprint3-Test-Results.md](./qa/Sprint3-Test-Results.md).
 
-Do not mark Sprint 3 `[x]` until the checklist in [qa/Sprint3-Risk-And-Test-Plan.md](./qa/Sprint3-Risk-And-Test-Plan.md) passes in the Editor.
+Still open from the QA plan (non-blocking): live-network reconnect, on-device low-battery run, `_pending` flush on reconnect, `LocalPlacementAckSimulator` gating, BaselineTick resync, the 100/200 ms latency harness, and real balance numbers (current values are placeholders).
 
 **Known Sprint 3 deviations (accepted, documented):**
 - The stub economy derives offline accrual from `DateTime.UtcNow`, which is Forbidden Pattern #8 territory. It is capped at 12 h, stands down when a real gateway socket connects, and **refuses to start outside Editor/development builds**. It must be deleted when the real server ships.
