@@ -5,6 +5,7 @@
 #   unity.sh import-license  read a UnityEntitlementLicense.xml from stdin (only works if not machine-bound)
 #   unity.sh hub / hub-stop  Unity Hub GUI over noVNC for Personal-license activation on this machine
 #   unity.sh compile       open the project in batchmode, import + compile scripts, exit
+#   unity.sh exec <method> run a static editor method in batchmode (e.g. project/scene setup)
 #   unity.sh test <mode>   run EditMode or PlayMode tests, results in artifacts/
 #   unity.sh shell         bash inside the editor container
 #
@@ -75,8 +76,18 @@ case "${1:-}" in
   compile)
     run unity-editor -batchmode -nographics -quit -projectPath /project \
       -logFile /project/artifacts/compile.log || true
-    grep -E "error CS|Scripts have compiler errors|Exiting batchmode" "${ARTIFACTS}/compile.log" | head -50
-    ! grep -q "error CS" "${ARTIFACTS}/compile.log"
+    # "will not be loaded" means the DLL compiled but Unity rejected it (e.g. a missing plugin
+    # dependency) — the editor then runs with none of our code, so it is a failure too.
+    grep -E "error CS|Scripts have compiler errors|will not be loaded|Reference has errors|Unable to resolve reference|Exiting batchmode" \
+      "${ARTIFACTS}/compile.log" | head -50
+    ! grep -qE "error CS|will not be loaded due to errors" "${ARTIFACTS}/compile.log"
+    ;;
+  exec)
+    # Run a static editor method, e.g. Hadal.EditorTools.HadalProjectSetup.CreateBootstrapScene
+    METHOD="${2:?usage: unity.sh exec <Namespace.Class.Method>}"
+    run unity-editor -batchmode -nographics -quit -projectPath /project -executeMethod "${METHOD}" \
+      -logFile /project/artifacts/exec.log || { grep -E "error CS|Exception|executeMethod" "${ARTIFACTS}/exec.log" | head -30; exit 1; }
+    grep -E "^\[Hadal\]" "${ARTIFACTS}/exec.log" || true
     ;;
   test)
     MODE="${2:-EditMode}"

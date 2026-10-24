@@ -3,6 +3,7 @@ using System.IO;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.UI;
 using HADAL.Shared.Enums;
 using Hadal.Data.Config;
 using Hadal.Data.Enums;
@@ -81,6 +82,8 @@ namespace Hadal.EditorTools
                 CreateManager<UIManager>(managersRoot, 150)
             };
 
+            var hud = CreateResourceHud(bootstrapGo.transform);
+
             var config = AssetDatabase.LoadAssetAtPath<GameConfigSO>(SettingsPath + "/GameConfig.asset");
             var so = new SerializedObject(bootstrap);
             so.FindProperty("_gameConfig").objectReferenceValue = config;
@@ -88,11 +91,73 @@ namespace Hadal.EditorTools
             so.FindProperty("_managers").arraySize = managers.Length;
             for (var i = 0; i < managers.Length; i++)
                 so.FindProperty("_managers").GetArrayElementAtIndex(i).objectReferenceValue = managers[i];
+
+            // VContainer only injects scene MonoBehaviours it is told about; [Inject] on the HUD
+            // is otherwise never called and the HUD stays blank.
+            var autoInject = so.FindProperty("autoInjectGameObjects");
+            autoInject.arraySize = 1;
+            autoInject.GetArrayElementAtIndex(0).objectReferenceValue = hud;
             so.ApplyModifiedPropertiesWithoutUndo();
 
             EnsureFolder(ScenesPath);
             EditorSceneManager.SaveScene(scene, ScenesPath + "/Bootstrap.unity");
             Debug.Log("[Hadal] Bootstrap scene created.");
+        }
+
+        private static readonly ResourceType[] HudResources =
+        {
+            ResourceType.Oxygen, ResourceType.Energy, ResourceType.Food,
+            ResourceType.Biomass, ResourceType.Titanium, ResourceType.Hadalite
+        };
+
+        private static GameObject CreateResourceHud(Transform parent)
+        {
+            var canvasGo = new GameObject("ResourceHud", typeof(RectTransform), typeof(Canvas), typeof(CanvasScaler));
+            canvasGo.transform.SetParent(parent, false);
+            canvasGo.GetComponent<Canvas>().renderMode = RenderMode.ScreenSpaceOverlay;
+
+            var layout = new GameObject("Rows", typeof(RectTransform), typeof(VerticalLayoutGroup));
+            layout.transform.SetParent(canvasGo.transform, false);
+            var layoutRect = (RectTransform)layout.transform;
+            layoutRect.anchorMin = layoutRect.anchorMax = layoutRect.pivot = new Vector2(0f, 1f);
+            layoutRect.anchoredPosition = new Vector2(16f, -16f);
+            layoutRect.sizeDelta = new Vector2(320f, 28f * HudResources.Length);
+
+            var font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            var view = canvasGo.AddComponent<ResourceHudView>();
+            var so = new SerializedObject(view);
+            var rows = so.FindProperty("_rows");
+            rows.arraySize = HudResources.Length;
+
+            for (var i = 0; i < HudResources.Length; i++)
+            {
+                var rowGo = new GameObject(HudResources[i].ToString(), typeof(RectTransform), typeof(HorizontalLayoutGroup));
+                rowGo.transform.SetParent(layout.transform, false);
+
+                CreateLabel(rowGo.transform, "Name", HudResources[i].ToString(), font);
+                var amount = CreateLabel(rowGo.transform, "Amount", "0", font);
+                var rate = CreateLabel(rowGo.transform, "Rate", string.Empty, font);
+
+                var row = rows.GetArrayElementAtIndex(i);
+                row.FindPropertyRelative("type").intValue = (int)HudResources[i];
+                row.FindPropertyRelative("amountLabel").objectReferenceValue = amount;
+                row.FindPropertyRelative("rateLabel").objectReferenceValue = rate;
+            }
+
+            so.ApplyModifiedPropertiesWithoutUndo();
+            return canvasGo;
+        }
+
+        private static Text CreateLabel(Transform parent, string name, string text, Font font)
+        {
+            var go = new GameObject(name, typeof(RectTransform), typeof(Text));
+            go.transform.SetParent(parent, false);
+            var label = go.GetComponent<Text>();
+            label.font = font;
+            label.fontSize = 18;
+            label.text = text;
+            label.color = Color.white;
+            return label;
         }
 
         private static T CreateManager<T>(GameObject parent, int priority) where T : ManagerBase
@@ -124,64 +189,93 @@ namespace Hadal.EditorTools
 
         private static void EnsureFolder(string path)
         {
-            if (!AssetDatabase.IsValidFolder(path))
-            {
-                var parent = Path.GetDirectoryName(path)?.Replace("\\", "/");
-                var folder = Path.GetFileName(path);
-                if (!string.IsNullOrEmpty(parent) && !string.IsNullOrEmpty(folder))
-                    AssetDatabase.CreateFolder(parent, folder);
-            }
+            if (AssetDatabase.IsValidFolder(path))
+                return;
+
+            var parent = Path.GetDirectoryName(path)?.Replace("\\", "/");
+            var folder = Path.GetFileName(path);
+            if (string.IsNullOrEmpty(parent) || string.IsNullOrEmpty(folder))
+                return;
+
+            // CreateFolder only creates one level; build missing parents first (clean clone).
+            EnsureFolder(parent);
+            AssetDatabase.CreateFolder(parent, folder);
         }
 
         private static ResourceDatabaseSO CreateResourceDatabase()
         {
             var db = GetOrCreate<ResourceDatabaseSO>(SettingsPath + "/ResourceDatabase.asset");
-            db.GetType(); // keep reference
 
-            CreateResource("Resource_Oxygen", ResourceType.Oxygen, "Oxygen", "Base survival resource.", 500, true);
-            CreateResource("Resource_Energy", ResourceType.Energy, "Energy", "Reactor output.", 200, false);
-            CreateResource("Resource_Food", ResourceType.Food, "Food", "Crew sustenance.", 300, true);
-            CreateResource("Resource_Biomass", ResourceType.Biomass, "Biomass", "Organic material.", 100, false);
-            CreateResource("Resource_Titanium", ResourceType.Titanium, "Titanium", "Construction alloy.", 150, false);
-            CreateResource("Resource_Hadalite", ResourceType.Hadalite, "Hadalite", "Deep abyss crystal.", 0, false);
+            // PLACEHOLDER BALANCE: starting grants and storage caps are not specified in the design
+            // docs yet. They exist so the Sprint 3 economy loop has something to run on.
+            var resources = new[]
+            {
+                CreateResource("Resource_Oxygen", ResourceType.Oxygen, "Oxygen", "Base survival resource.", 500, 5000, true),
+                CreateResource("Resource_Energy", ResourceType.Energy, "Energy", "Reactor output.", 200, 2000, false),
+                CreateResource("Resource_Food", ResourceType.Food, "Food", "Crew sustenance.", 300, 3000, true),
+                CreateResource("Resource_Biomass", ResourceType.Biomass, "Biomass", "Organic material.", 100, 2000, false),
+                CreateResource("Resource_Titanium", ResourceType.Titanium, "Titanium", "Construction alloy.", 150, 5000, false),
+                CreateResource("Resource_Hadalite", ResourceType.Hadalite, "Hadalite", "Deep abyss crystal.", 0, 1000, false)
+            };
 
-            EditorUtility.SetDirty(db);
+            SetObjectList(db, "_resources", resources);
             return db;
         }
 
-        private static void CreateResource(string file, ResourceType type, string name, string desc, long start, bool critical)
+        private static ResourceDefinitionSO CreateResource(string file, ResourceType type, string name, string desc,
+            long start, long capacity, bool critical)
         {
             var asset = GetOrCreate<ResourceDefinitionSO>(SettingsPath + "/" + file + ".asset");
             var so = new SerializedObject(asset);
-            so.FindProperty("_type").enumValueIndex = (int)type;
+            // intValue writes the enum's numeric value; enumValueIndex is the declaration index,
+            // which silently diverges from the wire value once the enum has gaps.
+            so.FindProperty("_type").intValue = (int)type;
             so.FindProperty("_displayName").stringValue = name;
             so.FindProperty("_description").stringValue = desc;
             so.FindProperty("_startingAmount").longValue = start;
+            so.FindProperty("_maxCapacity").longValue = capacity;
             so.FindProperty("_isCritical").boolValue = critical;
             so.ApplyModifiedPropertiesWithoutUndo();
+            return asset;
         }
 
         private static BuildingDatabaseSO CreateBuildingDatabase()
         {
             var db = GetOrCreate<BuildingDatabaseSO>(SettingsPath + "/BuildingDatabase.asset");
-            CreateBuilding("core_reactor", "Core Reactor", BuildingCategory.Core, GridSlotType.Core, 0, 0);
-            CreateBuilding("oxygen_plant", "Oxygen Plant", BuildingCategory.Production, GridSlotType.Production, 1, 1);
-            CreateBuilding("food_lab", "Food Lab", BuildingCategory.Production, GridSlotType.Production, 1, 1);
-            CreateBuilding("bio_lab", "Bio Lab", BuildingCategory.Production, GridSlotType.Production, 1, 1);
-            CreateBuilding("research_center", "Research Center", BuildingCategory.Research, GridSlotType.Research, 2, 2);
-            CreateBuilding("drone_factory", "Drone Factory", BuildingCategory.Infrastructure, GridSlotType.Research, 2, 2);
-            CreateBuilding("submarine_dock", "Submarine Dock", BuildingCategory.Infrastructure, GridSlotType.Research, 2, 2);
-            CreateBuilding("military_dome", "Military Dome", BuildingCategory.Military, GridSlotType.Military, 3, 3);
-            CreateBuilding("shield_generator", "Shield Generator", BuildingCategory.Military, GridSlotType.Military, 3, 3);
-            CreateBuilding("radar_center", "Radar Center", BuildingCategory.Military, GridSlotType.Military, 3, 3);
-            CreateBuilding("mega_dome", "Mega Dome", BuildingCategory.Dome, GridSlotType.MegaDome, 4, 12, DomeType.Mega);
-            CreateBuilding("alliance_hub", "Alliance Hub", BuildingCategory.Infrastructure, GridSlotType.Alliance, 4, 12);
-            CreateBuilding("decoration_spire", "Decoration Spire", BuildingCategory.Infrastructure, GridSlotType.Decoration, 4, 12);
-            EditorUtility.SetDirty(db);
+
+            var reactor = CreateBuilding("core_reactor", "Core Reactor", BuildingCategory.Core, GridSlotType.Core, 0, 0);
+            var oxygen = CreateBuilding("oxygen_plant", "Oxygen Plant", BuildingCategory.Production, GridSlotType.Production, 1, 1);
+            var food = CreateBuilding("food_lab", "Food Lab", BuildingCategory.Production, GridSlotType.Production, 1, 1);
+            var bio = CreateBuilding("bio_lab", "Bio Lab", BuildingCategory.Production, GridSlotType.Production, 1, 1);
+
+            // PLACEHOLDER BALANCE (per simulation tick at level 1 — see SimulationTick.IntervalSeconds).
+            SetEconomy(reactor, production: new[] { (ResourceType.Energy, 4L) });
+            SetEconomy(oxygen, production: new[] { (ResourceType.Oxygen, 3L) },
+                consumption: new[] { (ResourceType.Energy, 1L) }, costs: new[] { (ResourceType.Titanium, 50L) });
+            SetEconomy(food, production: new[] { (ResourceType.Food, 2L) },
+                consumption: new[] { (ResourceType.Energy, 1L) }, costs: new[] { (ResourceType.Titanium, 40L) });
+            SetEconomy(bio, production: new[] { (ResourceType.Biomass, 1L) },
+                consumption: new[] { (ResourceType.Energy, 1L) }, costs: new[] { (ResourceType.Titanium, 60L) });
+
+            var buildings = new[]
+            {
+                reactor, oxygen, food, bio,
+                CreateBuilding("research_center", "Research Center", BuildingCategory.Research, GridSlotType.Research, 2, 2),
+                CreateBuilding("drone_factory", "Drone Factory", BuildingCategory.Infrastructure, GridSlotType.Research, 2, 2),
+                CreateBuilding("submarine_dock", "Submarine Dock", BuildingCategory.Infrastructure, GridSlotType.Research, 2, 2),
+                CreateBuilding("military_dome", "Military Dome", BuildingCategory.Military, GridSlotType.Military, 3, 3),
+                CreateBuilding("shield_generator", "Shield Generator", BuildingCategory.Military, GridSlotType.Military, 3, 3),
+                CreateBuilding("radar_center", "Radar Center", BuildingCategory.Military, GridSlotType.Military, 3, 3),
+                CreateBuilding("mega_dome", "Mega Dome", BuildingCategory.Dome, GridSlotType.MegaDome, 4, 12, DomeType.Mega),
+                CreateBuilding("alliance_hub", "Alliance Hub", BuildingCategory.Infrastructure, GridSlotType.Alliance, 4, 12),
+                CreateBuilding("decoration_spire", "Decoration Spire", BuildingCategory.Infrastructure, GridSlotType.Decoration, 4, 12)
+            };
+
+            SetObjectList(db, "_buildings", buildings);
             return db;
         }
 
-        private static void CreateBuilding(string id, string name, BuildingCategory cat, GridSlotType slotType, int minRing, int maxRing, DomeType dome = DomeType.None)
+        private static BuildingDefinitionSO CreateBuilding(string id, string name, BuildingCategory cat, GridSlotType slotType, int minRing, int maxRing, DomeType dome = DomeType.None)
         {
             var asset = GetOrCreate<BuildingDefinitionSO>(SettingsPath + "/Building_" + id + ".asset");
             var so = new SerializedObject(asset);
@@ -193,6 +287,42 @@ namespace Hadal.EditorTools
             so.FindProperty("_minRing").intValue = minRing;
             so.FindProperty("_maxRing").intValue = maxRing;
             so.ApplyModifiedPropertiesWithoutUndo();
+            return asset;
+        }
+
+        private static void SetEconomy(BuildingDefinitionSO building,
+            (ResourceType type, long amount)[] production = null,
+            (ResourceType type, long amount)[] consumption = null,
+            (ResourceType type, long amount)[] costs = null)
+        {
+            var so = new SerializedObject(building);
+            WriteAmounts(so.FindProperty("_productionPerTick"), production);
+            WriteAmounts(so.FindProperty("_consumptionPerTick"), consumption);
+            WriteAmounts(so.FindProperty("_buildCosts"), costs);
+            so.ApplyModifiedPropertiesWithoutUndo();
+        }
+
+        private static void WriteAmounts(SerializedProperty list, (ResourceType type, long amount)[] amounts)
+        {
+            amounts ??= System.Array.Empty<(ResourceType, long)>();
+            list.arraySize = amounts.Length;
+            for (var i = 0; i < amounts.Length; i++)
+            {
+                var element = list.GetArrayElementAtIndex(i);
+                element.FindPropertyRelative("Type").intValue = (int)amounts[i].type;
+                element.FindPropertyRelative("Amount").longValue = amounts[i].amount;
+            }
+        }
+
+        private static void SetObjectList(Object owner, string propertyName, Object[] items)
+        {
+            var so = new SerializedObject(owner);
+            var list = so.FindProperty(propertyName);
+            list.arraySize = items.Length;
+            for (var i = 0; i < items.Length; i++)
+                list.GetArrayElementAtIndex(i).objectReferenceValue = items[i];
+            so.ApplyModifiedPropertiesWithoutUndo();
+            EditorUtility.SetDirty(owner);
         }
 
         private static HeroDatabaseSO CreateHeroDatabase()
