@@ -1,0 +1,28 @@
+# Line endings are normalised in the repo; these types must also stay LF in working copies
+# because they are edited on Windows and consumed on the Linux CT (shell, Unity YAML).
+* text=auto
+
+*.sh        text eol=lf
+*.cs        text diff=csharp
+
+# Unity YAML. Use UnityYAMLMerge locally if configured:
+#   git config merge.unityyamlmerge.driver '"<Unity>/Data/Tools/UnityYAMLMerge" merge -p %O %B %A %A'
+*.meta      text eol=lf
+*.unity     text eol=lf merge=unityyamlmerge
+*.prefab    text eol=lf merge=unityyamlmerge
+*.asset     text eol=lf merge=unityyamlmerge
+*.mat       text eol=lf merge=unityyamlmerge
+*.anim      text eol=lf merge=unityyamlmerge
+*.controller text eol=lf merge=unityyamlmerge
+
+*.dll       binary
+*.so        binary
+*.png       binary
+*.jpg       binary
+*.psd       binary
+*.fbx       binary
+*.wav       binary
+*.mp3       binary
+*.ogg       binary
+*.ttf       binary
+*.otf       binary
