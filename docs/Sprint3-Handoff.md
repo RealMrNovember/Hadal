@@ -94,7 +94,7 @@ Bunlar bu sprint'te düzeltilmedi; ayrı iş kalemi olarak açılmalı:
 
 ## 6. İnsanın yapması gerekenler
 
-1. **Unity'de derle.** Hiçbir şey derlenmedi. Özellikle enum konsolidasyonu 7 dosyaya dokundu.
+1. ~~**Unity'de derle.**~~ **YAPILDI (2026-10-24):** DL380'deki headless Unity 6000.0.32f1 ile hatasız derlendi (`server/unity/unity.sh compile`). Proje bu tarihe kadar hiç derlenmemişti; Sprint 3 öncesinden kalan hatalar da düzeltildi (eksik `ObjectPool`/`IsExternalInit`, `com.hadal.shared` manifest yolu, asmdef döngüsü, Addressables isim gölgelemesi vb.). Play Mode/test koşumu hâlâ yapılmadı.
 2. **asmdef değişikliklerini doğrula:** `Hadal.Data` → `Hadal.Core` referansı silindi (döngüydü ve ölüydü); `HADAL.Shared` referansı `Hadal.Data`/`Hadal.Editor`/`Hadal.UI`'ya, `VContainer` `Hadal.Core`/`Hadal.UI`'ya eklendi.
 3. **`Hadal → Setup → Create Full Project Data`** ile SO asset'lerini üret (repoda hiç `.asset` yok) ve `BuildingDefinitionSO.ProductionPerTick` / `ConsumptionPerTick` / `BuildCosts` alanlarını doldur — **boşsa hiçbir şey üretilmez.**
 4. **`ResourceHudView`** sahneye eklenmeli ve `_rows` listesi Inspector'dan bağlanmalı (kod prefab oluşturmuyor).

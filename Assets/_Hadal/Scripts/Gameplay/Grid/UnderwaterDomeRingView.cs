@@ -1,6 +1,6 @@
 using UnityEngine;
 using Hadal.Data.Config;
-using Hadal.Gameplay.Grid;
+using Hadal.Core.Grid;
 
 namespace Hadal.Gameplay.Grid
 {

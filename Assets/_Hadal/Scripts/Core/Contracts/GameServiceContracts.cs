@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using HADAL.Shared.Enums;
 using Hadal.Core.Pooling;
+using Hadal.Core.Services;
 using Hadal.Data.Config;
 using Hadal.Data.Enums;
 using Hadal.Data.Models;
@@ -70,14 +71,14 @@ namespace Hadal.Core.Contracts
         void RestoreSave(SaveGameData data);
     }
 
-    public interface IAssetProvider
+    public interface IAssetProvider : IGameService
     {
         void PreloadCatalog();
         AsyncOperationHandle<T> LoadAsync<T>(string address) where T : UnityEngine.Object;
         void Release<T>(AsyncOperationHandle<T> handle) where T : UnityEngine.Object;
     }
 
-    public interface IPoolService
+    public interface IPoolService : IGameService
     {
         ObjectPool<T> GetOrCreatePool<T>(string key, T prefab, UnityEngine.Transform parent = null)
             where T : UnityEngine.Component;

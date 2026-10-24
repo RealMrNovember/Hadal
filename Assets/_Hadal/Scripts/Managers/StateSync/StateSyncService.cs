@@ -10,6 +10,8 @@ using Hadal.Core.StateSync;
 using Hadal.Data.Models;
 using Hadal.Managers;
 using Hadal.Managers.Base;
+// HADAL.Shared also defines a NetworkSerializationLayer; DI registers the Core one.
+using NetworkSerializationLayer = Hadal.Core.Network.NetworkSerializationLayer;
 
 namespace Hadal.Managers.StateSync
 {

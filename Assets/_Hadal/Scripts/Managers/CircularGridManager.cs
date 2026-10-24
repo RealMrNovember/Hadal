@@ -5,7 +5,7 @@ using Hadal.Core.Contracts;
 using Hadal.Data.Config;
 using Hadal.Data.Enums;
 using Hadal.Data.Models;
-using Hadal.Gameplay.Grid;
+using Hadal.Core.Grid;
 using Hadal.Managers.Services;
 using UnityEngine;
 using VContainer.Unity;

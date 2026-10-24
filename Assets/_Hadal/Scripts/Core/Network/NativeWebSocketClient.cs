@@ -104,7 +104,7 @@ namespace Hadal.Core.Network
             OnDisconnected?.Invoke();
         }
 
-        private static void Unsubscribe(WebSocket socket)
+        private void Unsubscribe(WebSocket socket)
         {
             socket.OnOpen -= HandleOpen;
             socket.OnMessage -= HandleMessage;

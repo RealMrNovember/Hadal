@@ -7,10 +7,10 @@
     "com.unity.textmeshpro": "3.2.0-pre.10",
     "com.unity.timeline": "1.8.7",
     "com.unity.ugui": "2.0.0",
-    "com.hadal.shared": "file:shared/HADAL.Shared",
+    "com.hadal.shared": "file:../shared/HADAL.Shared",
     "com.hadal.protobuf-net": "file:Packages/com.hadal.protobuf-net",
     "com.endel.nativewebsocket": "file:Packages/com.endel.nativewebsocket",
-    "jp.hadashikick.vcontainer": "https://github.com/hadashiA/VContainer.git?path=VContainer/Assets/VContainer#1.16.8",
+    "jp.hadashikick.vcontainer": "1.16.8",
     "com.unity.modules.ai": "1.0.0",
     "com.unity.modules.animation": "1.0.0",
     "com.unity.modules.audio": "1.0.0",
@@ -19,5 +19,14 @@
     "com.unity.modules.ui": "1.0.0",
     "com.unity.modules.uielements": "1.0.0",
     "com.unity.modules.unitywebrequest": "1.0.0"
-  }
+  },
+  "scopedRegistries": [
+    {
+      "name": "package.openupm.com",
+      "url": "https://package.openupm.com",
+      "scopes": [
+        "jp.hadashikick.vcontainer"
+      ]
+    }
+  ]
 }

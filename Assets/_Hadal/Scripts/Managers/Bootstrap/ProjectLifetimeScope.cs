@@ -28,12 +28,6 @@ namespace Hadal.Managers.Bootstrap
 
         private SessionLifetimeScope _sessionScope;
 
-        protected override void Awake()
-        {
-            autoInjectGameObjects = true;
-            base.Awake();
-        }
-
         protected override void Configure(IContainerBuilder builder)
         {
             builder.Register<ILocalEventBus, LocalEventBusStub>(Lifetime.Singleton);

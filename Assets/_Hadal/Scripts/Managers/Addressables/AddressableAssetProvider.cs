@@ -2,6 +2,8 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
+// The enclosing namespace Hadal.Managers.Addressables would otherwise shadow the Unity API class.
+using AddressablesApi = UnityEngine.AddressableAssets.Addressables;
 using Hadal.Core.Contracts;
 using Hadal.Core.Services;
 using Hadal.Data.Config;
@@ -27,7 +29,7 @@ namespace Hadal.Managers.Addressables
             for (var i = _activeHandles.Count - 1; i >= 0; i--)
             {
                 if (_activeHandles[i].IsValid())
-                    Addressables.Release(_activeHandles[i]);
+                    AddressablesApi.Release(_activeHandles[i]);
             }
 
             _activeHandles.Clear();
@@ -43,7 +45,7 @@ namespace Hadal.Managers.Addressables
                 if (entry.LoadPolicy != AssetLoadPolicy.PreloadAtBoot)
                     continue;
 
-                var handle = Addressables.LoadAssetAsync<Object>(entry.Address);
+                var handle = AddressablesApi.LoadAssetAsync<Object>(entry.Address);
                 TrackHandle(handle);
             }
         }
@@ -53,7 +55,7 @@ namespace Hadal.Managers.Addressables
             if (_catalog != null && _catalog.TryGetAddress(address, out var catalogAddress))
                 address = catalogAddress;
 
-            var handle = Addressables.LoadAssetAsync<T>(address);
+            var handle = AddressablesApi.LoadAssetAsync<T>(address);
             TrackHandle(handle);
             return handle;
         }
@@ -61,7 +63,7 @@ namespace Hadal.Managers.Addressables
         public void Release<T>(AsyncOperationHandle<T> handle) where T : Object
         {
             if (handle.IsValid())
-                Addressables.Release(handle);
+                AddressablesApi.Release(handle);
 
             _activeHandles.Remove(handle);
         }
@@ -78,7 +80,7 @@ namespace Hadal.Managers.Addressables
             {
                 var oldest = _activeHandles[0];
                 if (oldest.IsValid())
-                    Addressables.Release(oldest);
+                    AddressablesApi.Release(oldest);
 
                 _activeHandles.RemoveAt(0);
             }

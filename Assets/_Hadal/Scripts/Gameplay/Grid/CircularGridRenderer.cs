@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Hadal.Core.Contracts;
+using Hadal.Core.Grid;
 using UnityEngine;
 using VContainer;
 

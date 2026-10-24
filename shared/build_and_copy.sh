@@ -9,6 +9,6 @@ DLL_NAME="HADAL.Shared.dll"
 dotnet build "${PROJECT}" -c Release
 
 mkdir -p "${OUT_DIR}"
-cp -f "${ROOT}/HADAL.Shared/bin/Release/netstandard2.1/${DLL_NAME}" "${OUT_DIR}/${DLL_NAME}"
+cp -f "${ROOT}/HADAL.Shared/bin~/Release/netstandard2.1/${DLL_NAME}" "${OUT_DIR}/${DLL_NAME}"
 
 echo "Copied ${DLL_NAME} -> ${OUT_DIR}"

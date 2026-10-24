@@ -11,7 +11,7 @@ if errorlevel 1 exit /b 1
 
 if not exist "%OUT_DIR%" mkdir "%OUT_DIR%"
 
-copy /Y "%ROOT%HADAL.Shared\bin\Release\netstandard2.1\%DLL_NAME%" "%OUT_DIR%\%DLL_NAME%"
+copy /Y "%ROOT%HADAL.Shared\bin~\Release\netstandard2.1\%DLL_NAME%" "%OUT_DIR%\%DLL_NAME%"
 if errorlevel 1 exit /b 1
 
 echo Copied %DLL_NAME% -^> %OUT_DIR%

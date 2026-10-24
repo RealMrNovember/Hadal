@@ -1,3 +1,4 @@
+using Hadal.Core.Contracts;
 using Hadal.Data.Models;
 using Hadal.Managers.Base;
 using VContainer;

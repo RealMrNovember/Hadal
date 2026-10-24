@@ -2,9 +2,8 @@ using UnityEngine;
 using Hadal.Core.Contracts;
 using Hadal.Data.Config;
 using Hadal.Data.Models;
-using Hadal.Managers.Services;
 
-namespace Hadal.Gameplay.Grid
+namespace Hadal.Core.Grid
 {
     public static class PolarGridLayoutUtility
     {

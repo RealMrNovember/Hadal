@@ -1,0 +1,12 @@
+<Project>
+  <!--
+    HADAL.Shared is also a Unity package (Packages/manifest.json → file:../shared/HADAL.Shared).
+    Unity compiles every .cs under the package folder and loads every DLL, so default obj/ and bin/
+    output breaks the Unity build (duplicate AssemblyInfo attributes, CS0436 type conflicts).
+    Unity ignores folders ending in "~", so dotnet build output goes there instead.
+  -->
+  <PropertyGroup>
+    <BaseIntermediateOutputPath>$(MSBuildProjectDirectory)/obj~/</BaseIntermediateOutputPath>
+    <BaseOutputPath>$(MSBuildProjectDirectory)/bin~/</BaseOutputPath>
+  </PropertyGroup>
+</Project>

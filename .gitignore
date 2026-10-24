@@ -46,3 +46,7 @@ Assets/_Hadal/Plugins/Shared/*.dll.meta
 
 # Backend projects (server/)
 !server/**/*.csproj
+
+# dotnet output for HADAL.Shared (see shared/Directory.Build.props)
+obj~/
+bin~/
