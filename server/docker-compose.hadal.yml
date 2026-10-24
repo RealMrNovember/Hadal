@@ -1,0 +1,42 @@
+# HADAL backend stack — ports per HADAL_SERVER_INFRASTRUCTURE.md §4, all bound to 127.0.0.1.
+# Run from server/:  docker compose -f docker-compose.hadal.yml --env-file .env up -d --build
+name: hadal
+
+networks:
+  hadal_net:
+    name: hadal_isolated_net
+
+services:
+  hadal-redis:
+    image: redis:7-alpine
+    container_name: hadal-redis
+    restart: unless-stopped
+    networks: [hadal_net]
+    ports: ["127.0.0.1:19004:6379"]
+    volumes: [hadal_redis_data:/data]
+
+  hadal-postgres:
+    image: postgres:16-alpine
+    container_name: hadal-postgres
+    restart: unless-stopped
+    networks: [hadal_net]
+    ports: ["127.0.0.1:19005:5432"]
+    environment:
+      POSTGRES_DB: hadal
+      POSTGRES_USER: hadal_app
+      POSTGRES_PASSWORD: ${HADAL_DB_PASSWORD:?set HADAL_DB_PASSWORD in .env}
+    volumes: [hadal_pg_data:/var/lib/postgresql/data]
+
+  hadal-gateway:
+    build:
+      context: ..
+      dockerfile: server/Hadal.Gateway/Dockerfile
+    container_name: hadal-gateway
+    restart: unless-stopped
+    networks: [hadal_net]
+    ports: ["127.0.0.1:19001:8080"]
+    depends_on: [hadal-redis, hadal-postgres]
+
+volumes:
+  hadal_redis_data:
+  hadal_pg_data:

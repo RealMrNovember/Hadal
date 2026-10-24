@@ -43,3 +43,6 @@ shared/**/obj/
 # Precompiled plugin copy (Unity uses com.hadal.shared package sources)
 Assets/_Hadal/Plugins/Shared/*.dll
 Assets/_Hadal/Plugins/Shared/*.dll.meta
+
+# Backend projects (server/)
+!server/**/*.csproj
