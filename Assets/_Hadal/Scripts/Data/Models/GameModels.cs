@@ -27,9 +27,18 @@ namespace Hadal.Data.Models
 
         public bool CanAfford(IReadOnlyList<ResourceAmount> costs)
         {
+            // Sum per resource first: two 60-Titanium lines against a balance of 100 are each
+            // affordable on their own but not together.
+            var required = new Dictionary<ResourceType, long>();
             foreach (var cost in costs)
             {
-                if (Get(cost.Type) < cost.Amount)
+                required.TryGetValue(cost.Type, out var sum);
+                required[cost.Type] = sum + cost.Amount;
+            }
+
+            foreach (var pair in required)
+            {
+                if (Get(pair.Key) < pair.Value)
                     return false;
             }
             return true;
@@ -48,7 +57,7 @@ namespace Hadal.Data.Models
 
         public void Add(ResourceType type, long amount)
         {
-            _balances[type] = Get(type) + amount;
+            _balances[type] = Math.Max(0, Get(type) + amount);
         }
 
         public void Set(ResourceType type, long amount)

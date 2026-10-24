@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using HADAL.Shared.DTOs;
 using HADAL.Shared.Enums;
@@ -22,9 +23,21 @@ namespace Hadal.Core.Network
         private readonly IRollbackAnimator _rollbackAnimator;
         private readonly ILocalEventBus _localBus;
 
-        private string _lastCommandId = string.Empty;
-        private ulong _lastClientSequence;
-        private CommandType _lastCommandType = CommandType.Unknown;
+        // Keyed by command id: several placements can be in flight at once, and an ack for the
+        // first must not be dropped just because a second command was sent after it.
+        private readonly Dictionary<string, PendingCommand> _pendingCommands = new(StringComparer.Ordinal);
+
+        private readonly struct PendingCommand
+        {
+            public readonly ulong ClientSequence;
+            public readonly CommandType Type;
+
+            public PendingCommand(ulong clientSequence, CommandType type)
+            {
+                ClientSequence = clientSequence;
+                Type = type;
+            }
+        }
 
         public int PendingCount => _pending.Count;
 
@@ -50,9 +63,10 @@ namespace Hadal.Core.Network
 
         public void RegisterPendingCommand(string commandId, ulong clientSequence, CommandType commandType)
         {
-            _lastCommandId = commandId ?? string.Empty;
-            _lastClientSequence = clientSequence;
-            _lastCommandType = commandType;
+            if (string.IsNullOrEmpty(commandId))
+                return;
+
+            _pendingCommands[commandId] = new PendingCommand(clientSequence, commandType);
         }
 
         public void Tick()
@@ -95,31 +109,31 @@ namespace Hadal.Core.Network
             if (ack == null || string.IsNullOrEmpty(ack.CommandId))
                 return;
 
-            if (!string.Equals(ack.CommandId, _lastCommandId, System.StringComparison.Ordinal))
+            if (!_pendingCommands.TryGetValue(ack.CommandId, out var pending))
                 return;
 
-            if (ack.ClientSequence != 0 && ack.ClientSequence != _lastClientSequence)
+            if (ack.ClientSequence != 0 && ack.ClientSequence != pending.ClientSequence)
                 return;
 
-            PublishPlacementResolution(ack);
+            PublishPlacementResolution(ack, pending.Type);
 
             if (ack.Result == CommandResultCode.Rejected)
             {
                 TriggerRollbackForDelta(delta, ack.CommandId);
-                ClearPendingCommand();
+                _pendingCommands.Remove(ack.CommandId);
                 return;
             }
 
-            if (ack.Result == CommandResultCode.Accepted && HasAuthoritativeMismatch(delta))
+            if (ack.Result == CommandResultCode.Accepted && HasAuthoritativeMismatch(delta, pending.Type))
                 TriggerRollbackForDelta(delta, ack.CommandId);
 
             if (ack.Result == CommandResultCode.Accepted)
-                ClearPendingCommand();
+                _pendingCommands.Remove(ack.CommandId);
         }
 
-        private bool HasAuthoritativeMismatch(StateDelta delta)
+        private bool HasAuthoritativeMismatch(StateDelta delta, CommandType commandType)
         {
-            if (_lastCommandType != CommandType.PlaceBuilding || delta.Changes == null)
+            if (commandType != CommandType.PlaceBuilding || delta.Changes == null)
                 return false;
 
             var view = _stateSync.View;
@@ -181,9 +195,9 @@ namespace Hadal.Core.Network
             }
         }
 
-        private void PublishPlacementResolution(CommandAckDto ack)
+        private void PublishPlacementResolution(CommandAckDto ack, CommandType commandType)
         {
-            if (_lastCommandType != CommandType.PlaceBuilding)
+            if (commandType != CommandType.PlaceBuilding)
                 return;
 
             _localBus.Publish(new BuildingPlacementResolvedEvent
@@ -200,13 +214,6 @@ namespace Hadal.Core.Network
                     DurationSeconds = RejectionShakeDurationSeconds
                 });
             }
-        }
-
-        private void ClearPendingCommand()
-        {
-            _lastCommandId = string.Empty;
-            _lastClientSequence = 0;
-            _lastCommandType = CommandType.Unknown;
         }
     }
 }
