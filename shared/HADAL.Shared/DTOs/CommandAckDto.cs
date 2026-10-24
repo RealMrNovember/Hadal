@@ -9,5 +9,8 @@ namespace HADAL.Shared.DTOs
         [ProtoMember(1)] public string CommandId { get; set; } = string.Empty;
         [ProtoMember(2)] public ulong ClientSequence { get; set; }
         [ProtoMember(3)] public CommandResultCode Result { get; set; }
+
+        /// <summary>Machine-readable rejection reason (e.g. a PlacementRejectReason name); empty when accepted.</summary>
+        [ProtoMember(4)] public string Reason { get; set; } = string.Empty;
     }
 }

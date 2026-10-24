@@ -1,3 +1,4 @@
+using HADAL.Shared.Enums;
 using System;
 using Hadal.Data.Enums;
 
