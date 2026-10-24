@@ -9,4 +9,10 @@ namespace Hadal.Core.Network
     {
         void SchedulePlacementAck(PlaceBuildingCommand command);
     }
+
+    /// <summary>Used when talking to the real gateway: the server acks placements.</summary>
+    public sealed class NullPlacementAckSimulator : IPlacementAckSimulator
+    {
+        public void SchedulePlacementAck(PlaceBuildingCommand command) { }
+    }
 }

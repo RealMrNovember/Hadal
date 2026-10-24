@@ -16,6 +16,8 @@ namespace Hadal.Core.Network
     public sealed class NetworkStateReceiver : INetworkStateReceiver, IStartable, ITickable, IDisposable
     {
         private const float HealthCheckIntervalSeconds = 0.5f;
+        private const float InitialReconnectDelaySeconds = 1f;
+        private const float MaxReconnectDelaySeconds = 10f;
 
         private readonly IWebSocketClient _webSocket;
         private readonly NetworkSerializationLayer _serialization;
@@ -28,6 +30,8 @@ namespace Hadal.Core.Network
         private bool _listening;
         private bool _reconnectingAnnounced;
         private float _healthTimer;
+        private float _reconnectDelay = InitialReconnectDelaySeconds;
+        private float _nextReconnectAt;
 
         public NetworkStateReceiver(
             IWebSocketClient webSocket,
@@ -51,9 +55,13 @@ namespace Hadal.Core.Network
         {
             StartListening();
 
-            if (_config != null && !string.IsNullOrWhiteSpace(_config.GatewayUrl))
+            if (ShouldConnect)
                 _webSocket.Connect(_config.GatewayUrl);
         }
+
+        // The in-process stub server replaces the gateway entirely in local-simulation mode.
+        private bool ShouldConnect =>
+            _config != null && !_config.UseLocalSimulation && !string.IsNullOrWhiteSpace(_config.GatewayUrl);
 
         public void StartListening()
         {
@@ -97,12 +105,17 @@ namespace Hadal.Core.Network
         private void HandleConnected()
         {
             _session.Reset();
+            _reconnectDelay = InitialReconnectDelaySeconds;
             SendHandshakeCommand();
         }
 
         private void HandleDisconnected()
         {
             _session.Reset();
+
+            // Frames queued before the drop must not land after the reconnect snapshot, and
+            // commands sent into the void will never be acked — the snapshot is the truth now.
+            _reconciliation.ResetForReconnect();
         }
 
         private void SendHandshakeCommand()
@@ -113,7 +126,7 @@ namespace Hadal.Core.Network
                 ClientSequence = 0,
                 ClientSchemaVersion = SchemaVersion.Current,
                 ClientVersion = Application.version,
-                DeviceId = SystemInfo.deviceUniqueIdentifier
+                DeviceId = _config?.DeviceIdOverride ?? SystemInfo.deviceUniqueIdentifier
             };
 
             _commandDispatcher.DispatchHandshake(handshake);
@@ -132,12 +145,26 @@ namespace Hadal.Core.Network
                 return;
             }
 
-            if (_reconnectingAnnounced)
+            if (!ShouldConnect)
                 return;
 
-            _session.Reset();
-            _localBus.Publish(new NetworkReconnectingEvent { Message = "Reconnecting..." });
-            _reconnectingAnnounced = true;
+            if (!_reconnectingAnnounced)
+            {
+                _session.Reset();
+                _localBus.Publish(new NetworkReconnectingEvent { Message = "Reconnecting..." });
+                _reconnectingAnnounced = true;
+                _nextReconnectAt = Time.realtimeSinceStartup + _reconnectDelay;
+                return;
+            }
+
+            if (_webSocket.ConnectionState == WebSocketConnectionState.Connecting
+                || Time.realtimeSinceStartup < _nextReconnectAt)
+                return;
+
+            Debug.Log($"[NetworkStateReceiver] Reconnecting to {_config.GatewayUrl} (retry in {_reconnectDelay:0}s if it fails).");
+            _webSocket.Connect(_config.GatewayUrl);
+            _nextReconnectAt = Time.realtimeSinceStartup + _reconnectDelay;
+            _reconnectDelay = Mathf.Min(_reconnectDelay * 2f, MaxReconnectDelaySeconds);
         }
 
         private void HandleMessageReceived(byte[] wire)

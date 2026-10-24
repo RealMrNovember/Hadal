@@ -26,6 +26,9 @@ namespace Hadal.Data.Config
         [SerializeField] private string _gatewayUrl = "wss://hadal.cicibyte.com/gateway";
         [SerializeField] private float _networkHeartbeatInterval = 15f;
 
+        [Tooltip("Editor/development builds only: run the in-process stub server instead of connecting to the gateway.")]
+        [SerializeField] private bool _useLocalSimulation;
+
         [Header("Addressables")]
         [SerializeField] private AssetCatalogSO _assetCatalog;
 
@@ -46,7 +49,28 @@ namespace Hadal.Data.Config
         public float CriticalPressureMultiplier => _criticalPressureMultiplier;
         public int MaxHeroesPerExpedition => _maxHeroesPerExpedition;
         public float ExpeditionBaseDurationSeconds => _expeditionBaseDurationSeconds;
-        public string GatewayUrl => _gatewayUrl;
+        public string GatewayUrl => DevOverride("HADAL_GATEWAY_URL") ?? _gatewayUrl;
+
+        /// <summary>
+        /// Stub server mode (Phase 1 dev loop). Never true in a release build — the server owns
+        /// placement and the economy there.
+        /// </summary>
+        public bool UseLocalSimulation
+        {
+            get
+            {
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+                var env = DevOverride("HADAL_LOCAL_SIM");
+                return env != null ? env == "1" : _useLocalSimulation;
+#else
+                return false;
+#endif
+            }
+        }
+
+        /// <summary>Editor/development override for the handshake device id (tests, multiple local players).</summary>
+        public string DeviceIdOverride => DevOverride("HADAL_DEVICE_ID");
+
         public float NetworkHeartbeatInterval => _networkHeartbeatInterval;
         public AssetCatalogSO AssetCatalog => _assetCatalog;
 
@@ -56,5 +80,15 @@ namespace Hadal.Data.Config
         public EnemyDatabaseSO EnemyDatabase => _enemyDatabase;
         public DepthZoneDatabaseSO DepthZoneDatabase => _depthZoneDatabase;
         public PressureDatabaseSO PressureDatabase => _pressureDatabase;
+
+        private static string DevOverride(string variable)
+        {
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            var value = System.Environment.GetEnvironmentVariable(variable);
+            return string.IsNullOrWhiteSpace(value) ? null : value;
+#else
+            return null;
+#endif
+        }
     }
 }

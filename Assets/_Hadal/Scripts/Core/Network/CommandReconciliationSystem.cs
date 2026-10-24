@@ -69,6 +69,27 @@ namespace Hadal.Core.Network
             _pendingCommands[commandId] = new PendingCommand(clientSequence, commandType);
         }
 
+        public void ResetForReconnect()
+        {
+            _pending.Clear();
+
+            foreach (var pair in _pendingCommands)
+            {
+                if (pair.Value.Type != CommandType.PlaceBuilding)
+                    continue;
+
+                // No shake: this is not the player's mistake. The snapshot after the reconnect
+                // shows whether the server applied the placement before the drop.
+                _localBus.Publish(new BuildingPlacementResolvedEvent
+                {
+                    CommandId = pair.Key,
+                    Result = CommandResultCode.Rejected
+                });
+            }
+
+            _pendingCommands.Clear();
+        }
+
         public void Tick()
         {
             ProcessQueue();

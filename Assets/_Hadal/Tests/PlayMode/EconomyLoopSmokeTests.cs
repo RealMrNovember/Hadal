@@ -18,7 +18,7 @@ using VContainer;
 namespace Hadal.Tests.PlayMode
 {
     /// <summary>
-    /// Sprint 3 acceptance: the generated Bootstrap scene boots without errors, the stub server
+    /// Offline dev loop (HADAL_LOCAL_SIM=1): the generated Bootstrap scene boots without errors, the stub server
     /// seeds the wallet through a snapshot, an empty base produces nothing (S2), and a producer
     /// building's output reaches the HUD through tick -> delta -> StateSync -> view.
     /// Any error logged during the run fails the test (DI misconfiguration included).
@@ -26,6 +26,12 @@ namespace Hadal.Tests.PlayMode
     public sealed class EconomyLoopSmokeTests
     {
         private const string ScenePath = "Assets/_Hadal/Scenes/Bootstrap.unity";
+
+        [SetUp]
+        public void UseLocalSimulation() => Environment.SetEnvironmentVariable("HADAL_LOCAL_SIM", "1");
+
+        [TearDown]
+        public void ClearLocalSimulation() => Environment.SetEnvironmentVariable("HADAL_LOCAL_SIM", null);
 
         [UnityTest]
         public IEnumerator BootstrapScene_RunsTheEconomyLoopIntoTheHud()

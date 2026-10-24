@@ -188,6 +188,7 @@ namespace Hadal.Tests.EditMode
             public void EnqueueInbound(NetworkInboundPacket packet) => Packets.Add(packet);
             public void RegisterPendingCommand(string commandId, ulong clientSequence, CommandType commandType) { }
             public void ProcessQueue() { }
+            public void ResetForReconnect() => Packets.Clear();
         }
 
         private sealed class FakeDispatcher : ICommandDispatcher

@@ -6,7 +6,9 @@
 #   unity.sh hub / hub-stop  Unity Hub GUI over noVNC for Personal-license activation on this machine
 #   unity.sh compile       open the project in batchmode, import + compile scripts, exit
 #   unity.sh exec <method> run a static editor method in batchmode (e.g. project/scene setup)
-#   unity.sh test <mode>   run EditMode or PlayMode tests, results in artifacts/
+#   unity.sh test <mode> [category]  run EditMode or PlayMode tests, results in artifacts/
+#   unity.sh acceptance    live PlayMode run vs the real gateway, gateway restart, persistence check
+#   unity.sh latency ["100 200"]  live PlayMode run with simulated server latency
 #   unity.sh shell         bash inside the editor container
 #
 # The license and the Library cache live in Docker volumes so they survive container restarts.
@@ -24,8 +26,14 @@ IDENTITY=(--hostname hadal-unity --mac-address 02:42:ac:48:44:01)
 HUB_IMAGE="hadal/unity-hub:${VERSION}"
 
 # Fixed name: Docker refuses a second editor on the same project instead of Unity aborting mid-import.
+# UNITY_NETWORK=hadal_isolated_net lets PlayMode tests reach the gateway as hadal-gateway:8080.
+# HADAL_* variables pass through for GameConfigSO's editor/dev overrides.
 run() {
+  # Editor containers run as root; clear a stale Temp/ (lock files) the host user cannot delete.
+  docker run --rm -v "${REPO}:/project" "${IMAGE}" rm -rf /project/Temp >/dev/null 2>&1 || true
   docker run --rm --name hadal-unity-editor ${TTY:-} "${IDENTITY[@]}" \
+    ${UNITY_NETWORK:+--network "${UNITY_NETWORK}"} \
+    -e HADAL_GATEWAY_URL -e HADAL_DEVICE_ID -e HADAL_LOCAL_SIM \
     -v "${REPO}:/project" \
     -v hadal_unity_license:/root/.local/share/unity3d \
     -v hadal_unity_config:/root/.config/unity3d \
@@ -91,8 +99,45 @@ case "${1:-}" in
     ;;
   test)
     MODE="${2:-EditMode}"
+    CATEGORY="${3:-}"
     run unity-editor -batchmode -nographics -projectPath /project -runTests -testPlatform "${MODE}" \
+      ${CATEGORY:+-testCategory "${CATEGORY}"} \
       -testResults "/project/artifacts/tests-${MODE}.xml" -logFile "/project/artifacts/tests-${MODE}.log"
+    ;;
+  acceptance)
+    # Phase 1 exit criterion: real client vs real server, including a gateway restart.
+    export UNITY_NETWORK=hadal_isolated_net
+    export HADAL_GATEWAY_URL=ws://hadal-gateway:8080/gateway
+    export HADAL_DEVICE_ID="acceptance-$(date +%s)"
+    echo "== live loop (device ${HADAL_DEVICE_ID})"
+    "$0" test PlayMode LiveServer; rc=$?
+    cp "${ARTIFACTS}/tests-PlayMode.xml" "${ARTIFACTS}/tests-LiveServer.xml" 2>/dev/null
+    [ $rc = 0 ] || exit $rc
+    echo "== restarting gateway"
+    docker restart hadal-gateway >/dev/null
+    for _ in $(seq 1 30); do curl -fs http://127.0.0.1:19001/health >/dev/null && break; sleep 1; done
+    echo "== persistence after restart"
+    "$0" test PlayMode Persistence
+    ;;
+  latency)
+    # Live loop with every server frame delayed (Phase 0-R exit criterion: 100 and 200 ms).
+    COMPOSE=(docker compose -f "${REPO}/server/docker-compose.hadal.yml" --env-file "${REPO}/server/.env")
+    set_latency() {
+      HADAL_SIM_LATENCY_MS="$1" "${COMPOSE[@]}" up -d --no-deps --force-recreate hadal-gateway >/dev/null 2>&1
+      for _ in $(seq 1 30); do curl -fs http://127.0.0.1:19001/health >/dev/null && break; sleep 1; done
+    }
+    export UNITY_NETWORK=hadal_isolated_net
+    export HADAL_GATEWAY_URL=ws://hadal-gateway:8080/gateway
+    rc=0
+    for ms in ${2:-100 200}; do
+      echo "== live loop at ${ms} ms"
+      set_latency "${ms}"
+      HADAL_DEVICE_ID="latency-${ms}-$(date +%s)" "$0" test PlayMode LiveServer || rc=1
+      cp "${ARTIFACTS}/tests-PlayMode.xml" "${ARTIFACTS}/tests-Latency${ms}.xml" 2>/dev/null
+    done
+    echo "== latency off"
+    set_latency 0
+    exit $rc
     ;;
   shell)
     TTY=-it run bash

@@ -53,19 +53,21 @@ namespace Hadal.Managers.Bootstrap
             builder.Register<IRollbackAnimator, RollbackAnimator>(Lifetime.Singleton);
             builder.Register<ICommandDispatcher, CommandDispatcher>(Lifetime.Singleton);
 
-            // Stub game server for Phase 1. Both simulators stand down once a real gateway
-            // socket is connected, and the economy stub additionally refuses to run outside
-            // Editor/development builds. Delete both registrations when the server ships.
-            //
-            // Registered as one entry point exposed through its interface: the stub wallet is
-            // instance state, so Tick() and TryChargeBuildCost() must hit the same object.
-            // A separate Register<IProductionTickSimulator, ...> call would build a second
-            // instance whose balances silently diverge.
-            builder.RegisterEntryPoint<LocalProductionTickSimulator>();
-
             builder.RegisterEntryPoint<CommandReconciliationSystem>();
             builder.RegisterEntryPoint<NetworkStateReceiver>();
-            builder.RegisterEntryPoint<LocalPlacementAckSimulator>();
+
+            // The real server (CT 160 gateway) owns placement and the economy. The in-process
+            // stub server is opt-in for offline dev loops (GameConfigSO.UseLocalSimulation /
+            // HADAL_LOCAL_SIM=1) and is never available in release builds.
+            if (_gameConfig != null && _gameConfig.UseLocalSimulation)
+            {
+                builder.RegisterEntryPoint<LocalProductionTickSimulator>();
+                builder.RegisterEntryPoint<LocalPlacementAckSimulator>();
+            }
+            else
+            {
+                builder.Register<IPlacementAckSimulator, NullPlacementAckSimulator>(Lifetime.Singleton);
+            }
 
             builder.RegisterBuildCallback(_ => CreateSessionScope());
 

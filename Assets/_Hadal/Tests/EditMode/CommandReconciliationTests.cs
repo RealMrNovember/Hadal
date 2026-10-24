@@ -79,6 +79,29 @@ namespace Hadal.Tests.EditMode
             Assert.AreEqual(1, _bus.Shakes);
         }
 
+        [Test]
+        public void ResetForReconnect_DropsQueuedFrames_AndResolvesInFlightPlacements()
+        {
+            _reconciliation.RegisterPendingCommand("cmd-1", 1, CommandType.PlaceBuilding);
+            _stateSync.NextAcks.Add(new CommandAckDto { CommandId = "cmd-1", ClientSequence = 1, Result = CommandResultCode.Accepted });
+            _reconciliation.EnqueueInbound(new NetworkInboundPacket
+            {
+                Kind = NetworkInboundKind.StateDelta,
+                Delta = new StateDelta { Changes = new List<EntityChangeDto>() }
+            });
+
+            _reconciliation.ResetForReconnect();
+            _reconciliation.ProcessQueue();
+
+            Assert.AreEqual(0, _reconciliation.PendingCount, "stale frame survived the reconnect");
+            CollectionAssert.AreEqual(new[] { "cmd-1" }, _bus.Resolved, "ghost left hanging");
+            Assert.AreEqual(0, _bus.Shakes, "a dropped connection is not the player's mistake");
+
+            // The late ack for the resolved command must not resolve it a second time.
+            DeliverAck("cmd-1", 1, CommandResultCode.Accepted);
+            CollectionAssert.AreEqual(new[] { "cmd-1" }, _bus.Resolved);
+        }
+
         private void DeliverAck(string commandId, ulong sequence, CommandResultCode result)
         {
             _stateSync.NextAcks.Add(new CommandAckDto { CommandId = commandId, ClientSequence = sequence, Result = result });
