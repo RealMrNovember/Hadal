@@ -3,6 +3,7 @@ using System.IO;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using HADAL.Shared.Enums;
 using Hadal.Data.Config;
 using Hadal.Data.Enums;
 using Hadal.Data.Events;

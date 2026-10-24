@@ -6,7 +6,8 @@
         "HADAL.Shared",
         "ProtobufNet",
         "colyseus.nativewebsocket",
-        "Unity.ResourceManager"
+        "Unity.ResourceManager",
+        "VContainer"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
-using Hadal.Data.Enums;
+using HADAL.Shared.Enums;
 
 namespace Hadal.Data.Config
 {

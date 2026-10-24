@@ -21,11 +21,22 @@ namespace Hadal.Core.StateSync
             var data = view.Data;
             data.version = SaveGameData.CurrentVersion;
 
+            // A snapshot is the full authoritative truth, including any offline accrual the
+            // server already folded in — it wins over whatever tick the wallet was last at.
             if (snapshot.Resources != null)
+            {
+                var snapshotTick = snapshot.Resources.ServerTick != 0UL
+                    ? snapshot.Resources.ServerTick
+                    : snapshot.ServerTick;
+
+                view.ForceResourceTick(snapshotTick);
                 ApplyResources(data, snapshot.Resources);
+            }
 
             if (snapshot.Buildings != null)
                 ApplyBuildingList(data, snapshot.Buildings);
+
+            view.ApplyProduction(snapshot.Production);
 
             view.MarkCaptured();
         }
@@ -61,7 +72,13 @@ namespace Hadal.Core.StateSync
 
                 if (change.EntityId.StartsWith(EntityIdPrefixes.Resource, StringComparison.Ordinal))
                 {
-                    ApplyResourceChange(data, change, serialization);
+                    ApplyResourceChange(view, change, serialization);
+                    continue;
+                }
+
+                if (change.EntityId.StartsWith(EntityIdPrefixes.Production, StringComparison.Ordinal))
+                {
+                    ApplyProductionChange(view, change, serialization);
                     continue;
                 }
 
@@ -106,18 +123,35 @@ namespace Hadal.Core.StateSync
             data.buildings = list.ToArray();
         }
 
-        private static void ApplyResourceChange(SaveGameData data, EntityChangeDto change, NetworkSerializationLayer serialization)
+        private static void ApplyResourceChange(ClientStateView view, EntityChangeDto change, NetworkSerializationLayer serialization)
         {
             if (change.Kind == EntityChangeKind.Delete)
             {
-                data.resources = Array.Empty<ResourceSaveEntry>();
+                view.Data.resources = Array.Empty<ResourceSaveEntry>();
                 return;
             }
 
             if (!TryDeserializePayload(change.Payload, serialization, out ResourceStateDto dto))
                 return;
 
-            ApplyResources(data, dto);
+            // Balances replicate as absolute totals, so an out-of-order frame would move the
+            // wallet backwards. Drop anything older than what we already hold.
+            if (!view.TryAcceptResourceTick(dto.ServerTick))
+                return;
+
+            ApplyResources(view.Data, dto);
+        }
+
+        private static void ApplyProductionChange(ClientStateView view, EntityChangeDto change, NetworkSerializationLayer serialization)
+        {
+            if (change.Kind == EntityChangeKind.Delete)
+            {
+                view.ApplyProduction(new ProductionStateDto());
+                return;
+            }
+
+            if (TryDeserializePayload(change.Payload, serialization, out ProductionStateDto dto))
+                view.ApplyProduction(dto);
         }
 
         private static void ApplyResources(SaveGameData data, ResourceStateDto dto)
@@ -125,10 +159,13 @@ namespace Hadal.Core.StateSync
             if (dto.Amounts == null)
                 return;
 
+            // resourceType stores the SHARED ordinal (see ResourceTypeMap). Unknown values are
+            // dropped rather than written, so a schema skew cannot alias one resource onto another.
             data.resources = dto.Amounts
+                .Where(pair => pair.Key != ResourceType.Unknown)
                 .Select(pair => new ResourceSaveEntry
                 {
-                    resourceType = (int)pair.Key,
+                    resourceType = ResourceTypeMap.ToStoredValue(pair.Key),
                     amount = pair.Value
                 })
                 .ToArray();

@@ -63,6 +63,18 @@ namespace Hadal.Managers.Bootstrap
             builder.Register<ICommandDispatcher, CommandDispatcher>(Lifetime.Singleton);
             builder.Register<INetworkStateReceiver, NetworkStateReceiver>(Lifetime.Singleton);
             builder.Register<IPlacementAckSimulator, LocalPlacementAckSimulator>(Lifetime.Singleton);
+
+            // Stub game server for Phase 1. Both simulators stand down once a real gateway
+            // socket is connected, and the economy stub additionally refuses to run outside
+            // Editor/development builds. Delete both registrations when the server ships.
+            //
+            // Registered as one entry point exposed through its interface: the stub wallet is
+            // instance state, so Tick() and TryChargeBuildCost() must hit the same object.
+            // A separate Register<IProductionTickSimulator, ...> call would build a second
+            // instance whose balances silently diverge.
+            builder.RegisterEntryPoint<LocalProductionTickSimulator>()
+                .As<IProductionTickSimulator>();
+
             builder.RegisterEntryPoint<CommandReconciliationSystem>();
             builder.RegisterEntryPoint<NetworkStateReceiver>();
             builder.RegisterEntryPoint<LocalPlacementAckSimulator>();

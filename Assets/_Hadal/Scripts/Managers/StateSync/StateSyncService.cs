@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using HADAL.Shared.DTOs;
@@ -51,6 +52,7 @@ namespace Hadal.Managers.StateSync
 
             ClientStateViewMutator.ApplySnapshot(_view, snapshot, _serialization);
             SyncGridFromView();
+            PublishResourceState();
         }
 
         public IReadOnlyList<CommandAckDto> ApplyDelta(StateDelta delta)
@@ -61,6 +63,12 @@ namespace Hadal.Managers.StateSync
             var commandAcks = new List<CommandAckDto>();
             ClientStateViewMutator.ApplyDelta(_view, delta, _serialization, commandAcks);
             SyncGridFromView();
+
+            // Production ticks arrive several times a minute; only wake the HUD when the
+            // frame actually carried economy state.
+            if (CarriesEconomyState(delta))
+                PublishResourceState();
+
             return commandAcks;
         }
 
@@ -68,6 +76,31 @@ namespace Hadal.Managers.StateSync
         {
             _gridManager.SyncOccupancyFromBuildings(_view.Data.buildings);
             _localBus.Publish(new BuildingStateChangedEvent());
+        }
+
+        private void PublishResourceState()
+        {
+            _localBus.Publish(new ResourceStateChangedEvent { ServerTick = _view.LastResourceTick });
+        }
+
+        private static bool CarriesEconomyState(StateDelta delta)
+        {
+            if (delta.Changes == null)
+                return false;
+
+            foreach (var change in delta.Changes)
+            {
+                if (change == null || string.IsNullOrEmpty(change.EntityId))
+                    continue;
+
+                if (change.EntityId.StartsWith(EntityIdPrefixes.Resource, StringComparison.Ordinal) ||
+                    change.EntityId.StartsWith(EntityIdPrefixes.Production, StringComparison.Ordinal))
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
 
         public void CaptureAll(IEnumerable<ISaveParticipant> participants)

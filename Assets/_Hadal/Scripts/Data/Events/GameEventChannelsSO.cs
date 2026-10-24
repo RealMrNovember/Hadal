@@ -1,4 +1,5 @@
 using UnityEngine;
+using HADAL.Shared.Enums;
 using Hadal.Data.Enums;
 using Hadal.Data.Models;
 

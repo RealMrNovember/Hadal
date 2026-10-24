@@ -2,7 +2,7 @@
     "name": "Hadal.Data",
     "rootNamespace": "Hadal.Data",
     "references": [
-        "Hadal.Core"
+        "HADAL.Shared"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

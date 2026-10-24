@@ -32,7 +32,7 @@
 ### Exit criteria (ALL required)
 
 - [x] Zero gameplay JSON on WebSocket
-- [x] Zero duplicate types outside HADAL.Shared
+- [ ] Zero duplicate types outside HADAL.Shared *(was ticked in error — `ResourceType` was duplicated until Sprint 3 consolidated it; `NetworkSerializationLayer` still exists in both HADAL.Shared and `Hadal.Core.Network`)*
 - [x] Zero static Resolve / ServiceLocator in gameplay assemblies
 - [ ] Prediction + rollback tested at 100ms and 200ms simulated latency *(Phase 1 test harness)*
 - [x] NetworkEventBus has zero Presentation assembly subscribers
@@ -64,7 +64,7 @@
 |---|--------|--------|--------|--------|
 | 1 | Polar grid & ghost preview | `GridSlot` + `CircularGridDefinition` in Shared | `CircularGridManager` · `IGridService` snap · `PreviewGhost` · `GridBuildController` (preview only) | [x] |
 | 2 | Server-authoritative placement | `PlaceBuildingCommand` stub validation (`LocalPlacementAckSimulator`) | `CommandDispatcher` dispatch · pending ghost · `CommandReconciliationSystem` ack · `BuildingStateView` · grid occupancy sync via `StateSyncService` | [x] |
-| 3 | Resource producer & sim tick | Production tick (Shared formulas) · `StateDelta` for resources | Resource HUD from replicated deltas · offline reconnect snapshot | [ ] |
+| 3 | Resource producer & sim tick | Production tick (Shared formulas) · `StateDelta` for resources | Resource HUD from replicated deltas · offline reconnect snapshot | [~] |
 
 | Server | Client |
 |--------|--------|
@@ -73,7 +73,13 @@
 | StateDelta for grid entities | GridStateView from VisualStateCache |
 | | RollbackAnimator on reject |
 
-**Phase 1 status (2026-06-19):** **SOLID through Sprint 2** — polar snap, command dispatch, stub gateway ack, authoritative building render, and grid occupancy sync are wired. Sprint 3 (resource producer + simulation tick) is next.
+**Phase 1 status (2026-09-25):** **SOLID through Sprint 2.** Sprint 3 is **code complete but UNVERIFIED** (`[~]`) — written without a Unity compile, Play Mode run, or test execution. Delivered: `ProductionFormulas`/`ProductionSimulator`/`ProductionCatalog` in HADAL.Shared, `LocalProductionTickSimulator` stub server, absolute-balance replication with stale-tick rejection, `ResourceHudView`, and consolidation of the duplicated `ResourceType` enum into HADAL.Shared.
+
+Do not mark Sprint 3 `[x]` until the checklist in [qa/Sprint3-Risk-And-Test-Plan.md](./qa/Sprint3-Risk-And-Test-Plan.md) passes in the Editor.
+
+**Known Sprint 3 deviations (accepted, documented):**
+- The stub economy derives offline accrual from `DateTime.UtcNow`, which is Forbidden Pattern #8 territory. It is capped at 12 h, stands down when a real gateway socket connects, and **refuses to start outside Editor/development builds**. It must be deleted when the real server ships.
+- `ProductionStateDto` (server-sent display rates) was kept against the CTO's and full-stack lead's advice to defer it — see [cto/ADR-001](./cto/ADR-001-Sprint3-Resource-Tick.md) and the Sprint 3 handoff note.
 
 **Output:** Server-confirmed building with responsive UX under latency.
 

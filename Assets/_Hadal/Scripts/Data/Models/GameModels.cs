@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using HADAL.Shared.Enums;
 using Hadal.Data.Enums;
 
 namespace Hadal.Data.Models

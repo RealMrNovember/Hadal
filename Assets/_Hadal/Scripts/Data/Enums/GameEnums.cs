@@ -1,14 +1,9 @@
 namespace Hadal.Data.Enums
 {
-    public enum ResourceType
-    {
-        Oxygen,
-        Energy,
-        Food,
-        Biomass,
-        Titanium,
-        Hadalite
-    }
+    // ResourceType intentionally lives in HADAL.Shared.Enums, not here.
+    // A client-local copy drifted out of sync with the wire ordinals and silently
+    // relabelled balances (Shared Oxygen=1 read as client Energy=1). Wire-facing
+    // identities belong to the shared assembly — see Forbidden Pattern #3.
 
     public enum BuildingCategory
     {

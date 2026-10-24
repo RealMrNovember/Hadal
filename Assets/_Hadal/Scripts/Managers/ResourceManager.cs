@@ -2,10 +2,10 @@ using System;
 using System.Collections.Generic;
 using UnityEngine;
 using Hadal.Core.Contracts;
+using Hadal.Core.Events;
+using HADAL.Shared.Enums;
 using Hadal.Core.StateSync;
-using Hadal.Core.Tick;
 using Hadal.Data.Config;
-using Hadal.Data.Enums;
 using Hadal.Data.Events;
 using Hadal.Data.Models;
 using Hadal.Managers.Base;
@@ -13,17 +13,21 @@ using VContainer;
 
 namespace Hadal.Managers
 {
-    public class ResourceManager : ManagerBase, IResourceService, ISaveParticipant, IGameTickable
+    /// <summary>
+    /// Presentation wallet. The server owns balances; this mirrors
+    /// <see cref="ClientStateView"/> and exposes an optimistic <see cref="TrySpend"/> so
+    /// build mode can respond before the ack arrives. Every replicated frame overwrites
+    /// whatever the prediction did — by design.
+    /// </summary>
+    public class ResourceManager : ManagerBase, IResourceService, ISaveParticipant
     {
         [SerializeField] private ResourceChangedEventSO _resourceChangedEvent;
 
         private readonly ResourceWallet _wallet = new();
         private ResourceDatabaseSO _database;
-        private float _tickTimer;
-        private TickManager _tickManager;
         private IStateSyncService _stateSync;
+        private ILocalEventBus _localBus;
 
-        public int TickPriority => 10;
         public ResourceWallet Wallet => _wallet;
 
         protected override void OnInitialize(GameConfigSO config)
@@ -32,43 +36,73 @@ namespace Hadal.Managers
         }
 
         [Inject]
-        public void InjectRuntime(TickManager tickManager, IStateSyncService stateSync)
+        public void InjectRuntime(IStateSyncService stateSync, ILocalEventBus localBus)
         {
-            _tickManager = tickManager;
             _stateSync = stateSync;
+            _localBus = localBus;
         }
 
         public override void OnPostInject()
         {
-            if (!_stateSync.View.HasPersistedData)
-                SeedStartingResources();
-
-            _tickManager?.Register(this);
+            _localBus?.Subscribe<ResourceStateChangedEvent>(OnResourceStateChanged);
+            SyncFromStateView();
         }
 
-        public void Tick(float deltaTime)
+        private void OnResourceStateChanged(ResourceStateChangedEvent _) => SyncFromStateView();
+
+        /// <summary>
+        /// Rebuilds the wallet from the replicated view. Raises the UI channel per resource
+        /// that actually moved so listeners are not woken every tick for nothing.
+        /// </summary>
+        public void SyncFromStateView()
         {
-            _tickTimer += deltaTime;
-            if (_tickTimer < Config.BaseTickIntervalSeconds)
+            if (_stateSync == null)
                 return;
 
-            _tickTimer = 0f;
-        }
+            var entries = _stateSync.View.Data.resources;
+            var previous = new Dictionary<ResourceType, long>();
 
-        private void SeedStartingResources()
-        {
-            if (_database == null)
-                return;
+            foreach (var pair in _wallet.Snapshot())
+                previous[pair.Key] = pair.Value;
 
-            foreach (var def in _database.Resources)
+            _wallet.Clear();
+
+            if (entries != null)
             {
-                if (def != null)
-                    _wallet.Add(def.Type, def.StartingAmount);
+                foreach (var entry in entries)
+                {
+                    var resource = ResourceTypeMap.FromStoredValue(entry.resourceType);
+                    if (resource == ResourceType.Unknown)
+                        continue;
+
+                    _wallet.Set(resource, entry.amount);
+                }
+            }
+
+            foreach (var pair in _wallet.Snapshot())
+            {
+                previous.TryGetValue(pair.Key, out var before);
+                if (before != pair.Value)
+                    _resourceChangedEvent?.Raise(pair.Key, before, pair.Value);
+
+                previous.Remove(pair.Key);
+            }
+
+            // Resources that vanished from the replicated set fell to zero.
+            foreach (var pair in previous)
+            {
+                if (pair.Value != 0L)
+                    _resourceChangedEvent?.Raise(pair.Key, pair.Value, 0L);
             }
         }
 
         public long Get(ResourceType type) => _wallet.Get(type);
 
+        /// <summary>
+        /// Optimistic local deduction so build mode can react without a round trip.
+        /// Authority still rests with the server ack; a rejected command is corrected by
+        /// the next replicated balance frame.
+        /// </summary>
         public bool TrySpend(IReadOnlyList<ResourceAmount> costs) => _wallet.TrySpend(costs);
 
         public void Add(ResourceType type, long amount)
@@ -88,19 +122,21 @@ namespace Hadal.Managers
         public void CaptureSave(SaveGameData data)
         {
             var snapshot = _wallet.Snapshot();
-            var entries = new ResourceSaveEntry[snapshot.Count];
-            var index = 0;
+            var entries = new List<ResourceSaveEntry>(snapshot.Count);
 
             foreach (var pair in snapshot)
             {
-                entries[index++] = new ResourceSaveEntry
+                if (pair.Key == ResourceType.Unknown)
+                    continue;
+
+                entries.Add(new ResourceSaveEntry
                 {
-                    resourceType = (int)pair.Key,
+                    resourceType = ResourceTypeMap.ToStoredValue(pair.Key),
                     amount = pair.Value
-                };
+                });
             }
 
-            data.resources = entries;
+            data.resources = entries.ToArray();
         }
 
         public void RestoreSave(SaveGameData data)
@@ -110,13 +146,16 @@ namespace Hadal.Managers
                 return;
 
             foreach (var entry in data.resources)
-                _wallet.Set((ResourceType)entry.resourceType, entry.amount);
+            {
+                var resource = ResourceTypeMap.FromStoredValue(entry.resourceType);
+                if (resource != ResourceType.Unknown)
+                    _wallet.Set(resource, entry.amount);
+            }
         }
 
         protected override void OnShutdown()
         {
-            if (_tickManager != null)
-                _tickManager.Unregister(this);
+            _localBus?.Unsubscribe<ResourceStateChangedEvent>(OnResourceStateChanged);
         }
     }
 }
