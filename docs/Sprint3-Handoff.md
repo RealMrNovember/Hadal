@@ -82,7 +82,7 @@ Bunlar bu sprint'te düzeltilmedi; ayrı iş kalemi olarak açılmalı:
 
 | Bulgu | Kanıt | Önem |
 |-------|-------|------|
-| `NetworkStateReceiver` önce `TryDecodeHandshakeAck` deniyor; `HandshakeAckEnvelope` ile `StateDeltaEnvelope` wire-type uyumlu → gerçek gateway'de **delta'lar handshake sanılıp yutulabilir** | `NetworkStateReceiver.cs:148` | **Yüksek** — gerçek server günü patlar |
+| ~~`NetworkStateReceiver` önce `TryDecodeHandshakeAck` deniyor; `HandshakeAckEnvelope` ile `StateDeltaEnvelope` wire-type uyumlu → gerçek gateway'de **delta'lar handshake sanılıp yutulabilir**~~ **ÇÖZÜLDÜ (2026-10-24):** tüm server → client frame'leri `ServerMessage` zarfında, `SchemaVersion` 2. Receiver harness'ı + canlı gateway ile doğrulandı | `ServerMessage.cs` | ~~Yüksek~~ |
 | Reconnect'te `CommandReconciliationSystem._pending` flush edilmiyor; snapshot sonrası eski delta uygulanabilir | `NetworkStateReceiver.cs:103` vs `CommandReconciliationSystem.cs:19` | Orta (kaynak tarafı artık tick guard'ıyla korunuyor, binalar değil) |
 | `NetworkSerializationLayer` **duplicate** (HADAL.Shared + `Hadal.Core.Network`) = Forbidden #3 | iki dosya | Orta |
 | `StateSyncService` her delta'da koşulsuz grid rebuild yapıyor | `StateSyncService.cs` `SyncGridFromView` | Düşük (perf) |

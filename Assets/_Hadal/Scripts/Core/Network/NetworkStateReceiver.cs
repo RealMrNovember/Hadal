@@ -145,32 +145,47 @@ namespace Hadal.Core.Network
             if (wire == null || wire.Length == 0)
                 return;
 
-            if (TryDecodeHandshakeAck(wire, out var ack))
+            // Every server frame is a ServerMessage — the inner envelopes are wire-compatible
+            // with each other, so the field number in ServerMessage is the only safe discriminator.
+            if (!_serialization.TryDeserialize(wire, out ServerMessage message) || message == null)
             {
-                HandleHandshakeAck(ack);
+                Debug.LogWarning($"[NetworkStateReceiver] Undecodable wire frame ({wire.Length} bytes).");
                 return;
             }
 
-            if (TryDecodeDelta(wire, out var deltaPacket))
+            if (message.SchemaVersion < SchemaVersion.MinSupported)
             {
-                _reconciliation.EnqueueInbound(deltaPacket);
+                Debug.LogWarning($"[NetworkStateReceiver] Server schema {message.SchemaVersion} below minimum {SchemaVersion.MinSupported}.");
                 return;
             }
 
-            if (TryDecodeSnapshot(wire, out var snapshotPacket))
+            switch (message.Kind)
             {
-                _reconciliation.EnqueueInbound(snapshotPacket);
-                return;
-            }
+                case ServerMessageKind.HandshakeAck:
+                    HandleHandshakeAck(message.HandshakeAck);
+                    return;
 
-            Debug.LogWarning($"[NetworkStateReceiver] Unrecognized wire frame ({wire.Length} bytes).");
+                case ServerMessageKind.StateDelta:
+                    if (TryDecodeDelta(message.Delta, out var deltaPacket))
+                        _reconciliation.EnqueueInbound(deltaPacket);
+                    return;
+
+                case ServerMessageKind.StateSnapshot:
+                    if (TryDecodeSnapshot(message.Snapshot, out var snapshotPacket))
+                        _reconciliation.EnqueueInbound(snapshotPacket);
+                    return;
+
+                default:
+                    Debug.LogWarning($"[NetworkStateReceiver] Unrecognized server message ({wire.Length} bytes).");
+                    return;
+            }
         }
 
         private void HandleHandshakeAck(HandshakeAckEnvelope ack)
         {
-            if (ack == null || !ack.Accepted || ack.Result == CommandResultCode.Rejected)
+            if (ack == null || !ack.Accepted || ack.Result != CommandResultCode.Accepted)
             {
-                Debug.LogWarning("[NetworkStateReceiver] Gateway handshake rejected.");
+                Debug.LogWarning($"[NetworkStateReceiver] Gateway handshake rejected ({ack?.Result}).");
                 return;
             }
 
@@ -179,33 +194,18 @@ namespace Hadal.Core.Network
             Debug.Log("[NetworkStateReceiver] Gateway handshake complete — command buffer flushed.");
         }
 
-        private bool TryDecodeHandshakeAck(byte[] wire, out HandshakeAckEnvelope ack)
-        {
-            ack = null!;
-            if (!_serialization.TryDeserialize(wire, out HandshakeAckEnvelope envelope))
-                return false;
-
-            if (envelope.SchemaVersion < SchemaVersion.MinSupported)
-                return false;
-
-            ack = envelope;
-            return true;
-        }
-
-        private bool TryDecodeDelta(byte[] wire, out NetworkInboundPacket packet)
+        private bool TryDecodeDelta(StateDeltaEnvelope envelope, out NetworkInboundPacket packet)
         {
             packet = null!;
-
-            if (!_serialization.TryDeserialize(wire, out StateDeltaEnvelope envelope))
-                return false;
-
-            if (envelope.SchemaVersion < SchemaVersion.MinSupported)
-                return false;
 
             if (envelope.Payload == null || envelope.Payload.Length == 0)
                 return false;
 
-            var delta = _serialization.Deserialize<StateDelta>(envelope.Payload);
+            if (!_serialization.TryDeserialize(envelope.Payload, out StateDelta delta))
+            {
+                Debug.LogWarning("[NetworkStateReceiver] StateDelta payload undecodable.");
+                return false;
+            }
 
             packet = new NetworkInboundPacket
             {
@@ -219,20 +219,18 @@ namespace Hadal.Core.Network
             return true;
         }
 
-        private bool TryDecodeSnapshot(byte[] wire, out NetworkInboundPacket packet)
+        private bool TryDecodeSnapshot(StateSnapshotEnvelope envelope, out NetworkInboundPacket packet)
         {
             packet = null!;
-
-            if (!_serialization.TryDeserialize(wire, out StateSnapshotEnvelope envelope))
-                return false;
-
-            if (envelope.SchemaVersion < SchemaVersion.MinSupported)
-                return false;
 
             if (envelope.Payload == null || envelope.Payload.Length == 0)
                 return false;
 
-            var snapshot = _serialization.Deserialize<StateSnapshot>(envelope.Payload);
+            if (!_serialization.TryDeserialize(envelope.Payload, out StateSnapshot snapshot))
+            {
+                Debug.LogWarning("[NetworkStateReceiver] StateSnapshot payload undecodable.");
+                return false;
+            }
 
             packet = new NetworkInboundPacket
             {

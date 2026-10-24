@@ -63,7 +63,20 @@ message StateDeltaEnvelope {
   uint64 baseline_tick = 3;      // for delta compression
   bytes payload = 4;             // StateDelta
 }
+
+// Schema v2: the ONLY top-level server → client frame. Exactly one body is set.
+// HandshakeAckEnvelope, StateSnapshotEnvelope and StateDeltaEnvelope share field numbers
+// and wire types, so a bare envelope cannot be told apart from another — a delta with
+// server_tick=1 decodes as an accepted handshake ack. The body field number is the discriminator.
+message ServerMessage {
+  uint32 schema_version = 1;
+  HandshakeAckEnvelope handshake_ack = 2;
+  StateSnapshotEnvelope snapshot = 3;
+  StateDeltaEnvelope delta = 4;
+}
 ```
+
+**Rule:** the gateway never sends a bare envelope; it wraps with `EnvelopeBuilder.WrapServerMessage(...)`. Command acks travel inside `StateDelta` as entity changes, not as their own frame. A frame with zero or more than one body is dropped.
 
 ---
 

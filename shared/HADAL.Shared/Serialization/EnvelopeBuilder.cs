@@ -54,5 +54,14 @@ namespace HADAL.Shared.Serialization
                 Payload = payload
             };
         }
+
+        public static ServerMessage WrapServerMessage(HandshakeAckEnvelope ack) =>
+            new ServerMessage { SchemaVersion = ack.SchemaVersion, HandshakeAck = ack };
+
+        public static ServerMessage WrapServerMessage(StateSnapshotEnvelope snapshot) =>
+            new ServerMessage { SchemaVersion = snapshot.SchemaVersion, Snapshot = snapshot };
+
+        public static ServerMessage WrapServerMessage(StateDeltaEnvelope delta) =>
+            new ServerMessage { SchemaVersion = delta.SchemaVersion, Delta = delta };
     }
 }
