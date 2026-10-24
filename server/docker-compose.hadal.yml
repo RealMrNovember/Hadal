@@ -26,6 +26,11 @@ services:
       POSTGRES_USER: hadal_app
       POSTGRES_PASSWORD: ${HADAL_DB_PASSWORD:?set HADAL_DB_PASSWORD in .env}
     volumes: [hadal_pg_data:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U hadal_app -d hadal"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
 
   hadal-gateway:
     build:
@@ -35,7 +40,15 @@ services:
     restart: unless-stopped
     networks: [hadal_net]
     ports: ["127.0.0.1:19001:8080"]
-    depends_on: [hadal-redis, hadal-postgres]
+    environment:
+      ConnectionStrings__Hadal: "Host=hadal-postgres;Port=5432;Database=hadal;Username=hadal_app;Password=${HADAL_DB_PASSWORD}"
+      # Test-only (unity.sh latency). Must stay 0 outside latency runs.
+      Gateway__SimulatedLatencyMs: "${HADAL_SIM_LATENCY_MS:-0}"
+    depends_on:
+      hadal-postgres:
+        condition: service_healthy
+      hadal-redis:
+        condition: service_started
 
 volumes:
   hadal_redis_data:

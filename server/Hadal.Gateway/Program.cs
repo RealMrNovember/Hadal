@@ -1,9 +1,32 @@
+using Hadal.Game;
+using Hadal.Game.Persistence;
 using Hadal.Gateway;
 using HADAL.Shared.Serialization;
+using Microsoft.Extensions.Options;
+using Npgsql;
 
 var builder = WebApplication.CreateBuilder(args);
 
+builder.Services.Configure<GameOptions>(builder.Configuration.GetSection(GameOptions.Section));
+builder.Services.Configure<GatewayOptions>(builder.Configuration.GetSection(GatewayOptions.Section));
 builder.Services.AddSingleton<INetworkSerializer, ProtobufNetNetworkSerializer>();
+builder.Services.AddSingleton<IClock, SystemClock>();
+builder.Services.AddSingleton(sp => CatalogLoader.Load(sp.GetRequiredService<IOptions<GameOptions>>().Value.CatalogPath));
+
+// No connection string = in-memory store (local runs, tests). Production always sets one.
+var connectionString = builder.Configuration.GetConnectionString("Hadal");
+if (string.IsNullOrWhiteSpace(connectionString))
+{
+    builder.Services.AddSingleton<IPlayerRepository, InMemoryPlayerRepository>();
+}
+else
+{
+    builder.Services.AddSingleton(_ => NpgsqlDataSource.Create(connectionString));
+    builder.Services.AddSingleton<IPlayerRepository, PostgresPlayerRepository>();
+}
+
+builder.Services.AddSingleton<GameWorld>();
+builder.Services.AddHostedService<GameTickService>();
 builder.Services.AddSingleton<GatewaySessionHandler>();
 
 var app = builder.Build();
@@ -27,3 +50,6 @@ app.Map("/gateway", async (HttpContext context, GatewaySessionHandler handler) =
 });
 
 app.Run();
+
+// Exposed for WebApplicationFactory in integration tests.
+public partial class Program;

@@ -1,97 +1,121 @@
 using System.Net.WebSockets;
+using Hadal.Game;
 using HADAL.Shared.Commands;
 using HADAL.Shared.DTOs;
 using HADAL.Shared.Enums;
 using HADAL.Shared.Serialization;
+using Microsoft.Extensions.Options;
 
 namespace Hadal.Gateway
 {
     /// <summary>
-    /// One WebSocket connection: schema handshake first, then the command loop.
-    /// Wire frames are Protobuf <see cref="CommandEnvelope"/> (client → server).
+    /// One WebSocket connection: schema handshake first, then commands are forwarded to the
+    /// <see cref="GameWorld"/>. Wire frames are Protobuf <see cref="CommandEnvelope"/> (client → server).
     /// </summary>
     public sealed class GatewaySessionHandler
     {
         private const int MaxFrameBytes = 64 * 1024;
 
         private readonly INetworkSerializer _serializer;
+        private readonly GameWorld _world;
+        private readonly GatewayOptions _options;
         private readonly ILogger<GatewaySessionHandler> _logger;
 
-        public GatewaySessionHandler(INetworkSerializer serializer, ILogger<GatewaySessionHandler> logger)
+        public GatewaySessionHandler(INetworkSerializer serializer, GameWorld world, IOptions<GatewayOptions> options, ILogger<GatewaySessionHandler> logger)
         {
             _serializer = serializer;
+            _world = world;
+            _options = options.Value;
             _logger = logger;
+
+            if (_options.SimulatedLatencyMs > 0)
+                _logger.LogWarning("Simulated latency of {Latency} ms is ON — test configuration only.", _options.SimulatedLatencyMs);
         }
 
         public async Task RunAsync(WebSocket socket, CancellationToken cancellationToken)
         {
-            var handshakeComplete = false;
+            var connection = new WebSocketClientConnection(socket, _serializer, _logger, _options.SimulatedLatencyMs);
+            var pump = connection.PumpAsync(cancellationToken);
+            PlayerSession? session = null;
 
-            while (socket.State == WebSocketState.Open && !cancellationToken.IsCancellationRequested)
+            try
             {
-                var frame = await ReceiveFrameAsync(socket, cancellationToken);
-                if (frame == null)
-                    break;
-
-                if (!_serializer.TryDeserialize(frame, out CommandEnvelope? envelope) || envelope == null)
+                while (socket.State == WebSocketState.Open && !cancellationToken.IsCancellationRequested)
                 {
-                    _logger.LogWarning("Undecodable frame ({Bytes}B) — closing.", frame.Length);
-                    await CloseAsync(socket, WebSocketCloseStatus.InvalidPayloadData, "bad frame", cancellationToken);
-                    break;
-                }
-
-                if (!handshakeComplete)
-                {
-                    handshakeComplete = await HandleHandshakeAsync(socket, envelope, cancellationToken);
-                    if (!handshakeComplete)
+                    var frame = await ReceiveFrameAsync(socket, cancellationToken);
+                    if (frame == null)
                         break;
 
-                    continue;
-                }
+                    if (!_serializer.TryDeserialize(frame, out CommandEnvelope? envelope) || envelope == null)
+                    {
+                        _logger.LogWarning("Undecodable frame ({Bytes}B) — closing.", frame.Length);
+                        connection.Close("bad frame");
+                        break;
+                    }
 
-                // Command validation lives in the game server (not built yet). Until then the
-                // gateway accepts the connection but does not ack — the client keeps its ghost pending.
-                _logger.LogInformation("Command {Type} ({CommandId}) received — no game server yet.",
-                    envelope.Type, envelope.CommandId);
+                    if (session == null)
+                    {
+                        session = await HandshakeAsync(connection, envelope, cancellationToken);
+                        if (session == null)
+                            break;
+
+                        continue;
+                    }
+
+                    _world.HandleCommand(session, envelope);
+                }
+            }
+            catch (Exception exception) when (exception is OperationCanceledException or WebSocketException)
+            {
+                // Client dropped; fall through to cleanup.
+            }
+            finally
+            {
+                if (session != null)
+                    await _world.DisconnectAsync(session, connection, CancellationToken.None);
+
+                connection.Close("bye");
+                await pump;
             }
         }
 
-        private async Task<bool> HandleHandshakeAsync(WebSocket socket, CommandEnvelope envelope, CancellationToken cancellationToken)
+        private async Task<PlayerSession?> HandshakeAsync(WebSocketClientConnection connection, CommandEnvelope envelope, CancellationToken cancellationToken)
         {
             if (envelope.Type != CommandType.ClientAuth
                 || !_serializer.TryDeserialize(envelope.Payload, out ClientAuthCommand? auth)
                 || auth == null)
             {
                 _logger.LogWarning("First frame was {Type}, expected ClientAuth — closing.", envelope.Type);
-                await CloseAsync(socket, WebSocketCloseStatus.PolicyViolation, "handshake required", cancellationToken);
-                return false;
+                connection.Close("handshake required");
+                return null;
             }
 
             var compatible = auth.ClientSchemaVersion >= SchemaVersion.MinSupported
                              && auth.ClientSchemaVersion <= SchemaVersion.Current;
+            var hasDevice = !string.IsNullOrWhiteSpace(auth.DeviceId);
+            var accepted = compatible && hasDevice;
 
-            var ack = new HandshakeAckEnvelope
+            connection.Send(EnvelopeBuilder.WrapServerMessage(new HandshakeAckEnvelope
             {
                 SchemaVersion = SchemaVersion.Current,
-                Accepted = compatible,
-                Result = compatible ? CommandResultCode.Accepted : CommandResultCode.SchemaIncompatible,
-                SessionToken = compatible ? Guid.NewGuid().ToString("N") : string.Empty
-            };
-
-            await SendAsync(socket, EnvelopeBuilder.WrapServerMessage(ack), cancellationToken);
+                Accepted = accepted,
+                Result = accepted ? CommandResultCode.Accepted
+                    : compatible ? CommandResultCode.Rejected : CommandResultCode.SchemaIncompatible,
+                SessionToken = accepted ? Guid.NewGuid().ToString("N") : string.Empty
+            }));
 
             _logger.LogInformation("Handshake {Result}: device {DeviceId}, client {ClientVersion}, schema {Schema}.",
-                ack.Result, auth.DeviceId, auth.ClientVersion, auth.ClientSchemaVersion);
+                accepted ? "Accepted" : "Rejected", auth.DeviceId, auth.ClientVersion, auth.ClientSchemaVersion);
 
-            if (!compatible)
-                await CloseAsync(socket, WebSocketCloseStatus.PolicyViolation, "schema incompatible", cancellationToken);
+            if (!accepted)
+            {
+                connection.Close(compatible ? "device id required" : "schema incompatible");
+                return null;
+            }
 
-            return compatible;
+            // Snapshot follows the ack on the same ordered outbox.
+            return await _world.ConnectAsync(auth.DeviceId, connection, cancellationToken);
         }
-
-        // Server → client frames are always ServerMessage; never send a bare envelope.
-        private Task SendAsync(WebSocket socket, ServerMessage message, CancellationToken cancellationToken) =>
-            socket.SendAsync(_serializer.Serialize(message), WebSocketMessageType.Binary, true, cancellationToken);
 
         private static async Task<byte[]?> ReceiveFrameAsync(WebSocket socket, CancellationToken cancellationToken)
         {
@@ -103,35 +127,18 @@ namespace Hadal.Gateway
                 var result = await socket.ReceiveAsync(buffer, cancellationToken);
 
                 if (result.MessageType == WebSocketMessageType.Close)
-                {
-                    await CloseAsync(socket, WebSocketCloseStatus.NormalClosure, "bye", cancellationToken);
                     return null;
-                }
 
                 if (result.MessageType != WebSocketMessageType.Binary)
-                {
-                    await CloseAsync(socket, WebSocketCloseStatus.InvalidMessageType, "binary only", cancellationToken);
                     return null;
-                }
 
                 frame.Write(buffer, 0, result.Count);
                 if (frame.Length > MaxFrameBytes)
-                {
-                    await CloseAsync(socket, WebSocketCloseStatus.MessageTooBig, "frame too large", cancellationToken);
                     return null;
-                }
 
                 if (result.EndOfMessage)
                     return frame.ToArray();
             }
-        }
-
-        private static Task CloseAsync(WebSocket socket, WebSocketCloseStatus status, string reason, CancellationToken cancellationToken)
-        {
-            if (socket.State is WebSocketState.Open or WebSocketState.CloseReceived)
-                return socket.CloseAsync(status, reason, cancellationToken);
-
-            return Task.CompletedTask;
         }
     }
 }
