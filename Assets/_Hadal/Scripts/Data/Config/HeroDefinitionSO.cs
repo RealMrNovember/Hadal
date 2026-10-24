@@ -35,36 +35,4 @@ namespace Hadal.Data.Config
         public float PressureTolerance => _pressureTolerance;
         public GameObject Prefab => _prefab;
     }
-
-    [CreateAssetMenu(fileName = "HeroDatabase", menuName = "Hadal/Heroes/Hero Database")]
-    public class HeroDatabaseSO : ScriptableObject
-    {
-        [SerializeField] private List<HeroDefinitionSO> _heroes = new();
-
-        public IReadOnlyList<HeroDefinitionSO> Heroes => _heroes;
-
-        public HeroDefinitionSO GetById(string id)
-        {
-            foreach (var h in _heroes)
-            {
-                if (h != null && h.Id == id)
-                    return h;
-            }
-            return null;
-        }
-    }
-
-    [CreateAssetMenu(fileName = "FactionDefinition", menuName = "Hadal/Heroes/Faction Definition")]
-    public class FactionDefinitionSO : ScriptableObject
-    {
-        [SerializeField] private FactionType _type;
-        [SerializeField] private string _displayName;
-        [SerializeField] private string _description;
-        [SerializeField] private Color _themeColor = Color.blue;
-
-        public FactionType Type => _type;
-        public string DisplayName => _displayName;
-        public string Description => _description;
-        public Color ThemeColor => _themeColor;
-    }
 }

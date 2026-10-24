@@ -38,25 +38,20 @@ namespace Hadal.Managers.Bootstrap
             builder.Register<GameStateMachine>(Lifetime.Singleton);
             builder.Register<ClientStateView>(Lifetime.Singleton);
 
-            builder.Register<CircularGridManager>(Lifetime.Singleton)
-                .AsSelf()
-                .As<IGridService>()
-                .As<ICircularGridService>()
-                .As<ISaveParticipant>();
-            builder.RegisterEntryPoint<CircularGridManager>();
+            // Entry points are registered ONCE: RegisterEntryPoint already exposes every
+            // implemented interface. Pairing it with a separate Register<IFoo, Foo> either throws
+            // "Conflict implementation type" at Awake or, worse, silently builds two instances —
+            // e.g. packets enqueued on one CommandReconciliationSystem while the other is ticked.
+            builder.RegisterEntryPoint<CircularGridManager>().AsSelf();
 
             builder.Register<IStateSyncService, StateSyncService>(Lifetime.Singleton);
 
             builder.Register<NetworkSerializationLayer>(Lifetime.Singleton);
-            builder.Register<IWebSocketClient, NativeWebSocketClient>(Lifetime.Singleton);
             builder.RegisterEntryPoint<NativeWebSocketClient>();
 
             builder.Register<IGatewaySessionState, GatewaySessionState>(Lifetime.Singleton);
             builder.Register<IRollbackAnimator, RollbackAnimator>(Lifetime.Singleton);
-            builder.Register<ICommandReconciliationSystem, CommandReconciliationSystem>(Lifetime.Singleton);
             builder.Register<ICommandDispatcher, CommandDispatcher>(Lifetime.Singleton);
-            builder.Register<INetworkStateReceiver, NetworkStateReceiver>(Lifetime.Singleton);
-            builder.Register<IPlacementAckSimulator, LocalPlacementAckSimulator>(Lifetime.Singleton);
 
             // Stub game server for Phase 1. Both simulators stand down once a real gateway
             // socket is connected, and the economy stub additionally refuses to run outside
@@ -66,8 +61,7 @@ namespace Hadal.Managers.Bootstrap
             // instance state, so Tick() and TryChargeBuildCost() must hit the same object.
             // A separate Register<IProductionTickSimulator, ...> call would build a second
             // instance whose balances silently diverge.
-            builder.RegisterEntryPoint<LocalProductionTickSimulator>()
-                .As<IProductionTickSimulator>();
+            builder.RegisterEntryPoint<LocalProductionTickSimulator>();
 
             builder.RegisterEntryPoint<CommandReconciliationSystem>();
             builder.RegisterEntryPoint<NetworkStateReceiver>();

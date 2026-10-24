@@ -27,22 +27,4 @@ namespace Hadal.Data.Config
         public DepthZone MinZone => _minZone;
         public GameObject Prefab => _prefab;
     }
-
-    [CreateAssetMenu(fileName = "EnemyDatabase", menuName = "Hadal/Combat/Enemy Database")]
-    public class EnemyDatabaseSO : ScriptableObject
-    {
-        [SerializeField] private List<EnemyDefinitionSO> _enemies = new();
-
-        public IReadOnlyList<EnemyDefinitionSO> Enemies => _enemies;
-
-        public EnemyDefinitionSO GetById(string id)
-        {
-            foreach (var e in _enemies)
-            {
-                if (e != null && e.Id == id)
-                    return e;
-            }
-            return null;
-        }
-    }
 }

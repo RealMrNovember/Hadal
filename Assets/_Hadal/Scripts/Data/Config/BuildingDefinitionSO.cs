@@ -50,23 +50,4 @@ namespace Hadal.Data.Config
             return _requiredSlotType == slotType;
         }
     }
-
-    [CreateAssetMenu(fileName = "BuildingDatabase", menuName = "Hadal/Buildings/Building Database")]
-    public class BuildingDatabaseSO : ScriptableObject
-    {
-        [SerializeField] private List<BuildingDefinitionSO> _buildings = new();
-
-        public IReadOnlyList<BuildingDefinitionSO> Buildings => _buildings;
-
-        public BuildingDefinitionSO GetById(string id)
-        {
-            foreach (var b in _buildings)
-            {
-                if (b != null && b.Id == id)
-                    return b;
-            }
-
-            return null;
-        }
-    }
 }
