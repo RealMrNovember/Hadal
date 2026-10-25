@@ -25,7 +25,9 @@ namespace Hadal.Game.Tests
             var snapshot = Assert.Single(connection.Messages).Snapshot();
             Assert.Equal(500, snapshot.Resources.Amount(ResourceType.Oxygen));
             Assert.Equal(150, snapshot.Resources.Amount(ResourceType.Titanium));
-            Assert.Empty(snapshot.Buildings);
+            var reactor = Assert.Single(snapshot.Buildings);
+            Assert.Equal("core_reactor", reactor.DefinitionId);
+            Assert.Equal(0, reactor.RingIndex);
         }
 
         [Fact]
@@ -75,7 +77,7 @@ namespace Hadal.Game.Tests
             Assert.Equal(CommandResultCode.Rejected, ack.Result);
             Assert.Equal(nameof(PlacementRejectReason.InsufficientResources), ack.Reason);
             Assert.Equal(49, session.StateForTests.Wallet[ResourceType.Titanium]);
-            Assert.Empty(session.StateForTests.Buildings);
+            Assert.Equal("core_reactor", Assert.Single(session.StateForTests.Buildings).DefinitionId);
         }
 
         [Fact]
@@ -94,23 +96,38 @@ namespace Hadal.Game.Tests
 
             var wallet = Assert.Single(connection.Messages).Delta().Wallet()!;
             Assert.Equal(500 + 3 * SimulationTick.ReplicationIntervalSeconds, wallet.Amount(ResourceType.Oxygen));
-            Assert.Equal(200 - 1 * SimulationTick.ReplicationIntervalSeconds, wallet.Amount(ResourceType.Energy));
+            // Starter reactor +4, oxygen plant -1.
+            Assert.Equal(200 + (4 - 1) * SimulationTick.ReplicationIntervalSeconds, wallet.Amount(ResourceType.Energy));
         }
 
         [Fact]
-        public async Task NoBuildings_NoReplication()
+        public async Task StarterReactor_ProducesEnergyFromTheStart()
         {
             var connection = new RecordingConnection();
             await _world.ConnectAsync("device-a", connection, default);
             connection.Messages.Clear();
 
-            for (var i = 0; i < 10; i++)
+            for (var i = 0; i < SimulationTick.ReplicationIntervalSeconds; i++)
             {
-                _clock.Advance(TimeSpan.FromSeconds(1));
+                _clock.Advance(TimeSpan.FromSeconds(SimulationTick.IntervalSeconds));
                 _world.Tick();
             }
 
-            Assert.Empty(connection.Messages);
+            var wallet = Assert.Single(connection.Messages).Delta().Wallet()!;
+            Assert.Equal(200 + 4 * SimulationTick.ReplicationIntervalSeconds, wallet.Amount(ResourceType.Energy));
+        }
+
+        [Fact]
+        public async Task StarterReactor_IsPersistedWithTheNewPlayer()
+        {
+            var first = new RecordingConnection();
+            var session = await _world.ConnectAsync("device-a", first, default);
+            await _world.DisconnectAsync(session, first, default);
+
+            var second = new RecordingConnection();
+            await _world.ConnectAsync("device-a", second, default);
+
+            Assert.Equal("core_reactor", Assert.Single(Assert.Single(second.Messages).Snapshot().Buildings).DefinitionId);
         }
 
         [Fact]
@@ -128,7 +145,7 @@ namespace Hadal.Game.Tests
             await _world.ConnectAsync("device-a", second, default);
             var snapshot = Assert.Single(second.Messages).Snapshot();
 
-            Assert.Single(snapshot.Buildings);
+            Assert.Equal(2, snapshot.Buildings.Count); // starter reactor + oxygen plant
             Assert.Equal(500 + 3 * 600, snapshot.Resources.Amount(ResourceType.Oxygen));
         }
 

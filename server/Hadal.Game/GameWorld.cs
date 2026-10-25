@@ -145,6 +145,26 @@ namespace Hadal.Game
                 state.Wallet[pair.Key] = pair.Value;
 
             await _repository.CreateAsync(state, cancellationToken);
+
+            // Every base starts around its reactor: the catalog's preferred building for each
+            // ring-0 sector is pre-placed and saved straight away.
+            foreach (var starter in _catalog.StarterBuildings())
+            {
+                var building = new PlacedBuilding
+                {
+                    BuildingId = "b" + Guid.NewGuid().ToString("N"),
+                    DefinitionId = starter.DefinitionId,
+                    Ring = starter.Ring,
+                    Sector = starter.Sector,
+                    Level = 1
+                };
+                state.Buildings.Add(building);
+                state.UnsavedBuildings.Add(building);
+            }
+
+            if (state.UnsavedBuildings.Count > 0)
+                await _repository.SaveAsync(state, cancellationToken);
+
             _logger.LogInformation("Created player {PlayerId} for identity {IdentityKey}.", state.PlayerId, identityKey);
             return state;
         }

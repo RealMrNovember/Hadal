@@ -75,7 +75,7 @@ namespace Hadal.Game.Tests
             await SendAsync(socket, Auth(second.accessToken, SchemaVersion.Current));
             await ReceiveAsync(socket); // ack
             var snapshot = (await ReceiveAsync(socket)).Snapshot();
-            Assert.Single(snapshot.Buildings);
+            Assert.Equal(2, snapshot.Buildings.Count); // starter reactor + the placed building
         }
 
         [Fact]

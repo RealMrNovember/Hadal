@@ -230,6 +230,19 @@ namespace HADAL.Shared.Catalog
             return wallet;
         }
 
+        /// <summary>Buildings every new base starts with: the preferred building of each ring-0 sector.</summary>
+        public IEnumerable<(string DefinitionId, int Ring, int Sector)> StarterBuildings()
+        {
+            if (!_rings.TryGetValue(0, out var core))
+                yield break;
+
+            foreach (var sector in core.sectors)
+            {
+                if (!string.IsNullOrEmpty(sector.preferredBuildingId) && _buildings.ContainsKey(sector.preferredBuildingId))
+                    yield return (sector.preferredBuildingId, 0, sector.sector);
+            }
+        }
+
         public Dictionary<ResourceType, long> Capacities()
         {
             var caps = new Dictionary<ResourceType, long>();
