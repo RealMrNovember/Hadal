@@ -166,6 +166,40 @@ def mega_dome():
     return s, [beacon]
 
 
+def hydroponic_farm():
+    s = pad(accent="GlowGreen")
+    s += [box("deck", (3.6, 3.0, 0.18), (0, 0, 0.29), "HullMid", 0.04)]
+    columns = []
+    for i, (x, y) in enumerate([(-1.05, -0.7), (0, -0.7), (1.05, -0.7)]):
+        s += [cyl(f"col{i}_base", 0.48, 0.25, (x, y, 0.47), "HullDark", verts=16, bevel=0.03),
+              cyl(f"col{i}_glass", 0.42, 2.2, (x, y, 0.72), "Glass", verts=16, bevel=0.0, smooth=True),
+              cyl(f"col{i}_cap", 0.48, 0.18, (x, y, 2.92), "Steel", verts=16, bevel=0.03)]
+        # Stacked grow trays inside each column.
+        s += [cyl(f"col{i}_tray{t}", 0.36, 0.12, (x, y, 0.95 + t * 0.6), "Plant", verts=12, bevel=0.0) for t in range(3)]
+        columns.append(anim(cyl(f"col{i}_light", 0.08, 2.0, (x, y, 0.8), "GlowGreen", verts=8, bevel=0.0), "pulse", speed=0.4 + 0.15 * i))
+    s += [cyl("reservoir", 0.75, 1.1, (0, 0.95, 0.47), "HullMid", verts=20, bevel=0.05),
+          dome("reservoir_cap", 0.75, (0, 0.95, 1.57), "Steel", seg=20, rings=8, squash=0.35),
+          cyl("reservoir_band", 0.78, 0.1, (0, 0.95, 1.0), "Hazard", verts=20, bevel=0.0)]
+    s += [pipe(f"feed{i}", (0, 0.95, 1.4), (x, -0.7, 2.95), 0.07) for i, x in enumerate((-1.05, 0, 1.05))]
+    return s, columns
+
+
+def agriculture_dome():
+    s = [cyl("ring", 2.55, 0.35, (0, 0, 0), "HullDark", verts=24, bevel=0.06),
+         cyl("ring_trim", 2.6, 0.06, (0, 0, 0.28), "GlowGreen", verts=24, bevel=0.0),
+         dome("glass", 2.45, (0, 0, 0.35), "Glass", seg=32, rings=14, squash=0.8)]
+    for i in range(4):
+        rib = torus(f"rib{i}", 2.47, 0.05, (0, 0, 0), "Steel", seg=32, minor_seg=6)
+        s.append(bake(rib, (math.pi / 2, 0, math.pi * i / 4), (0, 0, 0.35)))
+    # Terraced fields rising to the middle.
+    for t, (r, h) in enumerate(((2.1, 0.2), (1.55, 0.45), (1.0, 0.7))):
+        s += [cyl(f"terrace{t}", r, h, (0, 0, 0.35), "HullMid", verts=24, bevel=0.03),
+              cyl(f"crop{t}", r - 0.12, 0.12, (0, 0, 0.35 + h), "Plant", verts=24, bevel=0.0)]
+    s += [cyl("silo", 0.3, 1.4, (0, 0, 1.17), "Steel", verts=12, bevel=0.03)]
+    light = anim(torus("growlight", 1.6, 0.05, (0, 0, 1.9), "GlowGreen", seg=32), "pulse", speed=0.35)
+    return s, [light]
+
+
 def alliance_hub():
     s = pad(accent="GlowAmber")
     s += [cyl("plaza", 2.3, 0.15, (0, 0, 0.29), "HullMid", verts=24, bevel=0.03),
@@ -198,6 +232,8 @@ BUILDINGS = {
     "shield_generator": shield_generator,
     "radar_center": radar_center,
     "mega_dome": mega_dome,
+    "hydroponic_farm": hydroponic_farm,
+    "agriculture_dome": agriculture_dome,
     "alliance_hub": alliance_hub,
     "decoration_spire": decoration_spire,
 }
