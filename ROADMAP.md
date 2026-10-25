@@ -126,9 +126,14 @@ Durum işaretleri: ✅ tamam · 🟡 devam ediyor · ⬜ başlanmadı
 
 ---
 
-## Phase 3 — Üs inşasının tamamlanması ⬜
+## Phase 3 — Üs inşasının tamamlanması 🟡
 
-**Hedef:** `docs/05` tasarımındaki üs deneyiminin tamamı.
+**Hedef:** `docs/05` tasarımındaki üs deneyiminin tamamı. Kurallar `docs/23_Base_Management.md`'de.
+
+**Yapılanlar:**
+
+- [x] Sunucu: inşaat ve yükseltme süreleri (sunucu saati, çevrimdışı tamamlama), 1 inşaatçı, reaktör kapısı, ücretsiz bitirme (≤ 5 dk), seviye ölçekli maliyet ve süre.
+- [x] Titanyum kaynağı: Drone Factory.
 
 - `RemoveBuildingCommand` (iade kuralı) ve `UpgradeBuildingCommand` (seviye, maliyet, süre).
 - İnşa ve yükseltme süreleri sunucu saatiyle; hızlandırma kancası (monetizasyon Phase 13'te).
@@ -137,6 +142,21 @@ Durum işaretleri: ✅ tamam · 🟡 devam ediyor · ⬜ başlanmadı
 - Bina prefab'ları (yer tutucu art), seçim/inceleme UI'ı, mobil dokunma girdisi.
 
 **Çıkış kriteri:** Oyuncu tüm bina türlerini kurar, yükseltir, kaldırır ve halka açar; hepsi sunucu doğrulamalıdır.
+
+---
+
+## Phase 3.5 — The Overseer: oyun yönetim paneli ⬜ *(kullanıcı önceliği)*
+
+**Hedef:** `docs/22_LiveOps_Admin_Terminal.md`. Oyunun tamamı tek bir panelden yönetilir.
+
+- **Ekonomi ve denge:** bina maliyetleri, süreleri, seviye ilerlemesi, üretim değerleri. Katalog veritabanında sürümlenir; sunucu yeniden başlamadan uygulanır, eski sürüme dönülebilir.
+- **Oyuncu yönetimi:** arama, profil, kaynak ve bina düzeltme, ban ve susturma, oturumu sonlandırma. Hepsi denetim kaydına yazılır.
+- **Hediye kuponları:** kod, ödül paketi, kullanım limiti, son tarih. Oyuncu tarafında kupon girme ekranı.
+- **Postalar ve duyurular:** toplu ve hedefli ödül postası, bakım mesajı (`Version:Maintenance`).
+- **Telemetri:** anlık oyuncu sayısı, sunucu sağlığı, ekonomi akışı.
+- **Güvenlik:** ayrı oturum ve ayrı alan adı (oyun istemcisiyle çerez paylaşmaz), TOTP 2FA, rol bazlı yetki, IP izin listesi, her işlem için denetim kaydı.
+
+**Çıkış kriteri:** Denge değerleri, oyuncular, kuponlar ve duyurular, sunucuya ve repoya dokunmadan panelden yönetilir.
 
 ---
 
