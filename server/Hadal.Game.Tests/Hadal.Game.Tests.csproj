@@ -26,6 +26,8 @@
   <ItemGroup>
     <!-- Tests run against the real catalog, not a copy that could drift. -->
     <None Include="..\..\shared\catalog\catalog.json" Link="catalog\catalog.json" CopyToOutputDirectory="PreserveNewest" />
+    <!-- The Overseer panel files, served from AppContext.BaseDirectory like in the image. -->
+    <None Include="..\Hadal.Gateway\wwwroot\**\*" Link="wwwroot\%(RecursiveDir)%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" />
   </ItemGroup>
 
 </Project>

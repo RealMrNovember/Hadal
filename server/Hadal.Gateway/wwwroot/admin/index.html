@@ -1,0 +1,40 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>HADAL · Overseer</title>
+  <link rel="stylesheet" href="app.css">
+</head>
+<body>
+  <main id="login" class="login hidden">
+    <form id="login-form" class="card narrow" autocomplete="off">
+      <div class="brand">HADAL <span>Overseer</span></div>
+      <label>Kullanıcı adı<input id="login-user" required autocomplete="username"></label>
+      <label>Şifre<input id="login-pass" type="password" required autocomplete="current-password"></label>
+      <label>Doğrulama kodu (6 hane)<input id="login-code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" required autocomplete="one-time-code"></label>
+      <button type="submit" class="primary">Giriş</button>
+      <p id="login-error" class="error"></p>
+    </form>
+  </main>
+
+  <div id="app" class="app hidden">
+    <nav class="sidebar">
+      <div class="brand">HADAL <span>Overseer</span></div>
+      <a href="#/overview" data-page="overview">Özet</a>
+      <a href="#/players" data-page="players">Oyuncular</a>
+      <a href="#/coupons" data-page="coupons">Hediye Kuponları</a>
+      <a href="#/liveops" data-page="liveops">Canlı Operasyon</a>
+      <a href="#/balance" data-page="balance">Denge · Seviyeler</a>
+      <a href="#/audit" data-page="audit">Denetim Kaydı</a>
+      <a href="#/admins" data-page="admins" class="owner-only">Yöneticiler</a>
+      <div class="who"><span id="who"></span><button id="logout" class="ghost">Çıkış</button></div>
+    </nav>
+    <section id="page" class="page"></section>
+  </div>
+
+  <div id="toast" class="toast"></div>
+  <script src="app.js"></script>
+</body>
+</html>
