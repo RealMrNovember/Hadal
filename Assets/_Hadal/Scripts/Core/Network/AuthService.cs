@@ -26,8 +26,9 @@ namespace Hadal.Core.Network
     }
 
     /// <summary>
-    /// PlayerPrefs store, one slot per auth profile. Plain text on disk — acceptable while accounts
-    /// are anonymous guests; move to Keychain/Keystore together with account linking.
+    /// PlayerPrefs store, one slot per auth profile. Plain text in the app's private storage: a
+    /// stolen refresh token is single-use and rotated, and protected accounts can always be
+    /// recovered with their transfer code. Move to Keychain/Keystore before soft launch (Phase 17).
     /// </summary>
     public sealed class PlayerPrefsRefreshTokenStore : IRefreshTokenStore
     {
@@ -128,8 +129,8 @@ namespace Hadal.Core.Network
 
             if (status == 401)
             {
-                // The guest account behind this token is unreachable from now on. Until account
-                // linking exists there is no recovery path, so say so loudly.
+                // The account behind this token is unreachable from this device now; a protected
+                // account comes back with its transfer code (Settings → Account).
                 Debug.LogError("[AuthService] Stored refresh token rejected — starting a new guest account.");
                 _store.Clear();
                 return null;

@@ -57,6 +57,19 @@ namespace Hadal.EditorTools
         private static AnimatorController BuildController(string id, AnimationClip[] clips)
         {
             var path = $"{ControllersPath}/{id}.controller";
+
+            // Rebuilding an unchanged controller only reshuffles its internal ids; keep it so
+            // re-running the setup leaves git clean.
+            var existing = AssetDatabase.LoadAssetAtPath<AnimatorController>(path);
+            if (existing != null)
+            {
+                var states = existing.layers[0].stateMachine.states.Select(s => s.state).ToArray();
+                var unchanged = states.Length == clips.Length
+                    && clips.All(c => states.Any(s => s.name == c.name && s.motion == c));
+                if (unchanged)
+                    return existing;
+            }
+
             AssetDatabase.DeleteAsset(path);
             var controller = AnimatorController.CreateAnimatorControllerAtPath(path);
             var machine = controller.layers[0].stateMachine;

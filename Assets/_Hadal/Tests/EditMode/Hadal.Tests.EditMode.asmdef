@@ -5,6 +5,8 @@
         "Hadal.Core",
         "Hadal.Data",
         "Hadal.Gameplay",
+        "UnityEngine.UI",
+        "Hadal.UI",
         "HADAL.Shared",
         "ProtobufNet",
         "UnityEngine.TestRunner",

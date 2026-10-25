@@ -4,6 +4,7 @@ using System.IO;
 using UnityEditor;
 using UnityEditor.SceneManagement;
 using UnityEngine;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
 using HADAL.Shared.Catalog;
 using HADAL.Shared.Enums;
@@ -91,6 +92,9 @@ namespace Hadal.EditorTools
 
             var hud = CreateResourceHud(bootstrapGo.transform);
             var buildingView = HadalWorldSetup.CreateWorld();
+            var accountUi = new GameObject("AccountUi", typeof(AccountUiRoot));
+            accountUi.transform.SetParent(bootstrapGo.transform);
+            new GameObject("EventSystem", typeof(EventSystem), typeof(StandaloneInputModule));
 
             var config = AssetDatabase.LoadAssetAtPath<GameConfigSO>(SettingsPath + "/GameConfig.asset");
             var so = new SerializedObject(bootstrap);
@@ -100,12 +104,13 @@ namespace Hadal.EditorTools
             for (var i = 0; i < managers.Length; i++)
                 so.FindProperty("_managers").GetArrayElementAtIndex(i).objectReferenceValue = managers[i];
 
-            // VContainer only injects scene MonoBehaviours it is told about; [Inject] on the HUD
-            // and the building view is otherwise never called and both stay blank.
+            // VContainer only injects scene MonoBehaviours it is told about; [Inject] on the HUD,
+            // the building view and the account UI is otherwise never called and they stay blank.
             var autoInject = so.FindProperty("autoInjectGameObjects");
-            autoInject.arraySize = 2;
+            autoInject.arraySize = 3;
             autoInject.GetArrayElementAtIndex(0).objectReferenceValue = hud;
             autoInject.GetArrayElementAtIndex(1).objectReferenceValue = buildingView.gameObject;
+            autoInject.GetArrayElementAtIndex(2).objectReferenceValue = accountUi;
             so.ApplyModifiedPropertiesWithoutUndo();
 
             EnsureFolder(ScenesPath);

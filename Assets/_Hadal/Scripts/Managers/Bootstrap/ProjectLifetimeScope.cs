@@ -54,6 +54,7 @@ namespace Hadal.Managers.Bootstrap
             builder.Register<ICommandDispatcher, CommandDispatcher>(Lifetime.Singleton);
             builder.Register<IRefreshTokenStore, PlayerPrefsRefreshTokenStore>(Lifetime.Singleton);
             builder.Register<IAuthService, AuthService>(Lifetime.Singleton);
+            builder.Register<IAccountService, AccountService>(Lifetime.Singleton);
             builder.Register<IPatchService, PatchService>(Lifetime.Singleton);
 
             builder.RegisterEntryPoint<CommandReconciliationSystem>();
