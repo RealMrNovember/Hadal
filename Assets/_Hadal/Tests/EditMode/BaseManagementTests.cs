@@ -5,6 +5,7 @@ using Hadal.Core.Catalog;
 using Hadal.Gameplay.Base;
 using NUnit.Framework;
 using UnityEngine;
+using UnityEngine.TestTools;
 
 namespace Hadal.Tests.EditMode
 {
@@ -29,6 +30,36 @@ namespace Hadal.Tests.EditMode
             var level2 = BuildingProgression.Cost(reactor, 2, catalog.Progression);
             Assert.AreEqual(124, level2.Find(c => c.Key == HADAL.Shared.Enums.ResourceType.Titanium).Value);
             Assert.AreEqual(64, BuildingProgression.Seconds(reactor, 2, catalog.Progression));
+        }
+
+        [Test]
+        public void Live_catalog_from_the_overseer_replaces_the_bundled_one()
+        {
+            try
+            {
+                var json = File.ReadAllText(Path.Combine(Directory.GetCurrentDirectory(), "shared/catalog/catalog.json"))
+                    .Replace("\"buildSeconds\": 40", "\"buildSeconds\": 99");
+                var changed = 0;
+                ClientCatalog.Changed += Count;
+                Assert.IsTrue(ClientCatalog.Apply(json, 7));
+                ClientCatalog.Changed -= Count;
+
+                Assert.AreEqual(1, changed);
+                Assert.AreEqual(7, ClientCatalog.Version);
+                Assert.IsTrue(ClientCatalog.Catalog.TryGetBuilding(BuildingProgression.ReactorId, out var reactor));
+                Assert.AreEqual(99, BuildingProgression.Seconds(reactor, 1, ClientCatalog.Catalog.Progression));
+
+                // A broken download never replaces a working catalog.
+                LogAssert.Expect(LogType.Warning, new System.Text.RegularExpressions.Regex("rejected"));
+                Assert.IsFalse(ClientCatalog.Apply("{ not json", 8));
+                Assert.AreEqual(7, ClientCatalog.Version);
+
+                void Count() => changed++;
+            }
+            finally
+            {
+                ClientCatalog.Reset();
+            }
         }
 
         [Test]

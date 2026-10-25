@@ -9,7 +9,7 @@ namespace Hadal.UI
 {
     /// <summary>
     /// Gear button (top right) and the Profile & Account panel: player name, protection status,
-    /// "protect account" (transfer code), "sign in to another account" and the Google / Apple
+    /// "protect account" (transfer code), "sign in to another account", gift codes and the Google / Apple
     /// placeholders. A badge on the gear nudges unprotected players without blocking play.
     /// </summary>
     public sealed class AccountPanelView : MonoBehaviour
@@ -21,6 +21,7 @@ namespace Hadal.UI
         private RectTransform _main;
         private RectTransform _protect;
         private RectTransform _switch;
+        private RectTransform _gift;
 
         private InputField _name;
         private Text _accountId;
@@ -37,6 +38,9 @@ namespace Hadal.UI
         private InputField _transferCode;
         private InputField _transferPassword;
         private Text _switchMessage;
+
+        private InputField _giftCode;
+        private Text _giftMessage;
 
         private bool _busy;
 
@@ -91,6 +95,10 @@ namespace Hadal.UI
             _switch.Place(0.06f, 0.03f, 0.94f, 0.89f);
             BuildSwitch(_switch);
 
+            _gift = UiKit.Column("Gift", card.transform);
+            _gift.Place(0.06f, 0.03f, 0.94f, 0.89f);
+            BuildGift(_gift);
+
             _panel.gameObject.SetActive(false);
         }
 
@@ -109,6 +117,8 @@ namespace Hadal.UI
             UiKit.Button("Protect", column, Loc.T("account.protect"), () => Show(_protect)).Row(110);
             UiKit.Button("Switch", column, Loc.T("account.switch"), () => Show(_switch), UiKit.Field).Row(110)
                 .GetComponentInChildren<Text>().color = UiKit.Text;
+            UiKit.Button("Gift", column, Loc.T("gift.open"), () => Show(_gift), UiKit.Field).Row(110)
+                .GetComponentInChildren<Text>().color = UiKit.Accent;
 
             var google = UiKit.Button("Google", column, Loc.T("account.google"), null, UiKit.Field).Row(100);
             google.interactable = false;
@@ -117,7 +127,7 @@ namespace Hadal.UI
             apple.interactable = false;
             apple.GetComponentInChildren<Text>().color = UiKit.Muted;
 
-            _mainMessage = UiKit.Label("Message", column, string.Empty, 32, UiKit.Danger).Row(80);
+            _mainMessage = UiKit.Label("Message", column, string.Empty, 32, UiKit.Danger).Row(60);
             UiKit.Button("Close", column, Loc.T("account.close"), Close, UiKit.Field).Row(100)
                 .GetComponentInChildren<Text>().color = UiKit.Text;
         }
@@ -147,6 +157,17 @@ namespace Hadal.UI
             _transferPassword = UiKit.Input("Password", column, Loc.T("account.password"), true, AccountRules.PasswordMaxLength).Row(110);
             UiKit.Button("SignIn", column, Loc.T("account.signin"), () => _ = SignIn()).Row(110);
             _switchMessage = UiKit.Label("Message", column, string.Empty, 32, UiKit.Danger).Row(110);
+            UiKit.Button("Back", column, Loc.T("account.back"), () => Show(_main), UiKit.Field).Row(100)
+                .GetComponentInChildren<Text>().color = UiKit.Text;
+        }
+
+        private void BuildGift(Transform column)
+        {
+            UiKit.Label("Hint", column, Loc.T("gift.hint"), 34, UiKit.Muted).Row(130);
+            _giftCode = UiKit.Input("Code", column, Loc.T("gift.code"), characterLimit: 24).Row(110);
+            _giftCode.characterValidation = InputField.CharacterValidation.None;
+            UiKit.Button("Redeem", column, Loc.T("gift.redeem"), () => _ = Redeem()).Row(110);
+            _giftMessage = UiKit.Label("Message", column, string.Empty, 36, UiKit.Danger, TextAnchor.MiddleCenter).Row(160);
             UiKit.Button("Back", column, Loc.T("account.back"), () => Show(_main), UiKit.Field).Row(100)
                 .GetComponentInChildren<Text>().color = UiKit.Text;
         }
@@ -185,6 +206,7 @@ namespace Hadal.UI
             _main.gameObject.SetActive(page == _main);
             _protect.gameObject.SetActive(page == _protect);
             _switch.gameObject.SetActive(page == _switch);
+            _gift.gameObject.SetActive(page == _gift);
 
             if (page == _protect)
             {
@@ -196,6 +218,11 @@ namespace Hadal.UI
             {
                 _transferCode.text = _transferPassword.text = string.Empty;
                 _switchMessage.text = string.Empty;
+            }
+            else if (page == _gift)
+            {
+                _giftCode.text = string.Empty;
+                _giftMessage.text = string.Empty;
             }
         }
 
@@ -266,6 +293,44 @@ namespace Hadal.UI
             }
 
             _switchMessage.text = Loc.Error(result.Error);
+            _busy = false;
+        }
+
+        /// <summary>Opens the gift-code page directly (tests, deep links).</summary>
+        public void OpenGift()
+        {
+            Open();
+            Show(_gift);
+        }
+
+        public string GiftMessage => _giftMessage.text;
+
+        public async Task RedeemAsync(string code)
+        {
+            _giftCode.text = code;
+            await Redeem();
+        }
+
+        private async Task Redeem()
+        {
+            if (!Begin())
+                return;
+
+            var result = await _account.RedeemCouponAsync(_giftCode.text);
+            if (result.IsSuccess)
+            {
+                var rewards = string.Join(", ", Array.ConvertAll(result.Value.rewards ?? Array.Empty<CouponRewardEntry>(),
+                    r => $"+{r.amount} {Loc.T("resource." + r.resource)}"));
+                _giftMessage.color = UiKit.Accent;
+                _giftMessage.text = string.Format(Loc.T("gift.done"), rewards);
+                _giftCode.text = string.Empty;
+            }
+            else
+            {
+                _giftMessage.color = UiKit.Danger;
+                _giftMessage.text = Loc.Error(result.Error);
+            }
+
             _busy = false;
         }
 

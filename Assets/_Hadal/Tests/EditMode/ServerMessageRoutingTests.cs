@@ -26,6 +26,7 @@ namespace Hadal.Tests.EditMode
         private FakeSession _session;
         private FakeReconciliation _reconciliation;
         private FakeAuth _auth;
+        private FakeBus _bus;
         private GameConfigSO _config;
         private NetworkStateReceiver _receiver;
 
@@ -37,8 +38,9 @@ namespace Hadal.Tests.EditMode
             _reconciliation = new FakeReconciliation();
             _config = ScriptableObject.CreateInstance<GameConfigSO>();
             _auth = new FakeAuth();
+            _bus = new FakeBus();
             _receiver = new NetworkStateReceiver(_socket, new NetworkSerializationLayer(), _reconciliation,
-                new FakeDispatcher(), _session, new FakeBus(), _config, _auth, new FakePatch());
+                new FakeDispatcher(), _session, _bus, _config, _auth, new FakePatch());
             _receiver.StartListening();
         }
 
@@ -108,6 +110,21 @@ namespace Hadal.Tests.EditMode
             _socket.Receive(Wire(EnvelopeBuilder.WrapServerMessage(ack)));
 
             Assert.AreEqual(1, _auth.Invalidations);
+            Assert.IsFalse(_session.IsHandshakeComplete);
+        }
+
+        [Test]
+        public void BannedAck_AnnouncesTheBan_AndKeepsTheToken()
+        {
+            LogAssert.Expect(LogType.Warning, new System.Text.RegularExpressions.Regex("handshake rejected"));
+            LogAssert.Expect(LogType.Warning, new System.Text.RegularExpressions.Regex("suspended"));
+            var ack = Ack(CommandResultCode.Rejected, false);
+            ack.Reason = HADAL.Shared.Auth.HandshakeRejectReasons.Banned;
+
+            _socket.Receive(Wire(EnvelopeBuilder.WrapServerMessage(ack)));
+
+            Assert.Contains(typeof(AccountBannedEvent), _bus.Published);
+            Assert.AreEqual(0, _auth.Invalidations);
             Assert.IsFalse(_session.IsHandshakeComplete);
         }
 
@@ -225,13 +242,17 @@ namespace Hadal.Tests.EditMode
         {
             public System.Threading.Tasks.Task<(PatchVerdict Verdict, HADAL.Shared.Auth.VersionManifest Manifest)> CheckAsync() =>
                 System.Threading.Tasks.Task.FromResult((PatchVerdict.Ok, new HADAL.Shared.Auth.VersionManifest()));
+
+            public System.Threading.Tasks.Task SyncCatalogAsync(HADAL.Shared.Auth.VersionManifest manifest) =>
+                System.Threading.Tasks.Task.CompletedTask;
         }
 
         private sealed class FakeBus : ILocalEventBus
         {
+            public List<Type> Published { get; } = new();
             public void Subscribe<T>(Action<T> handler) { }
             public void Unsubscribe<T>(Action<T> handler) { }
-            public void Publish<T>(T payload) { }
+            public void Publish<T>(T payload) => Published.Add(typeof(T));
         }
     }
 }

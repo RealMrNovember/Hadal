@@ -53,6 +53,23 @@ namespace Hadal.Core.Network
             return (result.Status, result.Body);
         }
 
+        /// <summary>GET a non-JSON body (the live catalog); null on any non-2xx answer.</summary>
+        public static async Task<(long Status, string Text, string Header)> GetTextAsync(string url, string header)
+        {
+            using var request = UnityWebRequest.Get(url);
+            request.timeout = TimeoutSeconds;
+
+            var done = new TaskCompletionSource<bool>();
+            request.SendWebRequest().completed += _ => done.TrySetResult(true);
+            await done.Task;
+
+            if (request.result is UnityWebRequest.Result.ConnectionError or UnityWebRequest.Result.DataProcessingError)
+                throw new ServerUnreachableException($"GET {url}: {request.error}");
+
+            var ok = request.responseCode >= 200 && request.responseCode < 300;
+            return (request.responseCode, ok ? request.downloadHandler.text : null, request.GetResponseHeader(header));
+        }
+
         /// <summary>Any verb, optional JSON body and optional Bearer access token.</summary>
         public static async Task<HttpResult<TResponse>> SendAsync<TResponse>(string method, string url, object body, string bearer)
             where TResponse : class

@@ -17,6 +17,12 @@ namespace Hadal.Core.Network
         string AccountId { get; }
     }
 
+    /// <summary>The server refused to sign this account in: it is suspended.</summary>
+    public sealed class AccountBannedException : Exception
+    {
+        public AccountBannedException() : base("The account is suspended.") { }
+    }
+
     /// <summary>Where the refresh token lives between sessions.</summary>
     public interface IRefreshTokenStore
     {
@@ -126,6 +132,10 @@ namespace Hadal.Core.Network
 
             if (body != null)
                 return body;
+
+            // Keep the token: a ban can be lifted, and a new guest would dodge it.
+            if (status == 403)
+                throw new AccountBannedException();
 
             if (status == 401)
             {

@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using HADAL.Shared.Auth;
+using Hadal.Core.Catalog;
 using Hadal.Data.Config;
 using UnityEngine;
 
@@ -17,6 +18,9 @@ namespace Hadal.Core.Network
     {
         /// <summary>Reads /manifest/version.json and decides whether this build may connect.</summary>
         Task<(PatchVerdict Verdict, VersionManifest Manifest)> CheckAsync();
+
+        /// <summary>Downloads the live catalog when the manifest names another version than the one in use.</summary>
+        Task SyncCatalogAsync(VersionManifest manifest);
     }
 
     public sealed class PatchService : IPatchService
@@ -38,6 +42,22 @@ namespace Hadal.Core.Network
                 return (PatchVerdict.UpdateRequired, manifest);
 
             return (manifest.maintenance ? PatchVerdict.Maintenance : PatchVerdict.Ok, manifest);
+        }
+
+        public async Task SyncCatalogAsync(VersionManifest manifest)
+        {
+            if (manifest == null || manifest.catalogVersion <= 0 || manifest.catalogVersion == ClientCatalog.Version)
+                return;
+
+            var (status, json, header) = await HttpJson.GetTextAsync(_config.ApiBaseUrl + AuthRoutes.Catalog, "X-Catalog-Version");
+            if (json == null || !int.TryParse(header, out var version))
+            {
+                Debug.LogWarning($"[PatchService] Live catalog unavailable (HTTP {status}); keeping v{ClientCatalog.Version}.");
+                return;
+            }
+
+            if (ClientCatalog.Apply(json, version))
+                Debug.Log($"[PatchService] Live catalog v{version} applied.");
         }
 
         /// <summary>Numeric dotted comparison; unparsable versions never block a client.</summary>

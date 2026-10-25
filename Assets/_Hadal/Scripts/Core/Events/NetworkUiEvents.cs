@@ -22,6 +22,17 @@ namespace Hadal.Core.Events
         public string Message { get; init; }
     }
 
+    /// <summary>The account is suspended (Overseer ban); the client stops connecting.</summary>
+    public readonly struct AccountBannedEvent
+    {
+    }
+
+    /// <summary>Overseer announcement from the version manifest; empty text clears it.</summary>
+    public readonly struct ServerAnnouncementEvent
+    {
+        public string Text { get; init; }
+    }
+
     public readonly struct RollbackVisualRequestedEvent
     {
         public string EntityId { get; init; }

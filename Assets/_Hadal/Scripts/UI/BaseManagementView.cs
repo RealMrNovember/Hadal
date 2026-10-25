@@ -32,7 +32,8 @@ namespace Hadal.UI
         private ICircularGridService _grid;
         private ICommandDispatcher _commands;
         private ILocalEventBus _localBus;
-        private GameCatalog _catalog;
+        // Read on use: a balance published from the Overseer replaces the catalog at runtime.
+        private static GameCatalog _catalog => ClientCatalog.Catalog;
         private bool _subscribed;
         private ulong _sequence;
 
@@ -83,7 +84,6 @@ namespace Hadal.UI
             if (_localBus == null || _subscribed)
                 return;
 
-            _catalog ??= ClientCatalog.Catalog;
             if (_canvas == null)
                 Build();
 

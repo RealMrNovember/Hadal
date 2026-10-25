@@ -17,6 +17,7 @@ namespace Hadal.UI
             ["title.maintenance"] = ("Sunucu bakımda. Birazdan tekrar denenecek.", "The server is under maintenance. Retrying shortly."),
             ["title.update"] = ("Yeni bir sürüm gerekli. Lütfen güncelleyin.", "A newer version is required. Please update."),
             ["title.tap"] = ("Başlamak için dokun", "Tap to start"),
+            ["title.banned"] = ("Hesabın askıya alındı. Destek için bizimle iletişime geç.", "Your account is suspended. Please contact support."),
 
             ["account.title"] = ("Profil ve Hesap", "Profile & Account"),
             ["account.name"] = ("Oyuncu adı", "Player name"),
@@ -42,6 +43,12 @@ namespace Hadal.UI
             ["account.apple"] = ("Apple ile bağla (yakında)", "Link Apple (soon)"),
             ["account.close"] = ("Kapat", "Close"),
             ["account.back"] = ("Geri", "Back"),
+
+            ["gift.open"] = ("Hediye Kodu Kullan", "Redeem a Gift Code"),
+            ["gift.hint"] = ("Etkinliklerde ve duyurularda paylaşılan kodu gir; ödüller hemen deponda.", "Enter a code from an event or announcement; the rewards go straight to your storage."),
+            ["gift.code"] = ("Hediye kodu", "Gift code"),
+            ["gift.redeem"] = ("Kodu Kullan", "Redeem"),
+            ["gift.done"] = ("Ödüller eklendi: {0}", "Rewards added: {0}"),
 
             ["base.build.title"] = ("İnşa Et · Halka {0}", "Build · Ring {0}"),
             ["base.build"] = ("İnşa Et", "Build"),
@@ -119,6 +126,14 @@ namespace Hadal.UI
             ["error.InvalidCredentials"] = ("Kod ya da şifre hatalı.", "Wrong code or password."),
             ["error.RateLimited"] = ("Çok fazla deneme. Biraz sonra tekrar dene.", "Too many attempts. Try again later."),
             ["error.Network"] = ("Sunucuya ulaşılamadı.", "Could not reach the server."),
+            ["error.Banned"] = ("Hesabın askıya alındı.", "Your account is suspended."),
+            ["error.CouponUnknown"] = ("Böyle bir kod bulunamadı.", "No such code."),
+            ["error.CouponInactive"] = ("Bu kod artık geçerli değil.", "This code is no longer valid."),
+            ["error.CouponExpired"] = ("Bu kodun süresi doldu.", "This code has expired."),
+            ["error.CouponExhausted"] = ("Bu kodun kullanım limiti doldu.", "This code has reached its limit."),
+            ["error.CouponAlreadyRedeemed"] = ("Bu kodu zaten kullandın.", "You have already used this code."),
+            ["error.CouponNotStarted"] = ("Bu kod henüz aktif değil.", "This code is not active yet."),
+            ["error.CouponNotForYou"] = ("Bu kod sana ait değil.", "This code belongs to another player."),
             ["error.generic"] = ("Bir şeyler ters gitti ({0}).", "Something went wrong ({0})."),
         };
 

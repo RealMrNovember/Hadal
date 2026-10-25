@@ -143,10 +143,16 @@ namespace Hadal.Core.Network
                     }
 
                     _patchChecked = true;
+                    _localBus.Publish(new ServerAnnouncementEvent { Text = manifest.announcement ?? string.Empty });
+                    await SyncCatalogSafelyAsync(manifest);
                 }
 
                 _accessToken = await _auth.GetAccessTokenAsync();
                 _webSocket.Connect(_config.GatewayUrl);
+            }
+            catch (AccountBannedException)
+            {
+                Ban();
             }
             catch (Exception exception)
             {
@@ -156,6 +162,27 @@ namespace Hadal.Core.Network
             {
                 _connecting = false;
             }
+        }
+
+        // The bundled catalog still matches what the server enforces closely enough to play;
+        // a failed download must never keep the player out.
+        private async Task SyncCatalogSafelyAsync(VersionManifest manifest)
+        {
+            try
+            {
+                await _patch.SyncCatalogAsync(manifest);
+            }
+            catch (Exception exception)
+            {
+                Debug.LogWarning($"[NetworkStateReceiver] Live catalog sync failed: {exception.Message}");
+            }
+        }
+
+        private void Ban()
+        {
+            _blocked = true;
+            _localBus.Publish(new AccountBannedEvent());
+            Debug.LogWarning("[NetworkStateReceiver] The account is suspended — not connecting.");
         }
 
         private void Block(string required, string latest)
@@ -289,6 +316,10 @@ namespace Hadal.Core.Network
 
                     case HandshakeRejectReasons.SchemaIncompatible:
                         Block("(newer schema)", string.Empty);
+                        break;
+
+                    case HandshakeRejectReasons.Banned:
+                        Ban();
                         break;
                 }
 

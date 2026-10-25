@@ -46,6 +46,9 @@ namespace Hadal.Core.Network
         /// the caller restarts the game so every system starts from that account's state.
         /// </summary>
         Task<AccountResult<AuthResponse>> SignInWithTransferAsync(string transferCode, string password);
+
+        /// <summary>Redeems a gift code; the rewards reach the wallet through the next state update.</summary>
+        Task<AccountResult<CouponRedeemResponse>> RedeemCouponAsync(string code);
     }
 
     public sealed class AccountService : IAccountService
@@ -114,6 +117,16 @@ namespace Hadal.Core.Network
             {
                 return new AccountResult<AuthResponse>(null, AccountResult<AuthResponse>.NetworkError);
             }
+        }
+
+        public Task<AccountResult<CouponRedeemResponse>> RedeemCouponAsync(string code)
+        {
+            var normalised = (code ?? string.Empty).Replace("-", string.Empty).Replace(" ", string.Empty).Trim().ToUpperInvariant();
+            if (normalised.Length == 0)
+                return Task.FromResult(new AccountResult<CouponRedeemResponse>(null, AccountErrors.CouponUnknown));
+
+            return AuthorizedAsync<CouponRedeemResponse>(UnityWebRequest.kHttpVerbPOST, AuthRoutes.CouponRedeem,
+                new CouponRedeemRequest { code = normalised });
         }
 
         private async Task<AccountResult<T>> AuthorizedAsync<T>(string method, string route, object body) where T : class

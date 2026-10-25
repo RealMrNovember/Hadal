@@ -16,12 +16,15 @@ namespace Hadal.UI
             Reconnecting,
             Maintenance,
             UpdateRequired,
+            Banned,
             Ready
         }
 
         private CanvasGroup _group;
         private Text _status;
         private Text _tap;
+        private Text _announcement;
+        private string _detail = string.Empty;
         private Button _tapArea;
         private Status _current = Status.Connecting;
         private bool _dismissed;
@@ -61,7 +64,10 @@ namespace Hadal.UI
             _tap.rectTransform.Place(0.1f, 0.24f, 0.9f, 0.30f);
 
             _status = UiKit.Label("Status", root, Loc.T("title.connecting"), 36, UiKit.Muted, TextAnchor.MiddleCenter);
-            _status.rectTransform.Place(0.08f, 0.17f, 0.92f, 0.23f);
+            _status.rectTransform.Place(0.08f, 0.13f, 0.92f, 0.23f);
+
+            _announcement = UiKit.Label("Announcement", root, string.Empty, 38, UiKit.Amber, TextAnchor.MiddleCenter, FontStyle.Italic);
+            _announcement.rectTransform.Place(0.08f, 0.36f, 0.92f, 0.48f);
 
             var version = UiKit.Label("Version", root, "v" + Application.version, 28, new Color(1, 1, 1, 0.3f), TextAnchor.LowerRight);
             version.rectTransform.Place(0.5f, 0.01f, 0.98f, 0.05f);
@@ -69,22 +75,35 @@ namespace Hadal.UI
             SetStatus(Status.Connecting);
         }
 
-        public void SetStatus(Status status)
+        /// <summary>Overseer announcement (version manifest); empty hides it.</summary>
+        public void SetAnnouncement(string text) => _announcement.text = text ?? string.Empty;
+
+        public string Announcement => _announcement.text;
+
+        /// <param name="detail">Server-written text that replaces the stock line (maintenance message).</param>
+        public void SetStatus(Status status, string detail = null)
         {
             // Once the world is loaded a later hiccup is the in-game HUD's business, not the title's.
             if (_current == Status.Ready && status == Status.Reconnecting)
                 return;
 
+            // A ban outranks everything that may still arrive from the connection loop.
+            if (_current == Status.Banned)
+                return;
+
             _current = status;
-            _status.text = status switch
+            _detail = detail ?? string.Empty;
+            _status.text = _detail.Length > 0 ? _detail : status switch
             {
                 Status.Reconnecting => Loc.T("title.reconnecting"),
                 Status.Maintenance => Loc.T("title.maintenance"),
                 Status.UpdateRequired => Loc.T("title.update"),
+                Status.Banned => Loc.T("title.banned"),
                 Status.Ready => string.Empty,
                 _ => Loc.T("title.connecting")
             };
-            _status.color = status is Status.Maintenance or Status.UpdateRequired ? UiKit.Amber : UiKit.Muted;
+            _status.color = status == Status.Banned ? UiKit.Danger
+                : status is Status.Maintenance or Status.UpdateRequired ? UiKit.Amber : UiKit.Muted;
             _tap.enabled = status == Status.Ready;
             _tapArea.interactable = status == Status.Ready;
         }

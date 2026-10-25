@@ -42,6 +42,8 @@ namespace Hadal.UI
             _localBus.Unsubscribe<NetworkReconnectingEvent>(OnReconnecting);
             _localBus.Unsubscribe<ServerMaintenanceEvent>(OnMaintenance);
             _localBus.Unsubscribe<ClientUpdateRequiredEvent>(OnUpdateRequired);
+            _localBus.Unsubscribe<AccountBannedEvent>(OnBanned);
+            _localBus.Unsubscribe<ServerAnnouncementEvent>(OnAnnouncement);
             _localBus.Unsubscribe<ResourceStateChangedEvent>(OnWorldState);
             _subscribed = false;
         }
@@ -60,15 +62,21 @@ namespace Hadal.UI
             _localBus.Subscribe<NetworkReconnectingEvent>(OnReconnecting);
             _localBus.Subscribe<ServerMaintenanceEvent>(OnMaintenance);
             _localBus.Subscribe<ClientUpdateRequiredEvent>(OnUpdateRequired);
+            _localBus.Subscribe<AccountBannedEvent>(OnBanned);
+            _localBus.Subscribe<ServerAnnouncementEvent>(OnAnnouncement);
             _localBus.Subscribe<ResourceStateChangedEvent>(OnWorldState);
             _subscribed = true;
         }
 
         private void OnReconnecting(NetworkReconnectingEvent _) => _title.SetStatus(TitleScreenView.Status.Reconnecting);
 
-        private void OnMaintenance(ServerMaintenanceEvent _) => _title.SetStatus(TitleScreenView.Status.Maintenance);
+        private void OnMaintenance(ServerMaintenanceEvent maintenance) => _title.SetStatus(TitleScreenView.Status.Maintenance, maintenance.Message);
 
         private void OnUpdateRequired(ClientUpdateRequiredEvent _) => _title.SetStatus(TitleScreenView.Status.UpdateRequired);
+
+        private void OnBanned(AccountBannedEvent _) => _title.SetStatus(TitleScreenView.Status.Banned);
+
+        private void OnAnnouncement(ServerAnnouncementEvent announcement) => _title.SetAnnouncement(announcement.Text);
 
         /// <summary>The first snapshot means the base is on screen: the title can be dismissed.</summary>
         private void OnWorldState(ResourceStateChangedEvent state)
