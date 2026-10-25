@@ -10,5 +10,8 @@ namespace HADAL.Shared.DTOs
         [ProtoMember(2)] public bool Accepted { get; set; }
         [ProtoMember(3)] public CommandResultCode Result { get; set; }
         [ProtoMember(4)] public string SessionToken { get; set; } = string.Empty;
+
+        /// <summary>Why the handshake was refused: see <c>HandshakeRejectReasons</c>.</summary>
+        [ProtoMember(5)] public string Reason { get; set; } = string.Empty;
     }
 }

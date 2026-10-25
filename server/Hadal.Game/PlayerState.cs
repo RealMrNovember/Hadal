@@ -18,7 +18,7 @@ namespace Hadal.Game
     public sealed class PlayerState
     {
         public Guid PlayerId { get; init; }
-        public string DeviceId { get; init; } = string.Empty;
+        public string IdentityKey { get; init; } = string.Empty;
 
         /// <summary>Simulation ticks applied so far; replicated as ServerTick for stale-frame rejection.</summary>
         public ulong ServerTick { get; set; }

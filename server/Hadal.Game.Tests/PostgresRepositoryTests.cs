@@ -23,12 +23,12 @@ namespace Hadal.Game.Tests
             await repository.InitializeAsync(default);
             await repository.InitializeAsync(default); // idempotent
 
-            var deviceId = "pgtest-" + Guid.NewGuid().ToString("N");
+            var identityKey = "pgtest-" + Guid.NewGuid().ToString("N");
             var now = DateTimeOffset.UtcNow;
             var player = new PlayerState
             {
                 PlayerId = Guid.NewGuid(),
-                DeviceId = deviceId,
+                IdentityKey = identityKey,
                 LastSimulatedAt = now,
                 UnlockedRings = 4
             };
@@ -50,7 +50,7 @@ namespace Hadal.Game.Tests
                 player.ServerTick = 50;
                 await repository.SaveAsync(player, default);
 
-                var loaded = await repository.LoadByDeviceAsync(deviceId, default);
+                var loaded = await repository.LoadByIdentityAsync(identityKey, default);
                 Assert.NotNull(loaded);
                 Assert.Equal(player.PlayerId, loaded!.PlayerId);
                 Assert.Equal(50UL, loaded.ServerTick);
@@ -61,12 +61,12 @@ namespace Hadal.Game.Tests
                 Assert.Equal(building.BuildingId, stored.BuildingId);
                 Assert.Equal(2, stored.RotationSteps);
 
-                Assert.Null(await repository.LoadByDeviceAsync("pgtest-missing-" + Guid.NewGuid(), default));
+                Assert.Null(await repository.LoadByIdentityAsync("pgtest-missing-" + Guid.NewGuid(), default));
             }
             finally
             {
-                await using var cleanup = dataSource.CreateCommand("DELETE FROM hadal.players WHERE device_id = @d");
-                cleanup.Parameters.AddWithValue("d", deviceId);
+                await using var cleanup = dataSource.CreateCommand("DELETE FROM hadal.players WHERE identity_key = @d");
+                cleanup.Parameters.AddWithValue("d", identityKey);
                 await cleanup.ExecuteNonQueryAsync();
             }
         }

@@ -13,9 +13,18 @@ namespace Hadal.Game.Persistence
         private const string Schema = @"
 CREATE SCHEMA IF NOT EXISTS hadal;
 
+-- Phase 2: players are keyed by account id (Auth API), not device id.
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM information_schema.columns
+               WHERE table_schema = 'hadal' AND table_name = 'players' AND column_name = 'device_id') THEN
+        ALTER TABLE hadal.players RENAME COLUMN device_id TO identity_key;
+    END IF;
+END $$;
+
 CREATE TABLE IF NOT EXISTS hadal.players (
     player_id         uuid        PRIMARY KEY,
-    device_id         text        NOT NULL UNIQUE,
+    identity_key         text        NOT NULL UNIQUE,
     created_at        timestamptz NOT NULL DEFAULT now(),
     server_tick       bigint      NOT NULL DEFAULT 0,
     last_simulated_at timestamptz NOT NULL,
@@ -48,16 +57,16 @@ CREATE TABLE IF NOT EXISTS hadal.buildings (
             await command.ExecuteNonQueryAsync(cancellationToken);
         }
 
-        public async Task<PlayerState?> LoadByDeviceAsync(string deviceId, CancellationToken cancellationToken)
+        public async Task<PlayerState?> LoadByIdentityAsync(string identityKey, CancellationToken cancellationToken)
         {
             await using var connection = await _dataSource.OpenConnectionAsync(cancellationToken);
 
             PlayerState player;
             await using (var command = new NpgsqlCommand(
-                "SELECT player_id, server_tick, last_simulated_at, unlocked_rings, wallet::text FROM hadal.players WHERE device_id = @d",
+                "SELECT player_id, server_tick, last_simulated_at, unlocked_rings, wallet::text FROM hadal.players WHERE identity_key = @d",
                 connection))
             {
-                command.Parameters.AddWithValue("d", deviceId);
+                command.Parameters.AddWithValue("d", identityKey);
                 await using var reader = await command.ExecuteReaderAsync(cancellationToken);
                 if (!await reader.ReadAsync(cancellationToken))
                     return null;
@@ -65,7 +74,7 @@ CREATE TABLE IF NOT EXISTS hadal.buildings (
                 player = new PlayerState
                 {
                     PlayerId = reader.GetGuid(0),
-                    DeviceId = deviceId,
+                    IdentityKey = identityKey,
                     ServerTick = (ulong)reader.GetInt64(1),
                     LastSimulatedAt = reader.GetFieldValue<DateTimeOffset>(2),
                     UnlockedRings = reader.GetInt32(3)
@@ -101,10 +110,10 @@ CREATE TABLE IF NOT EXISTS hadal.buildings (
         public async Task CreateAsync(PlayerState player, CancellationToken cancellationToken)
         {
             await using var command = _dataSource.CreateCommand(
-                @"INSERT INTO hadal.players (player_id, device_id, server_tick, last_simulated_at, unlocked_rings, wallet)
+                @"INSERT INTO hadal.players (player_id, identity_key, server_tick, last_simulated_at, unlocked_rings, wallet)
                   VALUES (@p, @d, @t, @s, @u, @w::jsonb)");
             command.Parameters.AddWithValue("p", player.PlayerId);
-            command.Parameters.AddWithValue("d", player.DeviceId);
+            command.Parameters.AddWithValue("d", player.IdentityKey);
             command.Parameters.AddWithValue("t", (long)player.ServerTick);
             command.Parameters.AddWithValue("s", player.LastSimulatedAt);
             command.Parameters.AddWithValue("u", player.UnlockedRings);

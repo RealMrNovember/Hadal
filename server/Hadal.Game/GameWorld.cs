@@ -44,21 +44,21 @@ namespace Hadal.Game
 
         public int SessionCount => _sessions.Count;
 
-        public async Task<PlayerSession> ConnectAsync(string deviceId, IClientConnection connection, CancellationToken cancellationToken)
+        public async Task<PlayerSession> ConnectAsync(string identityKey, IClientConnection connection, CancellationToken cancellationToken)
         {
-            if (string.IsNullOrWhiteSpace(deviceId))
-                throw new ArgumentException("Device id is required until Auth API lands (Phase 2).", nameof(deviceId));
+            if (string.IsNullOrWhiteSpace(identityKey))
+                throw new ArgumentException("Identity key (account id) is required.", nameof(identityKey));
 
             await _connectGate.WaitAsync(cancellationToken);
             try
             {
-                if (!_sessions.TryGetValue(deviceId, out var session))
+                if (!_sessions.TryGetValue(identityKey, out var session))
                 {
-                    var state = await _repository.LoadByDeviceAsync(deviceId, cancellationToken)
-                                ?? await CreatePlayerAsync(deviceId, cancellationToken);
+                    var state = await _repository.LoadByIdentityAsync(identityKey, cancellationToken)
+                                ?? await CreatePlayerAsync(identityKey, cancellationToken);
 
                     session = new PlayerSession(state, _catalog, _production, _capacities, _serializer);
-                    _sessions[deviceId] = session;
+                    _sessions[identityKey] = session;
                 }
 
                 var previous = session.Attach(connection, _clock.UtcNow);
@@ -89,7 +89,7 @@ namespace Hadal.Game
 
             // Unload only if nobody reattached while we were saving.
             if (session.Connection == null)
-                _sessions.TryRemove(new KeyValuePair<string, PlayerSession>(session.DeviceId, session));
+                _sessions.TryRemove(new KeyValuePair<string, PlayerSession>(session.IdentityKey, session));
         }
 
         public void Tick()
@@ -131,12 +131,12 @@ namespace Hadal.Game
             }
         }
 
-        private async Task<PlayerState> CreatePlayerAsync(string deviceId, CancellationToken cancellationToken)
+        private async Task<PlayerState> CreatePlayerAsync(string identityKey, CancellationToken cancellationToken)
         {
             var state = new PlayerState
             {
                 PlayerId = Guid.NewGuid(),
-                DeviceId = deviceId,
+                IdentityKey = identityKey,
                 LastSimulatedAt = _clock.UtcNow,
                 UnlockedRings = _catalog.Grid.startingUnlockedRings
             };
@@ -145,7 +145,7 @@ namespace Hadal.Game
                 state.Wallet[pair.Key] = pair.Value;
 
             await _repository.CreateAsync(state, cancellationToken);
-            _logger.LogInformation("Created player {PlayerId} for device {DeviceId}.", state.PlayerId, deviceId);
+            _logger.LogInformation("Created player {PlayerId} for identity {IdentityKey}.", state.PlayerId, identityKey);
             return state;
         }
     }

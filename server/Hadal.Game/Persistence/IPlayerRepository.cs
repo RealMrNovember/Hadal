@@ -5,9 +5,9 @@ namespace Hadal.Game.Persistence
         /// <summary>Creates schema objects if they do not exist. Idempotent.</summary>
         Task InitializeAsync(CancellationToken cancellationToken);
 
-        Task<PlayerState?> LoadByDeviceAsync(string deviceId, CancellationToken cancellationToken);
+        Task<PlayerState?> LoadByIdentityAsync(string identityKey, CancellationToken cancellationToken);
 
-        /// <summary>Inserts a brand-new player. Fails if the device already has one.</summary>
+        /// <summary>Inserts a brand-new player. Fails if the identity already has one.</summary>
         Task CreateAsync(PlayerState player, CancellationToken cancellationToken);
 
         /// <summary>Persists wallet, tick, clock and any buildings in <see cref="PlayerState.UnsavedBuildings"/>.</summary>

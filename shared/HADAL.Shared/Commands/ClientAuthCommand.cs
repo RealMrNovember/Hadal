@@ -13,5 +13,8 @@ namespace HADAL.Shared.Commands
         [ProtoMember(3)] public uint ClientSchemaVersion { get; set; }
         [ProtoMember(4)] public string ClientVersion { get; set; } = string.Empty;
         [ProtoMember(5)] public string DeviceId { get; set; } = string.Empty;
+
+        /// <summary>JWT from the Auth API (schema 3+). The account id in it is the player's identity.</summary>
+        [ProtoMember(6)] public string AccessToken { get; set; } = string.Empty;
     }
 }

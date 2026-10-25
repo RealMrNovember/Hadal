@@ -44,7 +44,7 @@ namespace Hadal.Game
 
         public Guid PlayerId => _state.PlayerId;
 
-        public string DeviceId => _state.DeviceId;
+        public string IdentityKey => _state.IdentityKey;
 
         public IClientConnection? Connection
         {
@@ -138,7 +138,7 @@ namespace Hadal.Game
                 var copy = new PlayerState
                 {
                     PlayerId = _state.PlayerId,
-                    DeviceId = _state.DeviceId,
+                    IdentityKey = _state.IdentityKey,
                     ServerTick = _state.ServerTick,
                     LastSimulatedAt = _state.LastSimulatedAt,
                     UnlockedRings = _state.UnlockedRings

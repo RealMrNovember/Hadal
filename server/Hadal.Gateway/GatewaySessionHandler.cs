@@ -4,6 +4,8 @@ using HADAL.Shared.Commands;
 using HADAL.Shared.DTOs;
 using HADAL.Shared.Enums;
 using HADAL.Shared.Serialization;
+using Hadal.Gateway.Auth;
+using HADAL.Shared.Auth;
 using Microsoft.Extensions.Options;
 
 namespace Hadal.Gateway
@@ -18,13 +20,15 @@ namespace Hadal.Gateway
 
         private readonly INetworkSerializer _serializer;
         private readonly GameWorld _world;
+        private readonly TokenService _tokens;
         private readonly GatewayOptions _options;
         private readonly ILogger<GatewaySessionHandler> _logger;
 
-        public GatewaySessionHandler(INetworkSerializer serializer, GameWorld world, IOptions<GatewayOptions> options, ILogger<GatewaySessionHandler> logger)
+        public GatewaySessionHandler(INetworkSerializer serializer, GameWorld world, TokenService tokens, IOptions<GatewayOptions> options, ILogger<GatewaySessionHandler> logger)
         {
             _serializer = serializer;
             _world = world;
+            _tokens = tokens;
             _options = options.Value;
             _logger = logger;
 
@@ -92,8 +96,12 @@ namespace Hadal.Gateway
 
             var compatible = auth.ClientSchemaVersion >= SchemaVersion.MinSupported
                              && auth.ClientSchemaVersion <= SchemaVersion.Current;
-            var hasDevice = !string.IsNullOrWhiteSpace(auth.DeviceId);
-            var accepted = compatible && hasDevice;
+
+            // Identity is the account id inside a token we signed — never anything the client claims.
+            var token = compatible
+                ? await _tokens.ValidateAccessTokenAsync(auth.AccessToken)
+                : new TokenValidation(false, Guid.Empty, HandshakeRejectReasons.SchemaIncompatible);
+            var accepted = token.IsValid;
 
             connection.Send(EnvelopeBuilder.WrapServerMessage(new HandshakeAckEnvelope
             {
@@ -101,20 +109,22 @@ namespace Hadal.Gateway
                 Accepted = accepted,
                 Result = accepted ? CommandResultCode.Accepted
                     : compatible ? CommandResultCode.Rejected : CommandResultCode.SchemaIncompatible,
-                SessionToken = accepted ? Guid.NewGuid().ToString("N") : string.Empty
+                SessionToken = accepted ? Guid.NewGuid().ToString("N") : string.Empty,
+                Reason = token.Reason
             }));
 
-            _logger.LogInformation("Handshake {Result}: device {DeviceId}, client {ClientVersion}, schema {Schema}.",
-                accepted ? "Accepted" : "Rejected", auth.DeviceId, auth.ClientVersion, auth.ClientSchemaVersion);
+            _logger.LogInformation("Handshake {Result}{Reason}: account {AccountId}, client {ClientVersion}, schema {Schema}.",
+                accepted ? "Accepted" : "Rejected", accepted ? string.Empty : $" ({token.Reason})",
+                accepted ? token.AccountId.ToString("N") : "-", auth.ClientVersion, auth.ClientSchemaVersion);
 
             if (!accepted)
             {
-                connection.Close(compatible ? "device id required" : "schema incompatible");
+                connection.Close(token.Reason);
                 return null;
             }
 
             // Snapshot follows the ack on the same ordered outbox.
-            return await _world.ConnectAsync(auth.DeviceId, connection, cancellationToken);
+            return await _world.ConnectAsync(token.AccountId.ToString("N"), connection, cancellationToken);
         }
 
         private static async Task<byte[]?> ReceiveFrameAsync(WebSocket socket, CancellationToken cancellationToken)

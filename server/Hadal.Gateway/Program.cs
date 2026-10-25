@@ -1,6 +1,7 @@
 using Hadal.Game;
 using Hadal.Game.Persistence;
 using Hadal.Gateway;
+using Hadal.Gateway.Auth;
 using HADAL.Shared.Serialization;
 using Microsoft.Extensions.Options;
 using Npgsql;
@@ -18,12 +19,16 @@ var connectionString = builder.Configuration.GetConnectionString("Hadal");
 if (string.IsNullOrWhiteSpace(connectionString))
 {
     builder.Services.AddSingleton<IPlayerRepository, InMemoryPlayerRepository>();
+    builder.Services.AddSingleton<IAccountStore, InMemoryAccountStore>();
 }
 else
 {
     builder.Services.AddSingleton(_ => NpgsqlDataSource.Create(connectionString));
     builder.Services.AddSingleton<IPlayerRepository, PostgresPlayerRepository>();
+    builder.Services.AddSingleton<IAccountStore, PostgresAccountStore>();
 }
+
+builder.Services.AddHadalAuth(builder.Configuration);
 
 builder.Services.AddSingleton<GameWorld>();
 builder.Services.AddHostedService<GameTickService>();
@@ -32,6 +37,8 @@ builder.Services.AddSingleton<GatewaySessionHandler>();
 var app = builder.Build();
 
 app.UseWebSockets(new WebSocketOptions { KeepAliveInterval = TimeSpan.FromSeconds(20) });
+
+app.MapHadalAuth();
 
 // Public health — no internal data (HADAL_SERVER_INFRASTRUCTURE.md §3).
 app.MapGet("/health", () => Results.Ok(new { status = "ok", schema = SchemaVersion.Current }));
