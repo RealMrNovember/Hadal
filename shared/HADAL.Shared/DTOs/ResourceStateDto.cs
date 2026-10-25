@@ -12,7 +12,16 @@ namespace HADAL.Shared.DTOs
     [ProtoContract]
     public sealed class ResourceStateDto
     {
-        [ProtoMember(1)] public Dictionary<ResourceType, long> Amounts { get; set; } = new();
+        public Dictionary<ResourceType, long> Amounts { get; set; } = new();
+
+        /// <summary>Wire form of <see cref="Amounts"/>; see <see cref="ResourceAmountEntry"/>.</summary>
+        [ProtoMember(1)] public ResourceAmountEntry[] AmountEntries { get; set; } = System.Array.Empty<ResourceAmountEntry>();
+
+        [ProtoBeforeSerialization]
+        private void BeforeSerialize() => AmountEntries = ResourceAmountEntry.FromMap(Amounts);
+
+        [ProtoAfterDeserialization]
+        private void AfterDeserialize() => Amounts = ResourceAmountEntry.ToMap(AmountEntries);
 
         /// <summary>Tick this balance set was computed at. 0 means "unversioned, always apply".</summary>
         [ProtoMember(2)] public ulong ServerTick { get; set; }

@@ -1,0 +1,10 @@
+<!--
+  IL2CPP managed code stripping keeps only what it can see statically. protobuf-net builds its
+  serializers by reflection over the shared contracts, so those assemblies are preserved whole.
+-->
+<linker>
+  <assembly fullname="HADAL.Shared" preserve="all" />
+  <assembly fullname="protobuf-net" preserve="all" />
+  <assembly fullname="protobuf-net.Core" preserve="all" />
+  <assembly fullname="System.Collections.Immutable" preserve="all" />
+</linker>

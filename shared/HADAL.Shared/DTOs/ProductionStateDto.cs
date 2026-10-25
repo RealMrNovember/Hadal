@@ -14,7 +14,16 @@ namespace HADAL.Shared.DTOs
         [ProtoMember(1)] public ulong ServerTick { get; set; }
 
         /// <summary>Net (production minus consumption) per simulation tick, server-computed.</summary>
-        [ProtoMember(2)] public Dictionary<ResourceType, long> NetPerTick { get; set; } = new();
+        public Dictionary<ResourceType, long> NetPerTick { get; set; } = new();
+
+        /// <summary>Wire form of <see cref="NetPerTick"/>; see <see cref="ResourceAmountEntry"/>.</summary>
+        [ProtoMember(2)] public ResourceAmountEntry[] NetPerTickEntries { get; set; } = System.Array.Empty<ResourceAmountEntry>();
+
+        [ProtoBeforeSerialization]
+        private void BeforeSerialize() => NetPerTickEntries = ResourceAmountEntry.FromMap(NetPerTick);
+
+        [ProtoAfterDeserialization]
+        private void AfterDeserialize() => NetPerTick = ResourceAmountEntry.ToMap(NetPerTickEntries);
 
         /// <summary>Echo of the server's tick interval so the HUD can label rates without guessing.</summary>
         [ProtoMember(3)] public int TickIntervalSeconds { get; set; }

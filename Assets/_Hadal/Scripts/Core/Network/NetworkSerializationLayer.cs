@@ -28,8 +28,10 @@ namespace Hadal.Core.Network
                 message = Deserialize<T>(payload);
                 return true;
             }
-            catch
+            catch (System.Exception ex)
             {
+                // Callers only see false; keep the cause for device logs (IL2CPP/AOT issues).
+                UnityEngine.Debug.LogWarning($"[NetworkSerialization] {typeof(T).Name} decode failed: {ex}");
                 message = default!;
                 return false;
             }
