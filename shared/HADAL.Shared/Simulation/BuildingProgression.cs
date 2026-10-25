@@ -69,7 +69,8 @@ namespace HADAL.Shared.Simulation
             bool underConstruction,
             int activeConstructions,
             int reactorLevel,
-            IReadOnlyDictionary<ResourceType, long> wallet)
+            IReadOnlyDictionary<ResourceType, long> wallet,
+            int extraBuilders = 0)
         {
             if (!catalog.TryGetBuilding(definitionId, out var building))
                 return ConstructionRejectReason.UnknownBuilding;
@@ -78,7 +79,7 @@ namespace HADAL.Shared.Simulation
                 return ConstructionRejectReason.UnderConstruction;
 
             var rules = catalog.Progression;
-            if (activeConstructions >= Math.Max(1, rules.builderSlots))
+            if (activeConstructions >= Math.Max(1, rules.builderSlots) + extraBuilders)
                 return ConstructionRejectReason.BuilderBusy;
 
             if (currentLevel >= building.MaxLevel)

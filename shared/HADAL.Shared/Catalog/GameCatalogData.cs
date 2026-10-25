@@ -17,6 +17,12 @@ namespace HADAL.Shared.Catalog
 
         /// <summary>Requirements and costs of rings beyond <see cref="GridLayoutData.startingUnlockedRings"/>.</summary>
         public RingUnlockData[] ringUnlocks = Array.Empty<RingUnlockData>();
+
+        // Building functions (docs/24_Building_Functions.md).
+        public ResearchCatalogData research = new ResearchCatalogData();
+        public BoostData boost = new BoostData();
+        public OverdriveData overdrive = new OverdriveData();
+        public SalvageMissionData[] salvageMissions = Array.Empty<SalvageMissionData>();
     }
 
     /// <summary>What opening one outer ring takes (docs/23_Base_Management.md, rule 12).</summary>

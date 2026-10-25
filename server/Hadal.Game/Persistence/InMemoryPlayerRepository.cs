@@ -10,7 +10,15 @@ namespace Hadal.Game.Persistence
         public Task InitializeAsync(CancellationToken cancellationToken) => Task.CompletedTask;
 
         public Task<PlayerState?> LoadByIdentityAsync(string identityKey, CancellationToken cancellationToken) =>
-            Task.FromResult(_byIdentity.TryGetValue(identityKey, out var stored) ? Copy(stored) : null);
+            Task.FromResult(_byIdentity.TryGetValue(identityKey, out var stored) ? Loaded(stored) : null);
+
+        // Like the SQL store: research and building functions come back from the extras document.
+        private static PlayerState Loaded(PlayerState stored)
+        {
+            var copy = Copy(stored);
+            PlayerExtras.Read(copy.ExtrasJson, copy);
+            return copy;
+        }
 
         public Task CreateAsync(PlayerState player, CancellationToken cancellationToken)
         {
@@ -32,6 +40,7 @@ namespace Hadal.Game.Persistence
             updated.ServerTick = player.ServerTick;
             updated.LastSimulatedAt = player.LastSimulatedAt;
             updated.UnlockedRings = player.UnlockedRings;
+            updated.ExtrasJson = player.ExtrasJson;
             updated.Wallet.Clear();
             foreach (var pair in player.Wallet)
                 updated.Wallet[pair.Key] = pair.Value;
@@ -59,7 +68,8 @@ namespace Hadal.Game.Persistence
                 IdentityKey = source.IdentityKey,
                 ServerTick = source.ServerTick,
                 LastSimulatedAt = source.LastSimulatedAt,
-                UnlockedRings = source.UnlockedRings
+                UnlockedRings = source.UnlockedRings,
+                ExtrasJson = source.ExtrasJson
             };
 
             foreach (var pair in source.Wallet)

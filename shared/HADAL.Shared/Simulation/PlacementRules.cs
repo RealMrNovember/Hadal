@@ -36,7 +36,8 @@ namespace HADAL.Shared.Simulation
             ISet<(int ring, int sector)> occupied,
             IReadOnlyDictionary<ResourceType, long> wallet,
             IReadOnlyDictionary<string, int>? ownedCounts = null,
-            int reactorLevel = int.MaxValue)
+            int reactorLevel = int.MaxValue,
+            PlayerModifiers? modifiers = null)
         {
             if (!catalog.TryGetBuilding(buildingId, out var building))
                 return PlacementRejectReason.UnknownBuilding;
@@ -65,8 +66,9 @@ namespace HADAL.Shared.Simulation
             if (reactorLevel < building.RequiredReactorLevel)
                 return PlacementRejectReason.ReactorLevelTooLow;
 
-            if (building.MaxCount > 0 && ownedCounts != null
-                && ownedCounts.TryGetValue(building.Id, out var owned) && owned >= building.MaxCount)
+            var maxCount = (modifiers ?? PlayerModifiers.None).MaxCount(building);
+            if (maxCount > 0 && ownedCounts != null
+                && ownedCounts.TryGetValue(building.Id, out var owned) && owned >= maxCount)
                 return PlacementRejectReason.LimitReached;
 
             if (!CanAfford(building, wallet))

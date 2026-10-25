@@ -41,6 +41,32 @@ namespace HADAL.Shared.Catalog
             SlotType == GridSlotType.Universal || slotType == GridSlotType.Universal || SlotType == slotType;
     }
 
+    public sealed class ResearchNode
+    {
+        public string Id { get; internal set; } = string.Empty;
+        public string Tree { get; internal set; } = string.Empty;
+        public int MaxLevel { get; internal set; }
+        public string Effect { get; internal set; } = string.Empty;
+        public int ValuePerLevel { get; internal set; }
+        public int RequiredCenterLevel { get; internal set; }
+        public int BaseSeconds { get; internal set; }
+        public IReadOnlyList<KeyValuePair<ResourceType, long>> BaseCost { get; internal set; } = Array.Empty<KeyValuePair<ResourceType, long>>();
+
+        /// <summary>Node id -> level it must have reached.</summary>
+        public IReadOnlyList<KeyValuePair<string, int>> Requires { get; internal set; } = Array.Empty<KeyValuePair<string, int>>();
+    }
+
+    public sealed class SalvageMission
+    {
+        public string Id { get; internal set; } = string.Empty;
+        public int Seconds { get; internal set; }
+        public IReadOnlyList<KeyValuePair<ResourceType, long>> Rewards { get; internal set; } = Array.Empty<KeyValuePair<ResourceType, long>>();
+        public int LevelBonusPercent { get; internal set; }
+        public int HadaliteChancePercent { get; internal set; }
+        public int HadaliteMin { get; internal set; }
+        public int HadaliteMax { get; internal set; }
+    }
+
     public sealed class RingUnlock
     {
         public int Ring { get; internal set; }
@@ -60,6 +86,9 @@ namespace HADAL.Shared.Catalog
         private readonly Dictionary<string, BuildingDefinition> _buildings = new Dictionary<string, BuildingDefinition>(StringComparer.Ordinal);
         private readonly Dictionary<int, RingData> _rings = new Dictionary<int, RingData>();
         private readonly Dictionary<int, RingUnlock> _ringUnlocks = new Dictionary<int, RingUnlock>();
+        private readonly List<ResearchNode> _research = new List<ResearchNode>();
+        private readonly Dictionary<string, ResearchNode> _researchById = new Dictionary<string, ResearchNode>(StringComparer.Ordinal);
+        private readonly List<SalvageMission> _salvage = new List<SalvageMission>();
 
         private GameCatalog(GameCatalogData data)
         {
@@ -76,6 +105,19 @@ namespace HADAL.Shared.Catalog
 
         /// <summary>Level progression rules; defaults when the catalog has none.</summary>
         public ProgressionData Progression => Data.progression ?? new ProgressionData();
+
+        public ResearchCatalogData Research => Data.research ?? new ResearchCatalogData();
+
+        /// <summary>Research nodes in catalog order (the screen shows them in this order).</summary>
+        public IReadOnlyList<ResearchNode> ResearchNodes => _research;
+
+        public BoostData Boost => Data.boost ?? new BoostData();
+
+        public IReadOnlyList<KeyValuePair<ResourceType, long>> BoostCost { get; private set; } = Array.Empty<KeyValuePair<ResourceType, long>>();
+
+        public OverdriveData Overdrive => Data.overdrive ?? new OverdriveData();
+
+        public IReadOnlyList<SalvageMission> SalvageMissions => _salvage;
 
         /// <summary>Parses and validates. Throws <see cref="FormatException"/> listing every problem.</summary>
         public static GameCatalog Create(GameCatalogData data)
@@ -174,6 +216,73 @@ namespace HADAL.Shared.Catalog
                 catalog._rings[ring.ring] = ring;
             }
 
+            foreach (var node in (data.research ?? new ResearchCatalogData()).nodes ?? Array.Empty<ResearchNodeData>())
+            {
+                if (node == null || string.IsNullOrEmpty(node.id))
+                {
+                    errors.Add("research: node without id");
+                    continue;
+                }
+
+                if (catalog._researchById.ContainsKey(node.id))
+                    errors.Add($"research '{node.id}': duplicate id");
+                if (node.maxLevel < 1)
+                    errors.Add($"research '{node.id}': maxLevel must be at least 1");
+                if (!ResearchRules.IsKnownEffect(node.effect, id => catalog._buildings.ContainsKey(id)))
+                    errors.Add($"research '{node.id}': unknown effect '{node.effect}'");
+
+                var requires = new List<KeyValuePair<string, int>>();
+                foreach (var requirement in node.requires ?? Array.Empty<ResearchRequirementData>())
+                {
+                    if (requirement != null)
+                        requires.Add(new KeyValuePair<string, int>(requirement.id, Math.Max(1, requirement.level)));
+                }
+
+                var parsed = new ResearchNode
+                {
+                    Id = node.id,
+                    Tree = node.tree ?? string.Empty,
+                    MaxLevel = Math.Max(1, node.maxLevel),
+                    Effect = node.effect ?? string.Empty,
+                    ValuePerLevel = node.valuePerLevel,
+                    RequiredCenterLevel = Math.Max(1, node.requiredCenterLevel),
+                    BaseSeconds = Math.Max(0, node.baseSeconds),
+                    BaseCost = ParseAmounts("research " + node.id, "baseCost", node.baseCost, errors),
+                    Requires = requires
+                };
+                catalog._research.Add(parsed);
+                catalog._researchById[node.id] = parsed;
+            }
+
+            foreach (var node in catalog._research)
+            {
+                foreach (var requirement in node.Requires)
+                {
+                    if (!catalog._researchById.ContainsKey(requirement.Key))
+                        errors.Add($"research '{node.Id}': requires unknown node '{requirement.Key}'");
+                }
+            }
+
+            catalog.BoostCost = ParseAmounts("boost", "cost", (data.boost ?? new BoostData()).cost, errors);
+
+            foreach (var mission in data.salvageMissions ?? Array.Empty<SalvageMissionData>())
+            {
+                if (mission == null || string.IsNullOrEmpty(mission.id))
+                    continue;
+                if (mission.seconds <= 0)
+                    errors.Add($"salvage '{mission.id}': seconds must be positive");
+                catalog._salvage.Add(new SalvageMission
+                {
+                    Id = mission.id,
+                    Seconds = Math.Max(1, mission.seconds),
+                    Rewards = ParseAmounts("salvage " + mission.id, "rewards", mission.rewards, errors),
+                    LevelBonusPercent = Math.Max(0, mission.levelBonusPercent),
+                    HadaliteChancePercent = Math.Max(0, Math.Min(100, mission.hadaliteChancePercent)),
+                    HadaliteMin = Math.Max(0, mission.hadaliteMin),
+                    HadaliteMax = Math.Max(Math.Max(0, mission.hadaliteMin), mission.hadaliteMax)
+                });
+            }
+
             foreach (var unlock in data.ringUnlocks ?? Array.Empty<RingUnlockData>())
             {
                 if (unlock == null)
@@ -205,6 +314,18 @@ namespace HADAL.Shared.Catalog
         {
             building = null!;
             return !string.IsNullOrEmpty(id) && _buildings.TryGetValue(id, out building);
+        }
+
+        public bool TryGetResearch(string id, out ResearchNode node)
+        {
+            node = null!;
+            return !string.IsNullOrEmpty(id) && _researchById.TryGetValue(id, out node);
+        }
+
+        public bool TryGetSalvageMission(string id, out SalvageMission mission)
+        {
+            mission = _salvage.Find(m => m.Id == id)!;
+            return mission != null;
         }
 
         /// <summary>Requirements of opening <paramref name="ring"/>; false when the catalog defines none.</summary>

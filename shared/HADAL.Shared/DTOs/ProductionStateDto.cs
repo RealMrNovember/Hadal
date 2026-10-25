@@ -20,12 +20,32 @@ namespace HADAL.Shared.DTOs
         [ProtoMember(2)] public ResourceAmountEntry[] NetPerTickEntries { get; set; } = System.Array.Empty<ResourceAmountEntry>();
 
         [ProtoBeforeSerialization]
-        private void BeforeSerialize() => NetPerTickEntries = ResourceAmountEntry.FromMap(NetPerTick);
+        private void BeforeSerialize()
+        {
+            NetPerTickEntries = ResourceAmountEntry.FromMap(NetPerTick);
+            NetMilliPerTickEntries = ResourceAmountEntry.FromMap(NetMilliPerTick);
+            CapacityEntries = ResourceAmountEntry.FromMap(Capacities);
+        }
 
         [ProtoAfterDeserialization]
-        private void AfterDeserialize() => NetPerTick = ResourceAmountEntry.ToMap(NetPerTickEntries);
+        private void AfterDeserialize()
+        {
+            NetPerTick = ResourceAmountEntry.ToMap(NetPerTickEntries);
+            NetMilliPerTick = ResourceAmountEntry.ToMap(NetMilliPerTickEntries);
+            Capacities = ResourceAmountEntry.ToMap(CapacityEntries);
+        }
 
         /// <summary>Echo of the server's tick interval so the HUD can label rates without guessing.</summary>
         [ProtoMember(3)] public int TickIntervalSeconds { get; set; }
+
+        /// <summary>Net per tick in thousandths (exact; <see cref="NetPerTick"/> is the rounded form for old clients).</summary>
+        public Dictionary<ResourceType, long> NetMilliPerTick { get; set; } = new();
+
+        [ProtoMember(4)] public ResourceAmountEntry[] NetMilliPerTickEntries { get; set; } = System.Array.Empty<ResourceAmountEntry>();
+
+        /// <summary>This player's storage caps (research raises them); empty = the catalog's.</summary>
+        public Dictionary<ResourceType, long> Capacities { get; set; } = new();
+
+        [ProtoMember(5)] public ResourceAmountEntry[] CapacityEntries { get; set; } = System.Array.Empty<ResourceAmountEntry>();
     }
 }

@@ -19,6 +19,24 @@ namespace Hadal.Game
         public int ConstructionSeconds { get; set; }
 
         public bool IsUnderConstruction => ConstructionEndsAt.HasValue;
+
+        // Building functions (docs/24_Building_Functions.md); persisted in PlayerExtras.
+        public DateTimeOffset? BoostEndsAt { get; set; }
+        public string MissionId { get; set; } = string.Empty;
+        public DateTimeOffset? MissionEndsAt { get; set; }
+        public int MissionSeconds { get; set; }
+        public int MissionSeed { get; set; }
+        public DateTimeOffset? OverdriveEndsAt { get; set; }
+        public DateTimeOffset? OverdriveReadyAt { get; set; }
+    }
+
+    /// <summary>A research level being worked on (docs/24).</summary>
+    public sealed class ActiveResearch
+    {
+        public string NodeId { get; init; } = string.Empty;
+        public int TargetLevel { get; init; }
+        public DateTimeOffset EndsAt { get; set; }
+        public int Seconds { get; init; }
     }
 
     /// <summary>
@@ -46,6 +64,17 @@ namespace Hadal.Game
 
         /// <summary>Removed buildings not yet deleted from the database.</summary>
         public List<string> RemovedBuildingIds { get; } = new();
+
+        /// <summary>Finished research levels per node (docs/24).</summary>
+        public Dictionary<string, int> ResearchLevels { get; } = new(StringComparer.Ordinal);
+
+        public List<ActiveResearch> ActiveResearch { get; } = new();
+
+        /// <summary>Fractions of a unit (thousandths) carried between economy steps; not persisted.</summary>
+        public Dictionary<ResourceType, long> CarryMilli { get; } = new();
+
+        /// <summary>Research and building-function state for the save (PlayerExtras), set by the save snapshot.</summary>
+        public string ExtrasJson { get; set; } = string.Empty;
 
         public bool IsDirty { get; set; }
     }

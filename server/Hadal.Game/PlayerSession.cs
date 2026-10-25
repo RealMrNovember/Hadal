@@ -1,3 +1,4 @@
+using Hadal.Game.Persistence;
 using HADAL.Shared.Catalog;
 using HADAL.Shared.Commands;
 using HADAL.Shared.DTOs;
@@ -21,7 +22,7 @@ namespace Hadal.Game
         private readonly INetworkSerializer _serializer;
 
         private IClientConnection? _connection;
-        private Dictionary<ResourceType, long> _netPerTick = new();
+        private PlayerModifiers _modifiers = PlayerModifiers.None;
         private DateTimeOffset _lastReplicatedAt;
         private ulong _lastReplicatedTick;
         private bool _walletDirty;
@@ -31,12 +32,15 @@ namespace Hadal.Game
             _state = state;
             _runtime = runtime;
             _serializer = serializer;
+            RefreshModifiers();
         }
 
         // The catalog can be swapped at runtime (GameWorld.ReplaceCatalog); always read it fresh.
         private GameCatalog _catalog => _runtime.Current.Catalog;
         private ProductionCatalog _production => _runtime.Current.Production;
-        private IReadOnlyDictionary<ResourceType, long> _capacities => _runtime.Current.Capacities;
+
+        /// <summary>This player's storage caps: the catalog's, raised by research.</summary>
+        private Dictionary<ResourceType, long> Capacities() => _modifiers.Capacities(_runtime.Current.Capacities);
 
         public Guid PlayerId => _state.PlayerId;
 
@@ -59,7 +63,6 @@ namespace Hadal.Game
                 _connection = connection;
 
                 AdvanceTo(now);
-                _netPerTick = ComputeNetPerTick();
                 _lastReplicatedAt = now;
                 _lastReplicatedTick = _state.ServerTick;
                 _walletDirty = false;
@@ -88,10 +91,10 @@ namespace Hadal.Game
         {
             lock (_gate)
             {
-                var completed = AdvanceTo(now);
-                if (completed.Count > 0)
+                var changes = AdvanceTo(now);
+                if (changes.Count > 0)
                 {
-                    SendDelta(now, CompletionChanges(completed, now));
+                    SendDelta(now, changes);
                     return;
                 }
 
@@ -101,7 +104,7 @@ namespace Hadal.Game
                 if ((now - _lastReplicatedAt).TotalSeconds < SimulationTick.ReplicationIntervalSeconds)
                     return;
 
-                SendDelta(now, new List<EntityChangeDto> { WalletChange(), ProductionChange() });
+                SendDelta(now, new List<EntityChangeDto> { WalletChange(), ProductionChange(now) });
             }
         }
 
@@ -109,9 +112,9 @@ namespace Hadal.Game
         {
             lock (_gate)
             {
-                var completed = AdvanceTo(now);
-                if (completed.Count > 0)
-                    SendDelta(now, CompletionChanges(completed, now));
+                var changes = AdvanceTo(now);
+                if (changes.Count > 0)
+                    SendDelta(now, changes);
 
                 switch (envelope.Type)
                 {
@@ -135,14 +138,31 @@ namespace Hadal.Game
                         UnlockRing(unlock!, now);
                         break;
 
+                    case CommandType.StartResearch when TryDeserialize(envelope.Payload, out StartResearchCommand? research):
+                        StartResearch(research!, now);
+                        break;
+
+                    case CommandType.FinishResearch when TryDeserialize(envelope.Payload, out FinishResearchCommand? finishResearch):
+                        FinishResearch(finishResearch!, now);
+                        break;
+
+                    case CommandType.BoostBuilding when TryDeserialize(envelope.Payload, out BoostBuildingCommand? boost):
+                        Boost(boost!, now);
+                        break;
+
+                    case CommandType.Overdrive when TryDeserialize(envelope.Payload, out OverdriveCommand? overdrive):
+                        Overdrive(overdrive!, now);
+                        break;
+
+                    case CommandType.StartSalvage when TryDeserialize(envelope.Payload, out StartSalvageCommand? salvage):
+                        StartSalvage(salvage!, now);
+                        break;
+
                     default:
                         var known = envelope.Type is CommandType.PlaceBuilding or CommandType.UpgradeBuilding or CommandType.FinishConstruction
-                            or CommandType.RemoveBuilding or CommandType.UnlockRing;
-                        SendDelta(now, new List<EntityChangeDto>
-                        {
-                            AckChange(envelope.CommandId, envelope.ClientSequence, CommandResultCode.Rejected,
-                                known ? "MalformedCommand" : "NotSupported")
-                        });
+                            or CommandType.RemoveBuilding or CommandType.UnlockRing or CommandType.StartResearch or CommandType.FinishResearch
+                            or CommandType.BoostBuilding or CommandType.Overdrive or CommandType.StartSalvage;
+                        Reject(envelope.CommandId, envelope.ClientSequence, known ? "MalformedCommand" : "NotSupported", now);
                         break;
                 }
             }
@@ -153,9 +173,9 @@ namespace Hadal.Game
         {
             lock (_gate)
             {
-                var completed = AdvanceTo(now);
-                if (completed.Count > 0)
-                    SendDelta(now, CompletionChanges(completed, now));
+                var changes = AdvanceTo(now);
+                if (changes.Count > 0)
+                    SendDelta(now, changes);
             }
         }
 
@@ -164,8 +184,8 @@ namespace Hadal.Game
         {
             lock (_gate)
             {
-                _netPerTick = ComputeNetPerTick();
-                SendDelta(now, new List<EntityChangeDto> { WalletChange(), ProductionChange() });
+                RefreshModifiers();
+                SendDelta(now, new List<EntityChangeDto> { WalletChange(), ProductionChange(now), ResearchChange(now) });
             }
         }
 
@@ -192,6 +212,8 @@ namespace Hadal.Game
                         Level = b.Level, RotationSteps = b.RotationSteps, ConstructionEndsAt = b.ConstructionEndsAt,
                         ConstructionSeconds = b.ConstructionSeconds
                     });
+                foreach (var pair in _state.ResearchLevels)
+                    copy.ResearchLevels[pair.Key] = pair.Value;
                 return copy;
             }
         }
@@ -202,9 +224,9 @@ namespace Hadal.Game
             lock (_gate)
             {
                 AdvanceTo(now);
-                WalletOps.Add(_state.Wallet, amounts, _capacities);
+                WalletOps.Add(_state.Wallet, amounts, Capacities());
                 _state.IsDirty = true;
-                SendDelta(now, new List<EntityChangeDto> { WalletChange(), ProductionChange() });
+                SendDelta(now, new List<EntityChangeDto> { WalletChange(), ProductionChange(now) });
             }
         }
 
@@ -222,7 +244,8 @@ namespace Hadal.Game
                     IdentityKey = _state.IdentityKey,
                     ServerTick = _state.ServerTick,
                     LastSimulatedAt = _state.LastSimulatedAt,
-                    UnlockedRings = _state.UnlockedRings
+                    UnlockedRings = _state.UnlockedRings,
+                    ExtrasJson = PlayerExtras.Write(_state)
                 };
 
                 foreach (var pair in _state.Wallet)
@@ -254,22 +277,21 @@ namespace Hadal.Game
             get { lock (_gate) return _state; }
         }
 
+        // --- Building commands ------------------------------------------------------------------
+
         private void PlaceBuilding(PlaceBuildingCommand command, DateTimeOffset now)
         {
             var occupied = new HashSet<(int ring, int sector)>(_state.Buildings.Select(b => (b.Ring, b.Sector)));
             var verdict = PlacementRules.Validate(_catalog, command.BuildingDefinitionId, command.RingIndex,
-                command.SectorIndex, _state.UnlockedRings, occupied, _state.Wallet, OwnedCounts(), ReactorLevel());
+                command.SectorIndex, _state.UnlockedRings, occupied, _state.Wallet, OwnedCounts(), ReactorLevel(), _modifiers);
 
             if (verdict != PlacementRejectReason.None)
             {
-                SendDelta(now, new List<EntityChangeDto>
-                {
-                    AckChange(command.CommandId, command.ClientSequence, CommandResultCode.Rejected, verdict.ToString())
-                });
+                Reject(command.CommandId, command.ClientSequence, verdict.ToString(), now);
                 return;
             }
 
-            if (ActiveConstructions() >= Math.Max(1, _catalog.Progression.builderSlots))
+            if (ActiveConstructions() >= Builders())
             {
                 Reject(command.CommandId, command.ClientSequence, ConstructionRejectReason.BuilderBusy.ToString(), now);
                 return;
@@ -277,7 +299,7 @@ namespace Hadal.Game
 
             _catalog.TryGetBuilding(command.BuildingDefinitionId, out var definition);
             BuildingProgression.Charge(BuildingProgression.Cost(definition, 1, _catalog.Progression), _state.Wallet);
-            var seconds = BuildingProgression.Seconds(definition, 1, _catalog.Progression);
+            var seconds = _modifiers.BuildSeconds(BuildingProgression.Seconds(definition, 1, _catalog.Progression));
 
             // A new building works only once its first construction completes (level 0 until then).
             var building = new PlacedBuilding
@@ -294,7 +316,6 @@ namespace Hadal.Game
 
             _state.Buildings.Add(building);
             MarkChanged(building);
-            _netPerTick = ComputeNetPerTick();
 
             SendDelta(now, new List<EntityChangeDto>
             {
@@ -305,14 +326,14 @@ namespace Hadal.Game
                     Payload = _serializer.Serialize(ToDto(building, now))
                 },
                 WalletChange(),
-                ProductionChange(),
-                AckChange(command.CommandId, command.ClientSequence, CommandResultCode.Accepted, string.Empty)
+                ProductionChange(now),
+                Accepted(command.CommandId, command.ClientSequence)
             });
         }
 
         private void UpgradeBuilding(UpgradeBuildingCommand command, DateTimeOffset now)
         {
-            var building = _state.Buildings.FirstOrDefault(b => b.BuildingId == command.BuildingEntityId);
+            var building = FindBuilding(command.BuildingEntityId);
             if (building == null)
             {
                 Reject(command.CommandId, command.ClientSequence, ConstructionRejectReason.UnknownBuilding.ToString(), now);
@@ -320,7 +341,7 @@ namespace Hadal.Game
             }
 
             var verdict = BuildingProgression.ValidateUpgrade(_catalog, building.DefinitionId, building.Level,
-                building.IsUnderConstruction, ActiveConstructions(), ReactorLevel(), _state.Wallet);
+                building.IsUnderConstruction, ActiveConstructions(), ReactorLevel(), _state.Wallet, _modifiers.ExtraBuilders);
             if (verdict != ConstructionRejectReason.None)
             {
                 Reject(command.CommandId, command.ClientSequence, verdict.ToString(), now);
@@ -330,7 +351,7 @@ namespace Hadal.Game
             _catalog.TryGetBuilding(building.DefinitionId, out var definition);
             var target = building.Level + 1;
             BuildingProgression.Charge(BuildingProgression.Cost(definition, target, _catalog.Progression), _state.Wallet);
-            var seconds = BuildingProgression.Seconds(definition, target, _catalog.Progression);
+            var seconds = _modifiers.BuildSeconds(BuildingProgression.Seconds(definition, target, _catalog.Progression));
 
             // The building keeps producing at its current level while it is being upgraded.
             if (seconds > 0)
@@ -341,7 +362,6 @@ namespace Hadal.Game
             else
             {
                 building.Level = target;
-                _netPerTick = ComputeNetPerTick();
             }
 
             MarkChanged(building);
@@ -349,14 +369,14 @@ namespace Hadal.Game
             {
                 BuildingChange(building, now),
                 WalletChange(),
-                ProductionChange(),
-                AckChange(command.CommandId, command.ClientSequence, CommandResultCode.Accepted, string.Empty)
+                ProductionChange(now),
+                Accepted(command.CommandId, command.ClientSequence)
             });
         }
 
         private void FinishConstruction(FinishConstructionCommand command, DateTimeOffset now)
         {
-            var building = _state.Buildings.FirstOrDefault(b => b.BuildingId == command.BuildingEntityId);
+            var building = FindBuilding(command.BuildingEntityId);
             ConstructionRejectReason verdict;
             if (building == null)
                 verdict = ConstructionRejectReason.UnknownBuilding;
@@ -373,15 +393,19 @@ namespace Hadal.Game
                 return;
             }
 
-            Complete(building!);
-            var changes = CompletionChanges(new List<PlacedBuilding> { building! }, now);
-            changes.Add(AckChange(command.CommandId, command.ClientSequence, CommandResultCode.Accepted, string.Empty));
-            SendDelta(now, changes);
+            CompleteConstruction(building!);
+            SendDelta(now, new List<EntityChangeDto>
+            {
+                BuildingChange(building!, now),
+                WalletChange(),
+                ProductionChange(now),
+                Accepted(command.CommandId, command.ClientSequence)
+            });
         }
 
         private void RemoveBuilding(RemoveBuildingCommand command, DateTimeOffset now)
         {
-            var building = _state.Buildings.FirstOrDefault(b => b.BuildingId == command.BuildingEntityId);
+            var building = FindBuilding(command.BuildingEntityId);
             var verdict = building == null
                 ? RemoveRejectReason.UnknownBuilding
                 : BaseRules.ValidateRemove(building.DefinitionId, building.Level, building.IsUnderConstruction);
@@ -394,20 +418,19 @@ namespace Hadal.Game
 
             // Cancelling a first construction refunds it all; a finished building gives back a share.
             var refund = BaseRules.Refund(definition, building.IsUnderConstruction ? 0 : building.Level, _catalog.Progression);
-            WalletOps.Add(_state.Wallet, refund.ToDictionary(p => p.Key, p => p.Value), _capacities);
+            WalletOps.Add(_state.Wallet, refund.ToDictionary(p => p.Key, p => p.Value), Capacities());
 
             _state.Buildings.Remove(building);
             _state.UnsavedBuildings.Remove(building);
             _state.RemovedBuildingIds.Add(building.BuildingId);
             _state.IsDirty = true;
-            _netPerTick = ComputeNetPerTick();
 
             SendDelta(now, new List<EntityChangeDto>
             {
                 new() { EntityId = EntityIds.Building + building.BuildingId, Kind = EntityChangeKind.Delete },
                 WalletChange(),
-                ProductionChange(),
-                AckChange(command.CommandId, command.ClientSequence, CommandResultCode.Accepted, string.Empty)
+                ProductionChange(now),
+                Accepted(command.CommandId, command.ClientSequence)
             });
         }
 
@@ -430,61 +453,150 @@ namespace Hadal.Game
             {
                 LayoutChange(),
                 WalletChange(),
-                AckChange(command.CommandId, command.ClientSequence, CommandResultCode.Accepted, string.Empty)
+                Accepted(command.CommandId, command.ClientSequence)
             });
         }
 
-        private Dictionary<string, int> OwnedCounts() =>
-            _state.Buildings.GroupBy(b => b.DefinitionId).ToDictionary(g => g.Key, g => g.Count());
+        // --- Building functions (docs/24) --------------------------------------------------------
 
-        private void Complete(PlacedBuilding building)
+        private void StartResearch(StartResearchCommand command, DateTimeOffset now)
         {
-            building.Level += 1;
-            building.ConstructionEndsAt = null;
-            building.ConstructionSeconds = 0;
-            MarkChanged(building);
-            _netPerTick = ComputeNetPerTick();
-        }
+            var inProgress = new HashSet<string>(_state.ActiveResearch.Select(a => a.NodeId), StringComparer.Ordinal);
+            var verdict = ResearchRules.Validate(_catalog, command.NodeId, _state.ResearchLevels, inProgress,
+                CenterLevel(), _modifiers, _state.Wallet);
+            if (verdict != ResearchRejectReason.None)
+            {
+                Reject(command.CommandId, command.ClientSequence, verdict.ToString(), now);
+                return;
+            }
 
-        private List<EntityChangeDto> CompletionChanges(List<PlacedBuilding> completed, DateTimeOffset now)
-        {
-            var changes = completed.Select(b => BuildingChange(b, now)).ToList();
-            changes.Add(WalletChange());
-            changes.Add(ProductionChange());
-            return changes;
-        }
+            _catalog.TryGetResearch(command.NodeId, out var node);
+            var target = (_state.ResearchLevels.TryGetValue(node.Id, out var level) ? level : 0) + 1;
+            BuildingProgression.Charge(ResearchRules.Cost(node, target, _catalog.Research), _state.Wallet);
+            var seconds = _modifiers.ResearchSeconds(ResearchRules.BaseSeconds(node, target, _catalog.Research));
 
-        private void MarkChanged(PlacedBuilding building)
-        {
-            if (!_state.UnsavedBuildings.Contains(building))
-                _state.UnsavedBuildings.Add(building);
+            if (seconds > 0)
+                _state.ActiveResearch.Add(new ActiveResearch { NodeId = node.Id, TargetLevel = target, EndsAt = now.AddSeconds(seconds), Seconds = seconds });
+            else
+                CompleteResearch(node.Id, target);
+
             _state.IsDirty = true;
+            SendDelta(now, new List<EntityChangeDto>
+            {
+                ResearchChange(now),
+                WalletChange(),
+                ProductionChange(now),
+                Accepted(command.CommandId, command.ClientSequence)
+            });
         }
 
-        private void Reject(string commandId, ulong sequence, string reason, DateTimeOffset now) =>
-            SendDelta(now, new List<EntityChangeDto> { AckChange(commandId, sequence, CommandResultCode.Rejected, reason) });
+        private void FinishResearch(FinishResearchCommand command, DateTimeOffset now)
+        {
+            var active = _state.ActiveResearch.FirstOrDefault(a => a.NodeId == command.NodeId);
+            if (active == null || (active.EndsAt - now).TotalSeconds > _catalog.Progression.freeFinishSeconds)
+            {
+                Reject(command.CommandId, command.ClientSequence,
+                    (active == null ? ResearchRejectReason.NotResearching : ResearchRejectReason.NotYetFree).ToString(), now);
+                return;
+            }
 
-        private int ActiveConstructions() => _state.Buildings.Count(b => b.IsUnderConstruction);
+            _state.ActiveResearch.Remove(active);
+            CompleteResearch(active.NodeId, active.TargetLevel);
+            _state.IsDirty = true;
+            SendDelta(now, new List<EntityChangeDto>
+            {
+                ResearchChange(now),
+                WalletChange(),
+                ProductionChange(now),
+                Accepted(command.CommandId, command.ClientSequence)
+            });
+        }
 
-        private int ReactorLevel() =>
-            _state.Buildings.Where(b => b.DefinitionId == BuildingProgression.ReactorId).Select(b => b.Level).DefaultIfEmpty(0).Max();
+        private void Boost(BoostBuildingCommand command, DateTimeOffset now)
+        {
+            var building = FindBuilding(command.BuildingEntityId);
+            var definition = Definition(building);
+            var verdict = BuildingFunctions.ValidateBoost(_catalog, definition, building?.Level ?? 0,
+                building?.BoostEndsAt > now, _state.Wallet);
+            if (verdict != FunctionRejectReason.None)
+            {
+                Reject(command.CommandId, command.ClientSequence, verdict.ToString(), now);
+                return;
+            }
+
+            BuildingProgression.Charge(_catalog.BoostCost, _state.Wallet);
+            building!.BoostEndsAt = now.AddSeconds(Math.Max(1, _catalog.Boost.seconds));
+            _state.IsDirty = true;
+            SendFunctionAccepted(command.CommandId, command.ClientSequence, building, now);
+        }
+
+        private void Overdrive(OverdriveCommand command, DateTimeOffset now)
+        {
+            var building = FindBuilding(command.BuildingEntityId);
+            var verdict = BuildingFunctions.ValidateOverdrive(Definition(building), building?.Level ?? 0,
+                building?.OverdriveEndsAt > now, building?.OverdriveReadyAt > now);
+            if (verdict != FunctionRejectReason.None)
+            {
+                Reject(command.CommandId, command.ClientSequence, verdict.ToString(), now);
+                return;
+            }
+
+            var rules = _catalog.Overdrive;
+            building!.OverdriveEndsAt = now.AddSeconds(Math.Max(1, rules.seconds));
+            building.OverdriveReadyAt = now.AddSeconds(Math.Max(rules.seconds, rules.cooldownSeconds));
+            _state.IsDirty = true;
+            SendFunctionAccepted(command.CommandId, command.ClientSequence, building, now);
+        }
+
+        private void StartSalvage(StartSalvageCommand command, DateTimeOffset now)
+        {
+            var building = FindBuilding(command.BuildingEntityId);
+            var verdict = BuildingFunctions.ValidateSalvage(_catalog, Definition(building), building?.Level ?? 0,
+                building?.MissionEndsAt != null, command.MissionId);
+            if (verdict != FunctionRejectReason.None)
+            {
+                Reject(command.CommandId, command.ClientSequence, verdict.ToString(), now);
+                return;
+            }
+
+            _catalog.TryGetSalvageMission(command.MissionId, out var mission);
+            building!.MissionId = mission.Id;
+            building.MissionSeconds = mission.Seconds;
+            building.MissionEndsAt = now.AddSeconds(mission.Seconds);
+            building.MissionSeed = Random.Shared.Next();
+            _state.IsDirty = true;
+            SendFunctionAccepted(command.CommandId, command.ClientSequence, building, now);
+        }
+
+        private void SendFunctionAccepted(string commandId, ulong sequence, PlacedBuilding building, DateTimeOffset now) =>
+            SendDelta(now, new List<EntityChangeDto>
+            {
+                BuildingChange(building, now),
+                WalletChange(),
+                ProductionChange(now),
+                Accepted(commandId, sequence)
+            });
+
+        // --- Simulation ---------------------------------------------------------------------------
 
         /// <summary>
-        /// Brings the economy up to <paramref name="now"/>, completing constructions on the way:
-        /// the interval is split at each completion so a building produces from the moment it
-        /// finished, also while the player was offline. Gaps beyond the offline cap are forfeited
-        /// (not banked) before splitting, so a long absence cannot be replayed later.
-        /// Returns the buildings whose construction completed.
+        /// Brings the economy up to <paramref name="now"/>. Every timed thing that ends on the way
+        /// (construction, research, boost, overdrive, salvage run) splits the interval, so rates change
+        /// at the exact moment — also while the player was offline. Gaps beyond the offline cap are
+        /// forfeited (not banked) before splitting. Returns the changes to replicate (empty if none).
         /// </summary>
-        private List<PlacedBuilding> AdvanceTo(DateTimeOffset now)
+        private List<EntityChangeDto> AdvanceTo(DateTimeOffset now)
         {
-            var completed = new List<PlacedBuilding>();
+            var changedBuildings = new List<PlacedBuilding>();
+            var reports = new List<EntityChangeDto>();
+            var researchChanged = false;
+
             var elapsed = (now - _state.LastSimulatedAt).TotalSeconds;
             if (elapsed < 0)
             {
                 // Server clock went backwards (NTP step). Never award negative time.
                 _state.LastSimulatedAt = now;
-                return completed;
+                return new List<EntityChangeDto>();
             }
 
             var maxSeconds = SimulationTick.SecondsFromTicks((ulong)SimulationTick.MaxOfflineAccrualTicks);
@@ -494,25 +606,134 @@ namespace Hadal.Game
                 _state.IsDirty = true;
             }
 
-            while (true)
+            while (NextEvent(now) is { } at)
             {
-                var next = _state.Buildings
-                    .Where(b => b.ConstructionEndsAt.HasValue && b.ConstructionEndsAt.Value <= now)
-                    .OrderBy(b => b.ConstructionEndsAt!.Value)
-                    .FirstOrDefault();
-                if (next == null)
-                    break;
-
-                var at = next.ConstructionEndsAt!.Value;
                 if (at > _state.LastSimulatedAt)
                     AdvanceEconomy(at);
-                Complete(next);
-                if (!completed.Contains(next))
-                    completed.Add(next);
+
+                foreach (var building in _state.Buildings)
+                {
+                    var changed = false;
+                    if (building.ConstructionEndsAt <= at)
+                    {
+                        CompleteConstruction(building);
+                        changed = true;
+                    }
+
+                    if (building.BoostEndsAt <= at)
+                    {
+                        building.BoostEndsAt = null;
+                        changed = true;
+                    }
+
+                    if (building.OverdriveEndsAt <= at)
+                    {
+                        building.OverdriveEndsAt = null;
+                        changed = true;
+                    }
+
+                    if (building.MissionEndsAt <= at)
+                    {
+                        reports.Add(CompleteSalvage(building));
+                        changed = true;
+                    }
+
+                    if (changed && !changedBuildings.Contains(building))
+                        changedBuildings.Add(building);
+                }
+
+                foreach (var research in _state.ActiveResearch.Where(a => a.EndsAt <= at).ToList())
+                {
+                    _state.ActiveResearch.Remove(research);
+                    CompleteResearch(research.NodeId, research.TargetLevel);
+                    researchChanged = true;
+                }
+
+                _state.IsDirty = true;
             }
 
             AdvanceEconomy(now);
-            return completed;
+
+            var changes = new List<EntityChangeDto>();
+            if (changedBuildings.Count == 0 && !researchChanged)
+                return changes;
+
+            changes.AddRange(changedBuildings.Select(b => BuildingChange(b, now)));
+            changes.AddRange(reports);
+            if (researchChanged)
+                changes.Add(ResearchChange(now));
+            changes.Add(WalletChange());
+            changes.Add(ProductionChange(now));
+            return changes;
+        }
+
+        /// <summary>The earliest timed end at or before <paramref name="now"/>, if any.</summary>
+        private DateTimeOffset? NextEvent(DateTimeOffset now)
+        {
+            DateTimeOffset? next = null;
+            void Consider(DateTimeOffset? at)
+            {
+                if (at.HasValue && at.Value <= now && (next == null || at.Value < next.Value))
+                    next = at;
+            }
+
+            foreach (var b in _state.Buildings)
+            {
+                Consider(b.ConstructionEndsAt);
+                Consider(b.BoostEndsAt);
+                Consider(b.OverdriveEndsAt);
+                Consider(b.MissionEndsAt);
+            }
+
+            foreach (var research in _state.ActiveResearch)
+                Consider(research.EndsAt);
+            return next;
+        }
+
+        private void CompleteConstruction(PlacedBuilding building)
+        {
+            building.Level += 1;
+            building.ConstructionEndsAt = null;
+            building.ConstructionSeconds = 0;
+            MarkChanged(building);
+        }
+
+        private void CompleteResearch(string nodeId, int level)
+        {
+            _state.ResearchLevels[nodeId] = Math.Max(level, _state.ResearchLevels.TryGetValue(nodeId, out var have) ? have : 0);
+            RefreshModifiers();
+        }
+
+        /// <summary>Delivers a finished salvage run (capped at storage) and returns its report.</summary>
+        private EntityChangeDto CompleteSalvage(PlacedBuilding building)
+        {
+            var rewards = new Dictionary<ResourceType, long>();
+            if (_catalog.TryGetSalvageMission(building.MissionId, out var mission))
+            {
+                foreach (var pair in BuildingFunctions.SalvageRewards(mission, building.Level))
+                    rewards[pair.Key] = pair.Value;
+                var hadalite = BuildingFunctions.SalvageHadalite(mission, building.MissionSeed);
+                if (hadalite > 0)
+                    rewards[ResourceType.Hadalite] = (rewards.TryGetValue(ResourceType.Hadalite, out var h) ? h : 0) + hadalite;
+                WalletOps.Add(_state.Wallet, rewards, Capacities());
+                _walletDirty = true;
+            }
+
+            var report = new SalvageReportDto
+            {
+                BuildingEntityId = building.BuildingId,
+                MissionId = building.MissionId,
+                Rewards = ResourceAmountEntry.FromMap(rewards)
+            };
+            building.MissionId = string.Empty;
+            building.MissionEndsAt = null;
+            building.MissionSeconds = 0;
+            return new EntityChangeDto
+            {
+                EntityId = EntityIds.SalvageReport + building.BuildingId,
+                Kind = EntityChangeKind.Create,
+                Payload = _serializer.Serialize(report)
+            };
         }
 
         private void AdvanceEconomy(DateTimeOffset until)
@@ -525,12 +746,14 @@ namespace Hadal.Game
             if (ticks == 0UL)
                 return;
 
+            // Rates as they were during this interval: events split the interval at every change.
+            var net = NetMilliPerTick(_state.LastSimulatedAt);
             var granted = SimulationTick.ClampOfflineTicks(ticks);
             _state.LastSimulatedAt = granted < ticks
                 ? until
                 : _state.LastSimulatedAt.AddSeconds(SimulationTick.SecondsFromTicks(granted));
 
-            var result = ProductionSimulator.Advance(_state.Wallet, Inputs(), _production, _capacities, granted);
+            var result = ProductionSimulator.AdvanceMilli(_state.Wallet, net, Capacities(), granted, _state.CarryMilli);
             _state.ServerTick += granted;
             _state.IsDirty = true;
 
@@ -543,6 +766,60 @@ namespace Hadal.Game
 
             _walletDirty = true;
         }
+
+        private Dictionary<ResourceType, long> NetMilliPerTick(DateTimeOffset at) =>
+            ProductionSimulator.ComputeNetMilliPerTick(Inputs(at), _production, _modifiers.ProductionPercent);
+
+        private List<BuildingProductionInput> Inputs(DateTimeOffset at) =>
+            _state.Buildings.Where(b => b.Level > 0).Select(b => new BuildingProductionInput(b.DefinitionId, b.Level, BonusPercent(b, at))).ToList();
+
+        /// <summary>Boost and Overdrive add to one building's output while they run.</summary>
+        private int BonusPercent(PlacedBuilding building, DateTimeOffset at)
+        {
+            var bonus = 0;
+            if (building.BoostEndsAt > at)
+                bonus += _catalog.Boost.percent;
+            if (building.OverdriveEndsAt > at)
+                bonus += _catalog.Overdrive.percent;
+            return bonus;
+        }
+
+        private void RefreshModifiers() => _modifiers = ResearchRules.Modifiers(_catalog, _state.ResearchLevels);
+
+        // --- Helpers ------------------------------------------------------------------------------
+
+        private PlacedBuilding? FindBuilding(string id) => _state.Buildings.FirstOrDefault(b => b.BuildingId == id);
+
+        private BuildingDefinition? Definition(PlacedBuilding? building) =>
+            building != null && _catalog.TryGetBuilding(building.DefinitionId, out var definition) ? definition : null;
+
+        private void MarkChanged(PlacedBuilding building)
+        {
+            if (!_state.UnsavedBuildings.Contains(building))
+                _state.UnsavedBuildings.Add(building);
+            _state.IsDirty = true;
+        }
+
+        private void Reject(string commandId, ulong sequence, string reason, DateTimeOffset now) =>
+            SendDelta(now, new List<EntityChangeDto> { AckChange(commandId, sequence, CommandResultCode.Rejected, reason) });
+
+        private EntityChangeDto Accepted(string commandId, ulong sequence) =>
+            AckChange(commandId, sequence, CommandResultCode.Accepted, string.Empty);
+
+        private int ActiveConstructions() => _state.Buildings.Count(b => b.IsUnderConstruction);
+
+        private int Builders() => Math.Max(1, _catalog.Progression.builderSlots) + _modifiers.ExtraBuilders;
+
+        private Dictionary<string, int> OwnedCounts() =>
+            _state.Buildings.GroupBy(b => b.DefinitionId).ToDictionary(g => g.Key, g => g.Count());
+
+        private int ReactorLevel() =>
+            _state.Buildings.Where(b => b.DefinitionId == BuildingProgression.ReactorId).Select(b => b.Level).DefaultIfEmpty(0).Max();
+
+        private int CenterLevel() =>
+            _state.Buildings.Where(b => b.DefinitionId == ResearchRules.CenterId).Select(b => b.Level).DefaultIfEmpty(0).Max();
+
+        // --- Replication --------------------------------------------------------------------------
 
         private void SendDelta(DateTimeOffset now, List<EntityChangeDto> changes)
         {
@@ -576,8 +853,9 @@ namespace Hadal.Game
                 PlayerId = _state.PlayerId.ToString("N"),
                 Resources = WalletDto(),
                 Buildings = _state.Buildings.Select(b => ToDto(b, now)).ToList(),
-                Production = ProductionDto(),
-                UnlockedRings = _state.UnlockedRings
+                Production = ProductionDto(now),
+                UnlockedRings = _state.UnlockedRings,
+                Research = ResearchDto(now)
             };
 
             return EnvelopeBuilder.WrapStateSnapshot(snapshot, _serializer.Serialize(snapshot));
@@ -604,11 +882,18 @@ namespace Hadal.Game
             Payload = _serializer.Serialize(new BaseLayoutDto { UnlockedRings = _state.UnlockedRings })
         };
 
-        private EntityChangeDto ProductionChange() => new()
+        private EntityChangeDto ResearchChange(DateTimeOffset now) => new()
+        {
+            EntityId = EntityIds.Research,
+            Kind = EntityChangeKind.Update,
+            Payload = _serializer.Serialize(ResearchDto(now))
+        };
+
+        private EntityChangeDto ProductionChange(DateTimeOffset now) => new()
         {
             EntityId = EntityIds.ProductionSummary,
             Kind = EntityChangeKind.Update,
-            Payload = _serializer.Serialize(ProductionDto())
+            Payload = _serializer.Serialize(ProductionDto(now))
         };
 
         private EntityChangeDto AckChange(string commandId, ulong sequence, CommandResultCode result, string reason) => new()
@@ -632,23 +917,38 @@ namespace Hadal.Game
             return dto;
         }
 
-        private ProductionStateDto ProductionDto()
+        private ProductionStateDto ProductionDto(DateTimeOffset now)
         {
             var dto = new ProductionStateDto
             {
                 ServerTick = _state.ServerTick,
                 TickIntervalSeconds = SimulationTick.IntervalSeconds
             };
-            foreach (var pair in _netPerTick)
-                dto.NetPerTick[pair.Key] = pair.Value;
+            foreach (var pair in NetMilliPerTick(now))
+            {
+                dto.NetMilliPerTick[pair.Key] = pair.Value;
+                dto.NetPerTick[pair.Key] = pair.Value / ProductionFormulas.Milli;
+            }
+
+            foreach (var pair in Capacities())
+                dto.Capacities[pair.Key] = pair.Value;
             return dto;
         }
 
-        private Dictionary<ResourceType, long> ComputeNetPerTick() =>
-            ProductionSimulator.ComputeNetPerTick(Inputs(), _production);
+        private ResearchStateDto ResearchDto(DateTimeOffset now) => new()
+        {
+            Levels = _state.ResearchLevels.Select(p => new ResearchLevelEntry { NodeId = p.Key, Level = p.Value }).ToArray(),
+            Active = _state.ActiveResearch.Select(a => new ActiveResearchEntry
+            {
+                NodeId = a.NodeId,
+                TargetLevel = a.TargetLevel,
+                RemainingMs = Remaining(a.EndsAt, now),
+                TotalMs = a.Seconds * 1000L
+            }).ToArray()
+        };
 
-        private List<BuildingProductionInput> Inputs() =>
-            _state.Buildings.Where(b => b.Level > 0).Select(b => new BuildingProductionInput(b.DefinitionId, b.Level)).ToList();
+        private static long Remaining(DateTimeOffset? endsAt, DateTimeOffset now) =>
+            endsAt.HasValue ? Math.Max(0L, (long)(endsAt.Value - now).TotalMilliseconds) : 0L;
 
         private static BuildingStateDto ToDto(PlacedBuilding building, DateTimeOffset now) => new()
         {
@@ -658,10 +958,14 @@ namespace Hadal.Game
             SectorIndex = building.Sector,
             Level = building.Level,
             RotationSteps = building.RotationSteps,
-            ConstructionRemainingMs = building.ConstructionEndsAt.HasValue
-                ? Math.Max(0L, (long)(building.ConstructionEndsAt.Value - now).TotalMilliseconds)
-                : 0L,
-            ConstructionTotalMs = building.ConstructionEndsAt.HasValue ? building.ConstructionSeconds * 1000L : 0L
+            ConstructionRemainingMs = Remaining(building.ConstructionEndsAt, now),
+            ConstructionTotalMs = building.ConstructionEndsAt.HasValue ? building.ConstructionSeconds * 1000L : 0L,
+            BoostRemainingMs = Remaining(building.BoostEndsAt, now),
+            MissionId = building.MissionEndsAt.HasValue ? building.MissionId : string.Empty,
+            MissionRemainingMs = Remaining(building.MissionEndsAt, now),
+            MissionTotalMs = building.MissionEndsAt.HasValue ? building.MissionSeconds * 1000L : 0L,
+            OverdriveRemainingMs = Remaining(building.OverdriveEndsAt, now),
+            OverdriveCooldownMs = Remaining(building.OverdriveReadyAt, now)
         };
 
         private bool TryDeserialize<T>(byte[] payload, out T? value) where T : class

@@ -14,5 +14,10 @@ namespace HADAL.Shared.Enums
         [ProtoEnum] ClientAuth = 6,
         [ProtoEnum] FinishConstruction = 7,
         [ProtoEnum] UnlockRing = 8,
+        [ProtoEnum] StartResearch = 9,
+        [ProtoEnum] FinishResearch = 10,
+        [ProtoEnum] BoostBuilding = 11,
+        [ProtoEnum] Overdrive = 12,
+        [ProtoEnum] StartSalvage = 13,
     }
 }

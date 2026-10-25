@@ -24,6 +24,24 @@ namespace HADAL.Shared.Simulation
             return basePerTick * percent / 100L;
         }
 
+        /// <summary>Resources are simulated in thousandths so percentage bonuses survive on small rates.</summary>
+        public const long Milli = 1000L;
+
+        /// <summary>
+        /// <see cref="ScaleByLevel"/> in thousandths of a unit per tick, with an extra percentage bonus
+        /// (boosts, research). 2 per tick at level 2 is 2500, not the 2 the integer form rounds to.
+        /// </summary>
+        public static long ScaleByLevelMilli(long basePerTick, int level, int bonusPercent = 0)
+        {
+            if (basePerTick == 0L)
+                return 0L;
+
+            var effectiveLevel = level < 1 ? 1 : level;
+            var levelPercent = 100L + LevelBonusPercentPerLevel * (long)(effectiveLevel - 1);
+            var bonus = 100L + (bonusPercent < -100 ? -100 : bonusPercent);
+            return basePerTick * 10L * levelPercent * bonus / 100L;
+        }
+
         /// <summary>
         /// Total accrued over <paramref name="elapsedTicks"/>. Saturates instead of
         /// overflowing so a bad tick count can never wrap a balance negative.

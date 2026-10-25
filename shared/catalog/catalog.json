@@ -1,5 +1,5 @@
 {
-  "version": 3,
+  "version": 4,
   "_note": "Single source of truth for buildings, resources and base layout. Read by the server (validation, economy) and by Hadal > Setup in Unity (ScriptableObjects). Rules and the balance table: docs/23_Base_Management.md. Rates are per simulation tick (SimulationTick.IntervalSeconds) at level 1. buildCost/buildSeconds are for level 1; higher levels scale by progression.costGrowth/timeGrowth. requiredReactorLevel gates a building, maxCount caps how many a base may own.",
   "resources": [
     { "type": "Oxygen",   "displayName": "Oxygen",   "description": "Base survival resource.", "startingAmount": 600, "maxCapacity": 6000,  "critical": true },
@@ -78,6 +78,29 @@
     { "id": "decoration_spire", "displayName": "Decoration Spire", "category": "Infrastructure", "slotType": "Decoration", "minRing": 4, "maxRing": 12, "buildSeconds": 10,
       "requiredReactorLevel": 2, "maxCount": 6,
       "buildCost": [ { "resource": "Titanium", "amount": 40 } ] }
+  ],
+  "research": {
+    "costGrowth": 1.4, "timeGrowth": 1.5, "centerStep": 2, "baseSlots": 1,
+    "nodes": [
+      {"id": "construction_mastery", "tree": "development", "maxLevel": 10, "effect": "buildTime", "valuePerLevel": -3, "requiredCenterLevel": 1, "baseSeconds": 60, "baseCost": [{"resource": "Titanium", "amount": 80}, {"resource": "Biomass", "amount": 20}], "requires": []},
+      {"id": "research_methods", "tree": "development", "maxLevel": 10, "effect": "researchTime", "valuePerLevel": -5, "requiredCenterLevel": 1, "baseSeconds": 60, "baseCost": [{"resource": "Titanium", "amount": 60}, {"resource": "Biomass", "amount": 30}], "requires": []},
+      {"id": "second_builder", "tree": "development", "maxLevel": 1, "effect": "builderSlots", "valuePerLevel": 1, "requiredCenterLevel": 5, "baseSeconds": 1800, "baseCost": [{"resource": "Titanium", "amount": 3000}, {"resource": "Biomass", "amount": 800}], "requires": [{"id": "construction_mastery", "level": 5}]},
+      {"id": "second_workbench", "tree": "development", "maxLevel": 1, "effect": "researchSlots", "valuePerLevel": 1, "requiredCenterLevel": 8, "baseSeconds": 3600, "baseCost": [{"resource": "Titanium", "amount": 5000}, {"resource": "Biomass", "amount": 1500}], "requires": [{"id": "research_methods", "level": 5}]},
+      {"id": "oxygen_yield", "tree": "economy", "maxLevel": 10, "effect": "production:Oxygen", "valuePerLevel": 4, "requiredCenterLevel": 1, "baseSeconds": 90, "baseCost": [{"resource": "Titanium", "amount": 100}, {"resource": "Biomass", "amount": 30}], "requires": []},
+      {"id": "food_yield", "tree": "economy", "maxLevel": 10, "effect": "production:Food", "valuePerLevel": 4, "requiredCenterLevel": 1, "baseSeconds": 90, "baseCost": [{"resource": "Titanium", "amount": 100}, {"resource": "Biomass", "amount": 30}], "requires": []},
+      {"id": "biomass_yield", "tree": "economy", "maxLevel": 10, "effect": "production:Biomass", "valuePerLevel": 4, "requiredCenterLevel": 2, "baseSeconds": 90, "baseCost": [{"resource": "Titanium", "amount": 120}, {"resource": "Biomass", "amount": 20}], "requires": []},
+      {"id": "titanium_recovery", "tree": "economy", "maxLevel": 10, "effect": "production:Titanium", "valuePerLevel": 4, "requiredCenterLevel": 2, "baseSeconds": 90, "baseCost": [{"resource": "Titanium", "amount": 120}, {"resource": "Biomass", "amount": 40}], "requires": []},
+      {"id": "storage_engineering", "tree": "economy", "maxLevel": 10, "effect": "capacity:All", "valuePerLevel": 5, "requiredCenterLevel": 3, "baseSeconds": 120, "baseCost": [{"resource": "Titanium", "amount": 200}, {"resource": "Biomass", "amount": 60}], "requires": []},
+      {"id": "extra_oxygen_line", "tree": "economy", "maxLevel": 2, "effect": "limit:oxygen_plant", "valuePerLevel": 1, "requiredCenterLevel": 4, "baseSeconds": 900, "baseCost": [{"resource": "Titanium", "amount": 800}, {"resource": "Biomass", "amount": 200}], "requires": [{"id": "oxygen_yield", "level": 3}]},
+      {"id": "extra_drone_line", "tree": "economy", "maxLevel": 2, "effect": "limit:drone_factory", "valuePerLevel": 1, "requiredCenterLevel": 5, "baseSeconds": 900, "baseCost": [{"resource": "Titanium", "amount": 1000}, {"resource": "Biomass", "amount": 300}], "requires": [{"id": "titanium_recovery", "level": 3}]}
+    ]
+  },
+  "boost": {"percent": 30, "seconds": 1800, "cost": [{"resource": "Energy", "amount": 150}]},
+  "overdrive": {"percent": 50, "seconds": 3600, "cooldownSeconds": 28800},
+  "salvageMissions": [
+    {"id": "quick", "seconds": 900, "rewards": [{"resource": "Titanium", "amount": 1500}], "levelBonusPercent": 10, "hadaliteChancePercent": 0, "hadaliteMin": 0, "hadaliteMax": 0},
+    {"id": "standard", "seconds": 3600, "rewards": [{"resource": "Titanium", "amount": 5000}, {"resource": "Biomass", "amount": 400}], "levelBonusPercent": 10, "hadaliteChancePercent": 10, "hadaliteMin": 1, "hadaliteMax": 2},
+    {"id": "deep", "seconds": 14400, "rewards": [{"resource": "Titanium", "amount": 15000}, {"resource": "Biomass", "amount": 1500}], "levelBonusPercent": 10, "hadaliteChancePercent": 30, "hadaliteMin": 2, "hadaliteMax": 5}
   ],
   "ringUnlocks": [
     { "ring": 5,  "reactorLevel": 3,  "cost": [ { "resource": "Titanium", "amount": 400 },  { "resource": "Biomass", "amount": 100 } ] },

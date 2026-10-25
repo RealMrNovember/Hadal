@@ -23,6 +23,9 @@ namespace HADAL.Shared.DTOs
         /// <summary>Outermost open ring (docs/23, rule 12). 0 from older servers = use the catalog default.</summary>
         [ProtoMember(6)] public int UnlockedRings { get; set; }
 
+        /// <summary>Research levels and running researches (docs/24); null from older servers.</summary>
+        [ProtoMember(7)] public ResearchStateDto? Research { get; set; }
+
         [ProtoBeforeSerialization]
         private void BeforeSerialize() => BuildingsWire = Buildings?.ToArray() ?? System.Array.Empty<BuildingStateDto>();
 

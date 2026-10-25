@@ -46,7 +46,10 @@ CREATE TABLE IF NOT EXISTS hadal.buildings (
 
 -- Running construction (docs/23_Base_Management.md): NULL = idle.
 ALTER TABLE hadal.buildings ADD COLUMN IF NOT EXISTS construction_ends_at timestamptz;
-ALTER TABLE hadal.buildings ADD COLUMN IF NOT EXISTS construction_seconds integer NOT NULL DEFAULT 0;";
+ALTER TABLE hadal.buildings ADD COLUMN IF NOT EXISTS construction_seconds integer NOT NULL DEFAULT 0;
+
+-- Research and building functions (docs/24): one JSON document, see PlayerExtras.
+ALTER TABLE hadal.players ADD COLUMN IF NOT EXISTS extras jsonb NOT NULL DEFAULT '{}'::jsonb;";
 
         private readonly NpgsqlDataSource _dataSource;
 
@@ -64,7 +67,7 @@ ALTER TABLE hadal.buildings ADD COLUMN IF NOT EXISTS construction_seconds intege
 
             PlayerState player;
             await using (var command = new NpgsqlCommand(
-                "SELECT player_id, server_tick, last_simulated_at, unlocked_rings, wallet::text FROM hadal.players WHERE identity_key = @d",
+                "SELECT player_id, server_tick, last_simulated_at, unlocked_rings, wallet::text, extras::text FROM hadal.players WHERE identity_key = @d",
                 connection))
             {
                 command.Parameters.AddWithValue("d", identityKey);
@@ -83,6 +86,7 @@ ALTER TABLE hadal.buildings ADD COLUMN IF NOT EXISTS construction_seconds intege
 
                 foreach (var pair in ReadWallet(reader.GetString(4)))
                     player.Wallet[pair.Key] = pair.Value;
+                player.ExtrasJson = reader.GetString(5);
             }
 
             await using (var command = new NpgsqlCommand(
@@ -107,6 +111,7 @@ ALTER TABLE hadal.buildings ADD COLUMN IF NOT EXISTS construction_seconds intege
                 }
             }
 
+            PlayerExtras.Read(player.ExtrasJson, player);
             return player;
         }
 
@@ -133,9 +138,11 @@ ALTER TABLE hadal.buildings ADD COLUMN IF NOT EXISTS construction_seconds intege
 
             await using (var command = new NpgsqlCommand(
                 @"UPDATE hadal.players
-                  SET server_tick = @t, last_simulated_at = @s, unlocked_rings = @u, wallet = @w::jsonb
+                  SET server_tick = @t, last_simulated_at = @s, unlocked_rings = @u, wallet = @w::jsonb,
+                      extras = CASE WHEN @x = '' THEN extras ELSE @x::jsonb END
                   WHERE player_id = @p", connection, transaction))
             {
+                command.Parameters.AddWithValue("x", player.ExtrasJson ?? string.Empty);
                 command.Parameters.AddWithValue("p", player.PlayerId);
                 command.Parameters.AddWithValue("t", (long)player.ServerTick);
                 command.Parameters.AddWithValue("s", player.LastSimulatedAt);

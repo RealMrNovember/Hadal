@@ -9,10 +9,14 @@ namespace HADAL.Shared.Simulation
         public readonly string DefinitionId;
         public readonly int Level;
 
-        public BuildingProductionInput(string definitionId, int level)
+        /// <summary>Extra output of this one building in percent (Boost, Overdrive); consumption is unaffected.</summary>
+        public readonly int BonusPercent;
+
+        public BuildingProductionInput(string definitionId, int level, int bonusPercent = 0)
         {
             DefinitionId = definitionId;
             Level = level;
+            BonusPercent = bonusPercent;
         }
     }
 
@@ -73,6 +77,101 @@ namespace HADAL.Shared.Simulation
             }
 
             return net;
+        }
+
+        /// <summary>
+        /// Net rates in thousandths per tick: level scaling, each building's own bonus and the
+        /// per-resource bonus (research) are applied before anything is rounded.
+        /// </summary>
+        public static Dictionary<ResourceType, long> ComputeNetMilliPerTick(
+            IReadOnlyList<BuildingProductionInput> buildings,
+            ProductionCatalog catalog,
+            IReadOnlyDictionary<ResourceType, int>? resourceBonusPercent = null)
+        {
+            var net = new Dictionary<ResourceType, long>();
+            if (buildings == null || catalog == null)
+                return net;
+
+            for (var i = 0; i < buildings.Count; i++)
+            {
+                var building = buildings[i];
+                var rules = catalog.GetRules(building.DefinitionId);
+                for (var r = 0; r < rules.Count; r++)
+                {
+                    var rule = rules[r];
+                    if (rule == null || rule.Resource == ResourceType.Unknown)
+                        continue;
+
+                    var bonus = building.BonusPercent;
+                    if (resourceBonusPercent != null && resourceBonusPercent.TryGetValue(rule.Resource, out var researched))
+                        bonus += researched;
+
+                    var delta = ProductionFormulas.ScaleByLevelMilli(rule.ProductionPerTick, building.Level, bonus)
+                                - ProductionFormulas.ScaleByLevelMilli(rule.ConsumptionPerTick, building.Level);
+                    if (delta == 0L)
+                        continue;
+
+                    net.TryGetValue(rule.Resource, out var current);
+                    net[rule.Resource] = current + delta;
+                }
+            }
+
+            return net;
+        }
+
+        /// <summary>
+        /// Advances balances by thousandth-per-tick rates. The fraction left over is kept in
+        /// <paramref name="carryMilli"/> for the next call, so a rate of 2.5 per tick really gives
+        /// 5 every 2 ticks; a balance pinned at 0 or at its cap drops its carry.
+        /// </summary>
+        public static ProductionTickResult AdvanceMilli(
+            IReadOnlyDictionary<ResourceType, long> currentTotals,
+            IReadOnlyDictionary<ResourceType, long> netMilliPerTick,
+            IReadOnlyDictionary<ResourceType, long> capacities,
+            ulong elapsedTicks,
+            IDictionary<ResourceType, long> carryMilli)
+        {
+            var result = new ProductionTickResult { TicksApplied = elapsedTicks };
+            if (currentTotals != null)
+            {
+                foreach (var pair in currentTotals)
+                    result.Totals[pair.Key] = pair.Value;
+            }
+
+            if (netMilliPerTick == null)
+                return result;
+
+            foreach (var pair in netMilliPerTick)
+                result.NetPerTick[pair.Key] = pair.Value / ProductionFormulas.Milli;
+
+            if (elapsedTicks == 0UL)
+                return result;
+
+            foreach (var pair in netMilliPerTick)
+            {
+                carryMilli.TryGetValue(pair.Key, out var carry);
+                var milli = ProductionFormulas.Accrue(pair.Value, elapsedTicks);
+                milli = milli > long.MaxValue - carry ? long.MaxValue : milli + carry;
+                var whole = milli / ProductionFormulas.Milli;
+                var rest = milli - whole * ProductionFormulas.Milli;
+
+                result.Totals.TryGetValue(pair.Key, out var before);
+                var capacity = 0L;
+                capacities?.TryGetValue(pair.Key, out capacity);
+                var after = ProductionFormulas.ApplyToBalance(before, whole, capacity);
+
+                // Clamped at 0 or at the cap: the fraction would only pile up against the wall.
+                var clamped = after != before + whole;
+                carryMilli[pair.Key] = clamped ? 0L : rest;
+
+                if (after == before)
+                    continue;
+
+                result.Totals[pair.Key] = after;
+                result.HasChanges = true;
+            }
+
+            return result;
         }
 
         /// <summary>

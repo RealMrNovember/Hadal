@@ -20,5 +20,11 @@ namespace HADAL.Shared.Protocol
 
         /// <summary>Open rings of the base (<c>BaseLayoutDto</c>); a singleton like the wallet.</summary>
         public const string BaseLayout = Base + "layout";
+
+        /// <summary>Research levels and running researches (<c>ResearchStateDto</c>).</summary>
+        public const string Research = Base + "research";
+
+        /// <summary>Prefix of one-off salvage results (<c>SalvageReportDto</c>), followed by the building id.</summary>
+        public const string SalvageReport = Base + "salvage:";
     }
 }

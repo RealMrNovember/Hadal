@@ -66,11 +66,17 @@ namespace Hadal.Game.Tests
                 player.RemovedBuildingIds.Add(building.BuildingId);
                 player.UnsavedBuildings.Add(replacement);
                 player.UnlockedRings = 6;
+                player.ResearchLevels["construction_mastery"] = 3;
+                replacement.BoostEndsAt = now.AddMinutes(30);
+                player.Buildings.Add(replacement);
+                player.ExtrasJson = PlayerExtras.Write(player);
                 await repository.SaveAsync(player, default);
                 Assert.Empty(player.RemovedBuildingIds);
                 loaded = await repository.LoadByIdentityAsync(identityKey, default);
                 Assert.Equal(replacement.BuildingId, Assert.Single(loaded!.Buildings).BuildingId);
                 Assert.Equal(6, loaded.UnlockedRings);
+                Assert.Equal(3, loaded.ResearchLevels["construction_mastery"]);
+                Assert.Equal(now.AddMinutes(30).ToUnixTimeMilliseconds(), loaded.Buildings.Single().BoostEndsAt!.Value.ToUnixTimeMilliseconds());
 
                 Assert.Null(await repository.LoadByIdentityAsync("pgtest-missing-" + Guid.NewGuid(), default));
             }

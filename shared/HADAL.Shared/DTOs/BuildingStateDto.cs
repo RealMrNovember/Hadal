@@ -21,5 +21,15 @@ namespace HADAL.Shared.DTOs
 
         /// <summary>Full duration of the running construction, for progress bars.</summary>
         [ProtoMember(8)] public long ConstructionTotalMs { get; set; }
+
+        // Building functions (docs/24). Remaining times, 0 = not running.
+        [ProtoMember(9)] public long BoostRemainingMs { get; set; }
+        [ProtoMember(10)] public string MissionId { get; set; } = string.Empty;
+        [ProtoMember(11)] public long MissionRemainingMs { get; set; }
+        [ProtoMember(12)] public long MissionTotalMs { get; set; }
+        [ProtoMember(13)] public long OverdriveRemainingMs { get; set; }
+
+        /// <summary>Until Overdrive can run again (counts from its start).</summary>
+        [ProtoMember(14)] public long OverdriveCooldownMs { get; set; }
     }
 }
