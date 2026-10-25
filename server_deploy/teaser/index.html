@@ -3,336 +3,349 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- PRE-LAUNCH: remove the robots line below when the site should appear in search results. -->
   <meta name="robots" content="noindex, nofollow">
-  <meta name="description" content="HADAL — A server-authoritative deep sea strategy MMO. Coming to iOS and Android.">
+  <title>HADAL — Deep-Sea Strategy MMO</title>
+  <meta name="description" content="HADAL is a deep-sea base-building strategy MMO for iOS and Android. Build humanity's last domes 11,000 metres down. Early access: the Android test build is available now.">
   <meta name="theme-color" content="#030508">
-  <title>HADAL</title>
+  <meta name="color-scheme" content="dark">
+
+  <meta property="og:type" content="website">
+  <meta property="og:site_name" content="HADAL">
+  <meta property="og:title" content="HADAL — Beneath the abyss. Humanity begins again.">
+  <meta property="og:description" content="A deep-sea base-building strategy MMO for iOS and Android. Early access: Android test build available now.">
+  <meta property="og:url" content="https://hadal.cicibyte.com/">
+  <meta property="og:image" content="https://hadal.cicibyte.com/assets/og.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="HADAL wordmark over a render of the deep-sea base buildings">
+  <meta property="og:locale" content="en_US">
+  <meta property="og:locale:alternate" content="tr_TR">
+  <meta name="twitter:card" content="summary_large_image">
+
   <link rel="icon" href="/favicon.svg" type="image/svg+xml">
-  <link rel="alternate icon" href="/favicon.svg">
-  <style>
-    *, *::before, *::after {
-      box-sizing: border-box;
-      margin: 0;
-      padding: 0;
-    }
-
-    html, body {
-      width: 100%;
-      min-height: 100%;
-      background: #030508;
-    }
-
-    body {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      min-height: 100dvh;
-      padding: clamp(1.5rem, 4vh, 2.5rem) 1rem clamp(1.25rem, 3vh, 2rem);
-      font-family: "IBM Plex Mono", "JetBrains Mono", "Courier New", monospace;
-      color: rgba(46, 230, 197, 0.72);
-      overflow-x: hidden;
-    }
-
-    .stage {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      width: 100%;
-      max-width: 720px;
-      gap: clamp(1.25rem, 4vh, 2rem);
-    }
-
-    .sonar-stage {
-      position: relative;
-      width: min(68vw, 380px);
-      height: min(68vw, 380px);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-    }
-
-    .sonar-ring {
-      position: absolute;
-      width: 18%;
-      height: 18%;
-      border: 1px solid rgba(46, 230, 197, 0.55);
-      border-radius: 50%;
-      box-shadow:
-        0 0 12px rgba(46, 230, 197, 0.08),
-        inset 0 0 24px rgba(46, 230, 197, 0.04);
-      opacity: 0;
-      animation: sonar-pulse 6s ease-out infinite;
-    }
-
-    .sonar-ring:nth-child(1) { animation-delay: 0s; }
-    .sonar-ring:nth-child(2) { animation-delay: 2s; }
-    .sonar-ring:nth-child(3) { animation-delay: 4s; }
-
-    .sonar-core {
-      position: absolute;
-      width: 6px;
-      height: 6px;
-      border-radius: 50%;
-      background: rgba(46, 230, 197, 0.9);
-      box-shadow: 0 0 16px rgba(46, 230, 197, 0.45);
-    }
-
-    @keyframes sonar-pulse {
-      0% {
-        transform: scale(0.35);
-        opacity: 0.85;
-        border-color: rgba(46, 230, 197, 0.65);
-      }
-      70% {
-        opacity: 0.12;
-        border-color: rgba(64, 180, 255, 0.25);
-      }
-      100% {
-        transform: scale(4.2);
-        opacity: 0;
-        border-color: rgba(64, 180, 255, 0);
-      }
-    }
-
-    .vision-lines {
-      text-align: center;
-      font-size: clamp(0.62rem, 2vw, 0.78rem);
-      font-weight: 300;
-      letter-spacing: 0.12em;
-      line-height: 1.9;
-      color: rgba(160, 195, 205, 0.48);
-      text-transform: none;
-    }
-
-    .vision-lines p {
-      white-space: nowrap;
-    }
-
-    .tagline {
-      text-align: center;
-      font-size: clamp(0.62rem, 2.1vw, 0.8rem);
-      font-weight: 300;
-      letter-spacing: 0.14em;
-      text-transform: uppercase;
-      color: rgba(180, 210, 220, 0.55);
-      white-space: nowrap;
-    }
-
-    .cursor {
-      display: inline-block;
-      width: 0.55em;
-      margin-left: 0.1em;
-      background: rgba(46, 230, 197, 0.75);
-      animation: cursor-blink 1.1s step-end infinite;
-    }
-
-    @keyframes cursor-blink {
-      0%, 49% { opacity: 1; }
-      50%, 100% { opacity: 0; }
-    }
-
-    .syndicate {
-      width: min(92vw, 420px);
-      margin-top: clamp(0.5rem, 2vh, 1rem);
-      border-top: 1px solid rgba(46, 230, 197, 0.08);
-      padding-top: clamp(0.85rem, 2.5vh, 1.25rem);
-    }
-
-    .syndicate-label {
-      font-size: clamp(0.58rem, 1.8vw, 0.68rem);
-      letter-spacing: 0.18em;
-      text-transform: uppercase;
-      color: rgba(46, 230, 197, 0.28);
-      margin-bottom: 0.65rem;
-    }
-
-    .capsule-terminal {
-      display: flex;
-      align-items: center;
-      gap: 0.35rem;
-      font-size: clamp(0.62rem, 2vw, 0.74rem);
-      color: rgba(140, 175, 185, 0.42);
-    }
-
-    .capsule-prompt {
-      flex-shrink: 0;
-      color: rgba(46, 230, 197, 0.35);
-      letter-spacing: 0.06em;
-    }
-
-    .capsule-input {
-      flex: 1;
-      min-width: 0;
-      background: transparent;
-      border: none;
-      outline: none;
-      font: inherit;
-      color: rgba(46, 230, 197, 0.62);
-      caret-color: rgba(46, 230, 197, 0.75);
-      letter-spacing: 0.08em;
-    }
-
-    .capsule-input::placeholder {
-      color: rgba(100, 130, 140, 0.28);
-    }
-
-    .capsule-feedback {
-      min-height: 1.2em;
-      margin-top: 0.55rem;
-      font-size: clamp(0.56rem, 1.7vw, 0.66rem);
-      letter-spacing: 0.14em;
-      color: rgba(46, 230, 197, 0.38);
-      opacity: 0;
-      transition: opacity 0.6s ease;
-    }
-
-    .capsule-feedback.visible {
-      opacity: 1;
-    }
-
-    .store-row {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: clamp(1rem, 4vw, 1.75rem);
-      margin-top: clamp(1rem, 3vh, 1.5rem);
-      opacity: 0.3;
-    }
-
-    .store-badge {
-      display: block;
-      width: clamp(72px, 18vw, 96px);
-      height: auto;
-      color: rgba(46, 230, 197, 0.85);
-      filter: grayscale(1) brightness(1.6);
-      pointer-events: none;
-      user-select: none;
-    }
-
-    .apk-link {
-      display: inline-block;
-      margin-top: clamp(1.1rem, 3vh, 1.6rem);
-      padding: 0.7rem 1.2rem;
-      border: 1px solid rgba(46, 230, 197, 0.45);
-      border-radius: 6px;
-      color: rgba(46, 230, 197, 0.9);
-      font-size: clamp(0.66rem, 2vw, 0.78rem);
-      letter-spacing: 0.14em;
-      text-decoration: none;
-      transition: background 0.3s ease, border-color 0.3s ease;
-    }
-
-    .apk-link:hover,
-    .apk-link:focus-visible {
-      background: rgba(46, 230, 197, 0.08);
-      border-color: rgba(46, 230, 197, 0.85);
-      outline: none;
-    }
-
-    .apk-note {
-      margin-top: 0.5rem;
-      font-size: clamp(0.54rem, 1.6vw, 0.62rem);
-      letter-spacing: 0.12em;
-      color: rgba(140, 175, 185, 0.4);
-    }
-
-    @media (max-width: 480px) {
-      .vision-lines p,
-      .tagline {
-        white-space: normal;
-      }
-    }
-
-    @media (prefers-reduced-motion: reduce) {
-      .sonar-ring { animation: none; opacity: 0.2; }
-      .cursor { animation: none; opacity: 1; }
-    }
-  </style>
+  <link rel="preload" href="/assets/shot-title.webp" as="image" type="image/webp">
+  <link rel="stylesheet" href="/styles.css">
 </head>
 <body>
-  <main class="stage">
-    <div class="sonar-stage" aria-hidden="true">
-      <span class="sonar-ring"></span>
-      <span class="sonar-ring"></span>
-      <span class="sonar-ring"></span>
-      <span class="sonar-core"></span>
-    </div>
+  <a class="skip" href="#main" data-i18n="skip">Skip to content</a>
 
-    <div class="vision-lines" aria-label="Game vision">
-      <p>&gt; _A Server-Authoritative Deep Sea Strategy MMO.</p>
-      <p>&gt; _Coming to iOS &amp; Android.</p>
-    </div>
+  <div class="depth-gauge" aria-hidden="true">
+    <span class="depth-gauge__track"><span class="depth-gauge__fill" id="depth-fill"></span></span>
+    <span class="depth-gauge__value" id="depth-value">0 m</span>
+  </div>
 
-    <p class="tagline">
-      &gt; _BENEATH THE ABYSS. HUMANITY BEGINS AGAIN.<span class="cursor">&nbsp;</span>
-    </p>
-
-    <section class="syndicate" aria-label="The Syndicate signal">
-      <p class="syndicate-label">The Syndicate · Capsule Channel</p>
-      <div class="capsule-terminal">
-        <span class="capsule-prompt">CAPSULE::</span>
-        <input
-          class="capsule-input"
-          type="text"
-          inputmode="email"
-          autocomplete="off"
-          spellcheck="false"
-          maxlength="128"
-          placeholder="enter signal address..."
-          aria-label="Enter capsule signal address"
-          id="capsule-input"
-        >
+  <header class="site-header">
+    <div class="wrap site-header__inner">
+      <a class="brand" href="#top" aria-label="HADAL — back to top">
+        <span class="brand__ping" aria-hidden="true"></span>
+        <span class="brand__name">HADAL</span>
+      </a>
+      <nav class="nav" aria-label="Primary" data-i18n-aria="nav.label">
+        <a href="#world" data-i18n="nav.world">World</a>
+        <a href="#gameplay" data-i18n="nav.gameplay">Gameplay</a>
+        <a href="#status" data-i18n="nav.status">Status</a>
+        <a href="#install" data-i18n="nav.install">Install</a>
+        <a href="#faq" data-i18n="nav.faq">FAQ</a>
+      </nav>
+      <div class="lang" role="group" aria-label="Language" data-i18n-aria="lang.label">
+        <button type="button" class="lang__btn" data-lang="en" aria-pressed="true" lang="en">EN</button>
+        <button type="button" class="lang__btn" data-lang="tr" aria-pressed="false" lang="tr">TR</button>
       </div>
-      <p class="capsule-feedback" id="capsule-feedback" role="status" aria-live="polite"></p>
+    </div>
+  </header>
+
+  <main id="main">
+    <!-- HERO -->
+    <section class="hero" id="top" aria-labelledby="hero-title">
+      <div class="hero__bg" aria-hidden="true">
+        <span class="ring"></span><span class="ring"></span><span class="ring"></span>
+      </div>
+      <div class="wrap hero__grid">
+        <div class="hero__copy">
+          <p class="eyebrow"><span class="dot" aria-hidden="true"></span><span data-i18n="hero.eyebrow">Early access · Android test build</span></p>
+          <h1 id="hero-title" class="hero__title">
+            <span data-i18n="hero.t1">Beneath the abyss.</span>
+            <span class="accent" data-i18n="hero.t2">Humanity begins again.</span>
+          </h1>
+          <p class="hero__lead" data-i18n="hero.lead">A deep-sea base-building strategy MMO for iOS and Android. Build humanity's last domes 11,000 metres down, keep the oxygen flowing, and send submarines into a dark that is far older than us.</p>
+          <div class="hero__actions">
+            <a class="btn btn--primary" href="/download/hadal.apk" download>
+              <svg class="btn__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0l-5-5m5 5l5-5M4 19h16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+              <span data-i18n="hero.cta">Download Android test build (APK)</span>
+            </a>
+            <a class="btn btn--ghost" href="#install" data-i18n="hero.howto">How to install</a>
+          </div>
+          <p class="hero__note" data-i18n="hero.note">Android 8.0+ · Free · Internet connection required</p>
+          <div class="stores">
+            <span class="store-badge" role="img" aria-label="App Store — coming soon" data-i18n-aria="badge.apple">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M16.4 12.6c0-2.4 2-3.6 2.1-3.7-1.1-1.7-2.9-1.9-3.5-1.9-1.5-.2-2.9.9-3.7.9-.8 0-1.9-.9-3.2-.8-1.6 0-3.1 1-4 2.4-1.7 3-.4 7.4 1.2 9.8.8 1.2 1.8 2.5 3 2.4 1.2 0 1.7-.8 3.1-.8 1.5 0 1.9.8 3.2.8 1.3 0 2.1-1.2 2.9-2.4.9-1.4 1.3-2.7 1.3-2.8 0 0-2.4-1-2.4-3.9zM14 5.4c.7-.8 1.1-1.9 1-3-1 0-2.1.7-2.8 1.5-.6.7-1.2 1.8-1 2.9 1 .1 2.1-.6 2.8-1.4z"/></svg>
+              <span><small data-i18n="badge.small">Coming soon to</small> App Store</span>
+            </span>
+            <span class="store-badge" role="img" aria-label="Google Play — coming soon" data-i18n-aria="badge.google">
+              <svg viewBox="0 0 24 24" aria-hidden="true"><path fill="currentColor" d="M3.6 2.3c-.2.2-.3.6-.3 1v17.4c0 .4.1.8.3 1l9.7-9.7-9.7-9.7zm10.7 10.7l2.7 2.7-11.4 6.5 8.7-9.2zm0-2L5.6 1.8 17 8.3 14.3 11zm3.9-2l3 1.7c.9.5.9 1.4 0 1.9l-3 1.7-3-3 3-2.3z"/></svg>
+              <span><small data-i18n="badge.small2">Coming soon to</small> Google Play</span>
+            </span>
+          </div>
+        </div>
+        <figure class="hero__phone">
+          <div class="phone">
+            <img src="/assets/shot-title.webp" width="540" height="1200" alt="HADAL title screen on an Android phone: the HADAL logo, its tagline and a Tap to start prompt" data-i18n-alt="hero.phoneAlt">
+          </div>
+          <figcaption data-i18n="hero.phoneCap">Title screen, current test build</figcaption>
+        </figure>
+      </div>
     </section>
 
-    <div class="store-row" aria-hidden="true">
-      <!-- Monochrome inline badges — decorative, non-linked -->
-      <svg class="store-badge" viewBox="0 0 120 36" xmlns="http://www.w3.org/2000/svg" aria-label="App Store">
-        <rect x="0.5" y="0.5" width="119" height="35" rx="6" fill="none" stroke="currentColor" stroke-width="1"/>
-        <path fill="currentColor" d="M22 10.2c0 .9-.5 1.7-1.2 2.2-.6.5-1.5.9-2.4.8-.1-.9.3-1.8.9-2.4.6-.6 1.6-1 2.5-1.1.1 1 .1 1.4.2 1.5zm1.1 1.8c-1.3-.1-2.4.7-3 7-.8 1.3-1.8 2.9-3.1 2.9-1.2 0-1.9-.8-3.5-.8-1.7 0-2.9.7-3.7 2.1-1.6 2.7-.4 6.7 1.1 8.9.7 1.1 1.6 2.3 2.7 2.2 1.1 0 1.5-.7 3.1-.7 1.6 0 2 .7 3.1.7 1.2 0 2-1.1 2.7-2.2.8-1.2 1.2-2.4 1.2-2.5-.1 0-2.3-.9-2.3-3.5 0-2.2 1.8-3.2 1.9-3.3-1.1-1.5-2.7-1.7-3.3-1.7z"/>
-        <text x="38" y="14" fill="currentColor" font-size="6" font-family="monospace" letter-spacing="0.5">Download on the</text>
-        <text x="38" y="26" fill="currentColor" font-size="11" font-family="monospace" font-weight="600">App Store</text>
-      </svg>
+    <!-- WORLD -->
+    <section class="section world" id="world" aria-labelledby="world-title">
+      <div class="wrap">
+        <p class="kicker">// 01 · <span data-i18n="world.kicker">The world</span></p>
+        <h2 id="world-title" data-i18n="world.title">Year 2249. The surface is dead.</h2>
+        <div class="world__grid">
+          <div class="world__text">
+            <p data-i18n="world.p1">The atmosphere turned toxic. Sunlight became lethal. The continents can no longer hold life. What remained of humanity retreated to the Hadal Zone, the deepest layer of the ocean, and sealed itself inside pressure domes eleven kilometres below the waves.</p>
+            <p data-i18n="world.p2">They were not the first to arrive. On the ocean floor lie the remains of a biomechanical civilisation that lived millions of years before us: temples, machines that still seem to breathe, soldiers known only as The Forgotten. Humanity woke them.</p>
+            <p data-i18n="world.p3">Somewhere at the centre of the map lies The Core. Nobody who has gone looking has come back with a straight answer.</p>
+          </div>
+          <dl class="world__facts">
+            <div><dt data-i18n="world.f1k">Depth</dt><dd data-i18n="world.f1v">11,000 m</dd></div>
+            <div><dt data-i18n="world.f2k">Light</dt><dd data-i18n="world.f2v">Almost none</dd></div>
+            <div><dt data-i18n="world.f3k">Pressure</dt><dd data-i18n="world.f3v">Lethal, every second</dd></div>
+            <div><dt data-i18n="world.f4k">Neighbours</dt><dd data-i18n="world.f4v">Older than us</dd></div>
+          </dl>
+        </div>
+        <blockquote class="quote">
+          <p data-i18n="world.quote">“I am one of the last humans alive. I am trying to survive in the dark. But in that dark, something far older than me is watching.”</p>
+        </blockquote>
+        <ul class="creatures" aria-label="Creature renders" data-i18n-aria="world.creaturesLabel">
+          <li><img src="/assets/creature-anglerfish.webp" width="640" height="480" loading="lazy" alt="Render of a deep-sea anglerfish creature" data-i18n-alt="world.c1"></li>
+          <li><img src="/assets/creature-siren-jelly.webp" width="640" height="480" loading="lazy" alt="Render of a violet siren jellyfish" data-i18n-alt="world.c2"></li>
+          <li><img src="/assets/creature-iron-leviathan.webp" width="640" height="480" loading="lazy" alt="Render of the Iron Leviathan, a spined biomechanical sea beast" data-i18n-alt="world.c3"></li>
+        </ul>
+        <p class="caption" data-i18n="world.cap">Creature models from the in-development art set.</p>
+      </div>
+    </section>
 
-      <svg class="store-badge" viewBox="0 0 120 36" xmlns="http://www.w3.org/2000/svg" aria-label="Google Play">
-        <rect x="0.5" y="0.5" width="119" height="35" rx="6" fill="none" stroke="currentColor" stroke-width="1"/>
-        <path fill="currentColor" d="M16 8.5l8.5 9.5L16 27.5V8.5zm1.5 1.8v15.4l6.8-7.7-6.8-7.7zm9.2 8.5l-2.8 3.1 5.8 3.3 2.9-1.7c1-.6 1-1.6 0-2.2l-5.9-3.5zm-3.5 3.9l-2.9 3.2 7.2 4.1 5.1-2.9-9.4-4.4z"/>
-        <text x="38" y="14" fill="currentColor" font-size="6" font-family="monospace" letter-spacing="0.5">Get it on</text>
-        <text x="38" y="26" fill="currentColor" font-size="11" font-family="monospace" font-weight="600">Google Play</text>
-      </svg>
-    </div>
+    <!-- GAMEPLAY -->
+    <section class="section gameplay" id="gameplay" aria-labelledby="gameplay-title">
+      <div class="wrap">
+        <p class="kicker">// 02 · <span data-i18n="gp.kicker">Gameplay</span></p>
+        <h2 id="gameplay-title" data-i18n="gp.title">Build. Breathe. Descend.</h2>
+        <p class="section__lead" data-i18n="gp.lead">Your base is your home and your identity: a ring of domes around a single reactor, growing outward as you survive. Every action is checked by the game server, so the world plays fair for everyone, and your base keeps working while you are away.</p>
 
-    <a class="apk-link" href="/download/hadal.apk" download>&gt; _DOWNLOAD ANDROID TEST BUILD (APK)</a>
-    <p class="apk-note">EARLY ACCESS · ANDROID 8+ · ALLOW INSTALLS FROM THIS SOURCE</p>
+        <figure class="lineup">
+          <img src="/assets/base-lineup-1600.webp" srcset="/assets/base-lineup-800.webp 800w, /assets/base-lineup-1600.webp 1600w" sizes="(min-width: 1160px) 1120px, 100vw" width="1600" height="900" loading="lazy" alt="Render of HADAL base buildings on hexagonal platforms with glowing cyan and amber lights: reactor, domes, labs and towers" data-i18n-alt="gp.lineupAlt">
+          <figcaption data-i18n="gp.lineupCap">Base buildings from the current art pass.</figcaption>
+        </figure>
+
+        <div class="pillars">
+          <article class="pillar">
+            <header class="pillar__head">
+              <h3 data-i18n="gp.p1t">Base building &amp; upgrades</h3>
+              <span class="tag tag--live" data-i18n="tag.live">Playable now</span>
+            </header>
+            <p data-i18n="gp.p1">The Core Reactor sits at the centre; everything else is built on rings around it. Tap a glowing slot to build, tap a building to upgrade. No building can outlevel the reactor, so every step forward starts at the heart of the base.</p>
+            <ul class="ticks">
+              <li data-i18n="gp.p1a">Construction runs on the server clock, even when you are offline</li>
+              <li data-i18n="gp.p1b">Short waits are on us: the last five minutes finish free</li>
+              <li data-i18n="gp.p1c">Buildings keep producing at their old level while they upgrade</li>
+            </ul>
+          </article>
+          <article class="pillar">
+            <header class="pillar__head">
+              <h3 data-i18n="gp.p2t">A survival economy</h3>
+              <span class="tag tag--wip" data-i18n="tag.partial">Partly playable</span>
+            </header>
+            <p data-i18n="gp.p2">Six resources keep a colony alive. Oxygen always comes first: if it runs out, the base dies. Energy comes from the reactor, biomass from living organisms, titanium from your drones, and hadalite only from the deepest zones.</p>
+            <ul class="res" aria-label="Resources" data-i18n-aria="gp.resLabel">
+              <li style="--c:#7FE3FF" data-i18n="res.o2">Oxygen</li>
+              <li style="--c:#FFD166" data-i18n="res.energy">Energy</li>
+              <li style="--c:#9BE58A" data-i18n="res.food">Food</li>
+              <li style="--c:#5FD3A2" data-i18n="res.bio">Biomass</li>
+              <li style="--c:#B7C3CC" data-i18n="res.ti">Titanium</li>
+              <li style="--c:#C59BFF" data-i18n="res.hadalite">Hadalite</li>
+            </ul>
+          </article>
+          <article class="pillar">
+            <header class="pillar__head">
+              <h3 data-i18n="gp.p3t">Submarine expeditions</h3>
+              <span class="tag tag--plan" data-i18n="tag.dev">In development</span>
+            </header>
+            <p data-i18n="gp.p3">Build submarines at the Submarine Dock, crew them with three heroes and send them into the dark: bioluminescent forests, sunken cities, old human laboratories, alien temples. In some zones you cannot switch on your lights. There is only sonar.</p>
+            <div class="subs">
+              <img src="/assets/sub-scout.webp" width="640" height="480" loading="lazy" alt="Render of an orange scout submarine" data-i18n-alt="gp.sub1">
+              <img src="/assets/sub-hauler.webp" width="640" height="480" loading="lazy" alt="Render of a yellow hauler submarine" data-i18n-alt="gp.sub2">
+            </div>
+          </article>
+          <article class="pillar">
+            <header class="pillar__head">
+              <h3 data-i18n="gp.p4t">Alliances &amp; PvP</h3>
+              <span class="tag tag--plan" data-i18n="tag.planned">Planned</span>
+            </header>
+            <p data-i18n="gp.p4">Nobody survives the abyss alone. Alliances will share structures and build underwater cities together; rival domes will lay siege to one another; and every road leads to the fight for The Core at the centre of the world.</p>
+          </article>
+        </div>
+
+        <h3 class="subhead" data-i18n="gp.bTitle">On the rings</h3>
+        <ul class="buildings">
+          <li><img src="/assets/b-core-reactor.webp" width="480" height="360" loading="lazy" alt=""><span data-i18n="b.reactor">Core Reactor</span></li>
+          <li><img src="/assets/b-oxygen-plant.webp" width="480" height="360" loading="lazy" alt=""><span data-i18n="b.oxygen">Oxygen Plant</span></li>
+          <li><img src="/assets/b-food-lab.webp" width="480" height="360" loading="lazy" alt=""><span data-i18n="b.food">Food Lab</span></li>
+          <li><img src="/assets/b-bio-lab.webp" width="480" height="360" loading="lazy" alt=""><span data-i18n="b.bio">Bio Lab</span></li>
+          <li><img src="/assets/b-drone-factory.webp" width="480" height="360" loading="lazy" alt=""><span data-i18n="b.drone">Drone Factory</span></li>
+          <li><img src="/assets/b-research-center.webp" width="480" height="360" loading="lazy" alt=""><span data-i18n="b.research">Research Center</span></li>
+          <li><img src="/assets/b-submarine-dock.webp" width="480" height="360" loading="lazy" alt=""><span data-i18n="b.dock">Submarine Dock</span></li>
+          <li><img src="/assets/b-shield-generator.webp" width="480" height="360" loading="lazy" alt=""><span data-i18n="b.shield">Shield Generator</span></li>
+          <li><img src="/assets/b-mega-dome.webp" width="480" height="360" loading="lazy" alt=""><span data-i18n="b.mega">Mega Dome</span></li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- STATUS -->
+    <section class="section status" id="status" aria-labelledby="status-title">
+      <div class="wrap">
+        <p class="kicker">// 03 · <span data-i18n="st.kicker">Development status</span></p>
+        <h2 id="status-title" data-i18n="st.title">Early access, honestly.</h2>
+        <p class="section__lead" data-i18n="st.lead">HADAL is in active development. The Android test build is an early slice of the game: the base works, the deep is still being built. Here is where things stand.</p>
+
+        <div class="status__grid">
+          <div class="status__lists">
+            <div class="log">
+              <h3 class="log__title"><span class="tag tag--live" data-i18n="st.nowTag">Live</span> <span data-i18n="st.nowTitle">In the test build today</span></h3>
+              <ul class="log__list log__list--done">
+                <li data-i18n="st.n1">Instant guest account, no sign-up needed</li>
+                <li data-i18n="st.n2">Circular base with the Core Reactor at its heart</li>
+                <li data-i18n="st.n3">Building and upgrading with real construction timers</li>
+                <li data-i18n="st.n4">Server-side resource production, including while offline</li>
+                <li data-i18n="st.n5">Account protection with a transfer code, for switching phones</li>
+                <li data-i18n="st.n6">Gift codes and in-game announcements</li>
+              </ul>
+            </div>
+            <div class="log">
+              <h3 class="log__title"><span class="tag tag--wip" data-i18n="st.nextTag">Next</span> <span data-i18n="st.nextTitle">Being built now</span></h3>
+              <ul class="log__list">
+                <li data-i18n="st.x1">Full base building: ring unlocks, mega domes, removing buildings</li>
+                <li data-i18n="st.x2">The survival loop: oxygen consumption, alarms and emergencies</li>
+                <li data-i18n="st.x3">Presentation: new UI, underwater visuals and sound</li>
+              </ul>
+            </div>
+            <div class="log">
+              <h3 class="log__title"><span class="tag tag--plan" data-i18n="st.laterTag">Later</span> <span data-i18n="st.laterTitle">On the roadmap</span></h3>
+              <ul class="log__list">
+                <li data-i18n="st.l1">Submarines, pressure and sonar expeditions</li>
+                <li data-i18n="st.l2">Heroes, enemies and combat</li>
+                <li data-i18n="st.l3">Shared world map, alliances, PvP and sieges</li>
+                <li data-i18n="st.l4">Leviathans, The Core, and App Store / Google Play release</li>
+              </ul>
+            </div>
+          </div>
+          <div class="shots">
+            <figure class="shot">
+              <div class="phone phone--sm"><img src="/assets/shot-reactor.webp" width="540" height="1200" loading="lazy" alt="Test build screenshot: the Core Reactor panel showing level 1, energy output and the cost of the next level" data-i18n-alt="st.shot1"></div>
+              <figcaption data-i18n="st.shot1cap">Core Reactor panel</figcaption>
+            </figure>
+            <figure class="shot">
+              <div class="phone phone--sm"><img src="/assets/shot-construction.webp" width="540" height="1200" loading="lazy" alt="Test build screenshot: an Oxygen Plant under construction with a countdown and a Finish Free button" data-i18n-alt="st.shot2"></div>
+              <figcaption data-i18n="st.shot2cap">Construction with free finish</figcaption>
+            </figure>
+          </div>
+        </div>
+        <p class="caption" data-i18n="st.cap">Screenshots are unedited captures from the current development build. Art and interface are placeholders and will change.</p>
+      </div>
+    </section>
+
+    <!-- INSTALL -->
+    <section class="section install" id="install" aria-labelledby="install-title">
+      <div class="wrap">
+        <p class="kicker">// 04 · <span data-i18n="in.kicker">Install</span></p>
+        <h2 id="install-title" data-i18n="in.title">Installing the Android test build</h2>
+        <p class="section__lead" data-i18n="in.lead">The test build is not on Google Play yet, so Android installs it as a file. It takes about a minute.</p>
+        <ol class="steps">
+          <li>
+            <span class="steps__n" aria-hidden="true">01</span>
+            <h3 data-i18n="in.s1t">Check your phone</h3>
+            <p data-i18n="in.s1">You need Android 8.0 or newer and an internet connection. iPhone is not supported yet.</p>
+          </li>
+          <li>
+            <span class="steps__n" aria-hidden="true">02</span>
+            <h3 data-i18n="in.s2t">Download the APK</h3>
+            <p data-i18n="in.s2">Open this page on your phone and tap the download button. Your browser may warn that this type of file can be harmful; choose Download anyway.</p>
+          </li>
+          <li>
+            <span class="steps__n" aria-hidden="true">03</span>
+            <h3 data-i18n="in.s3t">Allow installs from this source</h3>
+            <p data-i18n="in.s3">Open the downloaded file. If Android asks, tap Settings and turn on “Allow from this source” for your browser, then go back.</p>
+          </li>
+          <li>
+            <span class="steps__n" aria-hidden="true">04</span>
+            <h3 data-i18n="in.s4t">Install and open</h3>
+            <p data-i18n="in.s4">Tap Install, then Open. On the title screen, tap to start. A guest account is created for you automatically.</p>
+          </li>
+        </ol>
+        <div class="install__cta">
+          <a class="btn btn--primary" href="/download/hadal.apk" download>
+            <svg class="btn__icon" viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0l-5-5m5 5l5-5M4 19h16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span data-i18n="hero.cta">Download Android test build (APK)</span>
+          </a>
+        </div>
+        <p class="note" data-i18n="in.note">Only download HADAL from this site. Google Play Protect may show a warning because the build does not come from the Play Store; that is expected for test builds.</p>
+      </div>
+    </section>
+
+    <!-- FAQ -->
+    <section class="section faq" id="faq" aria-labelledby="faq-title">
+      <div class="wrap wrap--narrow">
+        <p class="kicker">// 05 · FAQ</p>
+        <h2 id="faq-title" data-i18n="faq.title">Questions from the surface</h2>
+        <div class="faq__list">
+          <details>
+            <summary data-i18n="faq.q1">What kind of game is HADAL?</summary>
+            <p data-i18n="faq.a1">A base-building strategy MMO set at the bottom of the ocean. You grow a colony of domes around a reactor, manage the resources that keep it alive, and, as development continues, send submarines on expeditions and join alliances with other players.</p>
+          </details>
+          <details>
+            <summary data-i18n="faq.q2">When is it coming to the App Store and Google Play?</summary>
+            <p data-i18n="faq.a2">There is no release date yet. HADAL is in early access testing and the store versions will follow when the game is ready. Until then, the Android test build on this page is the way to play.</p>
+          </details>
+          <details>
+            <summary data-i18n="faq.q3">Is there an iPhone version?</summary>
+            <p data-i18n="faq.a3">Not yet. HADAL is being built for both iOS and Android, but the current test build is Android only.</p>
+          </details>
+          <details>
+            <summary data-i18n="faq.q4">Does the test build cost anything?</summary>
+            <p data-i18n="faq.a4">No. The Android test build is free to download and play.</p>
+          </details>
+          <details>
+            <summary data-i18n="faq.q5">Will my progress carry over to the full release?</summary>
+            <p data-i18n="faq.a5">We can't promise that. This is a test build, and progress may be reset as the game changes before launch.</p>
+          </details>
+          <details>
+            <summary data-i18n="faq.q6">How do I keep my account if I change phones?</summary>
+            <p data-i18n="faq.a6">Your guest account lives on your device. In the game, open Profile &amp; Account and tap Protect Account: choose a password and you get a transfer code. On a new phone, use Sign In to Another Account with that code and password. Google and Apple sign-in are coming later.</p>
+          </details>
+          <details>
+            <summary data-i18n="faq.q7">Can I play offline?</summary>
+            <p data-i18n="faq.a7">You need a connection to play, because the game server runs the world. Your base keeps going without you, though: construction finishes and production continues while you are away.</p>
+          </details>
+          <details>
+            <summary data-i18n="faq.q8">Why does Android warn me about the APK?</summary>
+            <p data-i18n="faq.a8">Android shows a warning for any app installed outside an app store. The HADAL test build is published by Cicibyte; download it only from this site.</p>
+          </details>
+        </div>
+      </div>
+    </section>
   </main>
 
-  <script>
-    (function () {
-      var input = document.getElementById('capsule-input');
-      var feedback = document.getElementById('capsule-feedback');
-      var pattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  <footer class="site-footer">
+    <div class="wrap site-footer__inner">
+      <div>
+        <p class="brand brand--footer"><span class="brand__ping" aria-hidden="true"></span><span class="brand__name">HADAL</span></p>
+        <p class="footer__tag" data-i18n="ft.tag">Beneath the abyss. Humanity begins again.</p>
+      </div>
+      <p class="footer__copy">© <span id="year">2026</span> Cicibyte. <span data-i18n="ft.rights">All rights reserved.</span></p>
+    </div>
+  </footer>
 
-      input.addEventListener('keydown', function (e) {
-        if (e.key !== 'Enter') return;
-        e.preventDefault();
-        var value = input.value.trim();
-        if (!value) return;
-
-        if (pattern.test(value)) {
-          feedback.textContent = '> SIGNAL LOGGED. THE SYNDICATE WILL FIND YOU.';
-          try { localStorage.setItem('hadal_syndicate_signal', value); } catch (_) {}
-        } else {
-          feedback.textContent = '> INVALID CAPSULE. SIGNAL REQUIRES A VALID ADDRESS.';
-        }
-
-        feedback.classList.add('visible');
-        input.value = '';
-      });
-    })();
-  </script>
+  <script src="/app.js" defer></script>
 </body>
 </html>
