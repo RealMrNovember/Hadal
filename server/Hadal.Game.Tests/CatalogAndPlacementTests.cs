@@ -8,7 +8,7 @@ namespace Hadal.Game.Tests
     {
         private static readonly GameCatalog Catalog = TestSupport.Catalog;
         private static readonly HashSet<(int, int)> Empty = new();
-        private static readonly Dictionary<ResourceType, long> Rich = new() { [ResourceType.Titanium] = 10_000 };
+        private static readonly Dictionary<ResourceType, long> Rich = Enum.GetValues<ResourceType>().ToDictionary(t => t, _ => 10_000L);
 
         [Fact]
         public void RealCatalog_LoadsAndValidates()

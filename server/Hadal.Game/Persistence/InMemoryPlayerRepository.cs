@@ -70,7 +70,9 @@ namespace Hadal.Game.Persistence
                     Ring = building.Ring,
                     Sector = building.Sector,
                     Level = building.Level,
-                    RotationSteps = building.RotationSteps
+                    RotationSteps = building.RotationSteps,
+                    ConstructionEndsAt = building.ConstructionEndsAt,
+                    ConstructionSeconds = building.ConstructionSeconds
                 });
             }
 

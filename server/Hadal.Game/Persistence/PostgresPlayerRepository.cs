@@ -42,7 +42,11 @@ CREATE TABLE IF NOT EXISTS hadal.buildings (
     rotation_steps integer     NOT NULL DEFAULT 0,
     created_at     timestamptz NOT NULL DEFAULT now(),
     UNIQUE (player_id, ring, sector)
-);";
+);
+
+-- Running construction (docs/23_Base_Management.md): NULL = idle.
+ALTER TABLE hadal.buildings ADD COLUMN IF NOT EXISTS construction_ends_at timestamptz;
+ALTER TABLE hadal.buildings ADD COLUMN IF NOT EXISTS construction_seconds integer NOT NULL DEFAULT 0;";
 
         private readonly NpgsqlDataSource _dataSource;
 
@@ -82,7 +86,7 @@ CREATE TABLE IF NOT EXISTS hadal.buildings (
             }
 
             await using (var command = new NpgsqlCommand(
-                "SELECT building_id, definition_id, ring, sector, level, rotation_steps FROM hadal.buildings WHERE player_id = @p ORDER BY created_at",
+                "SELECT building_id, definition_id, ring, sector, level, rotation_steps, construction_ends_at, construction_seconds FROM hadal.buildings WHERE player_id = @p ORDER BY created_at",
                 connection))
             {
                 command.Parameters.AddWithValue("p", player.PlayerId);
@@ -96,7 +100,9 @@ CREATE TABLE IF NOT EXISTS hadal.buildings (
                         Ring = reader.GetInt32(2),
                         Sector = reader.GetInt32(3),
                         Level = reader.GetInt32(4),
-                        RotationSteps = reader.GetInt32(5)
+                        RotationSteps = reader.GetInt32(5),
+                        ConstructionEndsAt = reader.IsDBNull(6) ? null : reader.GetFieldValue<DateTimeOffset>(6),
+                        ConstructionSeconds = reader.GetInt32(7)
                     });
                 }
             }
@@ -141,9 +147,12 @@ CREATE TABLE IF NOT EXISTS hadal.buildings (
             foreach (var building in player.UnsavedBuildings)
             {
                 await using var command = new NpgsqlCommand(
-                    @"INSERT INTO hadal.buildings (building_id, player_id, definition_id, ring, sector, level, rotation_steps)
-                      VALUES (@b, @p, @d, @r, @s, @l, @o)
-                      ON CONFLICT (building_id) DO UPDATE SET level = EXCLUDED.level", connection, transaction);
+                    @"INSERT INTO hadal.buildings (building_id, player_id, definition_id, ring, sector, level, rotation_steps,
+                                                   construction_ends_at, construction_seconds)
+                      VALUES (@b, @p, @d, @r, @s, @l, @o, @e, @c)
+                      ON CONFLICT (building_id) DO UPDATE SET level = EXCLUDED.level,
+                          construction_ends_at = EXCLUDED.construction_ends_at,
+                          construction_seconds = EXCLUDED.construction_seconds", connection, transaction);
                 command.Parameters.AddWithValue("b", building.BuildingId);
                 command.Parameters.AddWithValue("p", player.PlayerId);
                 command.Parameters.AddWithValue("d", building.DefinitionId);
@@ -151,6 +160,11 @@ CREATE TABLE IF NOT EXISTS hadal.buildings (
                 command.Parameters.AddWithValue("s", building.Sector);
                 command.Parameters.AddWithValue("l", building.Level);
                 command.Parameters.AddWithValue("o", building.RotationSteps);
+                command.Parameters.Add(new NpgsqlParameter("e", NpgsqlTypes.NpgsqlDbType.TimestampTz)
+                {
+                    Value = building.ConstructionEndsAt.HasValue ? building.ConstructionEndsAt.Value : DBNull.Value
+                });
+                command.Parameters.AddWithValue("c", building.ConstructionSeconds);
                 await command.ExecuteNonQueryAsync(cancellationToken);
             }
 

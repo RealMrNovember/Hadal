@@ -11,6 +11,7 @@ namespace HADAL.Shared.Catalog
     {
         public int version;
         public ResourceDefinitionData[] resources = Array.Empty<ResourceDefinitionData>();
+        public ProgressionData progression = new ProgressionData();
         public BuildingDefinitionData[] buildings = Array.Empty<BuildingDefinitionData>();
         public GridLayoutData grid = new GridLayoutData();
     }
@@ -47,6 +48,31 @@ namespace HADAL.Shared.Catalog
         public ResourceAmountData[] production = Array.Empty<ResourceAmountData>();
         public ResourceAmountData[] consumption = Array.Empty<ResourceAmountData>();
         public ResourceAmountData[] buildCost = Array.Empty<ResourceAmountData>();
+
+        /// <summary>Construction time of level 1; higher levels scale by <see cref="ProgressionData.timeGrowth"/>.</summary>
+        public int buildSeconds;
+
+        /// <summary>0 = <see cref="ProgressionData.maxLevel"/>.</summary>
+        public int maxLevel;
+    }
+
+    /// <summary>Building level progression (docs/23_Base_Management.md).</summary>
+    [Serializable]
+    public sealed class ProgressionData
+    {
+        public int maxLevel = 10;
+
+        /// <summary>Cost multiplier per level: cost(L) = buildCost x costGrowth^(L-1).</summary>
+        public double costGrowth = 1.55;
+
+        /// <summary>Time multiplier per level: seconds(L) = buildSeconds x timeGrowth^(L-1).</summary>
+        public double timeGrowth = 1.6;
+
+        /// <summary>Constructions with this much time left (or less) can be finished for free.</summary>
+        public int freeFinishSeconds = 300;
+
+        /// <summary>Constructions that may run at the same time.</summary>
+        public int builderSlots = 1;
     }
 
     [Serializable]

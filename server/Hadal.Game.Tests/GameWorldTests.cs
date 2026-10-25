@@ -42,7 +42,10 @@ namespace Hadal.Game.Tests
             var ack = delta.Ack()!;
             Assert.Equal("cmd-1", ack.CommandId);
             Assert.Equal(CommandResultCode.Accepted, ack.Result);
-            Assert.Equal("oxygen_plant", Assert.Single(delta.CreatedBuildings()).DefinitionId);
+            var created = Assert.Single(delta.CreatedBuildings());
+            Assert.Equal("oxygen_plant", created.DefinitionId);
+            Assert.Equal(0, created.Level); // under its first construction
+            Assert.Equal(12_000, created.ConstructionTotalMs);
             Assert.Equal(100, delta.Wallet()!.Amount(ResourceType.Titanium));
         }
 
@@ -85,7 +88,7 @@ namespace Hadal.Game.Tests
         {
             var connection = new RecordingConnection();
             var session = await _world.ConnectAsync("device-a", connection, default);
-            _world.HandleCommand(session, TestSupport.Place("oxygen_plant", 1, 0));
+            _world.PlaceBuilt(session, connection, "oxygen_plant", 1, 0);
             connection.Messages.Clear();
 
             for (var i = 0; i < SimulationTick.ReplicationIntervalSeconds; i++)
@@ -135,7 +138,7 @@ namespace Hadal.Game.Tests
         {
             var first = new RecordingConnection();
             var session = await _world.ConnectAsync("device-a", first, default);
-            _world.HandleCommand(session, TestSupport.Place("oxygen_plant", 1, 0));
+            _world.PlaceBuilt(session, first, "oxygen_plant", 1, 0);
             await _world.DisconnectAsync(session, first, default);
             Assert.Equal(0, _world.SessionCount);
 
@@ -173,7 +176,7 @@ namespace Hadal.Game.Tests
         {
             var connection = new RecordingConnection();
             var session = await _world.ConnectAsync("device-a", connection, default);
-            _world.HandleCommand(session, TestSupport.Place("oxygen_plant", 1, 0));
+            _world.PlaceBuilt(session, connection, "oxygen_plant", 1, 0);
             var before = session.StateForTests.Wallet[ResourceType.Oxygen];
 
             // A backwards step re-anchors the clock and awards nothing...

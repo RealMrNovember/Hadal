@@ -8,8 +8,17 @@ namespace Hadal.Game
         public string DefinitionId { get; init; } = string.Empty;
         public int Ring { get; init; }
         public int Sector { get; init; }
+        /// <summary>Working level: 0 while first under construction, otherwise the level that produces.</summary>
         public int Level { get; set; } = 1;
         public int RotationSteps { get; init; }
+
+        /// <summary>When the running construction (build or upgrade to Level + 1) completes; null = idle.</summary>
+        public DateTimeOffset? ConstructionEndsAt { get; set; }
+
+        /// <summary>Full duration of the running construction (progress display).</summary>
+        public int ConstructionSeconds { get; set; }
+
+        public bool IsUnderConstruction => ConstructionEndsAt.HasValue;
     }
 
     /// <summary>

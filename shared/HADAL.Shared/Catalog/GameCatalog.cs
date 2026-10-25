@@ -26,6 +26,11 @@ namespace HADAL.Shared.Catalog
         public IReadOnlyList<KeyValuePair<ResourceType, long>> Consumption { get; internal set; } = Array.Empty<KeyValuePair<ResourceType, long>>();
         public IReadOnlyList<KeyValuePair<ResourceType, long>> BuildCost { get; internal set; } = Array.Empty<KeyValuePair<ResourceType, long>>();
 
+        /// <summary>Level 1 construction time in seconds.</summary>
+        public int BuildSeconds { get; internal set; }
+
+        public int MaxLevel { get; internal set; }
+
         public bool MatchesSlotType(GridSlotType slotType) =>
             SlotType == GridSlotType.Universal || slotType == GridSlotType.Universal || SlotType == slotType;
     }
@@ -53,6 +58,9 @@ namespace HADAL.Shared.Catalog
         public IEnumerable<ResourceDefinition> Resources => _resources.Values;
 
         public IEnumerable<BuildingDefinition> Buildings => _buildings.Values;
+
+        /// <summary>Level progression rules; defaults when the catalog has none.</summary>
+        public ProgressionData Progression => Data.progression ?? new ProgressionData();
 
         /// <summary>Parses and validates. Throws <see cref="FormatException"/> listing every problem.</summary>
         public static GameCatalog Create(GameCatalogData data)
@@ -110,7 +118,9 @@ namespace HADAL.Shared.Catalog
                     MaxRing = building.maxRing,
                     Production = ParseAmounts(building.id, "production", building.production, errors),
                     Consumption = ParseAmounts(building.id, "consumption", building.consumption, errors),
-                    BuildCost = ParseAmounts(building.id, "buildCost", building.buildCost, errors)
+                    BuildCost = ParseAmounts(building.id, "buildCost", building.buildCost, errors),
+                    BuildSeconds = Math.Max(0, building.buildSeconds),
+                    MaxLevel = building.maxLevel > 0 ? building.maxLevel : Math.Max(1, (data.progression ?? new ProgressionData()).maxLevel)
                 };
             }
 

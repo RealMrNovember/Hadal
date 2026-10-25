@@ -64,6 +64,43 @@ namespace Hadal.Game.Tests
             delta.Changes.Where(c => c.EntityId.StartsWith(EntityIds.Building, StringComparison.Ordinal) && c.Kind == EntityChangeKind.Create)
                 .Select(c => Serializer.Deserialize<BuildingStateDto>(c.Payload));
 
+        public static IEnumerable<BuildingStateDto> UpdatedBuildings(this StateDelta delta) =>
+            delta.Changes.Where(c => c.EntityId.StartsWith(EntityIds.Building, StringComparison.Ordinal) && c.Kind == EntityChangeKind.Update)
+                .Select(c => Serializer.Deserialize<BuildingStateDto>(c.Payload));
+
+        public static CommandEnvelope Upgrade(string buildingEntityId, string commandId = "")
+        {
+            var command = new UpgradeBuildingCommand
+            {
+                CommandId = string.IsNullOrEmpty(commandId) ? Guid.NewGuid().ToString("N") : commandId,
+                ClientSequence = 1,
+                BuildingEntityId = buildingEntityId
+            };
+            return EnvelopeBuilder.WrapCommand(command, CommandType.UpgradeBuilding, Serializer.Serialize(command));
+        }
+
+        public static CommandEnvelope Finish(string buildingEntityId, string commandId = "")
+        {
+            var command = new FinishConstructionCommand
+            {
+                CommandId = string.IsNullOrEmpty(commandId) ? Guid.NewGuid().ToString("N") : commandId,
+                ClientSequence = 1,
+                BuildingEntityId = buildingEntityId
+            };
+            return EnvelopeBuilder.WrapCommand(command, CommandType.FinishConstruction, Serializer.Serialize(command));
+        }
+
+        /// <summary>Places a building and finishes its (free, short) first construction; returns its entity id.</summary>
+        public static string PlaceBuilt(this GameWorld world, PlayerSession session, RecordingConnection connection,
+            string buildingId, int ring, int sector)
+        {
+            world.HandleCommand(session, Place(buildingId, ring, sector));
+            var created = Assert.Single(connection.Messages.Last().Delta().CreatedBuildings());
+            world.HandleCommand(session, Finish(created.EntityId));
+            Assert.Equal(CommandResultCode.Accepted, connection.Messages.Last().Delta().Ack()!.Result);
+            return created.EntityId;
+        }
+
         public static CommandEnvelope Place(string buildingId, int ring, int sector, string commandId = "")
         {
             var command = new PlaceBuildingCommand
