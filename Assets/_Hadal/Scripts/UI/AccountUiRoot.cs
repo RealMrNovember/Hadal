@@ -15,11 +15,13 @@ namespace Hadal.UI
         private ILocalEventBus _localBus;
         private TitleScreenView _title;
         private AccountPanelView _panel;
+        private UpdatePromptView _update;
         private bool _subscribed;
         private bool _profileRequested;
 
         public TitleScreenView Title => _title;
         public AccountPanelView Panel => _panel;
+        public UpdatePromptView Update => _update;
 
         [Inject]
         public void Construct(IAccountService account, ILocalEventBus localBus)
@@ -42,6 +44,7 @@ namespace Hadal.UI
             _localBus.Unsubscribe<NetworkReconnectingEvent>(OnReconnecting);
             _localBus.Unsubscribe<ServerMaintenanceEvent>(OnMaintenance);
             _localBus.Unsubscribe<ClientUpdateRequiredEvent>(OnUpdateRequired);
+            _localBus.Unsubscribe<ClientUpdateAvailableEvent>(OnUpdateAvailable);
             _localBus.Unsubscribe<AccountBannedEvent>(OnBanned);
             _localBus.Unsubscribe<ServerAnnouncementEvent>(OnAnnouncement);
             _localBus.Unsubscribe<ResourceStateChangedEvent>(OnWorldState);
@@ -57,11 +60,13 @@ namespace Hadal.UI
             {
                 _title = TitleScreenView.Create(transform);
                 _panel = AccountPanelView.Create(transform, _account);
+                _update = UpdatePromptView.Create(transform);
             }
 
             _localBus.Subscribe<NetworkReconnectingEvent>(OnReconnecting);
             _localBus.Subscribe<ServerMaintenanceEvent>(OnMaintenance);
             _localBus.Subscribe<ClientUpdateRequiredEvent>(OnUpdateRequired);
+            _localBus.Subscribe<ClientUpdateAvailableEvent>(OnUpdateAvailable);
             _localBus.Subscribe<AccountBannedEvent>(OnBanned);
             _localBus.Subscribe<ServerAnnouncementEvent>(OnAnnouncement);
             _localBus.Subscribe<ResourceStateChangedEvent>(OnWorldState);
@@ -72,7 +77,13 @@ namespace Hadal.UI
 
         private void OnMaintenance(ServerMaintenanceEvent maintenance) => _title.SetStatus(TitleScreenView.Status.Maintenance, maintenance.Message);
 
-        private void OnUpdateRequired(ClientUpdateRequiredEvent _) => _title.SetStatus(TitleScreenView.Status.UpdateRequired);
+        private void OnUpdateRequired(ClientUpdateRequiredEvent required)
+        {
+            _title.SetStatus(TitleScreenView.Status.UpdateRequired);
+            _update.ShowRequired(required.Url);
+        }
+
+        private void OnUpdateAvailable(ClientUpdateAvailableEvent available) => _update.ShowAvailable(available.LatestVersion, available.Url);
 
         private void OnBanned(AccountBannedEvent _) => _title.SetStatus(TitleScreenView.Status.Banned);
 

@@ -14,6 +14,16 @@ namespace Hadal.Core.Events
     {
         public string RequiredVersion { get; init; }
         public string LatestVersion { get; init; }
+
+        /// <summary>Where the new build is downloaded from (OTA).</summary>
+        public string Url { get; init; }
+    }
+
+    /// <summary>A newer build exists but this one may still play; the player can update or skip.</summary>
+    public readonly struct ClientUpdateAvailableEvent
+    {
+        public string LatestVersion { get; init; }
+        public string Url { get; init; }
     }
 
     /// <summary>The server is in maintenance; the client keeps retrying slowly.</summary>

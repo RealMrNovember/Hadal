@@ -223,5 +223,8 @@ namespace HADAL.Shared.Auth
 
         /// <summary>Live catalog version; the client downloads <see cref="AuthRoutes.Catalog"/> when it differs.</summary>
         public int catalogVersion;
+
+        /// <summary>Download for <see cref="latestClientVersion"/> (Android APK; the store page once published).</summary>
+        public string updateUrl = string.Empty;
     }
 }

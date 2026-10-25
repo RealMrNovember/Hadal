@@ -74,6 +74,8 @@ const ERRORS = {
   InvalidAdmin: "Kullanıcı adı 3–32 karakter; rol sahip/gm/izleyici.",
   UsernameExists: "Bu kullanıcı adı alınmış.",
   CannotDisableSelf: "Kendi hesabını kapatamazsın.",
+  InvalidVersion: "Sürüm 1.2.0 biçiminde olmalı.",
+  InvalidUrl: "İndirme adresi https:// ile başlamalı.",
 };
 const explain = (code) => ERRORS[code] || code || "İşlem başarısız.";
 
@@ -291,15 +293,24 @@ async function liveops(root) {
   maintenance.value = String(s.maintenance);
   const message = el("input", { value: s.maintenanceMessage, placeholder: "Bakım mesajı (oyuncular görür)" });
   const announcement = el("textarea", { class: "short" }, s.announcement);
+  const latest = el("input", { value: s.latestClientVersion || "", placeholder: "ör. 1.2.0 (boş = sunucu ayarı)" });
+  const minimum = el("input", { value: s.minClientVersion || "", placeholder: "ör. 1.1.0 (boş = sunucu ayarı)" });
+  const updateUrl = el("input", { value: s.updateUrl || "", placeholder: "https://hadal.cicibyte.com/download/hadal.apk" });
   render(root, 
     el("h1", {}, "Canlı Operasyon"),
     el("div", { class: "card" },
       el("div", { class: "row" }, el("label", {}, "Bakım modu", maintenance), el("label", {}, "Bakım mesajı", message)),
       el("label", {}, "Açılış ekranı duyurusu (boş = yok)", announcement),
       el("p", { class: "muted" }, "Bakım açıkken yeni bağlantılar beklemeye alınır; değişiklik birkaç saniye içinde tüm istemcilere yansır."),
+      el("h2", {}, "Uygulama güncellemesi (OTA)"),
+      el("div", { class: "row" }, el("label", {}, "En yeni sürüm", latest), el("label", {}, "En düşük izinli sürüm", minimum)),
+      el("label", {}, "İndirme adresi", updateUrl),
+      el("p", { class: "muted" }, "En yeni sürümden eski oyunculara güncelleme önerilir; en düşük sürümün altındakiler güncellemeden oynayamaz. APK'yı önce kale'ye yükle, sonra sürümü burada yayınla."),
       can("gm") ? el("button", {
         class: "primary",
-        onclick: () => api("liveops", { method: "PUT", body: { maintenance: maintenance.value === "true", maintenanceMessage: message.value, announcement: announcement.value } })
+        onclick: () => api("liveops", { method: "PUT", body: {
+          maintenance: maintenance.value === "true", maintenanceMessage: message.value, announcement: announcement.value,
+          latestClientVersion: latest.value.trim(), minClientVersion: minimum.value.trim(), updateUrl: updateUrl.value.trim() } })
           .then(() => toast("Kaydedildi."), (e) => toast(e.message, true)),
       }, "Kaydet") : null));
 }

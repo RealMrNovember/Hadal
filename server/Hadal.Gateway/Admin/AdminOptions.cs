@@ -12,7 +12,7 @@ namespace Hadal.Gateway.Admin
         /// <summary>Shared secret the fronting nginx sends as X-Overseer-Key. Empty = panel disabled.</summary>
         public string ProxyKey { get; set; } = string.Empty;
 
-        /// <summary>HS256 key for admin session cookies; separate from the player JWT key.</summary>
+        /// <summary>HS256 key for admin session tokens; separate from the player JWT key.</summary>
         public string JwtSecret { get; set; } = string.Empty;
 
         public int SessionHours { get; set; } = 8;

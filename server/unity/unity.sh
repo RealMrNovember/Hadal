@@ -40,7 +40,7 @@ run() {
   docker run --rm -v "${REPO}:/project" "${IMAGE}" rm -rf /project/Temp >/dev/null 2>&1 || true
   docker run --rm --name hadal-unity-editor ${TTY:-} "${IDENTITY[@]}" \
     ${UNITY_NETWORK:+--network "${UNITY_NETWORK}"} \
-    -e HADAL_GATEWAY_URL -e HADAL_AUTH_PROFILE -e HADAL_FRESH_ACCOUNT -e HADAL_LOCAL_SIM \
+    -e HADAL_GATEWAY_URL -e HADAL_AUTH_PROFILE -e HADAL_FRESH_ACCOUNT -e HADAL_LOCAL_SIM -e HADAL_VERSION \
     -v "${REPO}:/project" \
     -v hadal_unity_license:/root/.local/share/unity3d \
     -v hadal_unity_config:/root/.config/unity3d \

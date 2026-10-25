@@ -273,6 +273,17 @@ namespace Hadal.Game.Tests
             Assert.True(manifest!.maintenance);
             Assert.Equal("Bakım: 10 dk", manifest.message);
             Assert.Equal("Hoş geldin, kaptan!", manifest.announcement);
+            Assert.Equal("https://hadal.cicibyte.com/download/hadal.apk", manifest.updateUrl);
+
+            // OTA: the panel announces a new build and can force old ones to update.
+            (await Proxied(gm).PutAsJsonAsync("/admin/api/liveops",
+                new { latestClientVersion = "1.2.0", minClientVersion = "1.1.0", updateUrl = "https://example.org/h.apk" })).EnsureSuccessStatusCode();
+            manifest = await _factory.CreateClient().GetFromJsonAsync<VersionManifest>(AuthRoutes.Manifest, Json);
+            Assert.Equal("1.2.0", manifest!.latestClientVersion);
+            Assert.Equal("1.1.0", manifest.minClientVersion);
+            Assert.Equal("https://example.org/h.apk", manifest.updateUrl);
+            Assert.Equal(HttpStatusCode.BadRequest, (await Proxied(gm).PutAsJsonAsync("/admin/api/liveops", new { latestClientVersion = "yeni" })).StatusCode);
+            Assert.Equal(HttpStatusCode.BadRequest, (await Proxied(gm).PutAsJsonAsync("/admin/api/liveops", new { updateUrl = "http://plain.example/h.apk" })).StatusCode);
 
             (await Proxied(gm).PutAsJsonAsync("/admin/api/liveops", new { maintenance = false, maintenanceMessage = "", announcement = "" })).EnsureSuccessStatusCode();
         }

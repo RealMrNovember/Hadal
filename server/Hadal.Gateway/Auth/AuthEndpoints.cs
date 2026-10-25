@@ -93,8 +93,9 @@ namespace Hadal.Gateway.Auth
                 var ops = await liveOps.GetAsync(ct);
                 return Results.Ok(new VersionManifest
                 {
-                    minClientVersion = version.Value.MinClientVersion,
-                    latestClientVersion = version.Value.LatestClientVersion,
+                    minClientVersion = ops.MinClientVersion.Length > 0 ? ops.MinClientVersion : version.Value.MinClientVersion,
+                    latestClientVersion = ops.LatestClientVersion.Length > 0 ? ops.LatestClientVersion : version.Value.LatestClientVersion,
+                    updateUrl = ops.UpdateUrl.Length > 0 ? ops.UpdateUrl : version.Value.UpdateUrl,
                     schemaVersion = SchemaVersion.Current,
                     maintenance = version.Value.Maintenance || ops.Maintenance,
                     message = ops.Maintenance && ops.MaintenanceMessage.Length > 0 ? ops.MaintenanceMessage : version.Value.Message,

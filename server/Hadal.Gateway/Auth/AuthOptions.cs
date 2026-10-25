@@ -41,5 +41,8 @@ namespace Hadal.Gateway.Auth
         public string LatestClientVersion { get; set; } = "0.0.0";
         public bool Maintenance { get; set; }
         public string Message { get; set; } = string.Empty;
+
+        /// <summary>Android build offered by the in-app updater (OTA).</summary>
+        public string UpdateUrl { get; set; } = "https://hadal.cicibyte.com/download/hadal.apk";
     }
 }

@@ -133,7 +133,7 @@ namespace Hadal.Core.Network
                     switch (verdict)
                     {
                         case PatchVerdict.UpdateRequired:
-                            Block(manifest.minClientVersion, manifest.latestClientVersion);
+                            Block(manifest.minClientVersion, manifest.latestClientVersion, manifest.updateUrl);
                             return;
 
                         case PatchVerdict.Maintenance:
@@ -144,6 +144,8 @@ namespace Hadal.Core.Network
 
                     _patchChecked = true;
                     _localBus.Publish(new ServerAnnouncementEvent { Text = manifest.announcement ?? string.Empty });
+                    if (PatchService.IsOlder(Application.version, manifest.latestClientVersion) && !string.IsNullOrEmpty(manifest.updateUrl))
+                        _localBus.Publish(new ClientUpdateAvailableEvent { LatestVersion = manifest.latestClientVersion, Url = manifest.updateUrl });
                     await SyncCatalogSafelyAsync(manifest);
                 }
 
@@ -185,10 +187,10 @@ namespace Hadal.Core.Network
             Debug.LogWarning("[NetworkStateReceiver] The account is suspended — not connecting.");
         }
 
-        private void Block(string required, string latest)
+        private void Block(string required, string latest, string url = "")
         {
             _blocked = true;
-            _localBus.Publish(new ClientUpdateRequiredEvent { RequiredVersion = required, LatestVersion = latest });
+            _localBus.Publish(new ClientUpdateRequiredEvent { RequiredVersion = required, LatestVersion = latest, Url = url });
             Debug.LogWarning($"[NetworkStateReceiver] Client {Application.version} is below the required {required} — not connecting.");
         }
 

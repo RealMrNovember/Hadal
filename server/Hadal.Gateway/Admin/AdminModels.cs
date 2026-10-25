@@ -46,6 +46,15 @@ namespace Hadal.Gateway.Admin
         public bool Maintenance { get; set; }
         public string MaintenanceMessage { get; set; } = string.Empty;
         public string Announcement { get; set; } = string.Empty;
+
+        /// <summary>Newest app build; clients below it are offered the update. Empty = the server's Version config.</summary>
+        public string LatestClientVersion { get; set; } = string.Empty;
+
+        /// <summary>Oldest build still allowed to play; older ones must update. Empty = Version config.</summary>
+        public string MinClientVersion { get; set; } = string.Empty;
+
+        /// <summary>Where the update is downloaded from (https). Empty = Version config.</summary>
+        public string UpdateUrl { get; set; } = string.Empty;
     }
 
     public sealed record CatalogVersion(int Version, string Json, string CreatedBy, DateTimeOffset CreatedAt, string Note);

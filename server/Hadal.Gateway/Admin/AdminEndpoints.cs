@@ -234,9 +234,17 @@ namespace Hadal.Gateway.Admin
             {
                 settings.MaintenanceMessage = Clip(settings.MaintenanceMessage, 500);
                 settings.Announcement = Clip(settings.Announcement, 500);
+                settings.LatestClientVersion = (settings.LatestClientVersion ?? string.Empty).Trim();
+                settings.MinClientVersion = (settings.MinClientVersion ?? string.Empty).Trim();
+                settings.UpdateUrl = (settings.UpdateUrl ?? string.Empty).Trim();
+                if (!IsVersionOrEmpty(settings.LatestClientVersion) || !IsVersionOrEmpty(settings.MinClientVersion))
+                    return Results.BadRequest(new { error = "InvalidVersion" });
+                if (settings.UpdateUrl.Length > 0 && !(Uri.TryCreate(settings.UpdateUrl, UriKind.Absolute, out var url) && url.Scheme == Uri.UriSchemeHttps))
+                    return Results.BadRequest(new { error = "InvalidUrl" });
                 await liveOps.SetAsync(settings, ct);
                 await store.AuditAsync(me.Username, "liveops.update", string.Empty,
-                    $"maintenance={settings.Maintenance} announcement={settings.Announcement}", AdminAuth.ClientIp(http), ct);
+                    $"maintenance={settings.Maintenance} announcement={settings.Announcement} latest={settings.LatestClientVersion} min={settings.MinClientVersion}",
+                    AdminAuth.ClientIp(http), ct);
                 return Results.Ok(settings);
             }).RequireAdmin(AdminRoles.GameMaster);
 
@@ -374,6 +382,8 @@ namespace Hadal.Gateway.Admin
 
         private static string Describe(IReadOnlyDictionary<ResourceType, long> amounts) =>
             string.Join(", ", amounts.Select(a => $"{a.Key}:{a.Value:+#;-#;0}"));
+
+        private static bool IsVersionOrEmpty(string text) => text.Length == 0 || (text.Length <= 32 && Version.TryParse(text, out _));
 
         private static string Clip(string? text, int max) =>
             string.IsNullOrEmpty(text) ? string.Empty : text.Length <= max ? text : text[..max];

@@ -29,6 +29,17 @@ namespace Hadal.EditorTools
             PlayerSettings.Android.targetArchitectures = AndroidArchitecture.ARM64;
             EditorUserBuildSettings.buildAppBundle = false;
 
+            // HADAL_VERSION=1.2.0 stamps the build; the in-app updater compares it with the manifest,
+            // and Android only installs over an older versionCode.
+            var version = Environment.GetEnvironmentVariable("HADAL_VERSION");
+            if (!string.IsNullOrWhiteSpace(version))
+            {
+                if (!Version.TryParse(version, out var parsed))
+                    throw new InvalidOperationException($"HADAL_VERSION '{version}' is not a version like 1.2.0");
+                PlayerSettings.bundleVersion = version;
+                PlayerSettings.Android.bundleVersionCode = parsed.Major * 10000 + parsed.Minor * 100 + Math.Max(0, parsed.Build);
+            }
+
             var scenes = EditorBuildSettings.scenes.Where(s => s.enabled).Select(s => s.path).ToArray();
             if (scenes.Length == 0)
                 throw new InvalidOperationException("No scenes in build settings — run Hadal > Setup > Create Bootstrap Scene.");
