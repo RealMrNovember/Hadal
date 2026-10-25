@@ -22,9 +22,13 @@ MonoBehaviour:
   _maxLevel: 10
   _allowRotation: 1
   _rotationSnapOverride: 0
-  _buildCosts: []
+  _buildCosts:
+  - Type: 7
+    Amount: 120
   _productionPerTick: []
-  _consumptionPerTick: []
+  _consumptionPerTick:
+  - Type: 6
+    Amount: 1
   _pressureResistanceBonus: 0
   _prefab: {fileID: 919132149155446097, guid: d65123ae2b73feb21a2a1f874e6aac4b, type: 3}
   _ghostPrefab: {fileID: 0}

@@ -22,7 +22,11 @@ MonoBehaviour:
   _maxLevel: 10
   _allowRotation: 1
   _rotationSnapOverride: 0
-  _buildCosts: []
+  _buildCosts:
+  - Type: 7
+    Amount: 600
+  - Type: 3
+    Amount: 200
   _productionPerTick: []
   _consumptionPerTick: []
   _pressureResistanceBonus: 0

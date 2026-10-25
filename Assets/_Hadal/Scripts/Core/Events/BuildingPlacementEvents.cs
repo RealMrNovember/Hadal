@@ -18,6 +18,17 @@ namespace Hadal.Core.Events
     {
     }
 
+    /// <summary>The server answered a command this client sent (any type); UI shows rejections.</summary>
+    public readonly struct CommandResolvedEvent
+    {
+        public string CommandId { get; init; }
+        public CommandType Type { get; init; }
+        public CommandResultCode Result { get; init; }
+
+        /// <summary>Server reason code (PlacementRejectReason / ConstructionRejectReason name) on rejection.</summary>
+        public string Reason { get; init; }
+    }
+
     public readonly struct GhostRejectionShakeEvent
     {
         public string CommandId { get; init; }

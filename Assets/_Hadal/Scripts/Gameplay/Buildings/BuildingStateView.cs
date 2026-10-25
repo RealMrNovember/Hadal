@@ -20,6 +20,8 @@ namespace Hadal.Gameplay.Buildings
         [SerializeField] private Transform _buildingsRoot;
         [SerializeField] private Color _solidTint = new(0.72f, 0.78f, 0.86f, 1f);
         [SerializeField] private Vector3 _defaultScale = new(1.2f, 0.6f, 1.2f);
+        [Tooltip("Hologram look of a building during its first construction (HAD_Glass).")]
+        [SerializeField] private Material _constructionMaterial;
 
         private IStateSyncService _stateSync;
         private IGridService _grid;
@@ -96,13 +98,24 @@ namespace Hadal.Gameplay.Buildings
                 var position = _grid.SlotToWorld(slot);
                 var rotation = _grid.SlotToRotation(slot, building.rotation);
 
+                // A first construction (level 0) shows as a rising hologram; it is swapped for the real
+                // model when the server completes it.
+                var hologram = building.level == 0 && building.IsUnderConstruction;
                 if (!_instances.TryGetValue(building.instanceKey, out var instance) || instance.Go == null
-                    || instance.DefinitionId != building.definitionId)
+                    || instance.DefinitionId != building.definitionId || instance.Hologram != hologram)
                 {
                     if (instance.Go != null)
                         Destroy(instance.Go);
 
-                    instance = new Instance(CreateVisual(building), building.definitionId);
+                    var go = CreateVisual(building);
+                    if (hologram)
+                        MakeHologram(go);
+                    instance = new Instance(go, building.definitionId, hologram, building.constructionEndsAt, building.constructionSeconds);
+                    _instances[building.instanceKey] = instance;
+                }
+                else if (hologram)
+                {
+                    instance = new Instance(instance.Go, instance.DefinitionId, true, building.constructionEndsAt, building.constructionSeconds);
                     _instances[building.instanceKey] = instance;
                 }
 
@@ -143,6 +156,37 @@ namespace Hadal.Gameplay.Buildings
         }
 
         public int InstanceCount => _instances.Count;
+
+        private void Update()
+        {
+            foreach (var instance in _instances.Values)
+            {
+                if (!instance.Hologram || instance.Go == null)
+                    continue;
+
+                // Rises out of the seabed as the construction progresses.
+                var progress = instance.Seconds > 0f
+                    ? Mathf.Clamp01(1f - (instance.EndsAt - Time.realtimeSinceStartup) / instance.Seconds)
+                    : 1f;
+                var scale = instance.Go.transform.localScale;
+                instance.Go.transform.localScale = new Vector3(scale.x, Mathf.Lerp(0.15f, 1f, progress), scale.z);
+            }
+        }
+
+        private void MakeHologram(GameObject go)
+        {
+            if (_constructionMaterial == null)
+                return;
+
+            foreach (var renderer in go.GetComponentsInChildren<Renderer>(true))
+            {
+                var materials = renderer.sharedMaterials;
+                for (var i = 0; i < materials.Length; i++)
+                    materials[i] = _constructionMaterial;
+                renderer.sharedMaterials = materials;
+                renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            }
+        }
 
         /// <summary>World positions of the rendered buildings (crew and effects use them).</summary>
         public void GetBuildingPositions(List<Vector3> into)
@@ -194,11 +238,17 @@ namespace Hadal.Gameplay.Buildings
         {
             public readonly GameObject Go;
             public readonly string DefinitionId;
+            public readonly bool Hologram;
+            public readonly float EndsAt;
+            public readonly float Seconds;
 
-            public Instance(GameObject go, string definitionId)
+            public Instance(GameObject go, string definitionId, bool hologram, float endsAt, float seconds)
             {
                 Go = go;
                 DefinitionId = definitionId;
+                Hologram = hologram;
+                EndsAt = endsAt;
+                Seconds = seconds;
             }
         }
     }

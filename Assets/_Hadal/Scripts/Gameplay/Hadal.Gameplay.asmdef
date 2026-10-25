@@ -6,7 +6,8 @@
         "Hadal.Data",
         "Hadal.Managers",
         "HADAL.Shared",
-        "VContainer"
+        "VContainer",
+        "UnityEngine.UI"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

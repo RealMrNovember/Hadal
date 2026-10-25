@@ -139,6 +139,28 @@ namespace Hadal.UI
             return component;
         }
 
+        /// <summary>Vertical scroll list; returns the content transform to add rows (with <see cref="Row{T}"/>) to.</summary>
+        public static RectTransform ScrollList(string name, Transform parent, float spacing = 16f)
+        {
+            var viewport = Box(name, parent, new Color(0, 0, 0, 0.001f));
+            viewport.gameObject.AddComponent<RectMask2D>();
+            var scroll = viewport.gameObject.AddComponent<ScrollRect>();
+            scroll.horizontal = false;
+            scroll.movementType = ScrollRect.MovementType.Clamped;
+            scroll.scrollSensitivity = 30f;
+
+            var content = Column("Content", viewport.transform, spacing);
+            content.anchorMin = new Vector2(0, 1);
+            content.anchorMax = new Vector2(1, 1);
+            content.pivot = new Vector2(0.5f, 1);
+            content.offsetMin = content.offsetMax = Vector2.zero;
+            content.gameObject.AddComponent<ContentSizeFitter>().verticalFit = ContentSizeFitter.FitMode.PreferredSize;
+
+            scroll.viewport = viewport.rectTransform;
+            scroll.content = content;
+            return content;
+        }
+
         /// <summary>Fades a CanvasGroup on unscaled time; deactivates the object when it reaches 0.</summary>
         public static System.Collections.IEnumerator Fade(CanvasGroup group, float to, float seconds, Action done = null)
         {

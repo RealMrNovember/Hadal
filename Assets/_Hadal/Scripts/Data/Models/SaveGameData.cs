@@ -51,6 +51,14 @@ namespace Hadal.Data.Models
         public float rotation;
         public int cellX;
         public int cellY;
+
+        /// <summary>Time.realtimeSinceStartup when the running construction ends; 0 = idle.</summary>
+        public float constructionEndsAt;
+
+        /// <summary>Full duration of the running construction in seconds (progress bars).</summary>
+        public float constructionSeconds;
+
+        public bool IsUnderConstruction => constructionEndsAt > 0f;
     }
 
     [Serializable]

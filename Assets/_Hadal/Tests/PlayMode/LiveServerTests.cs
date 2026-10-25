@@ -79,6 +79,18 @@ namespace Hadal.Tests.PlayMode
             yield return WaitUntil(() => HasBuilding(view, "oxygen_plant"), 5f, "server never confirmed the building");
             Assert.AreEqual(100, Balance(view, ResourceType.Titanium), "build cost not charged by the server");
 
+            // New buildings start under construction (docs/23); the 12 s build is inside the free-finish window.
+            var plant = view.Data.buildings.Single(b => b.definitionId == "oxygen_plant");
+            Assert.AreEqual(0, plant.level, "a new building must start under construction");
+            Assert.IsTrue(plant.IsUnderConstruction);
+            container.Resolve<ICommandDispatcher>().Dispatch(new FinishConstructionCommand
+            {
+                CommandId = Guid.NewGuid().ToString("N"),
+                ClientSequence = 2,
+                BuildingEntityId = plant.instanceKey
+            });
+            yield return WaitUntil(() => view.Data.buildings.Any(b => b.definitionId == "oxygen_plant" && b.level == 1), 5f, "free finish not applied");
+
             yield return WaitUntil(() => Balance(view, ResourceType.Oxygen) > 500, 8f, "server production never reached the client");
             var beforeDrop = Balance(view, ResourceType.Oxygen);
 

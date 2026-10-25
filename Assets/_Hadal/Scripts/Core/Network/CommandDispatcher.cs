@@ -115,6 +115,8 @@ namespace Hadal.Core.Network
             {
                 ClientAuthCommand => CommandType.ClientAuth,
                 PlaceBuildingCommand => CommandType.PlaceBuilding,
+                UpgradeBuildingCommand => CommandType.UpgradeBuilding,
+                FinishConstructionCommand => CommandType.FinishConstruction,
                 ExecuteGachaCommand => CommandType.ExecuteGacha,
                 _ => CommandType.Unknown
             };

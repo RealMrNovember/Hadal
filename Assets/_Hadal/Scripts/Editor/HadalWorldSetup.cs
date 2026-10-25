@@ -1,5 +1,7 @@
 #if UNITY_EDITOR
+using System.Collections.Generic;
 using Hadal.Gameplay.Art;
+using Hadal.Gameplay.Base;
 using Hadal.Gameplay.Buildings;
 using Hadal.Gameplay.Crew;
 using UnityEditor;
@@ -19,14 +21,14 @@ namespace Hadal.EditorTools
 
         private static readonly Color AbyssColor = new(0.010f, 0.045f, 0.070f);
 
-        /// <summary>Builds the world under a new root; returns the building view (needs injection).</summary>
-        public static BuildingStateView CreateWorld()
+        /// <summary>Builds the world under a new root; returns the objects VContainer must inject.</summary>
+        public static List<GameObject> CreateWorld()
         {
             var world = new GameObject("World");
 
             ConfigureAtmosphere();
             CreateSunlight(world.transform);
-            CreateCamera(world.transform);
+            var camera = CreateCamera(world.transform);
             CreateVolume(world.transform);
             CreateSeabed(world.transform);
             ScatterProps(world.transform);
@@ -37,10 +39,22 @@ namespace Hadal.EditorTools
             var view = buildingsGo.AddComponent<BuildingStateView>();
             var so = new SerializedObject(view);
             so.FindProperty("_buildingsRoot").objectReferenceValue = buildingsGo.transform;
+            so.FindProperty("_constructionMaterial").objectReferenceValue = HadalArtPalette.Load("Glass");
             so.ApplyModifiedPropertiesWithoutUndo();
 
             CreateCrew(world.transform, view);
-            return view;
+
+            // Base management input: taps resolve to slots, free slots glow.
+            var interaction = new GameObject("BaseInteraction").AddComponent<BaseInteraction>();
+            interaction.transform.SetParent(world.transform, false);
+            interaction.SetCamera(camera);
+            var markers = new GameObject("SlotMarkers").AddComponent<SlotMarkers>();
+            markers.transform.SetParent(world.transform, false);
+            markers.Configure(HadalArtPalette.Load("GlowCyan"));
+            EditorUtility.SetDirty(interaction);
+            EditorUtility.SetDirty(markers);
+
+            return new List<GameObject> { buildingsGo, interaction.gameObject, markers.gameObject };
         }
 
         private static void CreateCrew(Transform parent, BuildingStateView buildings)
@@ -83,7 +97,7 @@ namespace Hadal.EditorTools
             light.shadowStrength = 0.75f;
         }
 
-        private static void CreateCamera(Transform parent)
+        private static Camera CreateCamera(Transform parent)
         {
             var rigGo = new GameObject("CameraRig");
             rigGo.transform.SetParent(parent, false);
@@ -108,6 +122,7 @@ namespace Hadal.EditorTools
             so.FindProperty("_camera").objectReferenceValue = cam;
             so.ApplyModifiedPropertiesWithoutUndo();
             rig.Configure(cam, 58f);
+            return cam;
         }
 
         private static void CreateVolume(Transform parent)

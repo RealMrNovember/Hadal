@@ -33,6 +33,7 @@ namespace Hadal.EditorTools
         public static void CreateFullProjectData()
         {
             EnsureFolders();
+            CopyCatalogToResources();
             HadalRenderSetup.EnsurePipeline();
             HadalArtPalette.BuildMaterials();
             ReimportArt();
@@ -91,9 +92,11 @@ namespace Hadal.EditorTools
             };
 
             var hud = CreateResourceHud(bootstrapGo.transform);
-            var buildingView = HadalWorldSetup.CreateWorld();
+            var world = HadalWorldSetup.CreateWorld();
             var accountUi = new GameObject("AccountUi", typeof(AccountUiRoot));
             accountUi.transform.SetParent(bootstrapGo.transform);
+            var baseUi = new GameObject("BaseUi", typeof(BaseManagementView));
+            baseUi.transform.SetParent(bootstrapGo.transform);
             new GameObject("EventSystem", typeof(EventSystem), typeof(StandaloneInputModule));
 
             var config = AssetDatabase.LoadAssetAtPath<GameConfigSO>(SettingsPath + "/GameConfig.asset");
@@ -105,12 +108,13 @@ namespace Hadal.EditorTools
                 so.FindProperty("_managers").GetArrayElementAtIndex(i).objectReferenceValue = managers[i];
 
             // VContainer only injects scene MonoBehaviours it is told about; [Inject] on the HUD,
-            // the building view and the account UI is otherwise never called and they stay blank.
+            // the world (buildings, taps, slot markers) and the UI roots is otherwise never called.
+            var injected = new List<GameObject> { hud, accountUi, baseUi };
+            injected.AddRange(world);
             var autoInject = so.FindProperty("autoInjectGameObjects");
-            autoInject.arraySize = 3;
-            autoInject.GetArrayElementAtIndex(0).objectReferenceValue = hud;
-            autoInject.GetArrayElementAtIndex(1).objectReferenceValue = buildingView.gameObject;
-            autoInject.GetArrayElementAtIndex(2).objectReferenceValue = accountUi;
+            autoInject.arraySize = injected.Count;
+            for (var i = 0; i < injected.Count; i++)
+                autoInject.GetArrayElementAtIndex(i).objectReferenceValue = injected[i];
             so.ApplyModifiedPropertiesWithoutUndo();
 
             EnsureFolder(ScenesPath);
@@ -298,6 +302,23 @@ namespace Hadal.EditorTools
 
             SetObjectList(db, "_buildings", buildings.ToArray());
             return db;
+        }
+
+        /// <summary>
+        /// The player build reads the shared catalog from Resources (ClientCatalog) to show the
+        /// costs, times and rules the server enforces; the copy is refreshed on every setup.
+        /// </summary>
+        private static void CopyCatalogToResources()
+        {
+            const string target = Root + "/Resources/catalog.json";
+            EnsureFolder(Root + "/Resources");
+            var source = Path.Combine(Directory.GetCurrentDirectory(), CatalogPath);
+            var text = File.ReadAllText(source);
+            if (!File.Exists(target) || File.ReadAllText(target) != text)
+            {
+                File.WriteAllText(target, text);
+                AssetDatabase.ImportAsset(target);
+            }
         }
 
         /// <summary>Re-runs HadalArtImporter so FBX materials pick up freshly built palette materials.</summary>

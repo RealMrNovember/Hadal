@@ -136,9 +136,10 @@ namespace Hadal.Managers
         public bool TryGetNearestSlot(Vector3 worldPoint, out PolarGridSlotId id)
             => PolarGridLayoutUtility.TryGetNearestSlot(this, worldPoint, out id);
 
-        public IReadOnlyList<PolarGridSlot> GetAllSlots() => _model.GetAllSlots();
+        // The model is built in Start (VContainer entry point); scene views may ask earlier.
+        public IReadOnlyList<PolarGridSlot> GetAllSlots() => _model?.GetAllSlots() ?? System.Array.Empty<PolarGridSlot>();
 
-        public IReadOnlyList<PolarGridSlot> GetSlotsInRing(int ring) => _model.GetSlotsInRing(ring);
+        public IReadOnlyList<PolarGridSlot> GetSlotsInRing(int ring) => _model?.GetSlotsInRing(ring) ?? System.Array.Empty<PolarGridSlot>();
 
         public float SnapRotation(float rotationDegrees) => _model.SnapRotation(rotationDegrees);
 

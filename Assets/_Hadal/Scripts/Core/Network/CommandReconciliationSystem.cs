@@ -137,6 +137,13 @@ namespace Hadal.Core.Network
                 return;
 
             PublishPlacementResolution(ack, pending.Type);
+            _localBus.Publish(new CommandResolvedEvent
+            {
+                CommandId = ack.CommandId,
+                Type = pending.Type,
+                Result = ack.Result,
+                Reason = ack.Reason ?? string.Empty
+            });
 
             if (ack.Result == CommandResultCode.Rejected)
             {

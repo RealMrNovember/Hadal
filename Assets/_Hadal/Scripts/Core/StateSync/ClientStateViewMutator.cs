@@ -215,7 +215,12 @@ namespace Hadal.Core.StateSync
                 cellSector = dto.SectorIndex,
                 rotation = dto.RotationSteps * 90f,
                 cellX = dto.RingIndex,
-                cellY = dto.SectorIndex
+                cellY = dto.SectorIndex,
+                // Remaining time is relative to when the frame arrived, so client clock skew is harmless.
+                constructionEndsAt = dto.ConstructionRemainingMs > 0
+                    ? UnityEngine.Time.realtimeSinceStartup + dto.ConstructionRemainingMs / 1000f
+                    : 0f,
+                constructionSeconds = dto.ConstructionTotalMs / 1000f
             };
         }
 
