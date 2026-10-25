@@ -164,7 +164,7 @@ support.website = 웹사이트 열기
 
 about.version = 버전 {0}
 about.account = 계정 ID: {0}
-about.studio = 개발: Cicibyte
+about.studio = 개발: CiciByte Technology, Inc.
 
 update.available = 새 버전 {0} 업데이트가 있습니다.
 update.required = 더 이상 지원되지 않는 버전입니다. 계속 플레이하려면 업데이트하세요.

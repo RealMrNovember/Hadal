@@ -164,7 +164,7 @@ support.website = Apri il sito
 
 about.version = Versione {0}
 about.account = ID account: {0}
-about.studio = Sviluppato da Cicibyte
+about.studio = Sviluppato da CiciByte Technology, Inc.
 
 update.available = È disponibile la versione {0}.
 update.required = Questa versione non è più supportata. Aggiorna per continuare a giocare.

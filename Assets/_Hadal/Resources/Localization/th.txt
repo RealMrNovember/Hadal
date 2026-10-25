@@ -164,7 +164,7 @@ support.website = เปิดเว็บไซต์
 
 about.version = เวอร์ชัน {0}
 about.account = ID บัญชี: {0}
-about.studio = พัฒนาโดย Cicibyte
+about.studio = พัฒนาโดย CiciByte Technology, Inc.
 
 update.available = มีเวอร์ชัน {0} แล้ว
 update.required = เวอร์ชันนี้ไม่รองรับแล้ว อัปเดตเพื่อเล่นต่อ

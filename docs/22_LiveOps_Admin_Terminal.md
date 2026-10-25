@@ -2,7 +2,7 @@
 
 **Document Version:** 3.1 — Production MMO Hardened  
 **Codename:** **The Overseer Terminal**  
-**Operator:** Cicibyte Corp · Game Master / LiveOps  
+**Operator:** CiciByte Technology, Inc. · Game Master / LiveOps  
 **Public URL (planned):** `https://hadal.cicibyte.com/admin`  
 **Alternate (recommended prod):** `https://overseer.hadal.cicibyte.com` (isolated vhost, IP allowlist)
 
@@ -53,7 +53,7 @@ The SPA **never** holds PostgreSQL credentials, Redis passwords, or gacha RNG se
 
 ```
 ┌─────────────────────────────────────────────────────────────────────────┐
-│  GM Browser (Cicibyte Corp · IP allowlist · VPN optional)               │
+│  GM Browser (CiciByte Technology, Inc. · IP allowlist · VPN optional)               │
 └───────────────────────────────┬─────────────────────────────────────────┘
                                 │ HTTPS
                                 ▼
@@ -320,4 +320,4 @@ Roadmap: [HadalDevelopmentRoadmap.md](./HadalDevelopmentRoadmap.md)
 ---
 
 **Document Version:** 3.1  
-**Owner:** HADAL Platform · Cicibyte Corp LiveOps
+**Owner:** HADAL Platform · CiciByte Technology, Inc. LiveOps

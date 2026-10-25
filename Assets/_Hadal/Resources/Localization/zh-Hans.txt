@@ -164,7 +164,7 @@ support.website = 打开官网
 
 about.version = 版本 {0}
 about.account = 账号ID：{0}
-about.studio = 开发商：Cicibyte
+about.studio = 开发商：CiciByte Technology, Inc.
 
 update.available = 新版本 {0} 已发布。
 update.required = 此版本已停止支持，请更新后继续游戏。

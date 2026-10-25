@@ -164,7 +164,7 @@ support.website = 公式サイトを開く
 
 about.version = バージョン {0}
 about.account = アカウントID：{0}
-about.studio = 開発：Cicibyte
+about.studio = 開発：CiciByte Technology, Inc.
 
 update.available = バージョン{0}が配信中です。
 update.required = このバージョンはサポートが終了しました。プレイを続けるにはアップデートしてください。

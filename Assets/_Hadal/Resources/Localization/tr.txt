@@ -164,7 +164,7 @@ support.website = Web Sitesini Aç
 
 about.version = Sürüm {0}
 about.account = Hesap No: {0}
-about.studio = Geliştirici: Cicibyte
+about.studio = Geliştirici: CiciByte Technology, Inc.
 
 update.available = Yeni sürüm hazır: {0}
 update.required = Bu sürüm artık desteklenmiyor. Oynamaya devam etmek için güncelle.

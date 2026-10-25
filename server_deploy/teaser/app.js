@@ -144,7 +144,7 @@
     'faq.q7': 'Çevrimdışı oynayabilir miyim?',
     'faq.a7': 'Oynamak için bağlantı gerekir, çünkü dünyayı oyun sunucusu yönetir. Ama üssün sensiz de işler: sen yokken inşaatlar biter, üretim sürer.',
     'faq.q8': 'Android APK için neden uyarı veriyor?',
-    'faq.a8': 'Android, uygulama mağazası dışından kurulan her uygulama için uyarı gösterir. HADAL test sürümünü Cicibyte yayınlar; yalnızca bu siteden indir.',
+    'faq.a8': 'Android, uygulama mağazası dışından kurulan her uygulama için uyarı gösterir. HADAL test sürümünü CiciByte Technology, Inc. yayınlar; yalnızca bu siteden indir.',
 
     'ft.tag': 'Uçurumun dibinde, insanlık yeniden başlıyor.',
     'ft.rights': 'Tüm hakları saklıdır.'

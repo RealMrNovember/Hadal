@@ -164,7 +164,7 @@ support.website = فتح الموقع
 
 about.version = الإصدار {0}
 about.account = معرّف الحساب: {0}
-about.studio = تطوير Cicibyte
+about.studio = تطوير CiciByte Technology, Inc.
 
 update.available = الإصدار {0} متاح.
 update.required = هذا الإصدار لم يعد مدعومًا. حدّث اللعبة لمواصلة اللعب.

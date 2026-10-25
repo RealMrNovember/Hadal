@@ -164,7 +164,7 @@ support.website = Открыть сайт
 
 about.version = Версия {0}
 about.account = ID аккаунта: {0}
-about.studio = Разработчик: Cicibyte
+about.studio = Разработчик: CiciByte Technology, Inc.
 
 update.available = Доступна версия {0}.
 update.required = Эта версия больше не поддерживается. Обновите игру, чтобы продолжить.

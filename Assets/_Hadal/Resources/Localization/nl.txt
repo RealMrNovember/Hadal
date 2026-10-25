@@ -164,7 +164,7 @@ support.website = Website Openen
 
 about.version = Versie {0}
 about.account = Account-ID: {0}
-about.studio = Ontwikkeld door Cicibyte
+about.studio = Ontwikkeld door CiciByte Technology, Inc.
 
 update.available = Versie {0} is beschikbaar.
 update.required = Deze versie wordt niet meer ondersteund. Werk bij om verder te spelen.

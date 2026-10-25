@@ -18,7 +18,7 @@
 **Server IP:** `31.40.199.47`  
 **Web Root:** `/www/wwwroot/hadal.cicibyte.com`  
 **Status:** Planned — isolated deployment (does NOT touch other projects)  
-**Operator Access:** Full Cicibyte Corp authority within `/www/wwwroot/hadal.cicibyte.com/` and HADAL Docker stack only  
+**Operator Access:** Full CiciByte Technology, Inc. authority within `/www/wwwroot/hadal.cicibyte.com/` and HADAL Docker stack only  
 **Document Version:** 3.1  
 **Protocol:** Protobuf (gameplay WebSocket) · JSON (patch manifest / auth HTTP only)
 
@@ -235,7 +235,7 @@ server {
     }
 
     # The Overseer Terminal — GM / LiveOps panel (HADAL vhost ONLY)
-    # IP allowlist: restrict to Cicibyte Corp egress in production
+    # IP allowlist: restrict to CiciByte Technology, Inc. egress in production
     location /admin/api/ {
         # Optional: allow 203.0.113.0/24; deny all;
         proxy_pass http://127.0.0.1:19006/;

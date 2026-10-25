@@ -164,7 +164,7 @@ support.website = Mở website
 
 about.version = Phiên bản {0}
 about.account = ID tài khoản: {0}
-about.studio = Phát triển bởi Cicibyte
+about.studio = Phát triển bởi CiciByte Technology, Inc.
 
 update.available = Đã có phiên bản {0}.
 update.required = Phiên bản này không còn được hỗ trợ. Hãy cập nhật để tiếp tục chơi.

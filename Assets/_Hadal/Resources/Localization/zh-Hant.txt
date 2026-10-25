@@ -164,7 +164,7 @@ support.website = 開啟官網
 
 about.version = 版本 {0}
 about.account = 帳號ID：{0}
-about.studio = 開發商：Cicibyte
+about.studio = 開發商：CiciByte Technology, Inc.
 
 update.available = 新版本 {0} 已推出。
 update.required = 此版本已不再支援，請更新後繼續遊戲。

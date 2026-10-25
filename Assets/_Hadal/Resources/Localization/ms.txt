@@ -164,7 +164,7 @@ support.website = Buka Laman Web
 
 about.version = Versi {0}
 about.account = ID Akaun: {0}
-about.studio = Dibangunkan oleh Cicibyte
+about.studio = Dibangunkan oleh CiciByte Technology, Inc.
 
 update.available = Versi {0} kini tersedia.
 update.required = Versi ini tidak lagi disokong. Kemas kini untuk terus bermain.
