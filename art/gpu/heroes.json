@@ -1,0 +1,23 @@
+{
+  "_note": "Placeholder hero roster for portrait generation (docs/10_Heroes.md classes and factions). Names and roles are drafts until the hero design pass; seeds are fixed so a re-run reproduces the same image.",
+  "style": "stylized semi-realistic game character portrait, bust shot, facing camera three-quarter view, deep ocean research base interior background with soft bioluminescent cyan light, cinematic rim light, painterly digital art, high detail face, mobile strategy game hero card art, dark teal and amber palette",
+  "negative": "text, watermark, logo, signature, frame, border, extra fingers, deformed hands, blurry, lowres, jpeg artifacts, nsfw, multiple people, cropped head",
+  "heroes": [
+    { "id": "aelis", "name": "Aelis", "rarity": "Legendary", "class": "Scientist", "faction": "Deepborn", "seed": 1101,
+      "prompt": "former marine biologist woman resurrected by glowing hadalite crystals, half human half bioluminescent energy, crystalline veins glowing cyan on her skin, flowing silver hair floating as if underwater, calm haunting eyes" },
+    { "id": "rourke", "name": "Commander Rourke", "rarity": "Epic", "class": "Commander", "faction": "Atlantic Union", "seed": 1202,
+      "prompt": "grizzled middle-aged male naval commander, short grey beard, scar across eyebrow, dark navy pressure-suit uniform with brass insignia, stern determined expression" },
+    { "id": "mei", "name": "Mei Tanaka", "rarity": "Epic", "class": "Engineer", "faction": "Pacific Order", "seed": 1303,
+      "prompt": "young female engineer with welding goggles pushed up on her forehead, orange hazard work suit with tool harness, grease on cheek, confident grin, short black hair" },
+    { "id": "kade", "name": "Kade", "rarity": "Rare", "class": "Hunter", "faction": "Forgotten Ones", "seed": 1404,
+      "prompt": "lean male deep sea hunter, patched diving armor made of salvaged plates, harpoon over shoulder, weathered tanned face, piercing eyes, rebreather mask hanging at neck" },
+    { "id": "solenne", "name": "Dr. Solenne", "rarity": "Rare", "class": "Medic", "faction": "Atlantic Union", "seed": 1505,
+      "prompt": "kind female field medic in white and teal medical pressure suit, red cross emblem, holding glowing med injector, gentle tired eyes, braided auburn hair" },
+    { "id": "vex", "name": "Vex", "rarity": "Epic", "class": "Pilot", "faction": "Pacific Order", "seed": 1606,
+      "prompt": "cocky young submarine pilot, androgynous, sleek black flight suit with cyan piping, headset with glowing visor display, undercut hair, smirk" },
+    { "id": "oracle", "name": "The Drowned Oracle", "rarity": "Legendary", "class": "Scientist", "faction": "Abyss Cult", "seed": 1707,
+      "prompt": "mysterious hooded cult prophet, face half hidden by a barnacle encrusted mask, eyes glowing deep violet, robes woven with kelp and fiber optic threads, eerie presence" },
+    { "id": "brann", "name": "Brann", "rarity": "Rare", "class": "Engineer", "faction": "Deepborn", "seed": 1808,
+      "prompt": "huge bearded male engineer born in the deep colonies, pale skin, cybernetic arm with hydraulic pistons, thick rubber apron, friendly giant smile" }
+  ]
+}
