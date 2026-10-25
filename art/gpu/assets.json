@@ -1,0 +1,92 @@
+{
+  "_note": "First TRELLIS asset set (docs/09 enemies, submarines, seabed decor). Static meshes: creatures move procedurally in Unity (Ambient* components). Seeds are fixed so a re-run reproduces the concept; change a seed to get a different design. \"yaw\" turns a moving model so its head leads (read from props.py's top-down render; Blender -> Unity is (x, y, z) -> (-x, z, -y)). Crystal clusters and cargo stacks are procedural (art/blender/environment.py): their dense surfaces need 28-45k voxels, beyond what TRELLIS's mesh decoder fits in 8 GB.",
+  "style": "stylized game asset, single object, centered, full view, three-quarter front view, plain light grey background, clean silhouette, hand-painted flat colors, soft studio light, deep sea sci-fi",
+  "negative": "multiple objects, cropped, text, watermark, busy background, scenery, water surface, bubbles, floor, shadow on floor, blurry, photo",
+  "assets": [
+    {
+      "id": "creature_abyss_crawler",
+      "kind": "creature",
+      "motion": "crawl",
+      "height": 0.9,
+      "seed": 2101,
+      "prompt": "giant deep sea isopod crustacean creature, armored segmented shell, many small legs, pale bluish grey with glowing cyan eyes",
+      "yaw": 0
+    },
+    {
+      "id": "creature_siren_jelly",
+      "kind": "creature",
+      "motion": "pulse_swim",
+      "height": 1.6,
+      "seed": 2202,
+      "prompt": "bioluminescent electric jellyfish, translucent violet bell, long glowing cyan tentacles with sparks"
+    },
+    {
+      "id": "creature_anglerfish",
+      "kind": "creature",
+      "motion": "swim",
+      "height": 1.2,
+      "seed": 2303,
+      "prompt": "deep sea anglerfish, dark teal body, huge jaw with needle teeth, glowing amber lure on a stalk, side view",
+      "yaw": 0
+    },
+    {
+      "id": "creature_iron_leviathan",
+      "kind": "creature",
+      "motion": "patrol",
+      "height": 4.0,
+      "seed": 2404,
+      "prompt": "mechanical sea serpent leviathan, riveted iron armor plates, glowing red eye, long segmented body, side view",
+      "yaw": 0
+    },
+    {
+      "id": "creature_forgotten_sentinel",
+      "kind": "decor",
+      "motion": "none",
+      "height": 3.0,
+      "seed": 2505,
+      "prompt": "ancient biomechanical guardian statue, kneeling humanoid of coral encrusted bronze and stone, faint glowing runes"
+    },
+    {
+      "id": "sub_scout",
+      "kind": "submarine",
+      "motion": "patrol",
+      "height": 1.4,
+      "seed": 2617,
+      "prompt": "one single small two-seat scout submarine, rounded hull, hazard orange and dark grey, glass bubble cockpit, two side propeller pods, headlights, the only object in the image",
+      "yaw": -90
+    },
+    {
+      "id": "sub_hauler",
+      "kind": "submarine",
+      "motion": "patrol",
+      "height": 2.2,
+      "seed": 2707,
+      "prompt": "heavy cargo submarine, boxy industrial hull, yellow and gunmetal, cargo clamps underneath, small cockpit window",
+      "yaw": 180
+    },
+    {
+      "id": "decor_shipwreck_bow",
+      "kind": "decor",
+      "motion": "none",
+      "height": 3.0,
+      "seed": 2919,
+      "prompt": "small broken bow section of an old sunken steel ship, rusted hull, barnacles, torn edge, entire object visible with empty space around it"
+    },
+    {
+      "id": "decor_ruin_pillar",
+      "kind": "decor",
+      "motion": "none",
+      "height": 3.2,
+      "seed": 3010,
+      "prompt": "broken ancient carved stone pillar from a sunken civilization, spiral glyphs, cracked top, seaweed strands"
+    },
+    {
+      "id": "decor_tube_worms",
+      "kind": "decor",
+      "motion": "sway",
+      "height": 1.6,
+      "seed": 3111,
+      "prompt": "cluster of giant hydrothermal tube worms, white tubes with red feathery plumes, on a dark rock base"
+    }
+  ]
+}

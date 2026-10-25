@@ -1,0 +1,5 @@
+# Background removal (rembg + BiRefNet on CPU) on top of the SDXL image. One image per container:
+# onnxruntime's memory arena keeps growing across images and a batch exceeds a 12 GB cap.
+FROM hadal-gpu
+RUN pip install --no-cache-dir rembg==2.0.66 onnxruntime==1.21.1
+ENV U2NET_HOME=/work/models/u2net

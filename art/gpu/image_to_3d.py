@@ -262,17 +262,44 @@ def run_trellis(args, image, stats):
         img = pipe.preprocess_image(image)
         cond = on_gpu(["image_cond_model"], pipe.get_cond, [img])
         stage_peaks["dinov2"] = peak_gb()
-        torch.manual_seed(args.seed)
         ss = {"steps": args.steps} if args.steps else {}
-        coords = on_gpu(["sparse_structure_flow_model", "sparse_structure_decoder"],
-                        pipe.sample_sparse_structure, cond, 1, ss)
-        stage_peaks["sparse_structure"] = peak_gb()
-        slat = on_gpu(["slat_flow_model"], pipe.sample_slat, cond, coords, ss)
-        stage_peaks["slat_flow"] = peak_gb()
-        del cond, coords
-        torch.cuda.empty_cache()
+        # The mesh decoder upsamples the sparse structure, so its memory follows the surface
+        # complexity; dense shapes (crystal clusters, stacked crates) can exceed 8 GB even at modest
+        # voxel counts. The structure is sampled, so on an OOM we resample with the next seed and a
+        # 15% lower voxel cap, keeping the leanest candidate per round.
+        max_voxels = args.max_voxels
+        seed = args.seed
         out = {}
-        out["mesh"] = on_gpu(["slat_decoder_mesh"], pipe.models["slat_decoder_mesh"], slat)
+        for attempt in range(args.voxel_retries + 1):
+            coords = None
+            for _ in range(args.voxel_retries + 1):
+                torch.manual_seed(seed)
+                seed += 1
+                candidate = on_gpu(["sparse_structure_flow_model", "sparse_structure_decoder"],
+                                   pipe.sample_sparse_structure, cond, 1, ss)
+                if coords is None or candidate.shape[0] < coords.shape[0]:
+                    coords = candidate
+                if coords.shape[0] <= max_voxels:
+                    break
+                print(f"[image_to_3d] {coords.shape[0]} voxels > {max_voxels}, resampling", flush=True)
+            stage_peaks["sparse_structure"] = peak_gb()
+            slat = on_gpu(["slat_flow_model"], pipe.sample_slat, cond, coords, ss)
+            stage_peaks["slat_flow"] = peak_gb()
+            torch.cuda.empty_cache()
+            try:
+                out["mesh"] = on_gpu(["slat_decoder_mesh"], pipe.models["slat_decoder_mesh"], slat)
+                break
+            except torch.OutOfMemoryError:
+                if attempt == args.voxel_retries:
+                    raise
+                max_voxels = int(coords.shape[0] * 0.85)
+                print(f"[image_to_3d] mesh decode OOM at {coords.shape[0]} voxels, retrying with <= {max_voxels}", flush=True)
+                del slat
+                gc.collect()
+                torch.cuda.empty_cache()
+        stats["structure_attempts"] = attempt + 1
+        stats["seed_used"] = seed - 1
+        del cond, coords
         stage_peaks["decode_mesh"] = peak_gb()
         out["gaussian"] = on_gpu(["slat_decoder_gs"], pipe.models["slat_decoder_gs"], slat)
         stage_peaks["decode_gs"] = peak_gb()
@@ -323,6 +350,9 @@ def main():
     p.add_argument("--paint-res", type=int, default=1024, help="texture/render resolution")
     p.add_argument("--paint-faces", type=int, default=40000, help="faces kept before painting")
     p.add_argument("--trellis-simplify", type=float, default=0.95)
+    p.add_argument("--max-voxels", type=int, default=24000,
+                   help="TRELLIS: resample the sparse structure above this many voxels (mesh decode VRAM)")
+    p.add_argument("--voxel-retries", type=int, default=3)
     p.add_argument("--lowpoly", type=int, default=3000, help="face budget for the flat-palette low-poly variant")
     p.add_argument("--palette", type=int, default=6)
     args = p.parse_args()

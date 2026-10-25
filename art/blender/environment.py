@@ -5,7 +5,7 @@ import random
 import bmesh
 from mathutils import Matrix, Vector, noise
 
-from hadal_kit import _finish, _from_bmesh, anim, cyl, join, pipe, sphere
+from hadal_kit import _finish, _from_bmesh, anim, box, cyl, join, pipe, sphere
 
 
 def seabed_tile(size=20.0, cuts=40, amplitude=0.35, seed=7):
@@ -81,6 +81,36 @@ def vent(name):
     return join([stack, mouth])
 
 
+def crystal_cluster(name, seed=8):
+    """Hadalite: faceted cyan / violet spikes fanning out of a dark rock."""
+    rng = random.Random(seed)
+    parts = [rock(f"{name}_rock", 0.6, seed=seed, squash=0.45)]
+    for i in range(9):
+        a = rng.uniform(0, 2 * math.pi)
+        tilt = rng.uniform(0.15, 0.6)
+        length = rng.uniform(0.7, 1.5) * (1.2 if i < 3 else 1.0)
+        base = Vector((math.cos(a) * rng.uniform(0, 0.35), math.sin(a) * rng.uniform(0, 0.35), 0.15))
+        tip = base + Vector((math.cos(a) * tilt, math.sin(a) * tilt, 1.0)).normalized() * length
+        spike = cyl(f"{name}_c{i}", rng.uniform(0.09, 0.17), (tip - base).length, (0, 0, 0),
+                    "GlowCyan" if i % 3 else "GlowViolet", verts=6, bevel=0.0, r_top=0.0)
+        rot = (tip - base).to_track_quat("Z", "Y").to_matrix().to_4x4()
+        spike.data.transform(Matrix.Translation(base) @ rot)
+        parts.append(spike)
+    return join(parts)
+
+
+def cargo_stack(name):
+    """Three shipping containers on a pallet: two below, one rotated on top."""
+    parts = [box(f"{name}_pallet", (2.6, 1.3, 0.12), (0, 0, 0), "HullDark", 0.02)]
+    for i, (x, colour) in enumerate(((-0.62, "PaintTeal"), (0.62, "Hazard"))):
+        parts.append(box(f"{name}_box{i}", (1.15, 1.15, 0.85), (x, 0, 0.12), colour, 0.03))
+        parts += [box(f"{name}_rib{i}_{k}", (0.04, 1.18, 0.8), (x - 0.45 + k * 0.3, 0, 0.14), "HullDark", 0.0) for k in range(4)]
+    top = box(f"{name}_top", (1.5, 0.95, 0.75), (0, 0, 0.97), "PaintTeal", 0.03)
+    parts.append(top)
+    parts += [box(f"{name}_strap{k}", (0.05, 1.0, 0.8), (-0.4 + k * 0.8, 0, 0.96), "Rubber", 0.0) for k in range(2)]
+    return join(parts)
+
+
 # id -> (builder, preview focus, preview distance)
 PROPS = {
     "seabed_tile": (lambda: ([seabed_tile()], []), (0, 0, 0), 22.0),
@@ -92,6 +122,8 @@ PROPS = {
                      (0, 0, 2.0), 9.0),
     "coral_branch": (lambda: ([coral("coral_branch", seed=5)], []), (0, 0, 0.8), 4.5),
     "thermal_vent": (lambda: ([vent("thermal_vent")], []), (0, 0, 0.8), 5.0),
+    "crystal_cluster": (lambda: ([crystal_cluster("crystal_cluster")], []), (0, 0, 0.8), 4.5),
+    "cargo_stack": (lambda: ([cargo_stack("cargo_stack")], []), (0, 0, 0.8), 5.5),
 }
 
 
