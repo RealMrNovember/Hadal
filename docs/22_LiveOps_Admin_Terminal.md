@@ -271,6 +271,20 @@ the old rates first, then switches. The manifest carries `catalogVersion`; clien
 notice on the title screen and stops reconnecting. Not built yet: mail, telemetry charts, IP allowlist,
 gacha (§4.2–4.4).
 
+**App updates (OTA).** The manifest carries `latestClientVersion`, `minClientVersion` and `updateUrl`
+(Canlı Operasyon page, falling back to the server's `Version` config). Older builds offer the update,
+builds below the minimum must update. The client downloads the APK itself (resuming after a stall)
+and opens the Android installer directly. Releasing a build:
+
+1. `HADAL_VERSION=1.2.0 unity.sh android` (sets `bundleVersion` and `versionCode`; same signing key).
+2. Upload the APK to kale as `/www/wwwroot/hadal.cicibyte.com/download/hadal.apk`.
+3. Only then set "En yeni sürüm" to 1.2.0. Announcing a version the site does not serve yet makes
+   players download the old build and keep seeing the prompt.
+
+On first use Android asks the player to allow installs from HADAL, and Play Protect may ask to scan
+the app; both go away with the store releases. Builds 1.1.0 and 1.1.1 cannot update themselves (their
+installer hand-off was broken); they need one manual install of 1.1.2 or newer.
+
 ## 7. Deployment & URLs
 
 | Environment | UI | API |

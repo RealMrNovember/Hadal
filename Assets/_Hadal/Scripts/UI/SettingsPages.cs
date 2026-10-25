@@ -56,7 +56,7 @@ namespace Hadal.UI
                 for (var j = 0; j < 2 && i + j < tiles.Length; j++)
                 {
                     var tile = tiles[i + j];
-                    var label = tile.Key == "settings.language" ? $"{Loc.T(tile.Key)}\n<size=28>{Loc.NameOf(Loc.Current)}</size>" : Loc.T(tile.Key);
+                    var label = tile.Key == "settings.language" ? $"{Loc.T(tile.Key)}\n<size=28>{Loc.DisplayName(Loc.Current)}</size>" : Loc.T(tile.Key);
                     var button = UiKit.Button(tile.Name, row, label, () => Show(tile.Target()), UiKit.Field, 38);
                     button.GetComponentInChildren<Text>().color = tile.Key == "settings.gift" ? UiKit.Accent : UiKit.Text;
                     ((RectTransform)button.transform).Place(j * 0.5f, 0, j * 0.5f + 0.5f, 1, 8);
@@ -79,7 +79,7 @@ namespace Hadal.UI
                 var text = button.GetComponentInChildren<Text>();
                 text.color = selected ? UiKit.Abyss : UiKit.Text;
                 text.font = UiKit.FontFor(code);
-                text.text = code == "ar" ? ArabicText.Shape(name) : name;
+                text.text = Loc.DisplayName(code);
             }
 
             Back(column, () => Show(_home));

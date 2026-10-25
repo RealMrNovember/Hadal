@@ -72,6 +72,9 @@ namespace Hadal.UI
 
         public static string NameOf(string code) => Array.Find(Languages, l => l.Code == code).Name ?? code;
 
+        /// <summary><see cref="NameOf"/> ready for UGUI (Arabic joined and laid out right to left).</summary>
+        public static string DisplayName(string code) => code == "ar" ? ArabicText.Shape(NameOf(code)) : NameOf(code);
+
         public static bool Has(string key)
         {
             _ = Current;

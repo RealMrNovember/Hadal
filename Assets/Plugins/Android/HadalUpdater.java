@@ -36,8 +36,12 @@ public final class HadalUpdater {
         }
 
         Uri uri = Uri.parse("content://" + activity.getPackageName() + ApkProvider.AUTHORITY_SUFFIX + "/" + new File(path).getName());
-        Intent intent = new Intent(Intent.ACTION_VIEW);
+        // INSTALL_PACKAGE goes straight to the system installer; VIEW would offer every app that
+        // opens APKs (file managers, third-party stores) in a chooser first.
+        @SuppressWarnings("deprecation")
+        Intent intent = new Intent(Intent.ACTION_INSTALL_PACKAGE);
         intent.setDataAndType(uri, ApkProvider.MIME);
+        intent.putExtra(Intent.EXTRA_NOT_UNKNOWN_SOURCE, false);
         intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_ACTIVITY_NEW_TASK);
         activity.startActivity(intent);
         return true;
