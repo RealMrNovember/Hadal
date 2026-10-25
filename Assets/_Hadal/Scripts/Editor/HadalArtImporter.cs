@@ -13,12 +13,14 @@ namespace Hadal.EditorTools
     /// <item>Buildings and props (generate.py): HAD_* materials map to the palette, ANIM_* parts get an <see cref="ArtAnimator"/>.</item>
     /// <item>Characters (characters.py): generic rig with named clips (locomotion and idles loop),
     /// URP Lit material on the point-filtered palette atlas.</item>
+    /// <item>Props (props.py, TRELLIS): static mesh, URP Lit material on its baked albedo texture.</item>
     /// </list>
     /// </summary>
     public sealed class HadalArtImporter : AssetPostprocessor
     {
         private const string ArtRoot = "Assets/_Hadal/Art/";
         public const string CharactersRoot = ArtRoot + "Characters/";
+        public const string PropsRoot = ArtRoot + "Props/";
 
         /// <summary>Clips that cycle; everything else (Wave, Death, HitReact...) plays once.</summary>
         public static readonly string[] LoopingClips =
@@ -28,7 +30,8 @@ namespace Hadal.EditorTools
 
         private static bool IsFbx(string path) => path.EndsWith(".fbx", StringComparison.OrdinalIgnoreCase);
         private static bool IsCharacter(string path) => path.StartsWith(CharactersRoot) && IsFbx(path);
-        private static bool IsHadalArt(string path) => path.StartsWith(ArtRoot) && IsFbx(path) && !IsCharacter(path);
+        private static bool IsProp(string path) => path.StartsWith(PropsRoot) && IsFbx(path);
+        private static bool IsHadalArt(string path) => path.StartsWith(ArtRoot) && IsFbx(path) && !IsCharacter(path) && !IsProp(path);
 
         /// <summary>"crew_engineer|Walk" (Blender take name) -> "Walk".</summary>
         public static string ClipName(string take)
@@ -42,6 +45,12 @@ namespace Hadal.EditorTools
             if (IsCharacter(assetPath))
             {
                 PreprocessCharacter((ModelImporter)assetImporter);
+                return;
+            }
+
+            if (IsProp(assetPath))
+            {
+                PreprocessProp((ModelImporter)assetImporter);
                 return;
             }
 
@@ -90,6 +99,22 @@ namespace Hadal.EditorTools
             importer.optimizeGameObjects = true;
         }
 
+        private static void PreprocessProp(ModelImporter importer)
+        {
+            importer.globalScale = 1f;
+            importer.useFileScale = true;
+            importer.importCameras = false;
+            importer.importLights = false;
+            importer.isReadable = false;
+            importer.meshCompression = ModelImporterMeshCompression.Medium;
+            importer.importNormals = ModelImporterNormals.Import;
+            importer.importAnimation = false;
+            importer.animationType = ModelImporterAnimationType.None;
+            importer.materialImportMode = ModelImporterMaterialImportMode.ImportStandard;
+            importer.materialLocation = ModelImporterMaterialLocation.InPrefab;
+            importer.materialSearch = ModelImporterMaterialSearch.Local;
+        }
+
         private void OnPreprocessAnimation()
         {
             if (!IsCharacter(assetPath))
@@ -113,6 +138,16 @@ namespace Hadal.EditorTools
 
         private void OnPreprocessTexture()
         {
+            if (assetPath.StartsWith(PropsRoot) && assetPath.EndsWith("_albedo.png", StringComparison.OrdinalIgnoreCase))
+            {
+                // Baked TRELLIS colour: smooth gradients, so normal filtering and mips (ASTC on Android).
+                var prop = (TextureImporter)assetImporter;
+                prop.maxTextureSize = 512;
+                prop.mipmapEnabled = true;
+                prop.textureCompression = TextureImporterCompression.Compressed;
+                return;
+            }
+
             if (!assetPath.StartsWith(CharactersRoot) || !assetPath.EndsWith("_atlas.png", StringComparison.OrdinalIgnoreCase))
                 return;
 
@@ -126,7 +161,7 @@ namespace Hadal.EditorTools
 
         private void OnPostprocessMaterial(Material material)
         {
-            if (!IsCharacter(assetPath))
+            if (!IsCharacter(assetPath) && !IsProp(assetPath))
                 return;
 
             var texture = material.mainTexture;

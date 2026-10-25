@@ -1,3 +1,4 @@
+using System;
 using System.IO;
 using System.Linq;
 using HADAL.Shared.Catalog;
@@ -103,6 +104,48 @@ namespace Hadal.Tests.EditMode
             var states = controller.layers[0].stateMachine.states.Select(s => s.state.name).ToArray();
             CollectionAssert.Contains(states, "Walk");
             Assert.AreEqual("Idle", controller.layers[0].stateMachine.defaultState.name);
+        }
+        [Serializable]
+        private sealed class Roster
+        {
+            public RosterAsset[] assets = Array.Empty<RosterAsset>();
+        }
+
+        [Serializable]
+        private sealed class RosterAsset
+        {
+            public string id = string.Empty;
+            public string motion = string.Empty;
+        }
+
+        [Test]
+        public void Every_trellis_prop_imports_with_its_baked_texture()
+        {
+            var roster = JsonUtility.FromJson<Roster>(File.ReadAllText(Path.Combine(Directory.GetCurrentDirectory(), "art/gpu/assets.json")));
+            Assert.IsNotEmpty(roster.assets);
+            foreach (var asset in roster.assets)
+            {
+                var path = $"Assets/_Hadal/Art/Props/{asset.id}.fbx";
+                var model = AssetDatabase.LoadAssetAtPath<GameObject>(path);
+                Assert.IsNotNull(model, $"missing {path} — run art/gpu/batch_3d.sh then art/blender/props.py");
+                var material = model.GetComponentInChildren<Renderer>(true).sharedMaterial;
+                Assert.AreEqual("Universal Render Pipeline/Lit", material.shader.name, asset.id);
+                Assert.IsNotNull(material.GetTexture("_BaseMap"), $"{asset.id}: albedo texture not found next to the FBX");
+                var triangles = model.GetComponentInChildren<MeshFilter>(true).sharedMesh.triangles.Length / 3;
+                Assert.LessOrEqual(triangles, 6600, $"{asset.id} over the mobile budget");
+            }
+        }
+
+        [Test]
+        public void Bootstrap_scene_has_moving_wildlife()
+        {
+            var scene = UnityEditor.SceneManagement.EditorSceneManager.OpenScene("Assets/_Hadal/Scenes/Bootstrap.unity");
+            var movers = UnityEngine.Object.FindObjectsByType<AmbientMotion>(FindObjectsSortMode.None);
+            Assert.GreaterOrEqual(movers.Length, 8, "wildlife and submarines missing from the scene");
+            Assert.IsTrue(movers.Any(m => m.MotionMode == AmbientMotion.Mode.PulseSwim), "no jellyfish");
+            Assert.IsTrue(movers.Any(m => m.MotionMode == AmbientMotion.Mode.Patrol), "no patrols");
+            foreach (var mover in movers.Where(m => m.MotionMode != AmbientMotion.Mode.Sway))
+                Assert.GreaterOrEqual(mover.Radius, 7f, $"{mover.name} circles through the base");
         }
     }
 }

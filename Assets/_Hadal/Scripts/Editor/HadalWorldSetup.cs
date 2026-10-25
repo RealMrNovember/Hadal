@@ -30,6 +30,7 @@ namespace Hadal.EditorTools
             CreateVolume(world.transform);
             CreateSeabed(world.transform);
             ScatterProps(world.transform);
+            PlaceTrellisProps(world.transform);
 
             var buildingsGo = new GameObject("Buildings");
             buildingsGo.transform.SetParent(world.transform, false);
@@ -61,7 +62,7 @@ namespace Hadal.EditorTools
             RenderSettings.fog = true;
             RenderSettings.fogMode = FogMode.ExponentialSquared;
             RenderSettings.fogColor = AbyssColor;
-            RenderSettings.fogDensity = 0.026f;
+            RenderSettings.fogDensity = 0.013f;
             RenderSettings.ambientMode = AmbientMode.Trilight;
             RenderSettings.ambientSkyColor = new Color(0.045f, 0.11f, 0.16f);
             RenderSettings.ambientEquatorColor = new Color(0.02f, 0.05f, 0.07f);
@@ -93,9 +94,11 @@ namespace Hadal.EditorTools
             var cam = camGo.AddComponent<Camera>();
             cam.clearFlags = CameraClearFlags.SolidColor;
             cam.backgroundColor = AbyssColor;
-            cam.fieldOfView = 38f;
+            // Portrait phones: a 38° vertical FOV left only ~18° horizontally (11 m of seabed); 50° from
+            // 58 m shows the inner rings and the wildlife around them.
+            cam.fieldOfView = 50f;
             cam.nearClipPlane = 0.5f;
-            cam.farClipPlane = 160f;
+            cam.farClipPlane = 200f;
             camGo.AddComponent<AudioListener>();
             var data = camGo.AddComponent<UniversalAdditionalCameraData>();
             data.renderPostProcessing = true;
@@ -104,7 +107,7 @@ namespace Hadal.EditorTools
             var so = new SerializedObject(rig);
             so.FindProperty("_camera").objectReferenceValue = cam;
             so.ApplyModifiedPropertiesWithoutUndo();
-            rig.Configure(cam, 34f);
+            rig.Configure(cam, 58f);
         }
 
         private static void CreateVolume(Transform parent)
@@ -142,8 +145,8 @@ namespace Hadal.EditorTools
 
             // Deterministic so re-running setup does not churn the scene file.
             var rng = new System.Random(42);
-            string[] kinds = { "rock_large", "rock_medium", "rock_small", "kelp_cluster", "coral_branch", "thermal_vent" };
-            int[] counts = { 7, 10, 14, 16, 9, 3 };
+            string[] kinds = { "rock_large", "rock_medium", "rock_small", "kelp_cluster", "coral_branch", "thermal_vent", "crystal_cluster", "cargo_stack" };
+            int[] counts = { 7, 10, 14, 16, 9, 3, 5, 3 };
 
             for (var k = 0; k < kinds.Length; k++)
             {
@@ -160,6 +163,102 @@ namespace Hadal.EditorTools
                     var scale = Mathf.Lerp(0.8f, 1.35f, (float)rng.NextDouble());
                     Place(prefab, root.transform, position, (float)rng.NextDouble() * 360f, scale);
                 }
+            }
+        }
+
+        [System.Serializable]
+        private sealed class Roster
+        {
+            public RosterAsset[] assets = System.Array.Empty<RosterAsset>();
+        }
+
+        [System.Serializable]
+        private sealed class RosterAsset
+        {
+            public string id = string.Empty;
+            public string kind = string.Empty;
+            public string motion = "none";
+            public float height = 1f;
+            public float yaw;
+        }
+
+        /// <summary>
+        /// TRELLIS props (art/gpu/assets.json → art/blender/props.py): decor scattered beyond the
+        /// built rings, wildlife and submarines circling the base on deterministic paths.
+        /// </summary>
+        private static void PlaceTrellisProps(Transform parent)
+        {
+            var rosterPath = System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory(), "art/gpu/assets.json");
+            if (!System.IO.File.Exists(rosterPath))
+                return;
+
+            var roster = JsonUtility.FromJson<Roster>(System.IO.File.ReadAllText(rosterPath));
+            var root = new GameObject("Wildlife");
+            root.transform.SetParent(parent, false);
+
+            foreach (var asset in roster.assets)
+            {
+                var prefab = AssetDatabase.LoadAssetAtPath<GameObject>(HadalArtImporter.PropsRoot + asset.id + ".fbx");
+                if (prefab == null)
+                    continue;
+
+                var rng = new System.Random(StableSeed(asset.id));
+                float Range(float a, float b) => Mathf.Lerp(a, b, (float)rng.NextDouble());
+                var count = asset.motion switch
+                {
+                    "pulse_swim" => 4,
+                    "swim" or "crawl" => 2,
+                    "patrol" => 1,
+                    _ => asset.id switch { "decor_hadalite_crystals" => 4, "decor_ruin_pillar" => 3, "decor_tube_worms" => 3, "decor_shipwreck_bow" or "creature_forgotten_sentinel" => 1, _ => 2 }
+                };
+
+                for (var i = 0; i < count; i++)
+                {
+                    var go = (GameObject)PrefabUtility.InstantiatePrefab(prefab);
+                    go.transform.SetParent(root.transform, false);
+                    go.name = $"{asset.id}_{i}";
+                    var angle = Range(0f, Mathf.PI * 2f);
+
+                    if (asset.motion is "none" or "sway")
+                    {
+                        // Ring 4 (22 m) holds the outermost buildings at start; decor stays beyond it.
+                        var radius = Range(25f, 44f);
+                        go.transform.localPosition = new Vector3(Mathf.Cos(angle), 0f, Mathf.Sin(angle)) * radius;
+                        go.transform.localRotation = Quaternion.Euler(0f, Range(0f, 360f), 0f);
+                        go.transform.localScale = Vector3.one * Range(0.85f, 1.2f);
+                        go.isStatic = asset.motion == "none";
+                        if (asset.motion == "sway")
+                            go.AddComponent<AmbientMotion>().Configure(AmbientMotion.Mode.Sway, Vector3.zero, 1f, 0f, 0f, false, 0f, Range(0f, 1f));
+                        continue;
+                    }
+
+                    var (mode, radiusMin, radiusMax, heightMin, heightMax, speed) = asset.motion switch
+                    {
+                        // Close enough to the base to be seen from the default camera.
+                        "pulse_swim" => (AmbientMotion.Mode.PulseSwim, 8f, 20f, 5f, 9f, 0.3f),
+                        "crawl" => (AmbientMotion.Mode.Crawl, 24f, 30f, 0f, 0f, 0.4f),
+                        "patrol" when asset.height > 3.5f => (AmbientMotion.Mode.Patrol, 40f, 46f, 12f, 14f, 4f),
+                        "patrol" => (AmbientMotion.Mode.Patrol, 18f, 26f, 6f, 9f, 3f),
+                        _ => (AmbientMotion.Mode.Swim, 12f, 24f, 4f, 7f, 1.6f)
+                    };
+
+                    var motion = go.AddComponent<AmbientMotion>();
+                    motion.Configure(mode, Vector3.zero, Range(radiusMin, radiusMax), Range(heightMin, heightMax), speed * Range(0.8f, 1.2f),
+                        rng.Next(2) == 0, asset.yaw, Range(0f, 1f));
+                    motion.Step(0f, 0f); // start on its path, not at the origin
+                }
+            }
+        }
+
+        /// <summary>string.GetHashCode is not stable across runtimes; the scene layout must be.</summary>
+        private static int StableSeed(string text)
+        {
+            unchecked
+            {
+                var hash = 17;
+                foreach (var c in text)
+                    hash = hash * 31 + c;
+                return hash & 0x7fffffff;
             }
         }
 

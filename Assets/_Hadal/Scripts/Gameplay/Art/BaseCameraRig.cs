@@ -11,9 +11,9 @@ namespace Hadal.Gameplay.Art
         [SerializeField] private Camera _camera;
         [SerializeField] private float _pitch = 52f;
         [SerializeField] private float _yaw = 35f;
-        [SerializeField] private float _distance = 34f;
+        [SerializeField] private float _distance = 58f;
         [SerializeField] private float _minDistance = 14f;
-        [SerializeField] private float _maxDistance = 70f;
+        [SerializeField] private float _maxDistance = 95f;
         [SerializeField] private float _panLimit = 40f;
 
         private Vector3 _lastPointer;

@@ -37,6 +37,11 @@ ModelImporter:
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
+      name: HAD_GlowViolet
+    second: {fileID: 2100000, guid: 4a70919ccbbe352b89f8a9b3866376e4, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
       name: HAD_Hazard
     second: {fileID: 2100000, guid: 30ebac0886563e15bb3f7b7360e5a55b, type: 2}
   - first:
@@ -54,6 +59,11 @@ ModelImporter:
       assembly: UnityEngine.CoreModule
       name: HAD_Kelp
     second: {fileID: 2100000, guid: 5d9d8a4a4fb28de24b65f9e5ce30c785, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: HAD_PaintTeal
+    second: {fileID: 2100000, guid: 305343805affe991e9407ba0c8f7ef17, type: 2}
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule

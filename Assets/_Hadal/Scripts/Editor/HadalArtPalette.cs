@@ -52,6 +52,8 @@ namespace Hadal.EditorTools
             ["Rock"] = new Entry(0.060f, 0.070f, 0.075f, 0f, 0.90f),
             ["Kelp"] = new Entry(0.030f, 0.120f, 0.060f, 0f, 0.60f, 0.01f, 0.05f, 0.02f, 0.4f),
             ["Coral"] = new Entry(0.450f, 0.120f, 0.180f, 0f, 0.70f, 0.30f, 0.05f, 0.12f, 0.8f),
+            ["GlowViolet"] = new Entry(0.200f, 0.050f, 0.400f, 0f, 0.20f, 0.55f, 0.20f, 1.00f, 5f),
+            ["PaintTeal"] = new Entry(0.040f, 0.300f, 0.300f, 0.30f, 0.55f),
         };
 
         public static IEnumerable<string> Names => Entries.Keys;
