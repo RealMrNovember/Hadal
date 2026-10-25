@@ -153,9 +153,21 @@ Durum işaretleri: ✅ tamam · 🟡 devam ediyor · ⬜ başlanmadı
 
 ---
 
-## Phase 5 — Sunum katmanı ⬜ *(Phase 3'ten itibaren paralel)*
+## Phase 5 — Sunum katmanı 🟡 *(Phase 3'ten itibaren paralel)*
 
 **Hedef:** `docs/13` ve `docs/14` görsel/işitsel kimliği.
+
+**Yapılanlar (GPU gerektirmeyen ilk dilim):**
+
+- [x] Prosedürel sanat hattı (`art/`): sunucuda headless Blender ile 13 bina ve 7 deniz tabanı objesi üretiliyor; FBX dosyaları ve önizlemeler bu hattan çıkıyor.
+- [x] Unity importer: `HAD_*` malzemeleri URP paletine eşleniyor, `ANIM_*` parçalarına ambiyans hareketi (dönme, nabız, salınım) ekleniyor.
+- [x] URP pipeline etkin. Abyss post-processing: bloom, ACES, vinyet.
+- [x] Bootstrap sahnesinde sis, deniz tabanı, dekor ve 3/4 kamera (sürükleyerek kaydırma, iki parmakla yakınlaştırma) kuruldu.
+- [x] Binalar sunucu durumundan prefab olarak çiziliyor. Yeni üsler çekirdek reaktörle başlıyor.
+- [x] IL2CPP uyumlu wire koleksiyonları (yalnızca dizi). Poco X7 Pro üzerinde uçtan uca doğrulandı.
+- [ ] Mürettebat ve kahraman karakterleri: CC0 paketler ya da bulut GPU ile AI destekli 3D üretim.
+- [ ] Bina yerleştirme arayüzü ve dokunmatik inşa akışı.
+- [ ] Kostik ışık, partiküller (kabarcık, plankton) ve ses.
 
 - Oyun durum makinesi: patch → login → handshake → loading → ana menü → üs.
 - "Quiet Luxury" UI tasarım sistemi, HUD, menüler, bildirimler.
