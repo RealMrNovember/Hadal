@@ -76,7 +76,10 @@ namespace Hadal.UI
             {
                 var selected = code == Loc.Current;
                 var button = UiKit.Button(code, list, name, () => ChooseLanguage(code), selected ? UiKit.Accent : UiKit.Field, 38).Row(100);
-                button.GetComponentInChildren<Text>().color = selected ? UiKit.Abyss : UiKit.Text;
+                var text = button.GetComponentInChildren<Text>();
+                text.color = selected ? UiKit.Abyss : UiKit.Text;
+                text.font = UiKit.FontFor(code);
+                text.text = code == "ar" ? ArabicText.Shape(name) : name;
             }
 
             Back(column, () => Show(_home));

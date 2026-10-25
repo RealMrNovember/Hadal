@@ -20,9 +20,27 @@ namespace Hadal.UI
         public static readonly Color Muted = new(0.55f, 0.68f, 0.74f, 1f);
         public static readonly Color Danger = new(1f, 0.45f, 0.42f, 1f);
 
-        private static Font _font;
+        private static Font _builtin;
+        private static Font _world;
 
-        public static Font Font => _font != null ? _font : _font = Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        /// <summary>The font for the current language (switching language restarts the scene).</summary>
+        public static Font Font => FontFor(Loc.Current);
+
+        /// <summary>
+        /// The built-in font draws Latin, Cyrillic and CJK through the phone's fonts but not Arabic
+        /// or Thai on Android, so those two use a bundled Noto merge (Latin + Arabic + Thai).
+        /// </summary>
+        public static Font FontFor(string language)
+        {
+            if (language is "ar" or "th")
+            {
+                _world = _world != null ? _world : Resources.Load<Font>("Fonts/HadalSansWorld-Regular");
+                if (_world != null)
+                    return _world;
+            }
+
+            return _builtin = _builtin != null ? _builtin : Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+        }
 
         public static Canvas Canvas(string name, int sortingOrder)
         {
