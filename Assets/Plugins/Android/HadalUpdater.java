@@ -28,7 +28,7 @@ public final class HadalUpdater {
         activity.startActivity(intent);
     }
 
-    /** Starts the system installer for an APK in the cache directory; false when permission is missing. */
+    /** Starts the system installer for an APK in a cache directory; false when permission is missing. */
     public static boolean install(Activity activity, String path) {
         if (!canInstall(activity)) {
             openInstallPermission(activity);

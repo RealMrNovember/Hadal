@@ -10,7 +10,7 @@ import java.io.File;
 import java.io.FileNotFoundException;
 
 /**
- * Read-only access to downloaded update APKs in the app's cache directory, so the system
+ * Read-only access to downloaded update APKs in the app's cache directories, so the system
  * installer can read them (a file:// URI is refused since Android 7). Registered in the manifest
  * by HadalAndroidManifest.cs as "${applicationId}.apkprovider", not exported.
  */
@@ -34,11 +34,17 @@ public final class ApkProvider extends ContentProvider {
         if (name == null || !name.endsWith(".apk") || name.contains("/") || name.contains(".."))
             throw new FileNotFoundException(String.valueOf(uri));
 
-        File file = new File(getContext().getCacheDir(), name);
-        if (!file.isFile())
-            throw new FileNotFoundException(file.getPath());
+        // Unity's temporaryCachePath is the external cache when it is mounted, else the internal one.
+        File[] candidates = { getContext().getExternalCacheDir(), getContext().getCacheDir() };
+        for (File dir : candidates) {
+            if (dir == null)
+                continue;
+            File file = new File(dir, name);
+            if (file.isFile())
+                return ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY);
+        }
 
-        return ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY);
+        throw new FileNotFoundException(name);
     }
 
     @Override
