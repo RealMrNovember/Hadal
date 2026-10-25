@@ -145,9 +145,17 @@ Durum işaretleri: ✅ tamam · 🟡 devam ediyor · ⬜ başlanmadı
 
 ---
 
-## Phase 3.5 — The Overseer: oyun yönetim paneli ⬜ *(kullanıcı önceliği)*
+## Phase 3.5 — The Overseer: oyun yönetim paneli 🟡 *(kullanıcı önceliği)*
 
 **Hedef:** `docs/22_LiveOps_Admin_Terminal.md`. Oyunun tamamı tek bir panelden yönetilir.
+
+**Yapılanlar (ilk dilim, `docs/22` §6.1):** `hadal.cicibyte.com/admin` (kale nginx → gateway, gizli
+anahtarlı tek kapı), şifre + TOTP girişi, sahip/GM/izleyici rolleri, denetim kaydı. Oyuncu arama, kaynak
+verme/alma, ban, oturum kapatma. Kişiye özel ve tarih aralıklı hediye kuponları; oyunda kupon ekranı ve her
+ret sebebi için ayrı mesaj. Bakım modu ve açılış duyurusu. Denge kataloğunu sürümleyip yeniden başlatmadan
+yayınlama ve geri alma; istemci yeni kataloğu indirir. Tanıtım sayfasında APK indirme bağlantısı.
+
+**Kalanlar:** ödül postaları, telemetri grafikleri, IP izin listesi, bina düzeltme, susturma.
 
 - **Ekonomi ve denge:** bina maliyetleri, süreleri, seviye ilerlemesi, üretim değerleri. Katalog veritabanında sürümlenir; sunucu yeniden başlamadan uygulanır, eski sürüme dönülebilir.
 - **Oyuncu yönetimi:** arama, profil, kaynak ve bina düzeltme, ban ve susturma, oturumu sonlandırma. Hepsi denetim kaydına yazılır.

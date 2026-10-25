@@ -98,8 +98,9 @@ All paths under web root — **no files outside this tree for HADAL**:
 | `wss://hadal.cicibyte.com/gateway` | WebSocket Gateway |
 | `https://hadal.cicibyte.com/api/v1/*` | REST API (auth, commands) |
 | `https://hadal.cicibyte.com/health` | Public health (no internal data) |
-| `https://hadal.cicibyte.com/admin` | **The Overseer Terminal** (GM UI — IP allowlist) |
-| `https://hadal.cicibyte.com/admin/api/v1/*` | Admin API (JWT + 2FA) |
+| `https://hadal.cicibyte.com/admin/` | **The Overseer Terminal** — live. Kale nginx extension `hadal-overseer.conf` proxies to the gateway with `X-Overseer-Key` (docs/22 §6.1) |
+| `https://hadal.cicibyte.com/admin/api/*` | Admin API (password + TOTP → Bearer) |
+| `https://hadal.cicibyte.com/download/hadal.apk` | Android test build, served from kale (same extension) |
 | `https://overseer.hadal.cicibyte.com` | Alternate isolated vhost (recommended prod) |
 
 ---

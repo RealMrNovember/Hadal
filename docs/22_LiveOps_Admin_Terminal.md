@@ -223,13 +223,60 @@ All responses JSON. Gameplay mutations trigger internal Game Server commands —
 
 ---
 
+## 6.1 Implementation (as built, Phase 3.5 first slice)
+
+**Where it runs.** Inside the gateway (`server/Hadal.Gateway/Admin/`), so balance changes and grants
+reach live sessions without a second service. The panel is static files in
+`server/Hadal.Gateway/wwwroot/admin/` (plain JS, no third-party code, strict CSP).
+
+**One door.** Kale's nginx serves `hadal.cicibyte.com/admin` (`server_deploy/nginx-extension-hadal-overseer.conf`,
+installed by `server_deploy/install-overseer-proxy.sh`) and proxies to `hadal-api.cicibyte.com` with the
+`X-Overseer-Key` header. The gateway answers **404** to every `/admin*` request without that key, so the
+panel does not exist on the API host. The key and the admin JWT secret live only in the CT's `.env`
+(`HADAL_ADMIN_PROXY_KEY`, `HADAL_ADMIN_JWT_SECRET`); the rendered nginx file exists only on kale.
+
+**Sign-in.** Username + PBKDF2 password + TOTP (RFC 6238, ±1 step) → 8 h HS256 Bearer token in
+`sessionStorage` (no cookies, so no CSRF). Login is rate limited per client IP. Roles:
+`owner` (everything, balance publishing, admins), `gm` (players, coupons, live ops), `viewer` (read only).
+The first owner is created on the server, never through the web:
+
+```bash
+ssh cicibyte@dl380
+sudo pct exec 160 -- docker exec -it hadal-gateway dotnet Hadal.Gateway.dll admin create <user> owner
+```
+
+It prints the password and the TOTP secret once (add the secret to an authenticator app).
+`admin list`, `admin disable <user>`, `admin enable <user>` work the same way.
+
+**Pages.** Özet (counts, online, catalog version, maintenance) · Oyuncular (search by name or account id,
+wallet and buildings, give/take resources, ban for N hours with reason, unban, kick) · Hediye Kuponları ·
+Canlı Operasyon (maintenance switch and message, title-screen announcement) · Denge · Seviyeler (progression,
+per-building time/cost/production table, raw catalog JSON, publish, version history, restore) ·
+Denetim Kaydı (every action and every failed login, with IP) · Yöneticiler (owner only).
+
+**Coupons.** Every player redeems a code at most once. Optional: a total limit, a validity window
+(`startsAt`..`expiresAt`) and a single owner (`targetAccountId`, for compensation or VIP gifts).
+Redemption is atomic (`SELECT … FOR UPDATE` + a `(code, account)` primary key) and the grant is undone if it
+fails. The player hears the exact reason, in this order: already used by you → not yours → disabled →
+not started → expired → limit reached (`AccountErrors.Coupon*`; the game shows "Bu kodu zaten kullandın."
+and "Bu kodun kullanım limiti doldu." as different messages).
+
+**Balance hot swap.** A published catalog is validated (`CatalogLoader.Parse`), stored as a new version in
+`hadal.catalog_versions`, and applied at once: `GameWorld.ReplaceCatalog` settles every online session at
+the old rates first, then switches. The manifest carries `catalogVersion`; clients download
+`/api/v1/catalog` when it changes, so build menus show the new costs and times.
+
+**Bans** are checked at refresh, transfer and provider login and at the gateway handshake
+(`HandshakeRejectReasons.Banned`); a ban also kicks the live session. The client shows a suspension
+notice on the title screen and stops reconnecting. Not built yet: mail, telemetry charts, IP allowlist,
+gacha (§4.2–4.4).
+
 ## 7. Deployment & URLs
 
 | Environment | UI | API |
 |-------------|----|----|
-| Production | `https://hadal.cicibyte.com/admin` | `https://hadal.cicibyte.com/admin/api/v1` |
-| Production (alt) | `https://overseer.hadal.cicibyte.com` | same host `/api/v1` |
-| Staging | `https://hadal.cicibyte.com/admin-staging` | isolated port / schema |
+| Production | `https://hadal.cicibyte.com/admin/` | `https://hadal.cicibyte.com/admin/api/*` |
+| Staging | not yet | — |
 
 See [HADAL_SERVER_INFRASTRUCTURE.md](./HADAL_SERVER_INFRASTRUCTURE.md) §4–§6 for ports, Docker, nginx.
 
