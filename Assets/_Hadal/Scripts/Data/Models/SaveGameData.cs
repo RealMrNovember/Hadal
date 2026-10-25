@@ -59,6 +59,14 @@ namespace Hadal.Data.Models
         public float constructionSeconds;
 
         public bool IsUnderConstruction => constructionEndsAt > 0f;
+
+        // Building functions (docs/24); Time.realtimeSinceStartup ends, 0 = not running.
+        public float boostEndsAt;
+        public string missionId;
+        public float missionEndsAt;
+        public float missionSeconds;
+        public float overdriveEndsAt;
+        public float overdriveReadyAt;
     }
 
     [Serializable]

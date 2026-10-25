@@ -2,7 +2,7 @@
 
 **Document:** Game Design · HADAL
 **Language:** TR (canonical design voice)
-**Status:** Tasarım. Kurallar `23_Base_Management.md` üzerine kurulur.
+**Status:** Phase 3.6 uygulandı (2026-10-26): kesirli üretim, Araştırma Merkezi (Gelişim ve Ekonomi ağaçları), Takviye, Aşırı Yük, kurtarma görevleri. Diğer işlevler kendi fazlarında. Kurallar `23_Base_Management.md` üzerine kurulur; sayılar `shared/catalog/catalog.json` içindedir (`research`, `boost`, `overdrive`, `salvageMissions`).
 
 ---
 
@@ -80,7 +80,10 @@ Henüz fazı gelmemiş işlevler panelde **kilitli kart** olarak görünür ("De
 
 ## Teknik Not
 
-- Yüzde etkilerin işe yaraması için üretimin **kesirli** hesaplanması gerekir. Bugün üretim tik başına tam sayıdır ve küçük binalarda seviye artışı yuvarlanıp kayboluyor (bilinen hata). Araştırmadan önce üretim, birikimli kesir (binde birlik hassasiyet) ile hesaplanacak.
-- Yeni komutlar: `StartResearch`, `FinishResearch`; replikasyon: `research:` varlıkları (`ResearchStateDto`).
+- Üretim binde bir hassasiyetle hesaplanır ve küsurat bir sonraki adıma taşınır (`ProductionSimulator.AdvanceMilli`); böylece seviye ve yüzde etkileri küçük üreticilere de yansır.
+- Zamanlı her şey (inşaat, araştırma, takviye, aşırı yük, kurtarma) bittiği anda ekonomiyi böler; oyuncu çevrimdışıyken de.
+- Kurtarma görevinin Hadalit şansı görev başlarken çekilen tohumla belirlenir; yeniden bağlanmak sonucu değiştirmez.
+- Araştırma ve bina işlevleri durumu `hadal.players.extras` JSON belgesinde saklanır.
+- Komutlar: `StartResearch`, `FinishResearch`, `BoostBuilding`, `Overdrive`, `StartSalvage`; replikasyon: `base:research` (`ResearchStateDto`), bina başına kalan süreler (`BuildingStateDto` 9–14), `base:salvage:<bina>` raporları.
 - Katalog: `research` bölümü (ağaç, düğüm, seviye bedeli/süresi, etki türü ve değeri, ön koşul). Overseer "Denge" sayfasında düzenlenebilir.
 - Etki türleri (`effect`): `buildTime`, `researchTime`, `production:<Kaynak>`, `capacity:<Kaynak|All>`, `limit:<binaId>`, `builderSlots`, `researchSlots`.

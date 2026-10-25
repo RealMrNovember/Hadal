@@ -42,6 +42,8 @@ namespace Hadal.Core.StateSync
                 data.unlockedGridRings = snapshot.UnlockedRings;
 
             view.ApplyProduction(snapshot.Production);
+            if (snapshot.Research != null)
+                view.ApplyResearch(snapshot.Research);
 
             view.MarkCaptured();
         }
@@ -90,6 +92,20 @@ namespace Hadal.Core.StateSync
                 if (change.EntityId.StartsWith(EntityIdPrefixes.Hero, StringComparison.Ordinal))
                 {
                     ApplyHeroChange(data, change, serialization);
+                    continue;
+                }
+
+                if (change.EntityId == EntityIds.Research && change.Kind != EntityChangeKind.Delete
+                    && TryDeserializePayload(change.Payload, serialization, out ResearchStateDto research))
+                {
+                    view.ApplyResearch(research);
+                    continue;
+                }
+
+                if (change.EntityId.StartsWith(EntityIds.SalvageReport, StringComparison.Ordinal)
+                    && TryDeserializePayload(change.Payload, serialization, out SalvageReportDto report))
+                {
+                    view.AddSalvageReport(report);
                     continue;
                 }
 
@@ -232,9 +248,19 @@ namespace Hadal.Core.StateSync
                 constructionEndsAt = dto.ConstructionRemainingMs > 0
                     ? UnityEngine.Time.realtimeSinceStartup + dto.ConstructionRemainingMs / 1000f
                     : 0f,
-                constructionSeconds = dto.ConstructionTotalMs / 1000f
+                constructionSeconds = dto.ConstructionTotalMs / 1000f,
+                boostEndsAt = EndsAt(dto.BoostRemainingMs),
+                missionId = dto.MissionId ?? string.Empty,
+                missionEndsAt = EndsAt(dto.MissionRemainingMs),
+                missionSeconds = dto.MissionTotalMs / 1000f,
+                overdriveEndsAt = EndsAt(dto.OverdriveRemainingMs),
+                overdriveReadyAt = EndsAt(dto.OverdriveCooldownMs)
             };
         }
+
+        // Remaining time is relative to when the frame arrived, so client clock skew is harmless.
+        private static float EndsAt(long remainingMs) =>
+            remainingMs > 0 ? UnityEngine.Time.realtimeSinceStartup + remainingMs / 1000f : 0f;
 
         private static bool TryDeserializePayload<T>(byte[] payload, NetworkSerializationLayer serialization, out T value)
         {

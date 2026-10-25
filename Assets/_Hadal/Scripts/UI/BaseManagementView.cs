@@ -24,7 +24,7 @@ namespace Hadal.UI
     /// opens outer rings, construction timers above buildings and rejection toasts. Every number comes from the shared catalog and BuildingProgression, the
     /// same rules the server enforces; the server's answer is the final word.
     /// </summary>
-    public sealed class BaseManagementView : MonoBehaviour
+    public sealed partial class BaseManagementView : MonoBehaviour
     {
         private const float TicksPerMinute = 60f / SimulationTick.IntervalSeconds;
 
@@ -142,6 +142,7 @@ namespace Hadal.UI
             _sector = tap.Sector;
             _buildingKey = tap.BuildingInstanceKey ?? string.Empty;
             _expandOpen = false;
+            _researchOpen = false;
             _confirmRemove = string.Empty;
             _sheet.gameObject.SetActive(true);
             Render();
@@ -151,6 +152,7 @@ namespace Hadal.UI
         public void OpenExpand()
         {
             _expandOpen = true;
+            _researchOpen = false;
             _buildingKey = string.Empty;
             _confirmRemove = string.Empty;
             _sheet.gameObject.SetActive(true);
@@ -163,7 +165,7 @@ namespace Hadal.UI
                 return;
 
             // The slot may have just been built on (build menu -> building panel).
-            if (string.IsNullOrEmpty(_buildingKey) && !_expandOpen)
+            if (string.IsNullOrEmpty(_buildingKey) && !_expandOpen && !_researchOpen)
                 _buildingKey = Buildings().FirstOrDefault(b => b.cellRing == _ring && b.cellSector == _sector).instanceKey ?? string.Empty;
             Render();
         }
@@ -171,7 +173,8 @@ namespace Hadal.UI
         private void OnCommandResolved(CommandResolvedEvent result)
         {
             if (result.Type is not (CommandType.PlaceBuilding or CommandType.UpgradeBuilding or CommandType.FinishConstruction
-                or CommandType.RemoveBuilding or CommandType.UnlockRing))
+                or CommandType.RemoveBuilding or CommandType.UnlockRing or CommandType.StartResearch or CommandType.FinishResearch
+                or CommandType.BoostBuilding or CommandType.Overdrive or CommandType.StartSalvage))
                 return;
 
             if (result.Result == CommandResultCode.Rejected)
@@ -185,11 +188,13 @@ namespace Hadal.UI
                 CommandType.FinishConstruction => Loc.T("base.done"),
                 CommandType.RemoveBuilding => Loc.T("base.removed"),
                 CommandType.UnlockRing => Loc.T("base.expand.done"),
+                CommandType.StartResearch or CommandType.FinishResearch or CommandType.BoostBuilding
+                    or CommandType.Overdrive or CommandType.StartSalvage => FunctionToast(result.Type),
                 _ => Loc.T("base.started")
             }, UiKit.Accent);
 
             // The removed building's panel has nothing left to show.
-            if (result.Type == CommandType.RemoveBuilding && IsOpen && !_expandOpen)
+            if (result.Type == CommandType.RemoveBuilding && IsOpen && !_expandOpen && !_researchOpen)
                 Close();
             else if (IsOpen)
                 Render();
@@ -201,6 +206,7 @@ namespace Hadal.UI
                 return;
 
             UpdateTimers();
+            ShowSalvageReports();
             _expand.gameObject.SetActive(!IsOpen);
 
             if (_toast.text.Length > 0 && Time.unscaledTime > _toastUntil)
@@ -222,15 +228,34 @@ namespace Hadal.UI
 
         // --- Rendering -----------------------------------------------------------------------
 
+        private string _renderedPage = string.Empty;
+
+        /// <summary>Rebuilds the sheet. The once-a-second refresh keeps the scroll position of the same page.</summary>
         private void Render()
         {
             _nextRefresh = Time.unscaledTime + 1f;
+            var page = $"{_expandOpen}|{_researchOpen}|{_researchTree}|{_buildingKey}|{_ring}:{_sector}";
+            var scroll = page == _renderedPage ? _list.anchoredPosition : Vector2.zero;
+            _renderedPage = page;
+
             for (var i = _list.childCount - 1; i >= 0; i--)
                 Destroy(_list.GetChild(i).gameObject);
 
+            RenderPage();
+            _list.anchoredPosition = scroll;
+        }
+
+        private void RenderPage()
+        {
             if (_expandOpen)
             {
                 RenderExpand();
+                return;
+            }
+
+            if (_researchOpen)
+            {
+                RenderResearch();
                 return;
             }
 
@@ -282,7 +307,8 @@ namespace Hadal.UI
 
             var wallet = Wallet();
             var occupied = new HashSet<(int ring, int sector)>(Buildings().Select(b => (b.cellRing, b.cellSector)));
-            var builderBusy = ActiveConstructions() >= Math.Max(1, _catalog.Progression.builderSlots);
+            var modifiers = Modifiers();
+            var builderBusy = ActiveConstructions() >= Math.Max(1, _catalog.Progression.builderSlots) + modifiers.ExtraBuilders;
             var owned = OwnedCounts();
             var reactor = ReactorLevel();
             var any = false;
@@ -290,7 +316,7 @@ namespace Hadal.UI
             // Buildable first, then by the reactor level that unlocks them, then by price.
             foreach (var definition in _catalog.Buildings.OrderBy(b => b.RequiredReactorLevel).ThenBy(b => b.BuildCost.Sum(c => c.Value)))
             {
-                var verdict = PlacementRules.Validate(_catalog, definition.Id, _ring, _sector, _grid.UnlockedRingCount, occupied, wallet, owned, reactor);
+                var verdict = PlacementRules.Validate(_catalog, definition.Id, _ring, _sector, _grid.UnlockedRingCount, occupied, wallet, owned, reactor, modifiers);
                 // Buildings that can never go on this slot are not listed; the rest show why they are blocked.
                 if (verdict is PlacementRejectReason.RingNotAllowed or PlacementRejectReason.SlotTypeMismatch
                     or PlacementRejectReason.SectorRestricted or PlacementRejectReason.SlotDoesNotExist or PlacementRejectReason.UnknownBuilding)
@@ -302,14 +328,14 @@ namespace Hadal.UI
                 {
                     PlacementRejectReason.None => builderBusy ? Loc.Reason(nameof(ConstructionRejectReason.BuilderBusy)) : string.Empty,
                     PlacementRejectReason.ReactorLevelTooLow => Loc.F("base.needs.reactor", definition.RequiredReactorLevel),
-                    PlacementRejectReason.LimitReached => Loc.F("base.limit", count, definition.MaxCount),
+                    PlacementRejectReason.LimitReached => Loc.F("base.limit", count, modifiers.MaxCount(definition)),
                     _ => Loc.Reason(verdict.ToString())
                 };
                 var id = definition.Id;
                 AddCard(
-                    definition.MaxCount > 0 ? $"{Loc.Building(id)}  <size=30>{count}/{definition.MaxCount}</size>" : Loc.Building(id),
+                    definition.MaxCount > 0 ? $"{Loc.Building(id)}  <size=30>{count}/{modifiers.MaxCount(definition)}</size>" : Loc.Building(id),
                     $"{Loc.T("desc." + id)}\n{Rates(definition, 1)}",
-                    $"{Loc.T("base.cost")}: {Cost(BuildingProgression.Cost(definition, 1, _catalog.Progression), wallet)}   {Loc.T("base.time")}: {Loc.Duration(BuildingProgression.Seconds(definition, 1, _catalog.Progression))}",
+                    $"{Loc.T("base.cost")}: {Cost(BuildingProgression.Cost(definition, 1, _catalog.Progression), wallet)}   {Loc.T("base.time")}: {Loc.Duration(modifiers.BuildSeconds(BuildingProgression.Seconds(definition, 1, _catalog.Progression)))}",
                     reason,
                     Loc.T("base.build"),
                     reason.Length == 0,
@@ -337,6 +363,10 @@ namespace Hadal.UI
             var current = building.level > 0 ? Rates(definition, building.level) : string.Empty;
             UiKit.Label("Desc", _list, $"{Loc.T("desc." + definition.Id)}\n{current}", 34, UiKit.Text).Row(130);
 
+            // The building's own function (research, boost, overdrive, salvage) once it works.
+            if (building.level > 0)
+                AddFunctionCards(building, definition);
+
             if (building.IsUnderConstruction)
             {
                 var progress = building.constructionSeconds > 0 ? 1f - remaining / building.constructionSeconds : 1f;
@@ -361,13 +391,14 @@ namespace Hadal.UI
 
             var target = building.level + 1;
             var wallet = Wallet();
+            var modifiers = Modifiers();
             var verdict = BuildingProgression.ValidateUpgrade(_catalog, definition.Id, building.level, false,
-                ActiveConstructions(), ReactorLevel(), wallet);
+                ActiveConstructions(), ReactorLevel(), wallet, modifiers.ExtraBuilders);
             var instanceKey = building.instanceKey;
             AddCard(
                 $"{Loc.T("base.next")}: {Loc.F("base.level", target)}",
                 Rates(definition, target),
-                $"{Loc.T("base.cost")}: {Cost(BuildingProgression.Cost(definition, target, rules), wallet)}   {Loc.T("base.time")}: {Loc.Duration(BuildingProgression.Seconds(definition, target, rules))}",
+                $"{Loc.T("base.cost")}: {Cost(BuildingProgression.Cost(definition, target, rules), wallet)}   {Loc.T("base.time")}: {Loc.Duration(modifiers.BuildSeconds(BuildingProgression.Seconds(definition, target, rules)))}",
                 verdict == ConstructionRejectReason.None ? string.Empty : Loc.Reason(verdict.ToString()),
                 Loc.T("base.upgrade"),
                 verdict == ConstructionRejectReason.None,
@@ -544,7 +575,7 @@ namespace Hadal.UI
                     return;
                 text.Append(text.Length > 0 ? "   " : string.Empty).Append(label).Append(": ");
                 text.Append(string.Join(", ", amounts.Select(a =>
-                    $"{sign}{ProductionFormulas.ScaleByLevel(a.Value, level) * TicksPerMinute:0} {Loc.T("resource." + a.Key)}{Loc.T("base.permin")}")));
+                    $"{sign}{ProductionFormulas.ScaleByLevelMilli(a.Value, level) * TicksPerMinute / ProductionFormulas.Milli:0} {Loc.T("resource." + a.Key)}{Loc.T("base.permin")}")));
             }
 
             Append(Loc.T("base.produces"), definition.Production, "+");

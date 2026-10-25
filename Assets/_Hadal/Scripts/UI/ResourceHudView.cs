@@ -130,11 +130,14 @@ namespace Hadal.UI
                 return;
             }
 
-            view.ProductionPerTick.TryGetValue(row.type, out var netPerTick);
-
-            // Server-sent per-tick value scaled to per-minute purely for readability.
+            // Server-sent per-tick value scaled to per-minute purely for readability. The exact
+            // thousandths win when the server sends them (small producers gain fractions per level).
             var ticksPerMinute = intervalSeconds > 0 ? 60L / intervalSeconds : SimulationTick.TicksPerMinute;
-            var perMinute = netPerTick * ticksPerMinute;
+            long perMinute;
+            if (view.ProductionMilliPerTick.TryGetValue(row.type, out var milli))
+                perMinute = milli * ticksPerMinute / ProductionFormulas.Milli;
+            else
+                perMinute = (view.ProductionPerTick.TryGetValue(row.type, out var netPerTick) ? netPerTick : 0L) * ticksPerMinute;
 
             row.rateLabel.text = perMinute == 0L ? "—" : $"{(perMinute > 0L ? "+" : string.Empty)}{perMinute}{Loc.T("base.permin")}";
             row.rateLabel.color = perMinute < 0L ? _negativeRateColor : _positiveRateColor;
@@ -142,12 +145,20 @@ namespace Hadal.UI
 
         private string FormatAmount(ResourceType type, long amount)
         {
-            var capacity = _resourceDatabase != null ? _resourceDatabase.Get(type)?.MaxCapacity ?? 0L : 0L;
+            var capacity = _stateSync != null && _stateSync.View.Capacities.TryGetValue(type, out var replicated)
+                ? replicated
+                : _resourceDatabase != null ? _resourceDatabase.Get(type)?.MaxCapacity ?? 0L : 0L;
 
             return capacity > 0L && capacity != long.MaxValue
-                ? $"{amount} / {capacity}"
-                : amount.ToString();
+                ? $"{Compact(amount)}/{Compact(capacity)}"
+                : Compact(amount);
         }
+
+        /// <summary>12345 -> 12.3K so five-digit stores fit the narrow HUD column.</summary>
+        private static string Compact(long value) =>
+            value >= 1_000_000 ? $"{value / 1_000_000d:0.#}M"
+            : value >= 10_000 ? $"{value / 1_000d:0.#}K"
+            : value.ToString();
 
         private void ReadAmounts(ResourceSaveEntry[] entries)
         {
