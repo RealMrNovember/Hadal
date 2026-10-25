@@ -69,5 +69,40 @@ namespace Hadal.Tests.EditMode
             Assert.IsTrue(animators.Any(a => a.AnimationMode == ArtAnimator.Mode.Pulse));
             Assert.AreEqual(Quaternion.identity, reactor.transform.localRotation, "FBX axis conversion left a root rotation");
         }
+        [TestCase("crew_engineer")]
+        [TestCase("crew_medic")]
+        [TestCase("crew_scientist")]
+        [TestCase("mech_worker")]
+        public void Characters_import_with_named_looping_clips(string id)
+        {
+            var path = $"Assets/_Hadal/Art/Characters/{id}.fbx";
+            var clips = AssetDatabase.LoadAllAssetsAtPath(path).OfType<AnimationClip>()
+                .Where(c => !c.name.StartsWith("__preview__")).ToDictionary(c => c.name);
+
+            Assert.IsTrue(clips.ContainsKey("Idle"), $"{id}: clips are {string.Join(", ", clips.Keys)}");
+            Assert.IsTrue(clips.ContainsKey("Walk"), id);
+            Assert.IsTrue(clips["Walk"].isLooping, $"{id}: Walk must loop");
+        }
+
+        [Test]
+        public void Character_materials_are_urp_lit_with_the_atlas()
+        {
+            var model = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/_Hadal/Art/Characters/crew_engineer.fbx");
+            Assert.IsNotNull(model);
+            var material = model.GetComponentInChildren<SkinnedMeshRenderer>(true).sharedMaterial;
+            Assert.AreEqual("Universal Render Pipeline/Lit", material.shader.name);
+            Assert.IsNotNull(material.GetTexture("_BaseMap"), "atlas texture not found next to the FBX");
+        }
+
+        [Test]
+        public void Character_prefab_has_a_controller_with_a_state_per_clip()
+        {
+            var prefab = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/_Hadal/Prefabs/Characters/crew_medic.prefab");
+            Assert.IsNotNull(prefab, "run Hadal > Art > Build Character Prefabs (part of Create Bootstrap Scene)");
+            var controller = (UnityEditor.Animations.AnimatorController)prefab.GetComponentInChildren<Animator>().runtimeAnimatorController;
+            var states = controller.layers[0].stateMachine.states.Select(s => s.state.name).ToArray();
+            CollectionAssert.Contains(states, "Walk");
+            Assert.AreEqual("Idle", controller.layers[0].stateMachine.defaultState.name);
+        }
     }
 }

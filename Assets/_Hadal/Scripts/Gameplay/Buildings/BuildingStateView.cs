@@ -144,6 +144,17 @@ namespace Hadal.Gameplay.Buildings
 
         public int InstanceCount => _instances.Count;
 
+        /// <summary>World positions of the rendered buildings (crew and effects use them).</summary>
+        public void GetBuildingPositions(List<Vector3> into)
+        {
+            into.Clear();
+            foreach (var instance in _instances.Values)
+            {
+                if (instance.Go != null)
+                    into.Add(instance.Go.transform.position);
+            }
+        }
+
         private GameObject CreateVisual(BuildingSaveEntry building)
         {
             var root = _buildingsRoot != null ? _buildingsRoot : transform;

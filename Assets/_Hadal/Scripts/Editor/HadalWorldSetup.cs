@@ -1,6 +1,7 @@
 #if UNITY_EDITOR
 using Hadal.Gameplay.Art;
 using Hadal.Gameplay.Buildings;
+using Hadal.Gameplay.Crew;
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Rendering;
@@ -36,7 +37,22 @@ namespace Hadal.EditorTools
             var so = new SerializedObject(view);
             so.FindProperty("_buildingsRoot").objectReferenceValue = buildingsGo.transform;
             so.ApplyModifiedPropertiesWithoutUndo();
+
+            CreateCrew(world.transform, view);
             return view;
+        }
+
+        private static void CreateCrew(Transform parent, BuildingStateView buildings)
+        {
+            var prefabs = HadalCharacterSetup.BuildPrefabs();
+            GameObject[] Pick(params string[] ids) =>
+                System.Array.FindAll(System.Array.ConvertAll(ids, id => prefabs.TryGetValue(id, out var p) ? p : null), p => p != null);
+
+            var go = new GameObject("Crew");
+            go.transform.SetParent(parent, false);
+            var crew = go.AddComponent<CrewView>();
+            crew.Configure(buildings, Pick("crew_engineer", "crew_medic", "crew_scientist"), Pick("mech_worker"));
+            EditorUtility.SetDirty(crew);
         }
 
         private static void ConfigureAtmosphere()
