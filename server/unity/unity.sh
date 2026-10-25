@@ -9,6 +9,7 @@
 #   unity.sh test <mode> [category]  run EditMode or PlayMode tests, results in artifacts/
 #   unity.sh acceptance    live PlayMode run vs the real gateway, gateway restart, persistence check
 #   unity.sh latency ["100 200"]  live PlayMode run with simulated server latency
+#   unity.sh account-e2e   account UI flow (protect, sign in elsewhere) vs a throwaway in-memory gateway
 #   unity.sh android       development APK in artifacts/build/ (needs the android editor image)
 #   unity.sh shell         bash inside the editor container
 #
@@ -125,6 +126,26 @@ case "${1:-}" in
     for _ in $(seq 1 30); do curl -fs http://127.0.0.1:19001/health >/dev/null && break; sleep 1; done
     echo "== persistence after restart"
     "$0" test PlayMode Persistence
+    ;;
+  account-e2e)
+    # Account flow through the real UI against a THROWAWAY gateway: same image as production but
+    # in-memory stores (no database), its own random JWT secret, an isolated network, removed
+    # afterwards. Never touches the live gateway or its accounts.
+    NET=hadal_account_e2e
+    docker network create "${NET}" >/dev/null 2>&1 || true
+    docker rm -f hadal-gateway-e2e >/dev/null 2>&1 || true
+    docker run -d --name hadal-gateway-e2e --network "${NET}" \
+      -e ConnectionStrings__Hadal= \
+      -e Auth__JwtSecret="e2e-$(head -c 32 /dev/urandom | base64 | tr -d '\n')" \
+      -e Auth__GuestLoginsPerHour=1000 -e Auth__TransferLoginsPerHour=1000 \
+      hadal-hadal-gateway >/dev/null
+    trap 'docker rm -f hadal-gateway-e2e >/dev/null 2>&1; docker network rm "${NET}" >/dev/null 2>&1' EXIT
+    for _ in $(seq 1 30); do docker logs hadal-gateway-e2e 2>&1 | grep -q "Now listening" && break; sleep 1; done
+    export UNITY_NETWORK="${NET}"
+    export HADAL_GATEWAY_URL=ws://hadal-gateway-e2e:8080/gateway
+    "$0" test PlayMode AccountFlow; rc=$?
+    cp "${ARTIFACTS}/tests-PlayMode.xml" "${ARTIFACTS}/tests-AccountFlow.xml" 2>/dev/null
+    exit $rc
     ;;
   latency)
     # Live loop with every server frame delayed (Phase 0-R exit criterion: 100 and 200 ms).

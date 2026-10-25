@@ -3,7 +3,6 @@ using System.Threading.Tasks;
 using HADAL.Shared.Auth;
 using Hadal.Core.Network;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 namespace Hadal.UI
@@ -262,7 +261,7 @@ namespace Hadal.UI
             if (result.IsSuccess)
             {
                 // Every system (state view, socket, crew...) restarts from the other account.
-                SceneManager.LoadScene(SceneManager.GetActiveScene().buildIndex);
+                SessionRestart.Restart();
                 return;
             }
 

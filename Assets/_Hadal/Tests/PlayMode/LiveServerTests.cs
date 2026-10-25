@@ -63,7 +63,9 @@ namespace Hadal.Tests.PlayMode
             yield return WaitUntil(() => Balance(view, ResourceType.Oxygen) > 0, 5f, "snapshot never arrived");
             Assert.AreEqual(500, Balance(view, ResourceType.Oxygen), "new player starting oxygen");
             Assert.AreEqual(150, Balance(view, ResourceType.Titanium), "new player starting titanium");
-            Assert.IsEmpty(view.Data.buildings ?? Array.Empty<BuildingSaveEntry>());
+            var starter = view.Data.buildings ?? Array.Empty<BuildingSaveEntry>();
+            Assert.AreEqual(1, starter.Length, "a new base starts with exactly the core reactor");
+            Assert.AreEqual("core_reactor", starter[0].definitionId);
 
             container.Resolve<ICommandDispatcher>().Dispatch(new PlaceBuildingCommand
             {
@@ -86,7 +88,7 @@ namespace Hadal.Tests.PlayMode
             yield return WaitUntil(() => session.IsHandshakeComplete, 15f, "client never reconnected");
 
             yield return WaitUntil(() => HasBuilding(view, "oxygen_plant"), 5f, "building missing after reconnect");
-            Assert.AreEqual(1, view.Data.buildings.Length, "duplicate or lost buildings after reconnect");
+            Assert.AreEqual(2, view.Data.buildings.Length, "duplicate or lost buildings after reconnect (reactor + plant)");
             Assert.GreaterOrEqual(Balance(view, ResourceType.Oxygen), beforeDrop, "wallet rewound after reconnect");
         }
 
