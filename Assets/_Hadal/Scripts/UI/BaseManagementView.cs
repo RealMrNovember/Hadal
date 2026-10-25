@@ -53,6 +53,7 @@ namespace Hadal.UI
         private int _sector;
         private string _buildingKey = string.Empty;
         private float _nextRefresh;
+        private float _lastPointerTime = -1f;
         private readonly Dictionary<string, (RectTransform Root, Image Fill, Text Label)> _timers = new();
 
         public bool IsOpen => _sheet != null && _sheet.gameObject.activeSelf;
@@ -212,8 +213,11 @@ namespace Hadal.UI
             if (_toast.text.Length > 0 && Time.unscaledTime > _toastUntil)
                 _toast.text = string.Empty;
 
-            // Countdowns and affordability change every second.
-            if (IsOpen && Time.unscaledTime >= _nextRefresh)
+            // Countdowns and affordability change every second. Rebuilding destroys the buttons, so a press
+            // (or a scroll drag) in progress would be lost: wait until the finger has been up for a moment.
+            if (Input.touchCount > 0 || Input.GetMouseButton(0))
+                _lastPointerTime = Time.unscaledTime;
+            if (IsOpen && Time.unscaledTime >= _nextRefresh && Time.unscaledTime - _lastPointerTime > 0.3f)
                 Render();
         }
 
