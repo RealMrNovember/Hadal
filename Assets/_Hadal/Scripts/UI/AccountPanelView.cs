@@ -8,16 +8,19 @@ using UnityEngine.UI;
 namespace Hadal.UI
 {
     /// <summary>
-    /// Gear button (top right) and the Profile & Account panel: player name, protection status,
-    /// "protect account" (transfer code), "sign in to another account", gift codes and the Google / Apple
-    /// placeholders. A badge on the gear nudges unprotected players without blocking play.
+    /// Gear button (top right) and the Settings panel. Its home page links to Account (player name,
+    /// protection status, transfer code, sign in elsewhere, Google / Apple placeholders), Language,
+    /// Sound, Graphics, Notifications, Gift Code, Support and About (SettingsPages.cs).
+    /// A badge on the gear nudges unprotected players without blocking play.
     /// </summary>
-    public sealed class AccountPanelView : MonoBehaviour
+    public sealed partial class AccountPanelView : MonoBehaviour
     {
         private IAccountService _account;
 
         private GameObject _badge;
         private CanvasGroup _panel;
+        private Text _header;
+        private readonly System.Collections.Generic.List<(RectTransform Page, string TitleKey)> _pages = new();
         private RectTransform _main;
         private RectTransform _protect;
         private RectTransform _switch;
@@ -80,26 +83,24 @@ namespace Hadal.UI
             var card = UiKit.Box("Card", panelImage.transform, UiKit.Panel);
             card.rectTransform.Place(0.05f, 0.12f, 0.95f, 0.9f);
 
-            var header = UiKit.Label("Header", card.transform, Loc.T("account.title"), 56, UiKit.Accent, TextAnchor.MiddleLeft, FontStyle.Bold);
-            header.rectTransform.Place(0.06f, 0.90f, 0.94f, 0.98f);
+            _header = UiKit.Label("Header", card.transform, Loc.T("settings.title"), 56, UiKit.Accent, TextAnchor.MiddleLeft, FontStyle.Bold);
+            _header.rectTransform.Place(0.06f, 0.90f, 0.94f, 0.98f);
 
-            _main = UiKit.Column("Main", card.transform);
-            _main.Place(0.06f, 0.03f, 0.94f, 0.89f);
-            BuildMain(_main);
-
-            _protect = UiKit.Column("Protect", card.transform);
-            _protect.Place(0.06f, 0.03f, 0.94f, 0.89f);
-            BuildProtect(_protect);
-
-            _switch = UiKit.Column("Switch", card.transform);
-            _switch.Place(0.06f, 0.03f, 0.94f, 0.89f);
-            BuildSwitch(_switch);
-
-            _gift = UiKit.Column("Gift", card.transform);
-            _gift.Place(0.06f, 0.03f, 0.94f, 0.89f);
-            BuildGift(_gift);
+            BuildSettings(card.transform);
+            BuildMain(_main = Page("Main", card.transform, "account.title"));
+            BuildProtect(_protect = Page("Protect", card.transform, "account.title"));
+            BuildSwitch(_switch = Page("Switch", card.transform, "account.title"));
+            BuildGift(_gift = Page("Gift", card.transform, "settings.gift"));
 
             _panel.gameObject.SetActive(false);
+        }
+
+        private RectTransform Page(string name, Transform card, string titleKey)
+        {
+            var page = UiKit.Column(name, card);
+            page.Place(0.06f, 0.03f, 0.94f, 0.89f);
+            _pages.Add((page, titleKey));
+            return page;
         }
 
         private void BuildMain(Transform column)
@@ -117,8 +118,6 @@ namespace Hadal.UI
             UiKit.Button("Protect", column, Loc.T("account.protect"), () => Show(_protect)).Row(110);
             UiKit.Button("Switch", column, Loc.T("account.switch"), () => Show(_switch), UiKit.Field).Row(110)
                 .GetComponentInChildren<Text>().color = UiKit.Text;
-            UiKit.Button("Gift", column, Loc.T("gift.open"), () => Show(_gift), UiKit.Field).Row(110)
-                .GetComponentInChildren<Text>().color = UiKit.Accent;
 
             var google = UiKit.Button("Google", column, Loc.T("account.google"), null, UiKit.Field).Row(100);
             google.interactable = false;
@@ -127,8 +126,8 @@ namespace Hadal.UI
             apple.interactable = false;
             apple.GetComponentInChildren<Text>().color = UiKit.Muted;
 
-            _mainMessage = UiKit.Label("Message", column, string.Empty, 32, UiKit.Danger).Row(60);
-            UiKit.Button("Close", column, Loc.T("account.close"), Close, UiKit.Field).Row(100)
+            _mainMessage = UiKit.Label("Message", column, string.Empty, 32, UiKit.Danger).Row(80);
+            UiKit.Button("Back", column, Loc.T("account.back"), () => Show(_home), UiKit.Field).Row(100)
                 .GetComponentInChildren<Text>().color = UiKit.Text;
         }
 
@@ -168,7 +167,7 @@ namespace Hadal.UI
             _giftCode.characterValidation = InputField.CharacterValidation.None;
             UiKit.Button("Redeem", column, Loc.T("gift.redeem"), () => _ = Redeem()).Row(110);
             _giftMessage = UiKit.Label("Message", column, string.Empty, 36, UiKit.Danger, TextAnchor.MiddleCenter).Row(160);
-            UiKit.Button("Back", column, Loc.T("account.back"), () => Show(_main), UiKit.Field).Row(100)
+            UiKit.Button("Back", column, Loc.T("account.back"), () => Show(_home), UiKit.Field).Row(100)
                 .GetComponentInChildren<Text>().color = UiKit.Text;
         }
 
@@ -190,7 +189,7 @@ namespace Hadal.UI
 
         public void Open()
         {
-            Show(_main);
+            Show(_home);
             _mainMessage.text = string.Empty;
             _panel.gameObject.SetActive(true);
             _panel.alpha = 1f;
@@ -201,12 +200,23 @@ namespace Hadal.UI
 
         public void Close() => _panel.gameObject.SetActive(false);
 
+        /// <summary>Opens the Account page (tests, the protection badge).</summary>
+        public void OpenAccount()
+        {
+            Open();
+            Show(_main);
+        }
+
         private void Show(RectTransform page)
         {
-            _main.gameObject.SetActive(page == _main);
-            _protect.gameObject.SetActive(page == _protect);
-            _switch.gameObject.SetActive(page == _switch);
-            _gift.gameObject.SetActive(page == _gift);
+            foreach (var (candidate, titleKey) in _pages)
+            {
+                candidate.gameObject.SetActive(candidate == page);
+                if (candidate == page)
+                    _header.text = Loc.T(titleKey);
+            }
+
+            OnPageShown(page);
 
             if (page == _protect)
             {
@@ -322,7 +332,7 @@ namespace Hadal.UI
                 var rewards = string.Join(", ", Array.ConvertAll(result.Value.rewards ?? Array.Empty<CouponRewardEntry>(),
                     r => $"+{r.amount} {Loc.T("resource." + r.resource)}"));
                 _giftMessage.color = UiKit.Accent;
-                _giftMessage.text = string.Format(Loc.T("gift.done"), rewards);
+                _giftMessage.text = Loc.F("gift.done", rewards);
                 _giftCode.text = string.Empty;
             }
             else

@@ -72,10 +72,22 @@ namespace Hadal.UI
 
             _localBus.Subscribe<ResourceStateChangedEvent>(OnResourceStateChanged);
             _subscribed = true;
+            LocalizeNames();
             Refresh();
         }
 
         private void OnResourceStateChanged(ResourceStateChangedEvent _) => Refresh();
+
+        // The scene's name labels are authored in English; show them in the player's language.
+        private void LocalizeNames()
+        {
+            foreach (var row in _rows)
+            {
+                var name = row?.amountLabel != null ? row.amountLabel.transform.parent.Find("Name") : null;
+                if (name != null && name.TryGetComponent<Text>(out var label))
+                    label.text = Loc.Resource(row.type.ToString());
+            }
+        }
 
         public void Refresh()
         {
@@ -118,7 +130,7 @@ namespace Hadal.UI
             var ticksPerMinute = intervalSeconds > 0 ? 60L / intervalSeconds : SimulationTick.TicksPerMinute;
             var perMinute = netPerTick * ticksPerMinute;
 
-            row.rateLabel.text = perMinute == 0L ? "—" : $"{(perMinute > 0L ? "+" : string.Empty)}{perMinute}/min";
+            row.rateLabel.text = perMinute == 0L ? "—" : $"{(perMinute > 0L ? "+" : string.Empty)}{perMinute}{Loc.T("base.permin")}";
             row.rateLabel.color = perMinute < 0L ? _negativeRateColor : _positiveRateColor;
         }
 

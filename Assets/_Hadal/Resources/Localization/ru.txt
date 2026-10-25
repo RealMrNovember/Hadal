@@ -1,0 +1,175 @@
+# HADAL UI strings (ru). One "key = value" per line; \n is a line break, {0} a placeholder.
+
+title.tagline = Последний купол человечества на дне океана.
+title.connecting = Подключение к серверу…
+title.reconnecting = Связь потеряна, переподключение…
+title.maintenance = Сервер на обслуживании. Скоро повторим попытку.
+title.update = Требуется новая версия. Обновите игру.
+title.tap = Коснитесь, чтобы начать
+title.banned = Ваш аккаунт заблокирован. Обратитесь в поддержку.
+
+account.title = Профиль и аккаунт
+account.name = Имя игрока
+account.save = Сохранить
+account.saved = Сохранено.
+account.id = ID аккаунта
+account.protected = Ваш аккаунт защищён.
+account.unprotected = Аккаунт хранится только на этом устройстве. При смене телефона прогресс может быть утерян.
+account.protect = Защитить аккаунт
+account.protect.hint = Задайте пароль и получите код переноса. Войдите с кодом и паролем на новом устройстве.
+account.password = Пароль (от 8 символов)
+account.password2 = Повторите пароль
+account.create = Создать код
+account.code = Ваш код переноса
+account.code.note = Сохраните код и пароль. Новый код заменяет старый.
+account.copy = Копировать
+account.copied = Скопировано
+account.switch = Войти в другой аккаунт
+account.switch.hint = Войдите с кодом переноса и паролем. Незащищённый аккаунт на этом устройстве будет утерян.
+account.transfercode = Код переноса (XXXX-XXXX-XXXX)
+account.signin = Войти
+account.google = Привязать Google (скоро)
+account.apple = Привязать Apple (скоро)
+account.close = Закрыть
+account.back = Назад
+
+gift.open = Ввести подарочный код
+gift.hint = Введите код из события или новости — награды сразу попадут на склад.
+gift.code = Подарочный код
+gift.redeem = Активировать
+gift.done = Награды получены: {0}
+
+base.build.title = Стройка · Кольцо {0}
+base.build = Построить
+base.upgrade = Улучшить
+base.finish = Завершить бесплатно
+base.close = Закрыть
+base.level = Уровень {0}
+base.level.max = Макс. уровень
+base.constructing = Строится · {0}
+base.upgrading = Улучшение до ур. {0} · {1}
+base.produces = Производит
+base.consumes = Потребляет
+base.next = След. уровень
+base.cost = Стоимость
+base.time = Время
+base.permin = /мин
+base.nothing = На этом месте пока нечего строить.
+base.started = Стройка начата.
+base.done = Завершено.
+
+building.core_reactor = Центральный реактор
+building.oxygen_plant = Кислородная станция
+building.food_lab = Пищевая лаборатория
+building.bio_lab = Биолаборатория
+building.research_center = Научный центр
+building.drone_factory = Завод дронов
+building.submarine_dock = Док подлодок
+building.military_dome = Военный купол
+building.shield_generator = Генератор щита
+building.radar_center = Радарный центр
+building.mega_dome = Мегакупол
+building.alliance_hub = Центр альянса
+building.decoration_spire = Декоративный шпиль
+
+desc.core_reactor = Сердце базы. Ни одно здание не может превысить уровень реактора.
+desc.oxygen_plant = Производит кислород. Без кислорода база погибнет.
+desc.food_lab = Кормит экипаж.
+desc.bio_lab = Выращивает биомассу из живых организмов.
+desc.research_center = Путь к новым технологиям.
+desc.drone_factory = Спасательные дроны добывают титан из обломков.
+desc.submarine_dock = Строит подлодки и отправляет экспедиции.
+desc.military_dome = Обучает защитников базы.
+desc.shield_generator = Защищает от давления и атак.
+desc.radar_center = Обнаруживает приближающиеся угрозы.
+desc.mega_dome = Расширяет базу новым куполом.
+desc.alliance_hub = Связь с альянсом.
+desc.decoration_spire = Украшает вашу базу.
+
+resource.Oxygen = Кислород
+resource.Energy = Энергия
+resource.Food = Еда
+resource.Biomass = Биомасса
+resource.Titanium = Титан
+resource.Hadalite = Хадалит
+
+reason.BuilderBusy = Строитель занят: одна стройка за раз.
+reason.InsufficientResources = Недостаточно ресурсов.
+reason.ReactorLevelTooLow = Сначала улучшите Центральный реактор.
+reason.MaxLevel = Уже максимальный уровень.
+reason.UnderConstruction = Уже строится.
+reason.NotYetFree = Бесплатно — в последние 5 минут.
+reason.NotUnderConstruction = Ничего не строится.
+reason.SlotOccupied = Это место занято.
+reason.RingLocked = Это кольцо ещё закрыто.
+reason.SectorLocked = Этот сектор ещё закрыт.
+reason.RingNotAllowed = Это здание нельзя строить на этом кольце.
+reason.SlotTypeMismatch = Это место не для этого здания.
+reason.SectorRestricted = Это место отведено под другое здание.
+reason.UnknownBuilding = Здание не найдено.
+reason.NotSupported = Пока не поддерживается.
+
+error.NameInvalid = Имя: 3–16 символов — буквы, цифры, пробел, _ и -.
+error.PasswordInvalid = Пароль должен содержать не менее 8 символов.
+error.PasswordMismatch = Пароли не совпадают.
+error.InvalidCredentials = Неверный код или пароль.
+error.RateLimited = Слишком много попыток. Повторите позже.
+error.Network = Не удалось связаться с сервером.
+error.Banned = Ваш аккаунт заблокирован.
+error.CouponUnknown = Такого кода нет.
+error.CouponInactive = Этот код больше не действует.
+error.CouponExpired = Срок действия кода истёк.
+error.CouponExhausted = Лимит этого кода исчерпан.
+error.CouponAlreadyRedeemed = Вы уже использовали этот код.
+error.CouponNotStarted = Этот код ещё не активен.
+error.CouponNotForYou = Этот код принадлежит другому игроку.
+error.generic = Что-то пошло не так ({0}).
+
+settings.title = Настройки
+settings.account = Аккаунт
+settings.language = Язык
+settings.sound = Звук
+settings.graphics = Графика
+settings.notifications = Уведомления
+settings.gift = Подарочный код
+settings.support = Поддержка
+settings.about = Об игре
+settings.on = Вкл.
+settings.off = Выкл.
+
+sound.music = Музыка
+sound.effects = Звуковые эффекты
+sound.volume = Громкость
+sound.vibration = Вибрация
+
+graphics.quality = Качество графики
+graphics.low = Низкое
+graphics.medium = Среднее
+graphics.high = Высокое
+graphics.fps = Частота кадров
+graphics.power = Экономия заряда
+graphics.power.hint = Снижает качество и частоту кадров для экономии заряда.
+
+notify.hint = Выберите, какие уведомления показывать на этом устройстве.
+notify.construction = Стройка завершена
+notify.storage = Склад заполнен
+notify.events = События и новости
+
+language.hint = Игра перезапустится на выбранном языке.
+
+support.hint = Свяжитесь с нами через наш сайт. Укажите ID аккаунта, чтобы мы быстрее вас нашли.
+support.copy = Копировать ID аккаунта
+support.copied = Скопировано
+support.website = Открыть сайт
+
+about.version = Версия {0}
+about.account = ID аккаунта: {0}
+about.studio = Разработчик: Cicibyte
+
+update.available = Доступна версия {0}.
+update.required = Эта версия больше не поддерживается. Обновите игру, чтобы продолжить.
+update.button = Обновить
+update.later = Позже
+update.downloading = Загрузка… {0}%
+update.failed = Ошибка загрузки. Попробуйте снова.
+update.install = Нажмите «Установить» на следующем экране.

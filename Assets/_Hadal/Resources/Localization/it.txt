@@ -1,0 +1,175 @@
+# HADAL UI strings (it). One "key = value" per line; \n is a line break, {0} a placeholder.
+
+title.tagline = L'ultima cupola dell'umanità, sul fondo dell'oceano.
+title.connecting = Connessione al server…
+title.reconnecting = Connessione persa, nuovo tentativo…
+title.maintenance = Il server è in manutenzione. Nuovo tentativo a breve.
+title.update = È richiesta una versione più recente. Aggiorna il gioco.
+title.tap = Tocca per iniziare
+title.banned = Il tuo account è sospeso. Contatta l'assistenza.
+
+account.title = Profilo e account
+account.name = Nome giocatore
+account.save = Salva
+account.saved = Salvato.
+account.id = ID account
+account.protected = Il tuo account è protetto.
+account.unprotected = Il tuo account esiste solo su questo dispositivo. Cambiando telefono potresti perdere i tuoi progressi.
+account.protect = Proteggi account
+account.protect.hint = Scegli una password e ottieni un codice di trasferimento. Usa codice + password per accedere da un nuovo dispositivo.
+account.password = Password (min. 8 caratteri)
+account.password2 = Ripeti la password
+account.create = Crea codice
+account.code = Il tuo codice di trasferimento
+account.code.note = Conserva questo codice e la password. Creare un nuovo codice annulla quello vecchio.
+account.copy = Copia
+account.copied = Copiato
+account.switch = Accedi a un altro account
+account.switch.hint = Accedi con codice di trasferimento e password. Un account non protetto su questo dispositivo andrà perso.
+account.transfercode = Codice di trasferimento (XXXX-XXXX-XXXX)
+account.signin = Accedi
+account.google = Collega Google (presto)
+account.apple = Collega Apple (presto)
+account.close = Chiudi
+account.back = Indietro
+
+gift.open = Riscatta un codice regalo
+gift.hint = Inserisci un codice da un evento o un annuncio; le ricompense finiscono direttamente nel tuo magazzino.
+gift.code = Codice regalo
+gift.redeem = Riscatta
+gift.done = Ricompense aggiunte: {0}
+
+base.build.title = Costruisci · Anello {0}
+base.build = Costruisci
+base.upgrade = Potenzia
+base.finish = Completa gratis
+base.close = Chiudi
+base.level = Livello {0}
+base.level.max = Livello max
+base.constructing = In costruzione · {0}
+base.upgrading = Potenziamento al livello {0} · {1}
+base.produces = Produce
+base.consumes = Consuma
+base.next = Livello successivo
+base.cost = Costo
+base.time = Tempo
+base.permin = /min
+base.nothing = Qui non si può ancora costruire nulla.
+base.started = Costruzione avviata.
+base.done = Completato.
+
+building.core_reactor = Reattore centrale
+building.oxygen_plant = Impianto di ossigeno
+building.food_lab = Laboratorio alimentare
+building.bio_lab = Biolaboratorio
+building.research_center = Centro di ricerca
+building.drone_factory = Fabbrica di droni
+building.submarine_dock = Molo sottomarini
+building.military_dome = Cupola militare
+building.shield_generator = Generatore di scudi
+building.radar_center = Centro radar
+building.mega_dome = Megacupola
+building.alliance_hub = Sede dell'alleanza
+building.decoration_spire = Guglia decorativa
+
+desc.core_reactor = Il cuore della base. Nessun edificio può superare il livello del reattore.
+desc.oxygen_plant = Produce ossigeno. Senza ossigeno la base muore.
+desc.food_lab = Nutre l'equipaggio.
+desc.bio_lab = Ricava biomassa da organismi viventi.
+desc.research_center = La porta verso nuove tecnologie.
+desc.drone_factory = I droni di recupero estraggono titanio dai relitti.
+desc.submarine_dock = Costruisce sottomarini e avvia spedizioni.
+desc.military_dome = Addestra i difensori della base.
+desc.shield_generator = Protegge da pressione e attacchi.
+desc.radar_center = Rileva le minacce in arrivo.
+desc.mega_dome = Espande la base con una nuova cupola.
+desc.alliance_hub = Collegamento con l'alleanza.
+desc.decoration_spire = Decora la tua base.
+
+resource.Oxygen = Ossigeno
+resource.Energy = Energia
+resource.Food = Cibo
+resource.Biomass = Biomassa
+resource.Titanium = Titanio
+resource.Hadalite = Hadalite
+
+reason.BuilderBusy = Costruttore occupato: una costruzione alla volta.
+reason.InsufficientResources = Risorse insufficienti.
+reason.ReactorLevelTooLow = Prima potenzia il Reattore centrale.
+reason.MaxLevel = Già al livello max.
+reason.UnderConstruction = Già in costruzione.
+reason.NotYetFree = Completamento gratis solo negli ultimi 5 minuti.
+reason.NotUnderConstruction = Nessuna costruzione in corso.
+reason.SlotOccupied = Questo slot è occupato.
+reason.RingLocked = Questo anello è ancora bloccato.
+reason.SectorLocked = Questo settore è ancora bloccato.
+reason.RingNotAllowed = Questo edificio non è adatto a questo anello.
+reason.SlotTypeMismatch = Questo slot non è per questo edificio.
+reason.SectorRestricted = Questo slot è riservato a un altro edificio.
+reason.UnknownBuilding = Edificio non trovato.
+reason.NotSupported = Non ancora disponibile.
+
+error.NameInvalid = Nomi di 3–16 caratteri: lettere, cifre, spazio, _ e -.
+error.PasswordInvalid = La password deve avere almeno 8 caratteri.
+error.PasswordMismatch = Le password non corrispondono.
+error.InvalidCredentials = Codice o password errati.
+error.RateLimited = Troppi tentativi. Riprova più tardi.
+error.Network = Impossibile raggiungere il server.
+error.Banned = Il tuo account è sospeso.
+error.CouponUnknown = Codice inesistente.
+error.CouponInactive = Questo codice non è più valido.
+error.CouponExpired = Questo codice è scaduto.
+error.CouponExhausted = Questo codice ha raggiunto il limite.
+error.CouponAlreadyRedeemed = Hai già usato questo codice.
+error.CouponNotStarted = Questo codice non è ancora attivo.
+error.CouponNotForYou = Questo codice appartiene a un altro giocatore.
+error.generic = Qualcosa è andato storto ({0}).
+
+settings.title = Impostazioni
+settings.account = Account
+settings.language = Lingua
+settings.sound = Audio
+settings.graphics = Grafica
+settings.notifications = Notifiche
+settings.gift = Codice regalo
+settings.support = Assistenza
+settings.about = Info
+settings.on = On
+settings.off = Off
+
+sound.music = Musica
+sound.effects = Effetti sonori
+sound.volume = Volume
+sound.vibration = Vibrazione
+
+graphics.quality = Qualità grafica
+graphics.low = Bassa
+graphics.medium = Media
+graphics.high = Alta
+graphics.fps = Frame rate
+graphics.power = Risparmio batteria
+graphics.power.hint = Riduce qualità e frame rate per risparmiare batteria.
+
+notify.hint = Scegli quali avvisi mostra questo dispositivo.
+notify.construction = Costruzione completata
+notify.storage = Magazzino pieno
+notify.events = Eventi e annunci
+
+language.hint = Il gioco si riavvia nella lingua scelta.
+
+support.hint = Contattaci tramite il nostro sito. Indica il tuo ID account per trovarti rapidamente.
+support.copy = Copia ID account
+support.copied = Copiato
+support.website = Apri il sito
+
+about.version = Versione {0}
+about.account = ID account: {0}
+about.studio = Sviluppato da Cicibyte
+
+update.available = È disponibile la versione {0}.
+update.required = Questa versione non è più supportata. Aggiorna per continuare a giocare.
+update.button = Aggiorna
+update.later = Più tardi
+update.downloading = Download… {0}%
+update.failed = Download non riuscito. Riprova.
+update.install = Tocca Installa nella schermata successiva.

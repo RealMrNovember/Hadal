@@ -1,0 +1,175 @@
+# HADAL UI strings (nl). One "key = value" per line; \n is a line break, {0} a placeholder.
+
+title.tagline = De laatste koepel van de mensheid, op de bodem van de oceaan.
+title.connecting = Verbinden met server…
+title.reconnecting = Verbinding verbroken, opnieuw proberen…
+title.maintenance = Server in onderhoud. We proberen het zo opnieuw.
+title.update = Een nieuwere versie is vereist. Werk de game bij.
+title.tap = Tik om te starten
+title.banned = Je account is geschorst. Neem contact op met support.
+
+account.title = Profiel & Account
+account.name = Spelersnaam
+account.save = Opslaan
+account.saved = Opgeslagen.
+account.id = Account-ID
+account.protected = Je account is beveiligd.
+account.unprotected = Je account staat alleen op dit apparaat. Bij een nieuwe telefoon kun je je voortgang kwijtraken.
+account.protect = Account Beveiligen
+account.protect.hint = Kies een wachtwoord en krijg een overdrachtscode. Log met code + wachtwoord in op een nieuw apparaat.
+account.password = Wachtwoord (min. 8 tekens)
+account.password2 = Herhaal wachtwoord
+account.create = Code Maken
+account.code = Je overdrachtscode
+account.code.note = Bewaar deze code en je wachtwoord. Een nieuwe code maakt de oude ongeldig.
+account.copy = Kopiëren
+account.copied = Gekopieerd
+account.switch = Inloggen op Ander Account
+account.switch.hint = Log in met een overdrachtscode en wachtwoord. Een onbeveiligd account op dit apparaat gaat verloren.
+account.transfercode = Overdrachtscode (XXXX-XXXX-XXXX)
+account.signin = Inloggen
+account.google = Google koppelen (binnenkort)
+account.apple = Apple koppelen (binnenkort)
+account.close = Sluiten
+account.back = Terug
+
+gift.open = Cadeaucode Inwisselen
+gift.hint = Voer een code uit een event of aankondiging in; de beloningen gaan direct naar je opslag.
+gift.code = Cadeaucode
+gift.redeem = Inwisselen
+gift.done = Beloningen toegevoegd: {0}
+
+base.build.title = Bouwen · Ring {0}
+base.build = Bouwen
+base.upgrade = Upgraden
+base.finish = Gratis Voltooien
+base.close = Sluiten
+base.level = Level {0}
+base.level.max = Max level
+base.constructing = In aanbouw · {0}
+base.upgrading = Upgraden naar level {0} · {1}
+base.produces = Produceert
+base.consumes = Verbruikt
+base.next = Volgend level
+base.cost = Kosten
+base.time = Tijd
+base.permin = /min
+base.nothing = Op deze plek kan nog niets gebouwd worden.
+base.started = Bouw gestart.
+base.done = Voltooid.
+
+building.core_reactor = Kernreactor
+building.oxygen_plant = Zuurstofcentrale
+building.food_lab = Voedsellab
+building.bio_lab = Biolab
+building.research_center = Onderzoekscentrum
+building.drone_factory = Dronefabriek
+building.submarine_dock = Onderzeeërdok
+building.military_dome = Militaire Koepel
+building.shield_generator = Schildgenerator
+building.radar_center = Radarcentrum
+building.mega_dome = Megakoepel
+building.alliance_hub = Alliantiecentrum
+building.decoration_spire = Sierspits
+
+desc.core_reactor = Het hart van de basis. Geen gebouw kan hoger zijn dan de reactor.
+desc.oxygen_plant = Produceert zuurstof. Zonder zuurstof sterft de basis.
+desc.food_lab = Voedt de bemanning.
+desc.bio_lab = Kweekt biomassa uit levende organismen.
+desc.research_center = De poort naar nieuwe technologie.
+desc.drone_factory = Bergingsdrones halen titanium uit wrakken.
+desc.submarine_dock = Bouwt onderzeeërs en start expedities.
+desc.military_dome = Traint de verdedigers van de basis.
+desc.shield_generator = Beschermt tegen druk en aanvallen.
+desc.radar_center = Detecteert naderende dreigingen.
+desc.mega_dome = Breidt de basis uit met een nieuwe koepel.
+desc.alliance_hub = Verbinding met je alliantie.
+desc.decoration_spire = Versiert je basis.
+
+resource.Oxygen = Zuurstof
+resource.Energy = Energie
+resource.Food = Voedsel
+resource.Biomass = Biomassa
+resource.Titanium = Titanium
+resource.Hadalite = Hadaliet
+
+reason.BuilderBusy = Bouwer bezig: één bouwproject tegelijk.
+reason.InsufficientResources = Niet genoeg grondstoffen.
+reason.ReactorLevelTooLow = Upgrade eerst de Kernreactor.
+reason.MaxLevel = Al op max level.
+reason.UnderConstruction = Al in aanbouw.
+reason.NotYetFree = Gratis voltooien kan in de laatste 5 minuten.
+reason.NotUnderConstruction = Er wordt niets gebouwd.
+reason.SlotOccupied = Deze plek is bezet.
+reason.RingLocked = Deze ring is nog vergrendeld.
+reason.SectorLocked = Deze sector is nog vergrendeld.
+reason.RingNotAllowed = Dit gebouw past niet in deze ring.
+reason.SlotTypeMismatch = Deze plek is niet voor dit gebouw.
+reason.SectorRestricted = Deze plek is gereserveerd voor een ander gebouw.
+reason.UnknownBuilding = Gebouw niet gevonden.
+reason.NotSupported = Nog niet ondersteund.
+
+error.NameInvalid = Namen zijn 3–16 tekens: letters, cijfers, spatie, _ en -.
+error.PasswordInvalid = Het wachtwoord moet minstens 8 tekens hebben.
+error.PasswordMismatch = De wachtwoorden komen niet overeen.
+error.InvalidCredentials = Onjuiste code of wachtwoord.
+error.RateLimited = Te veel pogingen. Probeer het later opnieuw.
+error.Network = Kan de server niet bereiken.
+error.Banned = Je account is geschorst.
+error.CouponUnknown = Deze code bestaat niet.
+error.CouponInactive = Deze code is niet meer geldig.
+error.CouponExpired = Deze code is verlopen.
+error.CouponExhausted = Deze code heeft zijn limiet bereikt.
+error.CouponAlreadyRedeemed = Je hebt deze code al gebruikt.
+error.CouponNotStarted = Deze code is nog niet actief.
+error.CouponNotForYou = Deze code is van een andere speler.
+error.generic = Er ging iets mis ({0}).
+
+settings.title = Instellingen
+settings.account = Account
+settings.language = Taal
+settings.sound = Geluid
+settings.graphics = Graphics
+settings.notifications = Meldingen
+settings.gift = Cadeaucode
+settings.support = Support
+settings.about = Over
+settings.on = Aan
+settings.off = Uit
+
+sound.music = Muziek
+sound.effects = Geluidseffecten
+sound.volume = Volume
+sound.vibration = Trillen
+
+graphics.quality = Grafische kwaliteit
+graphics.low = Laag
+graphics.medium = Gemiddeld
+graphics.high = Hoog
+graphics.fps = Framerate
+graphics.power = Batterijbesparing
+graphics.power.hint = Verlaagt kwaliteit en framerate om batterij te sparen.
+
+notify.hint = Kies welke meldingen dit apparaat toont.
+notify.construction = Bouw voltooid
+notify.storage = Opslag vol
+notify.events = Events en aankondigingen
+
+language.hint = De game herstart in de gekozen taal.
+
+support.hint = Neem contact op via onze website. Vermeld je account-ID zodat we je snel kunnen vinden.
+support.copy = Account-ID Kopiëren
+support.copied = Gekopieerd
+support.website = Website Openen
+
+about.version = Versie {0}
+about.account = Account-ID: {0}
+about.studio = Ontwikkeld door Cicibyte
+
+update.available = Versie {0} is beschikbaar.
+update.required = Deze versie wordt niet meer ondersteund. Werk bij om verder te spelen.
+update.button = Bijwerken
+update.later = Later
+update.downloading = Downloaden… {0}%
+update.failed = Download mislukt. Probeer het opnieuw.
+update.install = Tik op Installeren in het volgende scherm.

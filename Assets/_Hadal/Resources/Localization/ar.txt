@@ -1,0 +1,175 @@
+# HADAL UI strings (ar). One "key = value" per line; \n is a line break, {0} a placeholder.
+
+title.tagline = آخر قبة للبشرية، في قاع المحيط.
+title.connecting = جارٍ الاتصال بالخادم…
+title.reconnecting = انقطع الاتصال، جارٍ إعادة المحاولة…
+title.maintenance = الخادم قيد الصيانة. ستُعاد المحاولة قريبًا.
+title.update = يلزم إصدار أحدث. يُرجى التحديث.
+title.tap = انقر للبدء
+title.banned = تم تعليق حسابك. يُرجى التواصل مع الدعم.
+
+account.title = الملف الشخصي والحساب
+account.name = اسم اللاعب
+account.save = حفظ
+account.saved = تم الحفظ.
+account.id = معرّف الحساب
+account.protected = حسابك محمي.
+account.unprotected = حسابك محفوظ على هذا الجهاز فقط. قد تفقد تقدمك عند تغيير الهاتف.
+account.protect = حماية الحساب
+account.protect.hint = اختر كلمة مرور واحصل على رمز نقل. استخدم الرمز وكلمة المرور للدخول من جهاز جديد.
+account.password = كلمة المرور (8 أحرف أو أكثر)
+account.password2 = أعد كلمة المرور
+account.create = إنشاء رمز
+account.code = رمز النقل الخاص بك
+account.code.note = احتفظ بهذا الرمز وكلمة المرور. إنشاء رمز جديد يلغي الرمز القديم.
+account.copy = نسخ
+account.copied = تم النسخ
+account.switch = الدخول إلى حساب آخر
+account.switch.hint = سجّل الدخول برمز النقل وكلمة المرور. سيُفقد الحساب غير المحمي على هذا الجهاز.
+account.transfercode = رمز النقل (XXXX-XXXX-XXXX)
+account.signin = تسجيل الدخول
+account.google = ربط Google (قريبًا)
+account.apple = ربط Apple (قريبًا)
+account.close = إغلاق
+account.back = رجوع
+
+gift.open = استرداد رمز هدية
+gift.hint = أدخل رمزًا من حدث أو إعلان؛ تصل المكافآت مباشرةً إلى مخزنك.
+gift.code = رمز الهدية
+gift.redeem = استرداد
+gift.done = أُضيفت المكافآت: {0}
+
+base.build.title = بناء · الحلقة {0}
+base.build = بناء
+base.upgrade = ترقية
+base.finish = إنهاء مجاني
+base.close = إغلاق
+base.level = المستوى {0}
+base.level.max = أقصى مستوى
+base.constructing = قيد البناء · {0}
+base.upgrading = ترقية إلى المستوى {0} · {1}
+base.produces = ينتج
+base.consumes = يستهلك
+base.next = المستوى التالي
+base.cost = التكلفة
+base.time = الوقت
+base.permin = /دقيقة
+base.nothing = لا يمكن بناء شيء في هذه الخانة بعد.
+base.started = بدأ البناء.
+base.done = اكتمل.
+
+building.core_reactor = المفاعل المركزي
+building.oxygen_plant = محطة الأكسجين
+building.food_lab = مختبر الغذاء
+building.bio_lab = المختبر الحيوي
+building.research_center = مركز الأبحاث
+building.drone_factory = مصنع الطائرات المسيّرة
+building.submarine_dock = مرسى الغواصات
+building.military_dome = القبة العسكرية
+building.shield_generator = مولّد الدرع
+building.radar_center = مركز الرادار
+building.mega_dome = القبة الكبرى
+building.alliance_hub = مركز التحالف
+building.decoration_spire = برج الزينة
+
+desc.core_reactor = قلب القاعدة. لا يتجاوز أي مبنى مستوى المفاعل.
+desc.oxygen_plant = ينتج الأكسجين. بدونه تموت القاعدة.
+desc.food_lab = يطعم الطاقم.
+desc.bio_lab = يزرع الكتلة الحيوية من الكائنات الحية.
+desc.research_center = بوابتك إلى التقنيات الجديدة.
+desc.drone_factory = طائرات الإنقاذ تستخرج التيتانيوم من الحطام.
+desc.submarine_dock = يبني الغواصات ويطلق البعثات.
+desc.military_dome = يدرّب المدافعين عن القاعدة.
+desc.shield_generator = يحمي من الضغط والهجمات.
+desc.radar_center = يرصد التهديدات القادمة.
+desc.mega_dome = يوسّع القاعدة بقبة جديدة.
+desc.alliance_hub = صلة الوصل بالتحالف.
+desc.decoration_spire = يزيّن قاعدتك.
+
+resource.Oxygen = الأكسجين
+resource.Energy = الطاقة
+resource.Food = الغذاء
+resource.Biomass = الكتلة الحيوية
+resource.Titanium = التيتانيوم
+resource.Hadalite = الهاداليت
+
+reason.BuilderBusy = البنّاء مشغول: بناء واحد في كل مرة.
+reason.InsufficientResources = الموارد غير كافية.
+reason.ReactorLevelTooLow = رقِّ المفاعل المركزي أولًا.
+reason.MaxLevel = في أقصى مستوى بالفعل.
+reason.UnderConstruction = قيد البناء بالفعل.
+reason.NotYetFree = الإنهاء المجاني متاح في آخر 5 دقائق.
+reason.NotUnderConstruction = لا يوجد بناء جارٍ.
+reason.SlotOccupied = هذه الخانة مشغولة.
+reason.RingLocked = هذه الحلقة لا تزال مقفلة.
+reason.SectorLocked = هذا القطاع لا يزال مقفلًا.
+reason.RingNotAllowed = هذا المبنى لا يناسب هذه الحلقة.
+reason.SlotTypeMismatch = هذه الخانة ليست لهذا المبنى.
+reason.SectorRestricted = هذه الخانة محجوزة لمبنى آخر.
+reason.UnknownBuilding = المبنى غير موجود.
+reason.NotSupported = غير مدعوم بعد.
+
+error.NameInvalid = الاسم من 3–16 حرفًا: حروف وأرقام ومسافة و_ و-.
+error.PasswordInvalid = يجب ألا تقل كلمة المرور عن 8 أحرف.
+error.PasswordMismatch = كلمتا المرور غير متطابقتين.
+error.InvalidCredentials = الرمز أو كلمة المرور غير صحيحة.
+error.RateLimited = محاولات كثيرة. حاول لاحقًا.
+error.Network = تعذّر الوصول إلى الخادم.
+error.Banned = تم تعليق حسابك.
+error.CouponUnknown = لا يوجد رمز كهذا.
+error.CouponInactive = هذا الرمز لم يعد صالحًا.
+error.CouponExpired = انتهت صلاحية هذا الرمز.
+error.CouponExhausted = بلغ هذا الرمز حده الأقصى.
+error.CouponAlreadyRedeemed = لقد استخدمت هذا الرمز من قبل.
+error.CouponNotStarted = هذا الرمز غير مفعّل بعد.
+error.CouponNotForYou = هذا الرمز يخص لاعبًا آخر.
+error.generic = حدث خطأ ما ({0}).
+
+settings.title = الإعدادات
+settings.account = الحساب
+settings.language = اللغة
+settings.sound = الصوت
+settings.graphics = الرسومات
+settings.notifications = الإشعارات
+settings.gift = رمز الهدية
+settings.support = الدعم
+settings.about = حول اللعبة
+settings.on = تشغيل
+settings.off = إيقاف
+
+sound.music = الموسيقى
+sound.effects = المؤثرات الصوتية
+sound.volume = مستوى الصوت
+sound.vibration = الاهتزاز
+
+graphics.quality = جودة الرسومات
+graphics.low = منخفضة
+graphics.medium = متوسطة
+graphics.high = عالية
+graphics.fps = معدل الإطارات
+graphics.power = توفير البطارية
+graphics.power.hint = يخفض الجودة ومعدل الإطارات لتوفير البطارية.
+
+notify.hint = اختر التنبيهات التي يعرضها هذا الجهاز.
+notify.construction = اكتمل البناء
+notify.storage = المخزن ممتلئ
+notify.events = الأحداث والإعلانات
+
+language.hint = ستُعاد تشغيل اللعبة باللغة التي تختارها.
+
+support.hint = تواصل معنا عبر موقعنا. أرفق معرّف حسابك لنجدك بسرعة.
+support.copy = نسخ معرّف الحساب
+support.copied = تم النسخ
+support.website = فتح الموقع
+
+about.version = الإصدار {0}
+about.account = معرّف الحساب: {0}
+about.studio = تطوير Cicibyte
+
+update.available = الإصدار {0} متاح.
+update.required = هذا الإصدار لم يعد مدعومًا. حدّث اللعبة لمواصلة اللعب.
+update.button = تحديث
+update.later = لاحقًا
+update.downloading = جارٍ التنزيل… {0}%
+update.failed = فشل التنزيل. يُرجى المحاولة مجددًا.
+update.install = انقر على تثبيت في الشاشة التالية.

@@ -1,4 +1,5 @@
 using UnityEngine;
+using Hadal.Core.Services;
 using Hadal.Data.Config;
 using Hadal.Managers.Base;
 
@@ -14,7 +15,17 @@ namespace Hadal.Managers
         protected override void OnInitialize(GameConfigSO config)
         {
             EnsureSources();
+            ApplyVolumes();
+            GameSettings.Changed += ApplyVolumes;
             PlaySonarAmbience();
+        }
+
+        private void ApplyVolumes()
+        {
+            if (_musicSource != null)
+                _musicSource.volume = GameSettings.EffectiveMusicVolume;
+            if (_sfxSource != null)
+                _sfxSource.volume = GameSettings.EffectiveSoundVolume;
         }
 
         private void EnsureSources()
@@ -54,6 +65,7 @@ namespace Hadal.Managers
 
         protected override void OnShutdown()
         {
+            GameSettings.Changed -= ApplyVolumes;
             if (_musicSource != null)
                 _musicSource.Stop();
         }

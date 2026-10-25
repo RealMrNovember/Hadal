@@ -1,0 +1,175 @@
+# HADAL UI strings (en). One "key = value" per line; \n is a line break, {0} a placeholder.
+
+title.tagline = Kubah terakhir manusia, di dasar lautan.
+title.connecting = Menyambung ke pelayan…
+title.reconnecting = Sambungan terputus, mencuba semula…
+title.maintenance = Pelayan sedang diselenggara. Akan mencuba semula sebentar lagi.
+title.update = Versi lebih baharu diperlukan. Sila kemas kini.
+title.tap = Ketik untuk mula
+title.banned = Akaun anda telah digantung. Sila hubungi sokongan.
+
+account.title = Profil & Akaun
+account.name = Nama pemain
+account.save = Simpan
+account.saved = Disimpan.
+account.id = ID Akaun
+account.protected = Akaun anda dilindungi.
+account.unprotected = Akaun anda hanya ada pada peranti ini. Menukar telefon boleh menyebabkan kemajuan hilang.
+account.protect = Lindungi Akaun
+account.protect.hint = Tetapkan kata laluan dan dapatkan kod pemindahan. Guna kod + kata laluan untuk log masuk pada peranti baharu.
+account.password = Kata laluan (8+ aksara)
+account.password2 = Ulang kata laluan
+account.create = Cipta Kod
+account.code = Kod pemindahan anda
+account.code.note = Simpan kod ini dan kata laluan anda. Mencipta kod baharu akan membatalkan kod lama.
+account.copy = Salin
+account.copied = Disalin
+account.switch = Log Masuk ke Akaun Lain
+account.switch.hint = Log masuk dengan kod pemindahan dan kata laluan. Akaun tidak dilindungi pada peranti ini akan hilang.
+account.transfercode = Kod pemindahan (XXXX-XXXX-XXXX)
+account.signin = Log Masuk
+account.google = Pautkan Google (akan datang)
+account.apple = Pautkan Apple (akan datang)
+account.close = Tutup
+account.back = Kembali
+
+gift.open = Tebus Kod Hadiah
+gift.hint = Masukkan kod daripada acara atau pengumuman; ganjaran terus masuk ke stor anda.
+gift.code = Kod hadiah
+gift.redeem = Tebus
+gift.done = Ganjaran ditambah: {0}
+
+base.build.title = Bina · Gelang {0}
+base.build = Bina
+base.upgrade = Naik Taraf
+base.finish = Siap Percuma
+base.close = Tutup
+base.level = Tahap {0}
+base.level.max = Tahap maks
+base.constructing = Sedang dibina · {0}
+base.upgrading = Naik taraf ke tahap {0} · {1}
+base.produces = Menghasilkan
+base.consumes = Menggunakan
+base.next = Tahap seterusnya
+base.cost = Kos
+base.time = Masa
+base.permin = /min
+base.nothing = Belum ada apa-apa yang boleh dibina di slot ini.
+base.started = Pembinaan dimulakan.
+base.done = Selesai.
+
+building.core_reactor = Reaktor Teras
+building.oxygen_plant = Loji Oksigen
+building.food_lab = Makmal Makanan
+building.bio_lab = Makmal Bio
+building.research_center = Pusat Penyelidikan
+building.drone_factory = Kilang Dron
+building.submarine_dock = Limbungan Kapal Selam
+building.military_dome = Kubah Tentera
+building.shield_generator = Penjana Perisai
+building.radar_center = Pusat Radar
+building.mega_dome = Kubah Mega
+building.alliance_hub = Hab Pakatan
+building.decoration_spire = Menara Hiasan
+
+desc.core_reactor = Jantung pangkalan. Tiada bangunan boleh melebihi tahap reaktor.
+desc.oxygen_plant = Menghasilkan oksigen. Tanpa oksigen, pangkalan akan musnah.
+desc.food_lab = Memberi makan krew.
+desc.bio_lab = Menumbuhkan biojisim daripada organisma hidup.
+desc.research_center = Pintu ke teknologi baharu.
+desc.drone_factory = Dron penyelamat mendapatkan titanium daripada bangkai kapal.
+desc.submarine_dock = Membina kapal selam dan melancarkan ekspedisi.
+desc.military_dome = Melatih pertahanan pangkalan.
+desc.shield_generator = Melindungi daripada tekanan dan serangan.
+desc.radar_center = Mengesan ancaman yang mendatang.
+desc.mega_dome = Meluaskan pangkalan ke kubah baharu.
+desc.alliance_hub = Penghubung pakatan.
+desc.decoration_spire = Menghias pangkalan anda.
+
+resource.Oxygen = Oksigen
+resource.Energy = Tenaga
+resource.Food = Makanan
+resource.Biomass = Biojisim
+resource.Titanium = Titanium
+resource.Hadalite = Hadalit
+
+reason.BuilderBusy = Pembina sibuk: satu pembinaan pada satu masa.
+reason.InsufficientResources = Sumber tidak mencukupi.
+reason.ReactorLevelTooLow = Naik taraf Reaktor Teras dahulu.
+reason.MaxLevel = Sudah di tahap maks.
+reason.UnderConstruction = Sedang dibina.
+reason.NotYetFree = Siap percuma dibuka dalam 5 minit terakhir.
+reason.NotUnderConstruction = Tiada apa-apa sedang dibina.
+reason.SlotOccupied = Slot ini sudah diisi.
+reason.RingLocked = Gelang ini masih terkunci.
+reason.SectorLocked = Sektor ini masih terkunci.
+reason.RingNotAllowed = Bangunan ini tidak sesuai untuk gelang ini.
+reason.SlotTypeMismatch = Slot ini bukan untuk bangunan ini.
+reason.SectorRestricted = Slot ini dikhaskan untuk bangunan lain.
+reason.UnknownBuilding = Bangunan tidak ditemui.
+reason.NotSupported = Belum disokong.
+
+error.NameInvalid = Nama 3–16 aksara: huruf, nombor, ruang, _ dan -.
+error.PasswordInvalid = Kata laluan perlu sekurang-kurangnya 8 aksara.
+error.PasswordMismatch = Kata laluan tidak sepadan.
+error.InvalidCredentials = Kod atau kata laluan salah.
+error.RateLimited = Terlalu banyak cubaan. Cuba lagi nanti.
+error.Network = Tidak dapat menyambung ke pelayan.
+error.Banned = Akaun anda telah digantung.
+error.CouponUnknown = Kod tidak wujud.
+error.CouponInactive = Kod ini tidak lagi sah.
+error.CouponExpired = Kod ini telah tamat tempoh.
+error.CouponExhausted = Kod ini telah mencapai had.
+error.CouponAlreadyRedeemed = Anda sudah menggunakan kod ini.
+error.CouponNotStarted = Kod ini belum aktif.
+error.CouponNotForYou = Kod ini milik pemain lain.
+error.generic = Berlaku ralat ({0}).
+
+settings.title = Tetapan
+settings.account = Akaun
+settings.language = Bahasa
+settings.sound = Bunyi
+settings.graphics = Grafik
+settings.notifications = Pemberitahuan
+settings.gift = Kod Hadiah
+settings.support = Sokongan
+settings.about = Perihal
+settings.on = Hidup
+settings.off = Mati
+
+sound.music = Muzik
+sound.effects = Kesan bunyi
+sound.volume = Kelantangan
+sound.vibration = Getaran
+
+graphics.quality = Kualiti grafik
+graphics.low = Rendah
+graphics.medium = Sederhana
+graphics.high = Tinggi
+graphics.fps = Kadar bingkai
+graphics.power = Penjimat bateri
+graphics.power.hint = Merendahkan kualiti dan kadar bingkai untuk menjimatkan bateri.
+
+notify.hint = Pilih makluman yang dipaparkan pada peranti ini.
+notify.construction = Pembinaan selesai
+notify.storage = Stor penuh
+notify.events = Acara dan pengumuman
+
+language.hint = Permainan akan dimulakan semula dalam bahasa pilihan anda.
+
+support.hint = Hubungi kami melalui laman web. Sertakan ID akaun anda supaya kami dapat mencari anda dengan cepat.
+support.copy = Salin ID Akaun
+support.copied = Disalin
+support.website = Buka Laman Web
+
+about.version = Versi {0}
+about.account = ID Akaun: {0}
+about.studio = Dibangunkan oleh Cicibyte
+
+update.available = Versi {0} kini tersedia.
+update.required = Versi ini tidak lagi disokong. Kemas kini untuk terus bermain.
+update.button = Kemas Kini
+update.later = Nanti
+update.downloading = Memuat turun… {0}%
+update.failed = Muat turun gagal. Sila cuba lagi.
+update.install = Ketik Pasang pada skrin seterusnya.

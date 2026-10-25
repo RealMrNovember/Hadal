@@ -1,0 +1,175 @@
+# HADAL UI strings (zh-Hant). One "key = value" per line; \n is a line break, {0} a placeholder.
+
+title.tagline = 海底深處，人類最後的穹頂。
+title.connecting = 正在連線至伺服器…
+title.reconnecting = 連線中斷，正在重試…
+title.maintenance = 伺服器維護中，稍後將自動重試。
+title.update = 需要更新至新版本，請更新。
+title.tap = 點擊開始
+title.banned = 你的帳號已被停權，請聯絡客服。
+
+account.title = 個人資料與帳號
+account.name = 玩家名稱
+account.save = 儲存
+account.saved = 已儲存。
+account.id = 帳號ID
+account.protected = 你的帳號已受到保護。
+account.unprotected = 你的帳號僅儲存在此裝置上，更換手機可能導致進度遺失。
+account.protect = 保護帳號
+account.protect.hint = 設定密碼即可取得移轉碼。在新裝置上使用移轉碼+密碼即可登入。
+account.password = 密碼（至少8個字元）
+account.password2 = 確認密碼
+account.create = 產生移轉碼
+account.code = 你的移轉碼
+account.code.note = 請妥善保管移轉碼與密碼。產生新的移轉碼後，舊碼將會失效。
+account.copy = 複製
+account.copied = 已複製
+account.switch = 登入其他帳號
+account.switch.hint = 使用移轉碼與密碼登入。此裝置上未受保護的帳號將會遺失。
+account.transfercode = 移轉碼（XXXX-XXXX-XXXX）
+account.signin = 登入
+account.google = 綁定Google（即將推出）
+account.apple = 綁定Apple（即將推出）
+account.close = 關閉
+account.back = 返回
+
+gift.open = 序號兌換
+gift.hint = 輸入活動或公告中的序號，獎勵將直接發送至倉庫。
+gift.code = 序號
+gift.redeem = 兌換
+gift.done = 已獲得獎勵：{0}
+
+base.build.title = 建造 · 第{0}環
+base.build = 建造
+base.upgrade = 升級
+base.finish = 免費完成
+base.close = 關閉
+base.level = 等級 {0}
+base.level.max = 已滿級
+base.constructing = 建造中 · {0}
+base.upgrading = 升級至{0}級 · {1}
+base.produces = 產出
+base.consumes = 消耗
+base.next = 下一級
+base.cost = 花費
+base.time = 時間
+base.permin = /分鐘
+base.nothing = 此位置暫無可建造的建築。
+base.started = 開始建造。
+base.done = 已完成。
+
+building.core_reactor = 核心反應爐
+building.oxygen_plant = 製氧廠
+building.food_lab = 食物實驗室
+building.bio_lab = 生物實驗室
+building.research_center = 研究中心
+building.drone_factory = 無人機工廠
+building.submarine_dock = 潛艇船塢
+building.military_dome = 軍事穹頂
+building.shield_generator = 護盾產生器
+building.radar_center = 雷達中心
+building.mega_dome = 巨型穹頂
+building.alliance_hub = 聯盟中心
+building.decoration_spire = 裝飾尖塔
+
+desc.core_reactor = 基地的心臟。任何建築的等級都不能超過反應爐。
+desc.oxygen_plant = 生產氧氣。沒有氧氣，基地將會毀滅。
+desc.food_lab = 為船員提供食物。
+desc.bio_lab = 從生物體中培育生物質。
+desc.research_center = 通往新科技的大門。
+desc.drone_factory = 打撈無人機從殘骸中回收鈦。
+desc.submarine_dock = 建造潛艇並派遣探險隊。
+desc.military_dome = 訓練基地的守衛部隊。
+desc.shield_generator = 抵禦水壓與攻擊。
+desc.radar_center = 偵測來襲的威脅。
+desc.mega_dome = 將基地擴展至新的穹頂。
+desc.alliance_hub = 聯盟連結樞紐。
+desc.decoration_spire = 裝飾你的基地。
+
+resource.Oxygen = 氧氣
+resource.Energy = 能源
+resource.Food = 食物
+resource.Biomass = 生物質
+resource.Titanium = 鈦
+resource.Hadalite = 深淵晶
+
+reason.BuilderBusy = 建造隊忙碌中：同一時間只能建造一項。
+reason.InsufficientResources = 資源不足。
+reason.ReactorLevelTooLow = 請先升級核心反應爐。
+reason.MaxLevel = 已達最高等級。
+reason.UnderConstruction = 已在建造中。
+reason.NotYetFree = 剩餘5分鐘內才可免費完成。
+reason.NotUnderConstruction = 目前沒有建造中的建築。
+reason.SlotOccupied = 此位置已被佔用。
+reason.RingLocked = 此環尚未解鎖。
+reason.SectorLocked = 此區域尚未解鎖。
+reason.RingNotAllowed = 此建築無法建在這一環。
+reason.SlotTypeMismatch = 此位置不能建造該建築。
+reason.SectorRestricted = 此位置為其他建築保留。
+reason.UnknownBuilding = 找不到該建築。
+reason.NotSupported = 尚未支援。
+
+error.NameInvalid = 名稱需為3–16個字元，可使用字母、數字、空格、_和-。
+error.PasswordInvalid = 密碼至少需要8個字元。
+error.PasswordMismatch = 兩次輸入的密碼不一致。
+error.InvalidCredentials = 移轉碼或密碼錯誤。
+error.RateLimited = 嘗試次數過多，請稍後再試。
+error.Network = 無法連線至伺服器。
+error.Banned = 你的帳號已被停權。
+error.CouponUnknown = 序號不存在。
+error.CouponInactive = 此序號已失效。
+error.CouponExpired = 此序號已過期。
+error.CouponExhausted = 此序號已達兌換上限。
+error.CouponAlreadyRedeemed = 你已使用過此序號。
+error.CouponNotStarted = 此序號尚未開放。
+error.CouponNotForYou = 此序號屬於其他玩家。
+error.generic = 發生錯誤（{0}）。
+
+settings.title = 設定
+settings.account = 帳號
+settings.language = 語言
+settings.sound = 聲音
+settings.graphics = 畫面
+settings.notifications = 通知
+settings.gift = 序號兌換
+settings.support = 客服
+settings.about = 關於
+settings.on = 開
+settings.off = 關
+
+sound.music = 音樂
+sound.effects = 音效
+sound.volume = 音量
+sound.vibration = 震動
+
+graphics.quality = 畫質
+graphics.low = 低
+graphics.medium = 中
+graphics.high = 高
+graphics.fps = 幀率
+graphics.power = 省電模式
+graphics.power.hint = 降低畫質與幀率以節省電量。
+
+notify.hint = 選擇此裝置要顯示的通知。
+notify.construction = 建造完成
+notify.storage = 倉庫已滿
+notify.events = 活動與公告
+
+language.hint = 遊戲將以所選語言重新啟動。
+
+support.hint = 請透過官網與我們聯絡。附上帳號ID，方便我們快速找到你。
+support.copy = 複製帳號ID
+support.copied = 已複製
+support.website = 開啟官網
+
+about.version = 版本 {0}
+about.account = 帳號ID：{0}
+about.studio = 開發商：Cicibyte
+
+update.available = 新版本 {0} 已推出。
+update.required = 此版本已不再支援，請更新後繼續遊戲。
+update.button = 更新
+update.later = 稍後
+update.downloading = 下載中… {0}%
+update.failed = 下載失敗，請再試一次。
+update.install = 請在下一個畫面點擊「安裝」。

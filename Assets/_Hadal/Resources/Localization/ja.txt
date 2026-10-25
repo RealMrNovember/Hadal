@@ -1,0 +1,175 @@
+# HADAL UI strings (ja). One "key = value" per line; \n is a line break, {0} a placeholder.
+
+title.tagline = 海の底、人類最後のドーム。
+title.connecting = サーバーに接続中…
+title.reconnecting = 接続が切れました。再接続中…
+title.maintenance = サーバーはメンテナンス中です。まもなく再試行します。
+title.update = 新しいバージョンが必要です。アップデートしてください。
+title.tap = タップしてスタート
+title.banned = アカウントは停止されています。サポートにお問い合わせください。
+
+account.title = プロフィール＆アカウント
+account.name = プレイヤー名
+account.save = 保存
+account.saved = 保存しました。
+account.id = アカウントID
+account.protected = アカウントは保護されています。
+account.unprotected = アカウントはこの端末にのみ保存されています。機種変更するとデータが失われる可能性があります。
+account.protect = アカウント保護
+account.protect.hint = パスワードを設定すると引き継ぎコードが発行されます。新しい端末ではコードとパスワードでログインできます。
+account.password = パスワード（8文字以上）
+account.password2 = パスワード（確認）
+account.create = コード発行
+account.code = 引き継ぎコード
+account.code.note = コードとパスワードは大切に保管してください。新しいコードを発行すると古いコードは無効になります。
+account.copy = コピー
+account.copied = コピーしました
+account.switch = 別のアカウントでログイン
+account.switch.hint = 引き継ぎコードとパスワードでログインします。この端末の未保護のアカウントは失われます。
+account.transfercode = 引き継ぎコード（XXXX-XXXX-XXXX）
+account.signin = ログイン
+account.google = Google連携（近日公開）
+account.apple = Apple連携（近日公開）
+account.close = 閉じる
+account.back = 戻る
+
+gift.open = ギフトコードを使う
+gift.hint = イベントやお知らせのコードを入力すると、報酬が倉庫に直接届きます。
+gift.code = ギフトコード
+gift.redeem = 受け取る
+gift.done = 報酬を獲得：{0}
+
+base.build.title = 建設 · リング{0}
+base.build = 建設
+base.upgrade = レベルアップ
+base.finish = 無料で完了
+base.close = 閉じる
+base.level = Lv.{0}
+base.level.max = 最大レベル
+base.constructing = 建設中 · {0}
+base.upgrading = Lv.{0}へレベルアップ中 · {1}
+base.produces = 生産
+base.consumes = 消費
+base.next = 次のレベル
+base.cost = コスト
+base.time = 時間
+base.permin = /分
+base.nothing = このスロットにはまだ何も建設できません。
+base.started = 建設を開始しました。
+base.done = 完了しました。
+
+building.core_reactor = コアリアクター
+building.oxygen_plant = 酸素プラント
+building.food_lab = 食料ラボ
+building.bio_lab = バイオラボ
+building.research_center = 研究センター
+building.drone_factory = ドローン工場
+building.submarine_dock = 潜水艦ドック
+building.military_dome = 軍事ドーム
+building.shield_generator = シールド発生装置
+building.radar_center = レーダーセンター
+building.mega_dome = メガドーム
+building.alliance_hub = 同盟ハブ
+building.decoration_spire = 装飾タワー
+
+desc.core_reactor = 基地の心臓部。どの建物もリアクターのレベルを超えられません。
+desc.oxygen_plant = 酸素を生産します。酸素が尽きると基地は滅びます。
+desc.food_lab = 乗組員に食料を供給します。
+desc.bio_lab = 生物からバイオマスを培養します。
+desc.research_center = 新たなテクノロジーへの入口。
+desc.drone_factory = 回収ドローンが残骸からチタンを回収します。
+desc.submarine_dock = 潜水艦を建造し、遠征に送り出します。
+desc.military_dome = 基地の防衛部隊を訓練します。
+desc.shield_generator = 水圧と攻撃から基地を守ります。
+desc.radar_center = 接近する脅威を探知します。
+desc.mega_dome = 基地を新たなドームへ拡張します。
+desc.alliance_hub = 同盟との連携拠点。
+desc.decoration_spire = 基地を彩ります。
+
+resource.Oxygen = 酸素
+resource.Energy = エネルギー
+resource.Food = 食料
+resource.Biomass = バイオマス
+resource.Titanium = チタン
+resource.Hadalite = ハダライト
+
+reason.BuilderBusy = 建設中：同時に建設できるのは1つだけです。
+reason.InsufficientResources = 資源が足りません。
+reason.ReactorLevelTooLow = 先にコアリアクターをレベルアップしてください。
+reason.MaxLevel = すでに最大レベルです。
+reason.UnderConstruction = すでに建設中です。
+reason.NotYetFree = 無料完了は残り5分から可能です。
+reason.NotUnderConstruction = 建設中の建物はありません。
+reason.SlotOccupied = このスロットは使用中です。
+reason.RingLocked = このリングはまだ解放されていません。
+reason.SectorLocked = このセクターはまだ解放されていません。
+reason.RingNotAllowed = この建物はこのリングに建設できません。
+reason.SlotTypeMismatch = このスロットはこの建物用ではありません。
+reason.SectorRestricted = このスロットは別の建物専用です。
+reason.UnknownBuilding = 建物が見つかりません。
+reason.NotSupported = まだ対応していません。
+
+error.NameInvalid = 名前は3～16文字で、文字・数字・スペース・_・- が使えます。
+error.PasswordInvalid = パスワードは8文字以上必要です。
+error.PasswordMismatch = パスワードが一致しません。
+error.InvalidCredentials = コードまたはパスワードが間違っています。
+error.RateLimited = 試行回数が多すぎます。しばらくしてからお試しください。
+error.Network = サーバーに接続できませんでした。
+error.Banned = アカウントは停止されています。
+error.CouponUnknown = 存在しないコードです。
+error.CouponInactive = このコードは現在無効です。
+error.CouponExpired = このコードは有効期限切れです。
+error.CouponExhausted = このコードは使用上限に達しました。
+error.CouponAlreadyRedeemed = このコードはすでに使用済みです。
+error.CouponNotStarted = このコードはまだ有効になっていません。
+error.CouponNotForYou = このコードは他のプレイヤー専用です。
+error.generic = エラーが発生しました（{0}）。
+
+settings.title = 設定
+settings.account = アカウント
+settings.language = 言語
+settings.sound = サウンド
+settings.graphics = グラフィック
+settings.notifications = 通知
+settings.gift = ギフトコード
+settings.support = サポート
+settings.about = ゲーム情報
+settings.on = オン
+settings.off = オフ
+
+sound.music = BGM
+sound.effects = 効果音
+sound.volume = 音量
+sound.vibration = バイブレーション
+
+graphics.quality = 画質
+graphics.low = 低
+graphics.medium = 中
+graphics.high = 高
+graphics.fps = フレームレート
+graphics.power = 省電力モード
+graphics.power.hint = 画質とフレームレートを下げてバッテリーを節約します。
+
+notify.hint = この端末に表示する通知を選択してください。
+notify.construction = 建設完了
+notify.storage = 倉庫が満杯
+notify.events = イベント・お知らせ
+
+language.hint = 選択した言語でゲームが再起動します。
+
+support.hint = 公式サイトからお問い合わせください。迅速に対応できるよう、アカウントIDを記載してください。
+support.copy = アカウントIDをコピー
+support.copied = コピーしました
+support.website = 公式サイトを開く
+
+about.version = バージョン {0}
+about.account = アカウントID：{0}
+about.studio = 開発：Cicibyte
+
+update.available = バージョン{0}が配信中です。
+update.required = このバージョンはサポートが終了しました。プレイを続けるにはアップデートしてください。
+update.button = アップデート
+update.later = 後で
+update.downloading = ダウンロード中… {0}%
+update.failed = ダウンロードに失敗しました。もう一度お試しください。
+update.install = 次の画面で「インストール」をタップしてください。

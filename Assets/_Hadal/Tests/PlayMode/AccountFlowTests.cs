@@ -79,6 +79,7 @@ namespace Hadal.Tests.PlayMode
             // --- Rename ------------------------------------------------------------------------------
             Click(Find(ui.Panel.transform, "Gear"));
             Assert.IsTrue(ui.Panel.IsOpen);
+            Click(Find(ui.Panel.transform, "Panel/Card/Home/Row0/Account"));
             Type(ui.Panel.transform, "Panel/Card/Main/NameRow/Name", "E2E Kaptan");
             Click(Find(ui.Panel.transform, "Panel/Card/Main/NameRow/Save"));
             yield return WaitUntil(() => account.Profile.displayName == "E2E Kaptan", 10f, "rename not confirmed by the server");
@@ -111,6 +112,7 @@ namespace Hadal.Tests.PlayMode
             Environment.SetEnvironmentVariable("HADAL_FRESH_ACCOUNT", null);
 
             Click(Find(ui.Panel.transform, "Gear"));
+            Click(Find(ui.Panel.transform, "Panel/Card/Home/Row0/Account"));
             Click(Find(ui.Panel.transform, "Panel/Card/Main/Switch"));
 
             // Wrong password: an error, no restart.

@@ -1,0 +1,175 @@
+# HADAL UI strings (en). One "key = value" per line; \n is a line break, {0} a placeholder.
+
+title.tagline = Kubah terakhir umat manusia, di dasar samudra.
+title.connecting = Menghubungkan ke server…
+title.reconnecting = Koneksi terputus, mencoba lagi…
+title.maintenance = Server sedang dalam pemeliharaan. Segera mencoba lagi.
+title.update = Diperlukan versi terbaru. Silakan perbarui.
+title.tap = Ketuk untuk mulai
+title.banned = Akunmu ditangguhkan. Silakan hubungi dukungan.
+
+account.title = Profil & Akun
+account.name = Nama pemain
+account.save = Simpan
+account.saved = Tersimpan.
+account.id = ID Akun
+account.protected = Akunmu sudah terlindungi.
+account.unprotected = Akunmu hanya ada di perangkat ini. Ganti HP bisa membuat progresmu hilang.
+account.protect = Lindungi Akun
+account.protect.hint = Buat kata sandi dan dapatkan kode transfer. Gunakan kode + kata sandi untuk masuk di perangkat baru.
+account.password = Kata sandi (min. 8 karakter)
+account.password2 = Ulangi kata sandi
+account.create = Buat Kode
+account.code = Kode transfermu
+account.code.note = Simpan kode ini dan kata sandimu. Membuat kode baru akan menonaktifkan kode lama.
+account.copy = Salin
+account.copied = Disalin
+account.switch = Masuk ke Akun Lain
+account.switch.hint = Masuk dengan kode transfer dan kata sandi. Akun yang belum terlindungi di perangkat ini akan hilang.
+account.transfercode = Kode transfer (XXXX-XXXX-XXXX)
+account.signin = Masuk
+account.google = Tautkan Google (segera)
+account.apple = Tautkan Apple (segera)
+account.close = Tutup
+account.back = Kembali
+
+gift.open = Tukar Kode Hadiah
+gift.hint = Masukkan kode dari event atau pengumuman; hadiah langsung masuk ke gudang.
+gift.code = Kode hadiah
+gift.redeem = Tukar
+gift.done = Hadiah ditambahkan: {0}
+
+base.build.title = Bangun · Cincin {0}
+base.build = Bangun
+base.upgrade = Tingkatkan
+base.finish = Selesai Gratis
+base.close = Tutup
+base.level = Level {0}
+base.level.max = Level maks
+base.constructing = Sedang dibangun · {0}
+base.upgrading = Ditingkatkan ke level {0} · {1}
+base.produces = Menghasilkan
+base.consumes = Memakai
+base.next = Level berikutnya
+base.cost = Biaya
+base.time = Waktu
+base.permin = /mnt
+base.nothing = Belum ada yang bisa dibangun di slot ini.
+base.started = Pembangunan dimulai.
+base.done = Selesai.
+
+building.core_reactor = Reaktor Inti
+building.oxygen_plant = Pabrik Oksigen
+building.food_lab = Lab Pangan
+building.bio_lab = Lab Bio
+building.research_center = Pusat Riset
+building.drone_factory = Pabrik Drone
+building.submarine_dock = Dermaga Kapal Selam
+building.military_dome = Kubah Militer
+building.shield_generator = Generator Perisai
+building.radar_center = Pusat Radar
+building.mega_dome = Kubah Mega
+building.alliance_hub = Markas Aliansi
+building.decoration_spire = Menara Hias
+
+desc.core_reactor = Jantung markas. Tak ada bangunan yang boleh melampaui level reaktor.
+desc.oxygen_plant = Menghasilkan oksigen. Tanpa oksigen, markas akan mati.
+desc.food_lab = Memberi makan kru.
+desc.bio_lab = Menumbuhkan biomassa dari organisme hidup.
+desc.research_center = Gerbang menuju teknologi baru.
+desc.drone_factory = Drone penyelamat mengambil titanium dari bangkai kapal.
+desc.submarine_dock = Membangun kapal selam dan meluncurkan ekspedisi.
+desc.military_dome = Melatih para pembela markas.
+desc.shield_generator = Melindungi dari tekanan dan serangan.
+desc.radar_center = Mendeteksi ancaman yang datang.
+desc.mega_dome = Memperluas markas ke kubah baru.
+desc.alliance_hub = Penghubung aliansi.
+desc.decoration_spire = Menghias markasmu.
+
+resource.Oxygen = Oksigen
+resource.Energy = Energi
+resource.Food = Makanan
+resource.Biomass = Biomassa
+resource.Titanium = Titanium
+resource.Hadalite = Hadalit
+
+reason.BuilderBusy = Pekerja sibuk: satu pembangunan dalam satu waktu.
+reason.InsufficientResources = Sumber daya tidak cukup.
+reason.ReactorLevelTooLow = Tingkatkan Reaktor Inti terlebih dahulu.
+reason.MaxLevel = Sudah level maks.
+reason.UnderConstruction = Sedang dibangun.
+reason.NotYetFree = Selesai gratis tersedia di 5 menit terakhir.
+reason.NotUnderConstruction = Tidak ada yang sedang dibangun.
+reason.SlotOccupied = Slot ini sudah terisi.
+reason.RingLocked = Cincin ini masih terkunci.
+reason.SectorLocked = Sektor ini masih terkunci.
+reason.RingNotAllowed = Bangunan ini tidak cocok untuk cincin ini.
+reason.SlotTypeMismatch = Slot ini bukan untuk bangunan ini.
+reason.SectorRestricted = Slot ini khusus untuk bangunan lain.
+reason.UnknownBuilding = Bangunan tidak ditemukan.
+reason.NotSupported = Belum didukung.
+
+error.NameInvalid = Nama 3–16 karakter: huruf, angka, spasi, _ dan -.
+error.PasswordInvalid = Kata sandi minimal 8 karakter.
+error.PasswordMismatch = Kata sandi tidak cocok.
+error.InvalidCredentials = Kode atau kata sandi salah.
+error.RateLimited = Terlalu banyak percobaan. Coba lagi nanti.
+error.Network = Tidak dapat terhubung ke server.
+error.Banned = Akunmu ditangguhkan.
+error.CouponUnknown = Kode tidak ditemukan.
+error.CouponInactive = Kode ini sudah tidak berlaku.
+error.CouponExpired = Kode ini sudah kedaluwarsa.
+error.CouponExhausted = Kode ini sudah mencapai batas.
+error.CouponAlreadyRedeemed = Kamu sudah memakai kode ini.
+error.CouponNotStarted = Kode ini belum aktif.
+error.CouponNotForYou = Kode ini milik pemain lain.
+error.generic = Terjadi kesalahan ({0}).
+
+settings.title = Pengaturan
+settings.account = Akun
+settings.language = Bahasa
+settings.sound = Suara
+settings.graphics = Grafis
+settings.notifications = Notifikasi
+settings.gift = Kode Hadiah
+settings.support = Dukungan
+settings.about = Tentang
+settings.on = Aktif
+settings.off = Nonaktif
+
+sound.music = Musik
+sound.effects = Efek suara
+sound.volume = Volume
+sound.vibration = Getaran
+
+graphics.quality = Kualitas grafis
+graphics.low = Rendah
+graphics.medium = Sedang
+graphics.high = Tinggi
+graphics.fps = Frame rate
+graphics.power = Hemat baterai
+graphics.power.hint = Menurunkan kualitas dan frame rate untuk menghemat baterai.
+
+notify.hint = Pilih notifikasi yang ditampilkan di perangkat ini.
+notify.construction = Pembangunan selesai
+notify.storage = Gudang penuh
+notify.events = Event dan pengumuman
+
+language.hint = Game akan dimulai ulang dalam bahasa pilihanmu.
+
+support.hint = Hubungi kami melalui situs web. Sertakan ID akunmu agar kami bisa menemukanmu dengan cepat.
+support.copy = Salin ID Akun
+support.copied = Disalin
+support.website = Buka Situs Web
+
+about.version = Versi {0}
+about.account = ID Akun: {0}
+about.studio = Dikembangkan oleh Cicibyte
+
+update.available = Versi {0} telah tersedia.
+update.required = Versi ini sudah tidak didukung. Perbarui untuk terus bermain.
+update.button = Perbarui
+update.later = Nanti
+update.downloading = Mengunduh… {0}%
+update.failed = Unduhan gagal. Silakan coba lagi.
+update.install = Ketuk Instal di layar berikutnya.

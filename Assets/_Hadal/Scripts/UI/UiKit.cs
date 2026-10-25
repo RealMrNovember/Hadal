@@ -161,6 +161,101 @@ namespace Hadal.UI
             return content;
         }
 
+        /// <summary>A settings row: label on the left, an on/off pill on the right that flips on tap.</summary>
+        public static Button Switch(string name, Transform parent, string label, Func<bool> get, Action<bool> set)
+        {
+            var row = Box(name, parent, Field);
+            var button = row.gameObject.AddComponent<Button>();
+            var text = Label("Label", row.transform, label, 38, Text);
+            text.rectTransform.Place(0.04f, 0, 0.7f, 1);
+
+            var pill = Box("Pill", row.transform, Accent);
+            pill.rectTransform.Place(0.74f, 0.2f, 0.96f, 0.8f);
+            pill.raycastTarget = false;
+            var state = Label("State", pill.transform, string.Empty, 32, Abyss, TextAnchor.MiddleCenter, FontStyle.Bold);
+            state.rectTransform.Place(0, 0, 1, 1);
+
+            void Render()
+            {
+                var on = get();
+                pill.color = on ? Accent : new Color(0.12f, 0.24f, 0.3f, 1f);
+                state.color = on ? Abyss : Muted;
+                state.text = on ? Loc.T("settings.on") : Loc.T("settings.off");
+            }
+
+            button.onClick.AddListener(() =>
+            {
+                set(!get());
+                Render();
+            });
+            Render();
+            return button;
+        }
+
+        /// <summary>A row of mutually exclusive choices; the selected one is filled.</summary>
+        public static RectTransform Choice(string name, Transform parent, string[] labels, Func<int> get, Action<int> set)
+        {
+            var row = Rect(name, parent);
+            var buttons = new Button[labels.Length];
+
+            void Render()
+            {
+                var selected = get();
+                for (var i = 0; i < buttons.Length; i++)
+                {
+                    buttons[i].image.color = i == selected ? Accent : Field;
+                    buttons[i].GetComponentInChildren<UnityEngine.UI.Text>().color = i == selected ? Abyss : Text;
+                }
+            }
+
+            for (var i = 0; i < labels.Length; i++)
+            {
+                var index = i;
+                buttons[i] = Button("Option" + i, row, labels[i], () =>
+                {
+                    set(index);
+                    Render();
+                }, Field, 34);
+                ((RectTransform)buttons[i].transform).Place((float)i / labels.Length, 0, (float)(i + 1) / labels.Length, 1, 6);
+            }
+
+            Render();
+            return row;
+        }
+
+        /// <summary>Horizontal 0..1 slider in the HADAL style.</summary>
+        public static UnityEngine.UI.Slider Slider(string name, Transform parent, float value, Action<float> changed)
+        {
+            var root = Rect(name, parent);
+            var track = Box("Track", root, Field);
+            track.rectTransform.Place(0, 0.4f, 1, 0.6f);
+
+            var fillArea = Rect("FillArea", root);
+            fillArea.Place(0, 0.4f, 1, 0.6f);
+            var fill = Box("Fill", fillArea, Accent);
+            fill.rectTransform.Place(0, 0, 0, 1);
+
+            var handleArea = Rect("HandleArea", root);
+            handleArea.Place(0, 0, 1, 1);
+            handleArea.offsetMin = new Vector2(24, 0);
+            handleArea.offsetMax = new Vector2(-24, 0);
+            var handle = Box("Handle", handleArea, Text);
+            handle.rectTransform.sizeDelta = new Vector2(48, 0);
+            handle.rectTransform.anchorMin = new Vector2(0, 0.1f);
+            handle.rectTransform.anchorMax = new Vector2(0, 0.9f);
+
+            var slider = root.gameObject.AddComponent<UnityEngine.UI.Slider>();
+            slider.fillRect = fill.rectTransform;
+            slider.handleRect = handle.rectTransform;
+            slider.targetGraphic = handle;
+            slider.direction = UnityEngine.UI.Slider.Direction.LeftToRight;
+            slider.minValue = 0f;
+            slider.maxValue = 1f;
+            slider.SetValueWithoutNotify(value);
+            slider.onValueChanged.AddListener(v => changed(v));
+            return slider;
+        }
+
         /// <summary>Fades a CanvasGroup on unscaled time; deactivates the object when it reaches 0.</summary>
         public static System.Collections.IEnumerator Fade(CanvasGroup group, float to, float seconds, Action done = null)
         {

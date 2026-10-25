@@ -24,16 +24,56 @@ namespace Hadal.Tests.EditMode
         }
 
         [Test]
-        public void Every_string_exists_in_both_languages()
+        public void Every_language_has_every_english_string()
         {
-            foreach (var turkish in new[] { true, false })
-            {
-                Loc.Turkish = turkish;
-                foreach (var key in new[] { "title.tap", "account.protect", "account.unprotected", "error.InvalidCredentials" })
-                    Assert.AreNotEqual(key, Loc.T(key), $"missing {key} (tr={turkish})");
-            }
+            var english = Loc.Parse(Resources.Load<TextAsset>("Localization/en").text);
+            Assert.Greater(english.Count, 150);
+            Assert.AreEqual(18, Loc.Languages.Length);
 
-            Loc.Turkish = Application.systemLanguage == SystemLanguage.Turkish;
+            foreach (var (code, _) in Loc.Languages)
+            {
+                var asset = Resources.Load<TextAsset>("Localization/" + code);
+                Assert.IsNotNull(asset, $"Localization/{code}.txt missing");
+                var strings = Loc.Parse(asset.text);
+                foreach (var pair in english)
+                {
+                    Assert.IsTrue(strings.TryGetValue(pair.Key, out var value) && value.Length > 0, $"{code}: missing {pair.Key}");
+                    for (var n = 0; n < 3; n++)
+                        if (pair.Value.Contains("{" + n + "}"))
+                            StringAssert.Contains("{" + n + "}", value, $"{code}: {pair.Key} lost {{{n}}}");
+                }
+            }
+        }
+
+        [Test]
+        public void Language_choice_follows_the_phone_and_falls_back_to_english()
+        {
+            Assert.AreEqual("tr", Loc.FromSystem(SystemLanguage.Turkish));
+            Assert.AreEqual("zh-Hant", Loc.FromSystem(SystemLanguage.ChineseTraditional));
+            Assert.AreEqual("en", Loc.FromSystem(SystemLanguage.Finnish));
+
+            var previous = Loc.Current;
+            try
+            {
+                Loc.Use("tr");
+                Assert.AreEqual("Ayarlar", Loc.T("settings.title"));
+                Loc.Use("xx");
+                Assert.AreEqual("en", Loc.Current);
+                Assert.AreEqual("Settings", Loc.T("settings.title"));
+            }
+            finally
+            {
+                Loc.Use(previous);
+            }
+        }
+
+        [Test]
+        public void Arabic_is_joined_and_laid_out_right_to_left()
+        {
+            // Seen joins into the lam-alef ligature, meem stands alone; the Latin run (with its placeholder)
+            // keeps its order and sits on the left of an RTL line.
+            var shaped = ArabicText.Shape("سلام HADAL {0}");
+            Assert.AreEqual("HADAL {0} ﻡﻼﺳ", shaped);
         }
 
         [Test]

@@ -14,13 +14,13 @@ namespace Hadal.Tests.EditMode
         private GameObject _root;
         private FakeAccount _account;
         private AccountPanelView _panel;
-        private bool _turkish;
+        private string _language;
 
         [SetUp]
         public void SetUp()
         {
-            _turkish = Loc.Turkish;
-            Loc.Turkish = true;
+            _language = Loc.Current;
+            Loc.Use("tr");
             _root = new GameObject("GiftCodeTests");
             _account = new FakeAccount();
             _panel = AccountPanelView.Create(_root.transform, _account);
@@ -30,7 +30,7 @@ namespace Hadal.Tests.EditMode
         [TearDown]
         public void TearDown()
         {
-            Loc.Turkish = _turkish;
+            Loc.Use(_language);
             UnityEngine.Object.DestroyImmediate(_root);
         }
 

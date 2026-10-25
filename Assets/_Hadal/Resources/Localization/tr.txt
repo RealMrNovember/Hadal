@@ -1,0 +1,175 @@
+# HADAL UI strings (tr). One "key = value" per line; \n is a line break, {0} a placeholder.
+
+title.tagline = İnsanlığın son kubbesi, okyanusun dibinde.
+title.connecting = Sunucuya bağlanılıyor…
+title.reconnecting = Bağlantı koptu, yeniden deneniyor…
+title.maintenance = Sunucu bakımda. Birazdan tekrar denenecek.
+title.update = Yeni bir sürüm gerekli. Lütfen güncelleyin.
+title.tap = Başlamak için dokun
+title.banned = Hesabın askıya alındı. Destek için bizimle iletişime geç.
+
+account.title = Profil ve Hesap
+account.name = Oyuncu adı
+account.save = Kaydet
+account.saved = Kaydedildi.
+account.id = Hesap No
+account.protected = Hesabın korunuyor.
+account.unprotected = Hesabın bu cihaza bağlı. Telefonu değiştirirsen ilerlemen kaybolabilir.
+account.protect = Hesabı Koru
+account.protect.hint = Bir şifre belirle; sana bir aktarım kodu verelim. Yeni cihazda kod + şifre ile girebilirsin.
+account.password = Şifre (en az 8 karakter)
+account.password2 = Şifre tekrar
+account.create = Kod Oluştur
+account.code = Aktarım kodun
+account.code.note = Bu kodu ve şifreni sakla. Yeni bir kod oluşturursan eskisi geçersiz olur.
+account.copy = Kopyala
+account.copied = Kopyalandı
+account.switch = Başka Hesapla Giriş
+account.switch.hint = Aktarım kodu ve şifreyle giriş yap. Bu cihazdaki hesap korunmuyorsa erişim kaybolur.
+account.transfercode = Aktarım kodu (XXXX-XXXX-XXXX)
+account.signin = Giriş Yap
+account.google = Google ile bağla (yakında)
+account.apple = Apple ile bağla (yakında)
+account.close = Kapat
+account.back = Geri
+
+gift.open = Hediye Kodu Kullan
+gift.hint = Etkinliklerde ve duyurularda paylaşılan kodu gir; ödüller hemen deponda.
+gift.code = Hediye kodu
+gift.redeem = Kodu Kullan
+gift.done = Ödüller eklendi: {0}
+
+base.build.title = İnşa Et · Halka {0}
+base.build = İnşa Et
+base.upgrade = Yükselt
+base.finish = Ücretsiz Bitir
+base.close = Kapat
+base.level = Seviye {0}
+base.level.max = En yüksek seviye
+base.constructing = İnşa ediliyor · {0}
+base.upgrading = Seviye {0}'e yükseltiliyor · {1}
+base.produces = Üretim
+base.consumes = Tüketim
+base.next = Sonraki seviye
+base.cost = Maliyet
+base.time = Süre
+base.permin = /dk
+base.nothing = Bu yuvaya şu an inşa edilebilecek bina yok.
+base.started = İnşaat başladı.
+base.done = Tamamlandı.
+
+building.core_reactor = Çekirdek Reaktör
+building.oxygen_plant = Oksijen Tesisi
+building.food_lab = Gıda Laboratuvarı
+building.bio_lab = Biyo Laboratuvar
+building.research_center = Araştırma Merkezi
+building.drone_factory = Dron Fabrikası
+building.submarine_dock = Denizaltı İskelesi
+building.military_dome = Askeri Kubbe
+building.shield_generator = Kalkan Jeneratörü
+building.radar_center = Radar Merkezi
+building.mega_dome = Mega Kubbe
+building.alliance_hub = İttifak Merkezi
+building.decoration_spire = Süs Kulesi
+
+desc.core_reactor = Üssün kalbi. Diğer binalar reaktör seviyesini geçemez.
+desc.oxygen_plant = Oksijen üretir. Oksijen biterse üs ölür.
+desc.food_lab = Mürettebatı besler.
+desc.bio_lab = Canlı organizmalardan biyokütle üretir.
+desc.research_center = Yeni teknolojilerin kapısı.
+desc.drone_factory = Kurtarma dronları enkazdan titanyum toplar.
+desc.submarine_dock = Denizaltı inşa eder ve keşfe gönderir.
+desc.military_dome = Üs savunmasını eğitir.
+desc.shield_generator = Basınca ve saldırılara karşı kalkan.
+desc.radar_center = Yaklaşan tehditleri görür.
+desc.mega_dome = Üssü yeni bir kubbeye genişletir.
+desc.alliance_hub = İttifak bağlantısı.
+desc.decoration_spire = Üssünü süsler.
+
+resource.Oxygen = Oksijen
+resource.Energy = Enerji
+resource.Food = Gıda
+resource.Biomass = Biyokütle
+resource.Titanium = Titanyum
+resource.Hadalite = Hadalit
+
+reason.BuilderBusy = İnşaatçı meşgul: aynı anda tek inşaat.
+reason.InsufficientResources = Kaynak yetersiz.
+reason.ReactorLevelTooLow = Önce Çekirdek Reaktörü yükselt.
+reason.MaxLevel = En yüksek seviyede.
+reason.UnderConstruction = Zaten inşa ediliyor.
+reason.NotYetFree = Ücretsiz bitirmek için son 5 dakikayı bekle.
+reason.NotUnderConstruction = İnşaat yok.
+reason.SlotOccupied = Bu yuva dolu.
+reason.RingLocked = Bu halka henüz açılmadı.
+reason.SectorLocked = Bu bölüm henüz açılmadı.
+reason.RingNotAllowed = Bu bina bu halkaya kurulamaz.
+reason.SlotTypeMismatch = Bu yuva bu bina için değil.
+reason.SectorRestricted = Bu yuva başka bir bina için ayrılmış.
+reason.UnknownBuilding = Bina bulunamadı.
+reason.NotSupported = Bu işlem henüz desteklenmiyor.
+
+error.NameInvalid = Ad 3–16 karakter olmalı; harf, rakam, boşluk, _ ve - kullanılabilir.
+error.PasswordInvalid = Şifre en az 8 karakter olmalı.
+error.PasswordMismatch = Şifreler eşleşmiyor.
+error.InvalidCredentials = Kod ya da şifre hatalı.
+error.RateLimited = Çok fazla deneme. Biraz sonra tekrar dene.
+error.Network = Sunucuya ulaşılamadı.
+error.Banned = Hesabın askıya alındı.
+error.CouponUnknown = Böyle bir kod bulunamadı.
+error.CouponInactive = Bu kod artık geçerli değil.
+error.CouponExpired = Bu kodun süresi doldu.
+error.CouponExhausted = Bu kodun kullanım limiti doldu.
+error.CouponAlreadyRedeemed = Bu kodu zaten kullandın.
+error.CouponNotStarted = Bu kod henüz aktif değil.
+error.CouponNotForYou = Bu kod sana ait değil.
+error.generic = Bir şeyler ters gitti ({0}).
+
+settings.title = Ayarlar
+settings.account = Hesap
+settings.language = Dil
+settings.sound = Ses
+settings.graphics = Grafik
+settings.notifications = Bildirimler
+settings.gift = Hediye Kodu
+settings.support = Destek
+settings.about = Hakkında
+settings.on = Açık
+settings.off = Kapalı
+
+sound.music = Müzik
+sound.effects = Ses efektleri
+sound.volume = Ses düzeyi
+sound.vibration = Titreşim
+
+graphics.quality = Grafik kalitesi
+graphics.low = Düşük
+graphics.medium = Orta
+graphics.high = Yüksek
+graphics.fps = Kare hızı
+graphics.power = Pil tasarrufu
+graphics.power.hint = Pil ömrü için kaliteyi ve kare hızını düşürür.
+
+notify.hint = Bu cihazda hangi bildirimlerin gösterileceğini seç.
+notify.construction = İnşaat tamamlandı
+notify.storage = Depo doldu
+notify.events = Etkinlikler ve duyurular
+
+language.hint = Oyun seçtiğin dilde yeniden başlar.
+
+support.hint = Bize web sitemizden ulaşabilirsin. Seni hızlıca bulabilmemiz için hesap numaranı da yaz.
+support.copy = Hesap No'yu Kopyala
+support.copied = Kopyalandı
+support.website = Web Sitesini Aç
+
+about.version = Sürüm {0}
+about.account = Hesap No: {0}
+about.studio = Geliştirici: Cicibyte
+
+update.available = Yeni sürüm hazır: {0}
+update.required = Bu sürüm artık desteklenmiyor. Oynamaya devam etmek için güncelle.
+update.button = Güncelle
+update.later = Sonra
+update.downloading = İndiriliyor… %{0}
+update.failed = İndirme başarısız. Lütfen tekrar dene.
+update.install = Sonraki ekranda Yükle'ye dokun.

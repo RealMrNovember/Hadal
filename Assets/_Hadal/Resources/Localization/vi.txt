@@ -1,0 +1,175 @@
+# HADAL UI strings (en). One "key = value" per line; \n is a line break, {0} a placeholder.
+
+title.tagline = Mái vòm cuối cùng của nhân loại, dưới đáy đại dương.
+title.connecting = Đang kết nối máy chủ…
+title.reconnecting = Mất kết nối, đang thử lại…
+title.maintenance = Máy chủ đang bảo trì. Sẽ sớm thử lại.
+title.update = Cần phiên bản mới hơn. Vui lòng cập nhật.
+title.tap = Chạm để bắt đầu
+title.banned = Tài khoản của bạn bị tạm khóa. Vui lòng liên hệ hỗ trợ.
+
+account.title = Hồ sơ & Tài khoản
+account.name = Tên người chơi
+account.save = Lưu
+account.saved = Đã lưu.
+account.id = ID tài khoản
+account.protected = Tài khoản của bạn đã được bảo vệ.
+account.unprotected = Tài khoản chỉ lưu trên thiết bị này. Đổi điện thoại có thể mất tiến trình.
+account.protect = Bảo vệ tài khoản
+account.protect.hint = Đặt mật khẩu và nhận mã chuyển. Dùng mã + mật khẩu để đăng nhập trên thiết bị mới.
+account.password = Mật khẩu (từ 8 ký tự)
+account.password2 = Nhập lại mật khẩu
+account.create = Tạo mã
+account.code = Mã chuyển của bạn
+account.code.note = Hãy giữ mã này và mật khẩu. Tạo mã mới sẽ vô hiệu mã cũ.
+account.copy = Sao chép
+account.copied = Đã sao chép
+account.switch = Đăng nhập tài khoản khác
+account.switch.hint = Đăng nhập bằng mã chuyển và mật khẩu. Tài khoản chưa bảo vệ trên thiết bị này sẽ bị mất.
+account.transfercode = Mã chuyển (XXXX-XXXX-XXXX)
+account.signin = Đăng nhập
+account.google = Liên kết Google (sắp có)
+account.apple = Liên kết Apple (sắp có)
+account.close = Đóng
+account.back = Quay lại
+
+gift.open = Đổi Giftcode
+gift.hint = Nhập mã từ sự kiện hoặc thông báo; phần thưởng sẽ vào kho ngay.
+gift.code = Giftcode
+gift.redeem = Đổi
+gift.done = Đã nhận thưởng: {0}
+
+base.build.title = Xây dựng · Vòng {0}
+base.build = Xây
+base.upgrade = Nâng cấp
+base.finish = Xong miễn phí
+base.close = Đóng
+base.level = Cấp {0}
+base.level.max = Cấp tối đa
+base.constructing = Đang xây · {0}
+base.upgrading = Đang nâng lên cấp {0} · {1}
+base.produces = Sản xuất
+base.consumes = Tiêu thụ
+base.next = Cấp tiếp theo
+base.cost = Chi phí
+base.time = Thời gian
+base.permin = /phút
+base.nothing = Chưa thể xây gì ở ô này.
+base.started = Đã bắt đầu xây.
+base.done = Hoàn thành.
+
+building.core_reactor = Lò Phản Ứng Lõi
+building.oxygen_plant = Nhà Máy Oxy
+building.food_lab = Phòng Lab Thực Phẩm
+building.bio_lab = Phòng Lab Sinh Học
+building.research_center = Trung Tâm Nghiên Cứu
+building.drone_factory = Xưởng Drone
+building.submarine_dock = Bến Tàu Ngầm
+building.military_dome = Mái Vòm Quân Sự
+building.shield_generator = Máy Phát Khiên
+building.radar_center = Trung Tâm Radar
+building.mega_dome = Mái Vòm Lớn
+building.alliance_hub = Trụ Sở Liên Minh
+building.decoration_spire = Tháp Trang Trí
+
+desc.core_reactor = Trái tim của căn cứ. Không công trình nào được vượt cấp lò phản ứng.
+desc.oxygen_plant = Sản xuất oxy. Không có oxy, căn cứ sẽ diệt vong.
+desc.food_lab = Nuôi sống thủy thủ đoàn.
+desc.bio_lab = Nuôi cấy sinh khối từ sinh vật sống.
+desc.research_center = Cánh cửa đến công nghệ mới.
+desc.drone_factory = Drone trục vớt thu hồi titan từ xác tàu.
+desc.submarine_dock = Đóng tàu ngầm và mở cuộc thám hiểm.
+desc.military_dome = Huấn luyện lực lượng phòng thủ căn cứ.
+desc.shield_generator = Che chắn khỏi áp suất và tấn công.
+desc.radar_center = Phát hiện mối đe dọa đang đến.
+desc.mega_dome = Mở rộng căn cứ sang mái vòm mới.
+desc.alliance_hub = Kết nối liên minh.
+desc.decoration_spire = Trang trí căn cứ của bạn.
+
+resource.Oxygen = Oxy
+resource.Energy = Năng lượng
+resource.Food = Thực phẩm
+resource.Biomass = Sinh khối
+resource.Titanium = Titan
+resource.Hadalite = Hadalit
+
+reason.BuilderBusy = Thợ đang bận: mỗi lần chỉ xây một công trình.
+reason.InsufficientResources = Không đủ tài nguyên.
+reason.ReactorLevelTooLow = Hãy nâng cấp Lò Phản Ứng Lõi trước.
+reason.MaxLevel = Đã đạt cấp tối đa.
+reason.UnderConstruction = Đang được xây rồi.
+reason.NotYetFree = Xong miễn phí khi còn 5 phút cuối.
+reason.NotUnderConstruction = Không có gì đang xây.
+reason.SlotOccupied = Ô này đã có công trình.
+reason.RingLocked = Vòng này vẫn đang khóa.
+reason.SectorLocked = Khu vực này vẫn đang khóa.
+reason.RingNotAllowed = Công trình này không hợp với vòng này.
+reason.SlotTypeMismatch = Ô này không dành cho công trình này.
+reason.SectorRestricted = Ô này dành riêng cho công trình khác.
+reason.UnknownBuilding = Không tìm thấy công trình.
+reason.NotSupported = Chưa được hỗ trợ.
+
+error.NameInvalid = Tên dài 3–16 ký tự: chữ, số, dấu cách, _ và -.
+error.PasswordInvalid = Mật khẩu cần ít nhất 8 ký tự.
+error.PasswordMismatch = Mật khẩu không khớp.
+error.InvalidCredentials = Sai mã hoặc mật khẩu.
+error.RateLimited = Thử quá nhiều lần. Vui lòng thử lại sau.
+error.Network = Không thể kết nối máy chủ.
+error.Banned = Tài khoản của bạn bị tạm khóa.
+error.CouponUnknown = Mã không tồn tại.
+error.CouponInactive = Mã này không còn hiệu lực.
+error.CouponExpired = Mã này đã hết hạn.
+error.CouponExhausted = Mã này đã hết lượt dùng.
+error.CouponAlreadyRedeemed = Bạn đã dùng mã này rồi.
+error.CouponNotStarted = Mã này chưa được kích hoạt.
+error.CouponNotForYou = Mã này thuộc về người chơi khác.
+error.generic = Đã xảy ra lỗi ({0}).
+
+settings.title = Cài đặt
+settings.account = Tài khoản
+settings.language = Ngôn ngữ
+settings.sound = Âm thanh
+settings.graphics = Đồ họa
+settings.notifications = Thông báo
+settings.gift = Giftcode
+settings.support = Hỗ trợ
+settings.about = Thông tin
+settings.on = Bật
+settings.off = Tắt
+
+sound.music = Nhạc nền
+sound.effects = Hiệu ứng âm thanh
+sound.volume = Âm lượng
+sound.vibration = Rung
+
+graphics.quality = Chất lượng đồ họa
+graphics.low = Thấp
+graphics.medium = Trung bình
+graphics.high = Cao
+graphics.fps = Tốc độ khung hình
+graphics.power = Tiết kiệm pin
+graphics.power.hint = Giảm chất lượng và tốc độ khung hình để tiết kiệm pin.
+
+notify.hint = Chọn thông báo hiển thị trên thiết bị này.
+notify.construction = Xây dựng hoàn tất
+notify.storage = Kho đã đầy
+notify.events = Sự kiện và thông báo
+
+language.hint = Trò chơi sẽ khởi động lại bằng ngôn ngữ bạn chọn.
+
+support.hint = Liên hệ với chúng tôi qua website. Hãy kèm ID tài khoản để chúng tôi tìm bạn nhanh hơn.
+support.copy = Sao chép ID tài khoản
+support.copied = Đã sao chép
+support.website = Mở website
+
+about.version = Phiên bản {0}
+about.account = ID tài khoản: {0}
+about.studio = Phát triển bởi Cicibyte
+
+update.available = Đã có phiên bản {0}.
+update.required = Phiên bản này không còn được hỗ trợ. Hãy cập nhật để tiếp tục chơi.
+update.button = Cập nhật
+update.later = Để sau
+update.downloading = Đang tải… {0}%
+update.failed = Tải xuống thất bại. Vui lòng thử lại.
+update.install = Chạm Cài đặt ở màn hình tiếp theo.

@@ -1,166 +1,169 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
 namespace Hadal.UI
 {
     /// <summary>
-    /// Minimal UI strings in Turkish and English, picked from the device language. A placeholder
-    /// until the localization pass (18 languages, Phase 17); keys stay stable for that migration.
+    /// UI strings in the 18 launch languages (the same set as Last Asylum: Plague). Each language is
+    /// a "key = value" text file in Resources/Localization; English fills any key a translation lacks.
+    /// The choice is stored on the device; the first launch follows the phone's language.
     /// </summary>
     public static class Loc
     {
-        private static readonly Dictionary<string, (string Tr, string En)> Strings = new()
+        public const string Fallback = "en";
+        private const string PrefKey = "hadal.language";
+
+        /// <summary>Code (file name) and the language's own name, in picker order.</summary>
+        public static readonly (string Code, string Name)[] Languages =
         {
-            ["title.tagline"] = ("İnsanlığın son kubbesi, okyanusun dibinde.", "Humanity's last dome, at the bottom of the ocean."),
-            ["title.connecting"] = ("Sunucuya bağlanılıyor…", "Connecting to the server…"),
-            ["title.reconnecting"] = ("Bağlantı koptu, yeniden deneniyor…", "Connection lost, retrying…"),
-            ["title.maintenance"] = ("Sunucu bakımda. Birazdan tekrar denenecek.", "The server is under maintenance. Retrying shortly."),
-            ["title.update"] = ("Yeni bir sürüm gerekli. Lütfen güncelleyin.", "A newer version is required. Please update."),
-            ["title.tap"] = ("Başlamak için dokun", "Tap to start"),
-            ["title.banned"] = ("Hesabın askıya alındı. Destek için bizimle iletişime geç.", "Your account is suspended. Please contact support."),
-
-            ["account.title"] = ("Profil ve Hesap", "Profile & Account"),
-            ["account.name"] = ("Oyuncu adı", "Player name"),
-            ["account.save"] = ("Kaydet", "Save"),
-            ["account.saved"] = ("Kaydedildi.", "Saved."),
-            ["account.id"] = ("Hesap No", "Account ID"),
-            ["account.protected"] = ("Hesabın korunuyor.", "Your account is protected."),
-            ["account.unprotected"] = ("Hesabın bu cihaza bağlı. Telefonu değiştirirsen ilerlemen kaybolabilir.", "Your account lives on this device only. Changing phones could lose your progress."),
-            ["account.protect"] = ("Hesabı Koru", "Protect Account"),
-            ["account.protect.hint"] = ("Bir şifre belirle; sana bir aktarım kodu verelim. Yeni cihazda kod + şifre ile girebilirsin.", "Choose a password and get a transfer code. Use code + password to sign in on a new device."),
-            ["account.password"] = ("Şifre (en az 8 karakter)", "Password (8+ characters)"),
-            ["account.password2"] = ("Şifre tekrar", "Repeat password"),
-            ["account.create"] = ("Kod Oluştur", "Create Code"),
-            ["account.code"] = ("Aktarım kodun", "Your transfer code"),
-            ["account.code.note"] = ("Bu kodu ve şifreni sakla. Yeni bir kod oluşturursan eskisi geçersiz olur.", "Keep this code and your password. Creating a new code retires the old one."),
-            ["account.copy"] = ("Kopyala", "Copy"),
-            ["account.copied"] = ("Kopyalandı", "Copied"),
-            ["account.switch"] = ("Başka Hesapla Giriş", "Sign In to Another Account"),
-            ["account.switch.hint"] = ("Aktarım kodu ve şifreyle giriş yap. Bu cihazdaki hesap korunmuyorsa erişim kaybolur.", "Sign in with a transfer code and password. An unprotected account on this device will be lost."),
-            ["account.transfercode"] = ("Aktarım kodu (XXXX-XXXX-XXXX)", "Transfer code (XXXX-XXXX-XXXX)"),
-            ["account.signin"] = ("Giriş Yap", "Sign In"),
-            ["account.google"] = ("Google ile bağla (yakında)", "Link Google (soon)"),
-            ["account.apple"] = ("Apple ile bağla (yakında)", "Link Apple (soon)"),
-            ["account.close"] = ("Kapat", "Close"),
-            ["account.back"] = ("Geri", "Back"),
-
-            ["gift.open"] = ("Hediye Kodu Kullan", "Redeem a Gift Code"),
-            ["gift.hint"] = ("Etkinliklerde ve duyurularda paylaşılan kodu gir; ödüller hemen deponda.", "Enter a code from an event or announcement; the rewards go straight to your storage."),
-            ["gift.code"] = ("Hediye kodu", "Gift code"),
-            ["gift.redeem"] = ("Kodu Kullan", "Redeem"),
-            ["gift.done"] = ("Ödüller eklendi: {0}", "Rewards added: {0}"),
-
-            ["base.build.title"] = ("İnşa Et · Halka {0}", "Build · Ring {0}"),
-            ["base.build"] = ("İnşa Et", "Build"),
-            ["base.upgrade"] = ("Yükselt", "Upgrade"),
-            ["base.finish"] = ("Ücretsiz Bitir", "Finish Free"),
-            ["base.close"] = ("Kapat", "Close"),
-            ["base.level"] = ("Seviye {0}", "Level {0}"),
-            ["base.level.max"] = ("En yüksek seviye", "Max level"),
-            ["base.constructing"] = ("İnşa ediliyor · {0}", "Under construction · {0}"),
-            ["base.upgrading"] = ("Seviye {0}'e yükseltiliyor · {1}", "Upgrading to level {0} · {1}"),
-            ["base.produces"] = ("Üretim", "Produces"),
-            ["base.consumes"] = ("Tüketim", "Consumes"),
-            ["base.next"] = ("Sonraki seviye", "Next level"),
-            ["base.cost"] = ("Maliyet", "Cost"),
-            ["base.time"] = ("Süre", "Time"),
-            ["base.permin"] = ("/dk", "/min"),
-            ["base.nothing"] = ("Bu yuvaya şu an inşa edilebilecek bina yok.", "Nothing can be built on this slot yet."),
-            ["base.started"] = ("İnşaat başladı.", "Construction started."),
-            ["base.done"] = ("Tamamlandı.", "Completed."),
-
-            ["building.core_reactor"] = ("Çekirdek Reaktör", "Core Reactor"),
-            ["building.oxygen_plant"] = ("Oksijen Tesisi", "Oxygen Plant"),
-            ["building.food_lab"] = ("Gıda Laboratuvarı", "Food Lab"),
-            ["building.bio_lab"] = ("Biyo Laboratuvar", "Bio Lab"),
-            ["building.research_center"] = ("Araştırma Merkezi", "Research Center"),
-            ["building.drone_factory"] = ("Dron Fabrikası", "Drone Factory"),
-            ["building.submarine_dock"] = ("Denizaltı İskelesi", "Submarine Dock"),
-            ["building.military_dome"] = ("Askeri Kubbe", "Military Dome"),
-            ["building.shield_generator"] = ("Kalkan Jeneratörü", "Shield Generator"),
-            ["building.radar_center"] = ("Radar Merkezi", "Radar Center"),
-            ["building.mega_dome"] = ("Mega Kubbe", "Mega Dome"),
-            ["building.alliance_hub"] = ("İttifak Merkezi", "Alliance Hub"),
-            ["building.decoration_spire"] = ("Süs Kulesi", "Decoration Spire"),
-
-            ["desc.core_reactor"] = ("Üssün kalbi. Diğer binalar reaktör seviyesini geçemez.", "Heart of the base. No building can outlevel the reactor."),
-            ["desc.oxygen_plant"] = ("Oksijen üretir. Oksijen biterse üs ölür.", "Produces oxygen. Without oxygen the base dies."),
-            ["desc.food_lab"] = ("Mürettebatı besler.", "Feeds the crew."),
-            ["desc.bio_lab"] = ("Canlı organizmalardan biyokütle üretir.", "Grows biomass from living organisms."),
-            ["desc.research_center"] = ("Yeni teknolojilerin kapısı.", "Gateway to new technology."),
-            ["desc.drone_factory"] = ("Kurtarma dronları enkazdan titanyum toplar.", "Salvage drones recover titanium from wrecks."),
-            ["desc.submarine_dock"] = ("Denizaltı inşa eder ve keşfe gönderir.", "Builds submarines and launches expeditions."),
-            ["desc.military_dome"] = ("Üs savunmasını eğitir.", "Trains the base's defenders."),
-            ["desc.shield_generator"] = ("Basınca ve saldırılara karşı kalkan.", "Shields against pressure and attacks."),
-            ["desc.radar_center"] = ("Yaklaşan tehditleri görür.", "Detects incoming threats."),
-            ["desc.mega_dome"] = ("Üssü yeni bir kubbeye genişletir.", "Expands the base into a new dome."),
-            ["desc.alliance_hub"] = ("İttifak bağlantısı.", "Alliance link."),
-            ["desc.decoration_spire"] = ("Üssünü süsler.", "Decorates your base."),
-
-            ["resource.Oxygen"] = ("Oksijen", "Oxygen"),
-            ["resource.Energy"] = ("Enerji", "Energy"),
-            ["resource.Food"] = ("Gıda", "Food"),
-            ["resource.Biomass"] = ("Biyokütle", "Biomass"),
-            ["resource.Titanium"] = ("Titanyum", "Titanium"),
-            ["resource.Hadalite"] = ("Hadalit", "Hadalite"),
-
-            ["reason.BuilderBusy"] = ("İnşaatçı meşgul: aynı anda tek inşaat.", "Builder busy: one construction at a time."),
-            ["reason.InsufficientResources"] = ("Kaynak yetersiz.", "Not enough resources."),
-            ["reason.ReactorLevelTooLow"] = ("Önce Çekirdek Reaktörü yükselt.", "Upgrade the Core Reactor first."),
-            ["reason.MaxLevel"] = ("En yüksek seviyede.", "Already at max level."),
-            ["reason.UnderConstruction"] = ("Zaten inşa ediliyor.", "Already under construction."),
-            ["reason.NotYetFree"] = ("Ücretsiz bitirmek için son 5 dakikayı bekle.", "Free finish opens in the last 5 minutes."),
-            ["reason.NotUnderConstruction"] = ("İnşaat yok.", "Nothing is being built."),
-            ["reason.SlotOccupied"] = ("Bu yuva dolu.", "This slot is taken."),
-            ["reason.RingLocked"] = ("Bu halka henüz açılmadı.", "This ring is still locked."),
-            ["reason.SectorLocked"] = ("Bu bölüm henüz açılmadı.", "This sector is still locked."),
-            ["reason.RingNotAllowed"] = ("Bu bina bu halkaya kurulamaz.", "This building does not fit this ring."),
-            ["reason.SlotTypeMismatch"] = ("Bu yuva bu bina için değil.", "This slot is not for this building."),
-            ["reason.SectorRestricted"] = ("Bu yuva başka bir bina için ayrılmış.", "This slot is reserved for another building."),
-            ["reason.UnknownBuilding"] = ("Bina bulunamadı.", "Building not found."),
-            ["reason.NotSupported"] = ("Bu işlem henüz desteklenmiyor.", "Not supported yet."),
-
-            ["error.NameInvalid"] = ("Ad 3–16 karakter olmalı; harf, rakam, boşluk, _ ve - kullanılabilir.", "Names are 3–16 characters: letters, digits, space, _ and -."),
-            ["error.PasswordInvalid"] = ("Şifre en az 8 karakter olmalı.", "The password needs at least 8 characters."),
-            ["error.PasswordMismatch"] = ("Şifreler eşleşmiyor.", "The passwords do not match."),
-            ["error.InvalidCredentials"] = ("Kod ya da şifre hatalı.", "Wrong code or password."),
-            ["error.RateLimited"] = ("Çok fazla deneme. Biraz sonra tekrar dene.", "Too many attempts. Try again later."),
-            ["error.Network"] = ("Sunucuya ulaşılamadı.", "Could not reach the server."),
-            ["error.Banned"] = ("Hesabın askıya alındı.", "Your account is suspended."),
-            ["error.CouponUnknown"] = ("Böyle bir kod bulunamadı.", "No such code."),
-            ["error.CouponInactive"] = ("Bu kod artık geçerli değil.", "This code is no longer valid."),
-            ["error.CouponExpired"] = ("Bu kodun süresi doldu.", "This code has expired."),
-            ["error.CouponExhausted"] = ("Bu kodun kullanım limiti doldu.", "This code has reached its limit."),
-            ["error.CouponAlreadyRedeemed"] = ("Bu kodu zaten kullandın.", "You have already used this code."),
-            ["error.CouponNotStarted"] = ("Bu kod henüz aktif değil.", "This code is not active yet."),
-            ["error.CouponNotForYou"] = ("Bu kod sana ait değil.", "This code belongs to another player."),
-            ["error.generic"] = ("Bir şeyler ters gitti ({0}).", "Something went wrong ({0})."),
+            ("en", "English"),
+            ("tr", "Türkçe"),
+            ("de", "Deutsch"),
+            ("fr", "Français"),
+            ("es", "Español"),
+            ("it", "Italiano"),
+            ("pt", "Português"),
+            ("nl", "Nederlands"),
+            ("ru", "Русский"),
+            ("ar", "العربية"),
+            ("ja", "日本語"),
+            ("ko", "한국어"),
+            ("zh-Hans", "简体中文"),
+            ("zh-Hant", "繁體中文"),
+            ("th", "ไทย"),
+            ("vi", "Tiếng Việt"),
+            ("id", "Bahasa Indonesia"),
+            ("ms", "Bahasa Melayu")
         };
 
-        public static bool Turkish { get; set; } = Application.systemLanguage == SystemLanguage.Turkish;
+        private static Dictionary<string, string> _strings;
+        private static Dictionary<string, string> _fallback;
+        private static string _current;
+
+        /// <summary>Active language code.</summary>
+        public static string Current
+        {
+            get
+            {
+                if (_current == null)
+                    Use(PlayerPrefs.GetString(PrefKey, string.Empty) is { Length: > 0 } saved ? saved : FromSystem(Application.systemLanguage));
+                return _current;
+            }
+        }
+
+        public static bool IsRightToLeft => Current == "ar";
+
+        /// <summary>Switches language for this session and remembers it on the device.</summary>
+        public static void SetLanguage(string code)
+        {
+            Use(code);
+            PlayerPrefs.SetString(PrefKey, _current);
+            PlayerPrefs.Save();
+        }
+
+        /// <summary>Switches language for this session only (tests).</summary>
+        public static void Use(string code)
+        {
+            _current = Array.Exists(Languages, l => l.Code == code) ? code : Fallback;
+            _fallback ??= Load(Fallback);
+            _strings = _current == Fallback ? _fallback : Load(_current);
+        }
+
+        public static string NameOf(string code) => Array.Find(Languages, l => l.Code == code).Name ?? code;
+
+        public static bool Has(string key)
+        {
+            _ = Current;
+            return _strings.ContainsKey(key) || _fallback.ContainsKey(key);
+        }
 
         public static string T(string key)
         {
-            if (!Strings.TryGetValue(key, out var value))
+            _ = Current;
+            if (!_strings.TryGetValue(key, out var value) && !_fallback.TryGetValue(key, out value))
                 return key;
 
-            return Turkish ? value.Tr : value.En;
+            return IsRightToLeft ? ArabicText.Shape(value) : value;
+        }
+
+        /// <summary><see cref="T"/> with string.Format arguments; arguments are shaped with the text.</summary>
+        public static string F(string key, params object[] args)
+        {
+            _ = Current;
+            if (!_strings.TryGetValue(key, out var value) && !_fallback.TryGetValue(key, out value))
+                return key;
+
+            var text = string.Format(value, args);
+            return IsRightToLeft ? ArabicText.Shape(text) : text;
         }
 
         /// <summary>Player-facing text for a server reject reason (PlacementRejectReason / ConstructionRejectReason).</summary>
-        public static string Reason(string code) =>
-            Strings.ContainsKey("reason." + code) ? T("reason." + code) : string.Format(T("error.generic"), code);
+        public static string Reason(string code) => Has("reason." + code) ? T("reason." + code) : F("error.generic", code);
 
-        public static string Building(string id) => Strings.ContainsKey("building." + id) ? T("building." + id) : id;
+        public static string Building(string id) => Has("building." + id) ? T("building." + id) : id;
+
+        public static string Resource(string type) => Has("resource." + type) ? T("resource." + type) : type;
 
         /// <summary>m:ss under an hour, h:mm:ss above.</summary>
         public static string Duration(float seconds)
         {
-            var t = System.TimeSpan.FromSeconds(Mathf.Max(0f, Mathf.Ceil(seconds)));
+            var t = TimeSpan.FromSeconds(Mathf.Max(0f, Mathf.Ceil(seconds)));
             return t.TotalHours >= 1 ? $"{(int)t.TotalHours}:{t.Minutes:00}:{t.Seconds:00}" : $"{t.Minutes}:{t.Seconds:00}";
         }
 
-        public static string Error(string code) =>
-            Strings.ContainsKey("error." + code) ? T("error." + code) : string.Format(T("error.generic"), code);
+        public static string Error(string code) => Has("error." + code) ? T("error." + code) : F("error.generic", code);
+
+        /// <summary>Phone language → our code; anything we do not ship falls back to English.</summary>
+        public static string FromSystem(SystemLanguage language) => language switch
+        {
+            SystemLanguage.Turkish => "tr",
+            SystemLanguage.German => "de",
+            SystemLanguage.French => "fr",
+            SystemLanguage.Spanish => "es",
+            SystemLanguage.Italian => "it",
+            SystemLanguage.Portuguese => "pt",
+            SystemLanguage.Dutch => "nl",
+            SystemLanguage.Russian => "ru",
+            SystemLanguage.Arabic => "ar",
+            SystemLanguage.Japanese => "ja",
+            SystemLanguage.Korean => "ko",
+            SystemLanguage.Chinese or SystemLanguage.ChineseSimplified => "zh-Hans",
+            SystemLanguage.ChineseTraditional => "zh-Hant",
+            SystemLanguage.Thai => "th",
+            SystemLanguage.Vietnamese => "vi",
+            SystemLanguage.Indonesian => "id",
+            _ => Fallback
+        };
+
+        /// <summary>Parses one language file: "key = value", '#' comments, "\n" for line breaks.</summary>
+        public static Dictionary<string, string> Parse(string text)
+        {
+            var strings = new Dictionary<string, string>();
+            foreach (var raw in (text ?? string.Empty).Split('\n'))
+            {
+                var line = raw.TrimEnd('\r');
+                if (line.Length == 0 || line[0] == '#')
+                    continue;
+
+                var split = line.IndexOf(" = ", StringComparison.Ordinal);
+                if (split <= 0)
+                    continue;
+
+                strings[line.Substring(0, split).Trim()] = line.Substring(split + 3).Replace("\\n", "\n");
+            }
+
+            return strings;
+        }
+
+        private static Dictionary<string, string> Load(string code)
+        {
+            var asset = Resources.Load<TextAsset>("Localization/" + code);
+            if (asset != null)
+                return Parse(asset.text);
+
+            Debug.LogWarning($"[Loc] Resources/Localization/{code}.txt missing.");
+            return new Dictionary<string, string>();
+        }
     }
 }

@@ -1,0 +1,175 @@
+# HADAL UI strings (ko). One "key = value" per line; \n is a line break, {0} a placeholder.
+
+title.tagline = 바다 밑바닥, 인류의 마지막 돔.
+title.connecting = 서버에 연결 중…
+title.reconnecting = 연결이 끊겼습니다. 재연결 중…
+title.maintenance = 서버 점검 중입니다. 잠시 후 다시 시도합니다.
+title.update = 새 버전이 필요합니다. 업데이트해 주세요.
+title.tap = 터치하여 시작
+title.banned = 계정이 정지되었습니다. 고객센터에 문의해 주세요.
+
+account.title = 프로필 및 계정
+account.name = 플레이어 이름
+account.save = 저장
+account.saved = 저장되었습니다.
+account.id = 계정 ID
+account.protected = 계정이 보호되고 있습니다.
+account.unprotected = 계정이 이 기기에만 저장되어 있습니다. 기기를 변경하면 진행 상황이 사라질 수 있습니다.
+account.protect = 계정 보호
+account.protect.hint = 비밀번호를 설정하면 이전 코드가 발급됩니다. 새 기기에서 코드와 비밀번호로 로그인하세요.
+account.password = 비밀번호 (8자 이상)
+account.password2 = 비밀번호 확인
+account.create = 코드 발급
+account.code = 이전 코드
+account.code.note = 코드와 비밀번호를 잘 보관하세요. 새 코드를 발급하면 기존 코드는 무효가 됩니다.
+account.copy = 복사
+account.copied = 복사됨
+account.switch = 다른 계정으로 로그인
+account.switch.hint = 이전 코드와 비밀번호로 로그인합니다. 이 기기의 보호되지 않은 계정은 사라집니다.
+account.transfercode = 이전 코드 (XXXX-XXXX-XXXX)
+account.signin = 로그인
+account.google = Google 연동 (준비 중)
+account.apple = Apple 연동 (준비 중)
+account.close = 닫기
+account.back = 뒤로
+
+gift.open = 쿠폰 코드 입력
+gift.hint = 이벤트나 공지의 코드를 입력하면 보상이 창고로 바로 지급됩니다.
+gift.code = 쿠폰 코드
+gift.redeem = 사용
+gift.done = 보상 지급: {0}
+
+base.build.title = 건설 · 링 {0}
+base.build = 건설
+base.upgrade = 업그레이드
+base.finish = 무료 완료
+base.close = 닫기
+base.level = Lv.{0}
+base.level.max = 최대 레벨
+base.constructing = 건설 중 · {0}
+base.upgrading = Lv.{0} 업그레이드 중 · {1}
+base.produces = 생산
+base.consumes = 소비
+base.next = 다음 레벨
+base.cost = 비용
+base.time = 시간
+base.permin = /분
+base.nothing = 이 슬롯에는 아직 건설할 수 있는 건물이 없습니다.
+base.started = 건설을 시작했습니다.
+base.done = 완료되었습니다.
+
+building.core_reactor = 코어 원자로
+building.oxygen_plant = 산소 플랜트
+building.food_lab = 식량 연구소
+building.bio_lab = 바이오 연구소
+building.research_center = 연구 센터
+building.drone_factory = 드론 공장
+building.submarine_dock = 잠수함 도크
+building.military_dome = 군사 돔
+building.shield_generator = 방어막 생성기
+building.radar_center = 레이더 센터
+building.mega_dome = 메가 돔
+building.alliance_hub = 연맹 허브
+building.decoration_spire = 장식 첨탑
+
+desc.core_reactor = 기지의 심장. 어떤 건물도 원자로 레벨을 넘을 수 없습니다.
+desc.oxygen_plant = 산소를 생산합니다. 산소가 없으면 기지는 멸망합니다.
+desc.food_lab = 대원들에게 식량을 공급합니다.
+desc.bio_lab = 생물로부터 바이오매스를 배양합니다.
+desc.research_center = 새로운 기술로 향하는 관문.
+desc.drone_factory = 회수 드론이 잔해에서 티타늄을 회수합니다.
+desc.submarine_dock = 잠수함을 건조하고 원정을 보냅니다.
+desc.military_dome = 기지 방어 병력을 훈련합니다.
+desc.shield_generator = 수압과 공격으로부터 기지를 보호합니다.
+desc.radar_center = 다가오는 위협을 탐지합니다.
+desc.mega_dome = 기지를 새로운 돔으로 확장합니다.
+desc.alliance_hub = 연맹과의 연결 거점.
+desc.decoration_spire = 기지를 장식합니다.
+
+resource.Oxygen = 산소
+resource.Energy = 에너지
+resource.Food = 식량
+resource.Biomass = 바이오매스
+resource.Titanium = 티타늄
+resource.Hadalite = 하달라이트
+
+reason.BuilderBusy = 건설 중: 한 번에 하나만 건설할 수 있습니다.
+reason.InsufficientResources = 자원이 부족합니다.
+reason.ReactorLevelTooLow = 먼저 코어 원자로를 업그레이드하세요.
+reason.MaxLevel = 이미 최대 레벨입니다.
+reason.UnderConstruction = 이미 건설 중입니다.
+reason.NotYetFree = 무료 완료는 마지막 5분부터 가능합니다.
+reason.NotUnderConstruction = 건설 중인 건물이 없습니다.
+reason.SlotOccupied = 이미 사용 중인 슬롯입니다.
+reason.RingLocked = 아직 잠긴 링입니다.
+reason.SectorLocked = 아직 잠긴 구역입니다.
+reason.RingNotAllowed = 이 건물은 이 링에 건설할 수 없습니다.
+reason.SlotTypeMismatch = 이 건물을 지을 수 없는 슬롯입니다.
+reason.SectorRestricted = 다른 건물 전용 슬롯입니다.
+reason.UnknownBuilding = 건물을 찾을 수 없습니다.
+reason.NotSupported = 아직 지원되지 않습니다.
+
+error.NameInvalid = 이름은 3~16자이며 문자, 숫자, 공백, _, -만 사용할 수 있습니다.
+error.PasswordInvalid = 비밀번호는 8자 이상이어야 합니다.
+error.PasswordMismatch = 비밀번호가 일치하지 않습니다.
+error.InvalidCredentials = 코드 또는 비밀번호가 올바르지 않습니다.
+error.RateLimited = 시도 횟수가 너무 많습니다. 잠시 후 다시 시도하세요.
+error.Network = 서버에 연결할 수 없습니다.
+error.Banned = 계정이 정지되었습니다.
+error.CouponUnknown = 존재하지 않는 코드입니다.
+error.CouponInactive = 더 이상 유효하지 않은 코드입니다.
+error.CouponExpired = 기간이 만료된 코드입니다.
+error.CouponExhausted = 사용 한도에 도달한 코드입니다.
+error.CouponAlreadyRedeemed = 이미 사용한 코드입니다.
+error.CouponNotStarted = 아직 사용할 수 없는 코드입니다.
+error.CouponNotForYou = 다른 플레이어 전용 코드입니다.
+error.generic = 오류가 발생했습니다 ({0}).
+
+settings.title = 설정
+settings.account = 계정
+settings.language = 언어
+settings.sound = 사운드
+settings.graphics = 그래픽
+settings.notifications = 알림
+settings.gift = 쿠폰
+settings.support = 고객센터
+settings.about = 정보
+settings.on = 켜기
+settings.off = 끄기
+
+sound.music = 배경음악
+sound.effects = 효과음
+sound.volume = 음량
+sound.vibration = 진동
+
+graphics.quality = 그래픽 품질
+graphics.low = 낮음
+graphics.medium = 보통
+graphics.high = 높음
+graphics.fps = 프레임 속도
+graphics.power = 절전 모드
+graphics.power.hint = 배터리 절약을 위해 품질과 프레임 속도를 낮춥니다.
+
+notify.hint = 이 기기에 표시할 알림을 선택하세요.
+notify.construction = 건설 완료
+notify.storage = 창고 가득 참
+notify.events = 이벤트 및 공지
+
+language.hint = 선택한 언어로 게임이 다시 시작됩니다.
+
+support.hint = 웹사이트를 통해 문의해 주세요. 빠른 확인을 위해 계정 ID를 함께 적어 주세요.
+support.copy = 계정 ID 복사
+support.copied = 복사됨
+support.website = 웹사이트 열기
+
+about.version = 버전 {0}
+about.account = 계정 ID: {0}
+about.studio = 개발: Cicibyte
+
+update.available = 새 버전 {0} 업데이트가 있습니다.
+update.required = 더 이상 지원되지 않는 버전입니다. 계속 플레이하려면 업데이트하세요.
+update.button = 업데이트
+update.later = 나중에
+update.downloading = 다운로드 중… {0}%
+update.failed = 다운로드에 실패했습니다. 다시 시도해 주세요.
+update.install = 다음 화면에서 '설치'를 누르세요.

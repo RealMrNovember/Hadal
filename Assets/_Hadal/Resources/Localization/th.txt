@@ -1,0 +1,175 @@
+# HADAL UI strings (en). One "key = value" per line; \n is a line break, {0} a placeholder.
+
+title.tagline = โดมสุดท้ายของมนุษยชาติ ณ ก้นมหาสมุทร
+title.connecting = กำลังเชื่อมต่อเซิร์ฟเวอร์…
+title.reconnecting = การเชื่อมต่อขาดหาย กำลังลองใหม่…
+title.maintenance = เซิร์ฟเวอร์อยู่ระหว่างปิดปรับปรุง จะลองใหม่ในไม่ช้า
+title.update = ต้องใช้เวอร์ชันใหม่กว่า โปรดอัปเดต
+title.tap = แตะเพื่อเริ่ม
+title.banned = บัญชีของคุณถูกระงับ โปรดติดต่อฝ่ายสนับสนุน
+
+account.title = โปรไฟล์และบัญชี
+account.name = ชื่อผู้เล่น
+account.save = บันทึก
+account.saved = บันทึกแล้ว
+account.id = ID บัญชี
+account.protected = บัญชีของคุณได้รับการปกป้องแล้ว
+account.unprotected = บัญชีของคุณอยู่ในอุปกรณ์นี้เท่านั้น หากเปลี่ยนมือถือ ความคืบหน้าอาจสูญหาย
+account.protect = ปกป้องบัญชี
+account.protect.hint = ตั้งรหัสผ่านและรับรหัสย้ายบัญชี ใช้รหัสย้ายบัญชี + รหัสผ่านเพื่อเข้าสู่ระบบบนอุปกรณ์ใหม่
+account.password = รหัสผ่าน (8 ตัวขึ้นไป)
+account.password2 = ยืนยันรหัสผ่าน
+account.create = สร้างรหัส
+account.code = รหัสย้ายบัญชีของคุณ
+account.code.note = เก็บรหัสนี้และรหัสผ่านไว้ให้ดี การสร้างรหัสใหม่จะทำให้รหัสเดิมใช้ไม่ได้
+account.copy = คัดลอก
+account.copied = คัดลอกแล้ว
+account.switch = เข้าสู่ระบบบัญชีอื่น
+account.switch.hint = เข้าสู่ระบบด้วยรหัสย้ายบัญชีและรหัสผ่าน บัญชีที่ไม่ได้ปกป้องบนอุปกรณ์นี้จะสูญหาย
+account.transfercode = รหัสย้ายบัญชี (XXXX-XXXX-XXXX)
+account.signin = เข้าสู่ระบบ
+account.google = ผูก Google (เร็วๆ นี้)
+account.apple = ผูก Apple (เร็วๆ นี้)
+account.close = ปิด
+account.back = กลับ
+
+gift.open = แลกรหัสของขวัญ
+gift.hint = กรอกรหัสจากกิจกรรมหรือประกาศ รางวัลจะเข้าคลังของคุณทันที
+gift.code = รหัสของขวัญ
+gift.redeem = แลก
+gift.done = ได้รับรางวัล: {0}
+
+base.build.title = สร้าง · วงแหวน {0}
+base.build = สร้าง
+base.upgrade = อัปเกรด
+base.finish = เสร็จฟรี
+base.close = ปิด
+base.level = เลเวล {0}
+base.level.max = เลเวลสูงสุด
+base.constructing = กำลังก่อสร้าง · {0}
+base.upgrading = กำลังอัปเกรดเป็นเลเวล {0} · {1}
+base.produces = ผลิต
+base.consumes = ใช้
+base.next = เลเวลถัดไป
+base.cost = ค่าใช้จ่าย
+base.time = เวลา
+base.permin = /นาที
+base.nothing = ยังไม่มีสิ่งใดสร้างบนช่องนี้ได้
+base.started = เริ่มก่อสร้างแล้ว
+base.done = เสร็จสมบูรณ์
+
+building.core_reactor = เตาปฏิกรณ์หลัก
+building.oxygen_plant = โรงงานออกซิเจน
+building.food_lab = แล็บอาหาร
+building.bio_lab = แล็บชีวภาพ
+building.research_center = ศูนย์วิจัย
+building.drone_factory = โรงงานโดรน
+building.submarine_dock = อู่เรือดำน้ำ
+building.military_dome = โดมทหาร
+building.shield_generator = เครื่องกำเนิดโล่
+building.radar_center = ศูนย์เรดาร์
+building.mega_dome = เมกะโดม
+building.alliance_hub = ศูนย์พันธมิตร
+building.decoration_spire = หอประดับ
+
+desc.core_reactor = หัวใจของฐาน ไม่มีอาคารใดเลเวลสูงกว่าเตาปฏิกรณ์ได้
+desc.oxygen_plant = ผลิตออกซิเจน หากไม่มีออกซิเจน ฐานจะล่มสลาย
+desc.food_lab = เลี้ยงดูลูกเรือ
+desc.bio_lab = เพาะไบโอแมสจากสิ่งมีชีวิต
+desc.research_center = ประตูสู่เทคโนโลยีใหม่
+desc.drone_factory = โดรนกู้ซากเก็บไทเทเนียมจากซากเรือ
+desc.submarine_dock = สร้างเรือดำน้ำและส่งออกสำรวจ
+desc.military_dome = ฝึกฝนผู้พิทักษ์ฐาน
+desc.shield_generator = ป้องกันแรงดันน้ำและการโจมตี
+desc.radar_center = ตรวจจับภัยคุกคามที่กำลังมา
+desc.mega_dome = ขยายฐานสู่โดมใหม่
+desc.alliance_hub = เชื่อมต่อพันธมิตร
+desc.decoration_spire = ตกแต่งฐานของคุณ
+
+resource.Oxygen = ออกซิเจน
+resource.Energy = พลังงาน
+resource.Food = อาหาร
+resource.Biomass = ไบโอแมส
+resource.Titanium = ไทเทเนียม
+resource.Hadalite = ฮาดาไลต์
+
+reason.BuilderBusy = ช่างไม่ว่าง: ก่อสร้างได้ครั้งละหนึ่งหลัง
+reason.InsufficientResources = ทรัพยากรไม่พอ
+reason.ReactorLevelTooLow = อัปเกรดเตาปฏิกรณ์หลักก่อน
+reason.MaxLevel = ถึงเลเวลสูงสุดแล้ว
+reason.UnderConstruction = กำลังก่อสร้างอยู่แล้ว
+reason.NotYetFree = เสร็จฟรีได้ในช่วง 5 นาทีสุดท้าย
+reason.NotUnderConstruction = ไม่มีสิ่งใดกำลังก่อสร้าง
+reason.SlotOccupied = ช่องนี้ถูกใช้แล้ว
+reason.RingLocked = วงแหวนนี้ยังถูกล็อก
+reason.SectorLocked = เขตนี้ยังถูกล็อก
+reason.RingNotAllowed = อาคารนี้สร้างในวงแหวนนี้ไม่ได้
+reason.SlotTypeMismatch = ช่องนี้ไม่ใช่สำหรับอาคารนี้
+reason.SectorRestricted = ช่องนี้สงวนไว้สำหรับอาคารอื่น
+reason.UnknownBuilding = ไม่พบอาคาร
+reason.NotSupported = ยังไม่รองรับ
+
+error.NameInvalid = ชื่อต้องมี 3–16 ตัว: ตัวอักษร ตัวเลข เว้นวรรค _ และ -
+error.PasswordInvalid = รหัสผ่านต้องมีอย่างน้อย 8 ตัว
+error.PasswordMismatch = รหัสผ่านไม่ตรงกัน
+error.InvalidCredentials = รหัสหรือรหัสผ่านไม่ถูกต้อง
+error.RateLimited = ลองหลายครั้งเกินไป โปรดลองใหม่ภายหลัง
+error.Network = ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ได้
+error.Banned = บัญชีของคุณถูกระงับ
+error.CouponUnknown = ไม่พบรหัสนี้
+error.CouponInactive = รหัสนี้ใช้ไม่ได้แล้ว
+error.CouponExpired = รหัสนี้หมดอายุแล้ว
+error.CouponExhausted = รหัสนี้ถูกใช้ครบจำนวนแล้ว
+error.CouponAlreadyRedeemed = คุณใช้รหัสนี้ไปแล้ว
+error.CouponNotStarted = รหัสนี้ยังไม่เปิดใช้งาน
+error.CouponNotForYou = รหัสนี้เป็นของผู้เล่นอื่น
+error.generic = เกิดข้อผิดพลาด ({0})
+
+settings.title = ตั้งค่า
+settings.account = บัญชี
+settings.language = ภาษา
+settings.sound = เสียง
+settings.graphics = กราฟิก
+settings.notifications = การแจ้งเตือน
+settings.gift = รหัสของขวัญ
+settings.support = ฝ่ายสนับสนุน
+settings.about = เกี่ยวกับ
+settings.on = เปิด
+settings.off = ปิด
+
+sound.music = เพลง
+sound.effects = เอฟเฟกต์เสียง
+sound.volume = ระดับเสียง
+sound.vibration = การสั่น
+
+graphics.quality = คุณภาพกราฟิก
+graphics.low = ต่ำ
+graphics.medium = กลาง
+graphics.high = สูง
+graphics.fps = อัตราเฟรม
+graphics.power = ประหยัดแบตเตอรี่
+graphics.power.hint = ลดคุณภาพและอัตราเฟรมเพื่อประหยัดแบตเตอรี่
+
+notify.hint = เลือกการแจ้งเตือนที่จะแสดงบนอุปกรณ์นี้
+notify.construction = ก่อสร้างเสร็จแล้ว
+notify.storage = คลังเต็ม
+notify.events = กิจกรรมและประกาศ
+
+language.hint = เกมจะเริ่มใหม่ในภาษาที่คุณเลือก
+
+support.hint = ติดต่อเราผ่านเว็บไซต์ โปรดแนบ ID บัญชีเพื่อให้เราค้นหาได้รวดเร็ว
+support.copy = คัดลอก ID บัญชี
+support.copied = คัดลอกแล้ว
+support.website = เปิดเว็บไซต์
+
+about.version = เวอร์ชัน {0}
+about.account = ID บัญชี: {0}
+about.studio = พัฒนาโดย Cicibyte
+
+update.available = มีเวอร์ชัน {0} แล้ว
+update.required = เวอร์ชันนี้ไม่รองรับแล้ว อัปเดตเพื่อเล่นต่อ
+update.button = อัปเดต
+update.later = ภายหลัง
+update.downloading = กำลังดาวน์โหลด… {0}%
+update.failed = ดาวน์โหลดล้มเหลว โปรดลองอีกครั้ง
+update.install = แตะ "ติดตั้ง" ในหน้าถัดไป

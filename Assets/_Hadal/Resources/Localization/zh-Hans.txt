@@ -1,0 +1,175 @@
+# HADAL UI strings (zh-Hans). One "key = value" per line; \n is a line break, {0} a placeholder.
+
+title.tagline = 海底深处，人类最后的穹顶。
+title.connecting = 正在连接服务器…
+title.reconnecting = 连接中断，正在重试…
+title.maintenance = 服务器维护中，稍后将自动重试。
+title.update = 需要更新至新版本，请更新。
+title.tap = 点击开始
+title.banned = 你的账号已被封禁，请联系客服。
+
+account.title = 个人资料与账号
+account.name = 玩家名称
+account.save = 保存
+account.saved = 已保存。
+account.id = 账号ID
+account.protected = 你的账号已受保护。
+account.unprotected = 你的账号仅保存在此设备上，更换手机可能导致进度丢失。
+account.protect = 保护账号
+account.protect.hint = 设置密码即可获得迁移码。在新设备上使用迁移码+密码即可登录。
+account.password = 密码（至少8位）
+account.password2 = 确认密码
+account.create = 生成迁移码
+account.code = 你的迁移码
+account.code.note = 请妥善保管迁移码和密码。生成新迁移码后，旧码将失效。
+account.copy = 复制
+account.copied = 已复制
+account.switch = 登录其他账号
+account.switch.hint = 使用迁移码和密码登录。此设备上未受保护的账号将会丢失。
+account.transfercode = 迁移码（XXXX-XXXX-XXXX）
+account.signin = 登录
+account.google = 绑定Google（即将推出）
+account.apple = 绑定Apple（即将推出）
+account.close = 关闭
+account.back = 返回
+
+gift.open = 使用兑换码
+gift.hint = 输入活动或公告中的兑换码，奖励将直接发放至仓库。
+gift.code = 兑换码
+gift.redeem = 兑换
+gift.done = 已获得奖励：{0}
+
+base.build.title = 建造 · 第{0}环
+base.build = 建造
+base.upgrade = 升级
+base.finish = 免费完成
+base.close = 关闭
+base.level = 等级 {0}
+base.level.max = 已满级
+base.constructing = 建造中 · {0}
+base.upgrading = 升级至{0}级 · {1}
+base.produces = 产出
+base.consumes = 消耗
+base.next = 下一级
+base.cost = 花费
+base.time = 时间
+base.permin = /分钟
+base.nothing = 此位置暂无可建造的建筑。
+base.started = 开始建造。
+base.done = 已完成。
+
+building.core_reactor = 核心反应堆
+building.oxygen_plant = 制氧厂
+building.food_lab = 食物实验室
+building.bio_lab = 生物实验室
+building.research_center = 研究中心
+building.drone_factory = 无人机工厂
+building.submarine_dock = 潜艇船坞
+building.military_dome = 军事穹顶
+building.shield_generator = 护盾发生器
+building.radar_center = 雷达中心
+building.mega_dome = 巨型穹顶
+building.alliance_hub = 联盟中心
+building.decoration_spire = 装饰尖塔
+
+desc.core_reactor = 基地的心脏。任何建筑的等级都不能超过反应堆。
+desc.oxygen_plant = 生产氧气。没有氧气，基地将会毁灭。
+desc.food_lab = 为船员提供食物。
+desc.bio_lab = 从生物体中培育生物质。
+desc.research_center = 通往新科技的大门。
+desc.drone_factory = 打捞无人机从残骸中回收钛。
+desc.submarine_dock = 建造潜艇并派遣探险队。
+desc.military_dome = 训练基地的守卫部队。
+desc.shield_generator = 抵御水压与攻击。
+desc.radar_center = 侦测来袭的威胁。
+desc.mega_dome = 将基地扩展至新的穹顶。
+desc.alliance_hub = 联盟连接枢纽。
+desc.decoration_spire = 装饰你的基地。
+
+resource.Oxygen = 氧气
+resource.Energy = 能源
+resource.Food = 食物
+resource.Biomass = 生物质
+resource.Titanium = 钛
+resource.Hadalite = 深渊晶
+
+reason.BuilderBusy = 建造队忙碌：同一时间只能建造一个。
+reason.InsufficientResources = 资源不足。
+reason.ReactorLevelTooLow = 请先升级核心反应堆。
+reason.MaxLevel = 已达最高等级。
+reason.UnderConstruction = 已在建造中。
+reason.NotYetFree = 剩余5分钟内才可免费完成。
+reason.NotUnderConstruction = 当前没有建造中的建筑。
+reason.SlotOccupied = 此位置已被占用。
+reason.RingLocked = 此环尚未解锁。
+reason.SectorLocked = 此区域尚未解锁。
+reason.RingNotAllowed = 此建筑无法建在这一环。
+reason.SlotTypeMismatch = 此位置不能建造该建筑。
+reason.SectorRestricted = 此位置为其他建筑预留。
+reason.UnknownBuilding = 未找到该建筑。
+reason.NotSupported = 暂不支持。
+
+error.NameInvalid = 名称需为3–16个字符，可使用字母、数字、空格、_和-。
+error.PasswordInvalid = 密码至少需要8个字符。
+error.PasswordMismatch = 两次输入的密码不一致。
+error.InvalidCredentials = 迁移码或密码错误。
+error.RateLimited = 尝试次数过多，请稍后再试。
+error.Network = 无法连接到服务器。
+error.Banned = 你的账号已被封禁。
+error.CouponUnknown = 兑换码不存在。
+error.CouponInactive = 该兑换码已失效。
+error.CouponExpired = 该兑换码已过期。
+error.CouponExhausted = 该兑换码已达兑换上限。
+error.CouponAlreadyRedeemed = 你已使用过该兑换码。
+error.CouponNotStarted = 该兑换码尚未生效。
+error.CouponNotForYou = 该兑换码属于其他玩家。
+error.generic = 出现错误（{0}）。
+
+settings.title = 设置
+settings.account = 账号
+settings.language = 语言
+settings.sound = 声音
+settings.graphics = 画面
+settings.notifications = 通知
+settings.gift = 兑换码
+settings.support = 客服
+settings.about = 关于
+settings.on = 开
+settings.off = 关
+
+sound.music = 音乐
+sound.effects = 音效
+sound.volume = 音量
+sound.vibration = 振动
+
+graphics.quality = 画质
+graphics.low = 低
+graphics.medium = 中
+graphics.high = 高
+graphics.fps = 帧率
+graphics.power = 省电模式
+graphics.power.hint = 降低画质和帧率以节省电量。
+
+notify.hint = 选择此设备要显示的通知。
+notify.construction = 建造完成
+notify.storage = 仓库已满
+notify.events = 活动与公告
+
+language.hint = 游戏将以所选语言重新启动。
+
+support.hint = 请通过官网联系我们。附上账号ID，方便我们快速找到你。
+support.copy = 复制账号ID
+support.copied = 已复制
+support.website = 打开官网
+
+about.version = 版本 {0}
+about.account = 账号ID：{0}
+about.studio = 开发商：Cicibyte
+
+update.available = 新版本 {0} 已发布。
+update.required = 此版本已停止支持，请更新后继续游戏。
+update.button = 更新
+update.later = 稍后
+update.downloading = 下载中… {0}%
+update.failed = 下载失败，请重试。
+update.install = 请在下一个页面点击“安装”。

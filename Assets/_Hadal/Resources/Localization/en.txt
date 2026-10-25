@@ -1,0 +1,175 @@
+# HADAL UI strings (en). One "key = value" per line; \n is a line break, {0} a placeholder.
+
+title.tagline = Humanity's last dome, at the bottom of the ocean.
+title.connecting = Connecting to the server…
+title.reconnecting = Connection lost, retrying…
+title.maintenance = The server is under maintenance. Retrying shortly.
+title.update = A newer version is required. Please update.
+title.tap = Tap to start
+title.banned = Your account is suspended. Please contact support.
+
+account.title = Profile & Account
+account.name = Player name
+account.save = Save
+account.saved = Saved.
+account.id = Account ID
+account.protected = Your account is protected.
+account.unprotected = Your account lives on this device only. Changing phones could lose your progress.
+account.protect = Protect Account
+account.protect.hint = Choose a password and get a transfer code. Use code + password to sign in on a new device.
+account.password = Password (8+ characters)
+account.password2 = Repeat password
+account.create = Create Code
+account.code = Your transfer code
+account.code.note = Keep this code and your password. Creating a new code retires the old one.
+account.copy = Copy
+account.copied = Copied
+account.switch = Sign In to Another Account
+account.switch.hint = Sign in with a transfer code and password. An unprotected account on this device will be lost.
+account.transfercode = Transfer code (XXXX-XXXX-XXXX)
+account.signin = Sign In
+account.google = Link Google (soon)
+account.apple = Link Apple (soon)
+account.close = Close
+account.back = Back
+
+gift.open = Redeem a Gift Code
+gift.hint = Enter a code from an event or announcement; the rewards go straight to your storage.
+gift.code = Gift code
+gift.redeem = Redeem
+gift.done = Rewards added: {0}
+
+base.build.title = Build · Ring {0}
+base.build = Build
+base.upgrade = Upgrade
+base.finish = Finish Free
+base.close = Close
+base.level = Level {0}
+base.level.max = Max level
+base.constructing = Under construction · {0}
+base.upgrading = Upgrading to level {0} · {1}
+base.produces = Produces
+base.consumes = Consumes
+base.next = Next level
+base.cost = Cost
+base.time = Time
+base.permin = /min
+base.nothing = Nothing can be built on this slot yet.
+base.started = Construction started.
+base.done = Completed.
+
+building.core_reactor = Core Reactor
+building.oxygen_plant = Oxygen Plant
+building.food_lab = Food Lab
+building.bio_lab = Bio Lab
+building.research_center = Research Center
+building.drone_factory = Drone Factory
+building.submarine_dock = Submarine Dock
+building.military_dome = Military Dome
+building.shield_generator = Shield Generator
+building.radar_center = Radar Center
+building.mega_dome = Mega Dome
+building.alliance_hub = Alliance Hub
+building.decoration_spire = Decoration Spire
+
+desc.core_reactor = Heart of the base. No building can outlevel the reactor.
+desc.oxygen_plant = Produces oxygen. Without oxygen the base dies.
+desc.food_lab = Feeds the crew.
+desc.bio_lab = Grows biomass from living organisms.
+desc.research_center = Gateway to new technology.
+desc.drone_factory = Salvage drones recover titanium from wrecks.
+desc.submarine_dock = Builds submarines and launches expeditions.
+desc.military_dome = Trains the base's defenders.
+desc.shield_generator = Shields against pressure and attacks.
+desc.radar_center = Detects incoming threats.
+desc.mega_dome = Expands the base into a new dome.
+desc.alliance_hub = Alliance link.
+desc.decoration_spire = Decorates your base.
+
+resource.Oxygen = Oxygen
+resource.Energy = Energy
+resource.Food = Food
+resource.Biomass = Biomass
+resource.Titanium = Titanium
+resource.Hadalite = Hadalite
+
+reason.BuilderBusy = Builder busy: one construction at a time.
+reason.InsufficientResources = Not enough resources.
+reason.ReactorLevelTooLow = Upgrade the Core Reactor first.
+reason.MaxLevel = Already at max level.
+reason.UnderConstruction = Already under construction.
+reason.NotYetFree = Free finish opens in the last 5 minutes.
+reason.NotUnderConstruction = Nothing is being built.
+reason.SlotOccupied = This slot is taken.
+reason.RingLocked = This ring is still locked.
+reason.SectorLocked = This sector is still locked.
+reason.RingNotAllowed = This building does not fit this ring.
+reason.SlotTypeMismatch = This slot is not for this building.
+reason.SectorRestricted = This slot is reserved for another building.
+reason.UnknownBuilding = Building not found.
+reason.NotSupported = Not supported yet.
+
+error.NameInvalid = Names are 3–16 characters: letters, digits, space, _ and -.
+error.PasswordInvalid = The password needs at least 8 characters.
+error.PasswordMismatch = The passwords do not match.
+error.InvalidCredentials = Wrong code or password.
+error.RateLimited = Too many attempts. Try again later.
+error.Network = Could not reach the server.
+error.Banned = Your account is suspended.
+error.CouponUnknown = No such code.
+error.CouponInactive = This code is no longer valid.
+error.CouponExpired = This code has expired.
+error.CouponExhausted = This code has reached its limit.
+error.CouponAlreadyRedeemed = You have already used this code.
+error.CouponNotStarted = This code is not active yet.
+error.CouponNotForYou = This code belongs to another player.
+error.generic = Something went wrong ({0}).
+
+settings.title = Settings
+settings.account = Account
+settings.language = Language
+settings.sound = Sound
+settings.graphics = Graphics
+settings.notifications = Notifications
+settings.gift = Gift Code
+settings.support = Support
+settings.about = About
+settings.on = On
+settings.off = Off
+
+sound.music = Music
+sound.effects = Sound effects
+sound.volume = Volume
+sound.vibration = Vibration
+
+graphics.quality = Graphics quality
+graphics.low = Low
+graphics.medium = Medium
+graphics.high = High
+graphics.fps = Frame rate
+graphics.power = Battery saver
+graphics.power.hint = Lowers quality and frame rate to save battery.
+
+notify.hint = Choose which alerts this device shows.
+notify.construction = Construction finished
+notify.storage = Storage full
+notify.events = Events and announcements
+
+language.hint = The game restarts in the language you choose.
+
+support.hint = Contact us through our website. Include your account ID so we can find you quickly.
+support.copy = Copy Account ID
+support.copied = Copied
+support.website = Open Website
+
+about.version = Version {0}
+about.account = Account ID: {0}
+about.studio = Developed by Cicibyte
+
+update.available = Version {0} is available.
+update.required = This version is no longer supported. Update to keep playing.
+update.button = Update
+update.later = Later
+update.downloading = Downloading… {0}%
+update.failed = Download failed. Please try again.
+update.install = Tap Install on the next screen.

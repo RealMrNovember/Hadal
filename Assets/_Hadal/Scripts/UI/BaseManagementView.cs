@@ -201,7 +201,7 @@ namespace Hadal.UI
 
         private void RenderBuildMenu()
         {
-            _title.text = string.Format(Loc.T("base.build.title"), _ring);
+            _title.text = Loc.F("base.build.title", _ring);
             _subtitle.text = string.Empty;
 
             var wallet = Wallet();
@@ -244,10 +244,10 @@ namespace Hadal.UI
             var remaining = building.constructionEndsAt - Time.realtimeSinceStartup;
             _title.text = Loc.Building(definition.Id);
             _subtitle.text = building.level == 0
-                ? string.Format(Loc.T("base.constructing"), Loc.Duration(remaining))
+                ? Loc.F("base.constructing", Loc.Duration(remaining))
                 : building.IsUnderConstruction
-                    ? string.Format(Loc.T("base.upgrading"), building.level + 1, Loc.Duration(remaining))
-                    : string.Format(Loc.T("base.level"), building.level) + (building.level >= definition.MaxLevel ? $" · {Loc.T("base.level.max")}" : string.Empty);
+                    ? Loc.F("base.upgrading", building.level + 1, Loc.Duration(remaining))
+                    : Loc.F("base.level", building.level) + (building.level >= definition.MaxLevel ? $" · {Loc.T("base.level.max")}" : string.Empty);
 
             var current = building.level > 0 ? Rates(definition, building.level) : string.Empty;
             UiKit.Label("Desc", _list, $"{Loc.T("desc." + definition.Id)}\n{current}", 34, UiKit.Text).Row(130);
@@ -273,7 +273,7 @@ namespace Hadal.UI
                 ActiveConstructions(), ReactorLevel(), wallet);
             var instanceKey = building.instanceKey;
             AddCard(
-                $"{Loc.T("base.next")}: {string.Format(Loc.T("base.level"), target)}",
+                $"{Loc.T("base.next")}: {Loc.F("base.level", target)}",
                 Rates(definition, target),
                 $"{Loc.T("base.cost")}: {Cost(BuildingProgression.Cost(definition, target, rules), wallet)}   {Loc.T("base.time")}: {Loc.Duration(BuildingProgression.Seconds(definition, target, rules))}",
                 verdict == ConstructionRejectReason.None ? string.Empty : Loc.Reason(verdict.ToString()),

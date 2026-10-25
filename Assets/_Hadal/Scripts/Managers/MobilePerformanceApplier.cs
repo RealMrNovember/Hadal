@@ -1,5 +1,6 @@
 using UnityEngine;
 using Hadal.Core.Contracts;
+using Hadal.Core.Services;
 using Hadal.Data.Config;
 
 namespace Hadal.Managers
@@ -25,12 +26,18 @@ namespace Hadal.Managers
             if (perf.DisableShadowsOnLowEnd && SystemInfo.systemMemorySize < 4096)
                 QualitySettings.shadows = ShadowQuality.Disable;
 
+            // The player's Settings choices (quality, frame rate, battery saver) win over the defaults.
+            GameSettings.ApplyDevice();
+            GameSettings.Changed -= GameSettings.ApplyDevice;
+            GameSettings.Changed += GameSettings.ApplyDevice;
+
             Application.lowMemory += OnLowMemory;
         }
 
         public static void Shutdown()
         {
             Application.lowMemory -= OnLowMemory;
+            GameSettings.Changed -= GameSettings.ApplyDevice;
             _poolService = null;
         }
 
