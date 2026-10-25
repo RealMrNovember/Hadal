@@ -51,11 +51,8 @@ CREATE TABLE IF NOT EXISTS hadal.buildings (
             _dataSource = dataSource;
         }
 
-        public async Task InitializeAsync(CancellationToken cancellationToken)
-        {
-            await using var command = _dataSource.CreateCommand(Schema);
-            await command.ExecuteNonQueryAsync(cancellationToken);
-        }
+        public Task InitializeAsync(CancellationToken cancellationToken) =>
+            PostgresSchema.ApplyAsync(_dataSource, Schema, cancellationToken);
 
         public async Task<PlayerState?> LoadByIdentityAsync(string identityKey, CancellationToken cancellationToken)
         {

@@ -18,6 +18,18 @@ namespace Hadal.Gateway.Auth
 
         /// <summary>Guest account creations allowed per client IP per hour.</summary>
         public int GuestLoginsPerHour { get; set; } = 20;
+
+        /// <summary>Transfer-code sign-in attempts per client IP per hour (password guessing bound).</summary>
+        public int TransferLoginsPerHour { get; set; } = 10;
+
+        /// <summary>
+        /// Comma-separated OAuth client ids whose Google ID tokens are accepted (Android, iOS and web
+        /// clients of the same Google Cloud project). Empty = Google sign-in disabled.
+        /// </summary>
+        public string GoogleClientIds { get; set; } = string.Empty;
+
+        /// <summary>Comma-separated Apple bundle / service ids accepted as audience. Empty = disabled.</summary>
+        public string AppleClientIds { get; set; } = string.Empty;
     }
 
     /// <summary>Bound from "Version": served at /manifest/version.json for the client's patch check.</summary>

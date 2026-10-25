@@ -2,6 +2,7 @@ using System.Threading.RateLimiting;
 using HADAL.Shared.Auth;
 using HADAL.Shared.Serialization;
 using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 
 namespace Hadal.Gateway.Auth
@@ -10,6 +11,8 @@ namespace Hadal.Gateway.Auth
     {
         private const string GuestPolicy = "auth-guest";
         private const string RefreshPolicy = "auth-refresh";
+        private const string TransferPolicy = "auth-transfer";
+        private const string AccountPolicy = "account";
 
         public static IServiceCollection AddHadalAuth(this IServiceCollection services, IConfiguration configuration)
         {
@@ -19,9 +22,11 @@ namespace Hadal.Gateway.Auth
             services.Configure<AuthOptions>(configuration.GetSection(AuthOptions.Section));
             services.Configure<VersionOptions>(configuration.GetSection(VersionOptions.Section));
             services.AddSingleton<TokenService>();
+            services.TryAddSingleton<IIdentityTokenValidator, OidcIdentityTokenValidator>();
             services.AddHostedService<AccountStoreInitializer>();
 
             var guestPerHour = configuration.GetSection(AuthOptions.Section).GetValue(nameof(AuthOptions.GuestLoginsPerHour), 20);
+            var transferPerHour = configuration.GetSection(AuthOptions.Section).GetValue(nameof(AuthOptions.TransferLoginsPerHour), 10);
             services.AddRateLimiter(limiter =>
             {
                 limiter.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
@@ -32,6 +37,13 @@ namespace Hadal.Gateway.Auth
 
                 limiter.AddPolicy(RefreshPolicy, context => RateLimitPartition.GetFixedWindowLimiter(ClientIp(context),
                     _ => new FixedWindowRateLimiterOptions { PermitLimit = 60, Window = TimeSpan.FromMinutes(1) }));
+
+                // Code + password sign-in is a guessing target: few attempts per IP.
+                limiter.AddPolicy(TransferPolicy, context => RateLimitPartition.GetFixedWindowLimiter(ClientIp(context),
+                    _ => new FixedWindowRateLimiterOptions { PermitLimit = transferPerHour, Window = TimeSpan.FromHours(1) }));
+
+                limiter.AddPolicy(AccountPolicy, context => RateLimitPartition.GetFixedWindowLimiter(ClientIp(context),
+                    _ => new FixedWindowRateLimiterOptions { PermitLimit = 30, Window = TimeSpan.FromMinutes(1) }));
             });
 
             return services;
@@ -53,6 +65,8 @@ namespace Hadal.Gateway.Auth
                 return response == null ? Results.Unauthorized() : Results.Ok(response);
             }).RequireRateLimiting(RefreshPolicy);
 
+            MapAccount(app);
+
             app.MapGet(AuthRoutes.Manifest, (IOptions<VersionOptions> version) => Results.Ok(new VersionManifest
             {
                 minClientVersion = version.Value.MinClientVersion,
@@ -62,6 +76,126 @@ namespace Hadal.Gateway.Auth
                 message = version.Value.Message
             }));
         }
+
+        private static void MapAccount(WebApplication app)
+        {
+            app.MapGet(AuthRoutes.Profile, async (HttpContext http, TokenService tokens, IAccountStore accounts, CancellationToken ct) =>
+            {
+                var account = await AuthenticateAsync(http, tokens);
+                if (account == null)
+                    return Results.Unauthorized();
+
+                var profile = await accounts.GetProfileAsync(account.Value, ct);
+                return profile == null ? Results.Unauthorized() : Results.Ok(ToResponse(profile));
+            }).RequireRateLimiting(AccountPolicy);
+
+            app.MapPut(AuthRoutes.Profile, async (HttpContext http, UpdateProfileRequest? request, TokenService tokens, IAccountStore accounts, CancellationToken ct) =>
+            {
+                var account = await AuthenticateAsync(http, tokens);
+                if (account == null)
+                    return Results.Unauthorized();
+
+                var name = request?.displayName?.Trim() ?? string.Empty;
+                if (!AccountRules.IsValidName(name))
+                    return Error(StatusCodes.Status400BadRequest, AccountErrors.NameInvalid);
+
+                await accounts.SetDisplayNameAsync(account.Value, name, ct);
+                var profile = await accounts.GetProfileAsync(account.Value, ct);
+                return profile == null ? Results.Unauthorized() : Results.Ok(ToResponse(profile));
+            }).RequireRateLimiting(AccountPolicy);
+
+            app.MapPost(AuthRoutes.TransferCreate, async (HttpContext http, TransferCreateRequest? request, TokenService tokens, IAccountStore accounts, CancellationToken ct) =>
+            {
+                var account = await AuthenticateAsync(http, tokens);
+                if (account == null)
+                    return Results.Unauthorized();
+
+                if (!AccountRules.IsValidPassword(request?.password))
+                    return Error(StatusCodes.Status400BadRequest, AccountErrors.PasswordInvalid);
+
+                // A 59-bit random code practically never collides; retry the rare case instead of failing.
+                for (var attempt = 0; attempt < 3; attempt++)
+                {
+                    var code = TransferCodes.New();
+                    if (await accounts.LinkAsync(account.Value, AccountProviders.Transfer, code, PasswordHasher.Hash(request!.password), ct))
+                        return Results.Ok(new TransferCodeResponse { transferCode = TransferCodes.Format(code) });
+                }
+
+                return Results.StatusCode(StatusCodes.Status500InternalServerError);
+            }).RequireRateLimiting(AccountPolicy);
+
+            app.MapPost(AuthRoutes.TransferLogin, async (TransferLoginRequest? request, IAccountStore accounts, TokenService tokens, CancellationToken ct) =>
+            {
+                var code = AccountRules.NormaliseTransferCode(request?.transferCode);
+                var link = code.Length is > 0 and <= 32 ? await accounts.FindLinkAsync(AccountProviders.Transfer, code, ct) : null;
+
+                // Same answer for unknown code and wrong password: no account enumeration.
+                if (link == null || !PasswordHasher.Verify(request?.password ?? string.Empty, link.Value.SecretHash))
+                    return Error(StatusCodes.Status401Unauthorized, AccountErrors.InvalidCredentials);
+
+                return Results.Ok(await tokens.IssueAsync(link.Value.AccountId, ct));
+            }).RequireRateLimiting(TransferPolicy);
+
+            app.MapPost(AuthRoutes.ProviderLink, async (HttpContext http, ProviderRequest? request, TokenService tokens, IAccountStore accounts,
+                IIdentityTokenValidator identities, CancellationToken ct) =>
+            {
+                var account = await AuthenticateAsync(http, tokens);
+                if (account == null)
+                    return Results.Unauthorized();
+
+                var identity = await identities.ValidateAsync(request?.provider ?? string.Empty, request?.idToken ?? string.Empty, ct);
+                if (identity.Status != IdentityStatus.Valid)
+                    return IdentityError(identity.Status);
+
+                if (!await accounts.LinkAsync(account.Value, request!.provider, identity.Subject, string.Empty, ct))
+                    return Error(StatusCodes.Status409Conflict, AccountErrors.ProviderLinkedElsewhere);
+
+                var profile = await accounts.GetProfileAsync(account.Value, ct);
+                return profile == null ? Results.Unauthorized() : Results.Ok(ToResponse(profile));
+            }).RequireRateLimiting(AccountPolicy);
+
+            app.MapPost(AuthRoutes.ProviderLogin, async (ProviderRequest? request, IAccountStore accounts, TokenService tokens,
+                IIdentityTokenValidator identities, CancellationToken ct) =>
+            {
+                var identity = await identities.ValidateAsync(request?.provider ?? string.Empty, request?.idToken ?? string.Empty, ct);
+                if (identity.Status != IdentityStatus.Valid)
+                    return IdentityError(identity.Status);
+
+                // Signing in never creates an account: an identity is linked from inside the game first.
+                var link = await accounts.FindLinkAsync(request!.provider, identity.Subject, ct);
+                return link == null
+                    ? Error(StatusCodes.Status404NotFound, AccountErrors.ProviderNotLinked)
+                    : Results.Ok(await tokens.IssueAsync(link.Value.AccountId, ct));
+            }).RequireRateLimiting(TransferPolicy);
+        }
+
+        private static async Task<Guid?> AuthenticateAsync(HttpContext http, TokenService tokens)
+        {
+            var header = http.Request.Headers.Authorization.ToString();
+            const string prefix = "Bearer ";
+            if (!header.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+                return null;
+
+            var validation = await tokens.ValidateAccessTokenAsync(header[prefix.Length..].Trim());
+            return validation.IsValid ? validation.AccountId : null;
+        }
+
+        private static ProfileResponse ToResponse(AccountProfile profile) => new()
+        {
+            accountId = profile.AccountId.ToString("N"),
+            displayName = profile.DisplayName,
+            createdAt = profile.CreatedAt.UtcDateTime.ToString("O"),
+            linkedProviders = profile.Providers.ToArray()
+        };
+
+        private static IResult IdentityError(IdentityStatus status) => status switch
+        {
+            IdentityStatus.UnknownProvider => Error(StatusCodes.Status400BadRequest, AccountErrors.ProviderUnknown),
+            IdentityStatus.NotConfigured => Error(StatusCodes.Status501NotImplemented, AccountErrors.ProviderNotConfigured),
+            _ => Error(StatusCodes.Status401Unauthorized, AccountErrors.ProviderTokenInvalid)
+        };
+
+        private static IResult Error(int status, string error) => Results.Json(new AccountError { error = error }, statusCode: status);
 
         // Behind Cloudflare Tunnel every request comes from cloudflared on localhost; the real
         // client is in CF-Connecting-IP. The gateway port is bound to 127.0.0.1, so the header
