@@ -1,5 +1,19 @@
 # HADAL Server Infrastructure
 
+> **Current deployment (2026-10-25) — supersedes the aaPanel plan below.**
+>
+> | | |
+> |---|---|
+> | Host | DL380 (Proxmox) · LXC **CT 160 `hadal`** · Debian 13 · Docker |
+> | Stack | `server/docker-compose.hadal.yml`: gateway (127.0.0.1:19001), PostgreSQL 16 (:19005), Redis 7 (:19004) |
+> | Public | **`hadal-api.cicibyte.com`** via Cloudflare Tunnel `hadal` (no open ports). `hadal.cicibyte.com` stays the teaser site on the old server |
+> | Endpoints | `wss://hadal-api.cicibyte.com/gateway` · `POST /api/v1/auth/guest` · `POST /api/v1/auth/refresh` · `GET /manifest/version.json` · `GET /health` |
+> | Deploy | `server/deploy/deploy.sh` (tests → build → rollout → health check → automatic rollback) |
+> | Tunnel setup | one-time, by the operator: `ssh cicibyte@dl380 'bash -s' < server/deploy/setup-tunnel.sh` |
+> | Secrets | `/opt/hadal/server/.env` on the CT only (`HADAL_DB_PASSWORD`, `HADAL_JWT_SECRET`) |
+>
+> Sections below describe the original single-server aaPanel plan and are kept for the CDN/admin design.
+
 **Domain:** `hadal.cicibyte.com`  
 **Server IP:** `31.40.199.47`  
 **Web Root:** `/www/wwwroot/hadal.cicibyte.com`  

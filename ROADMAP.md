@@ -24,7 +24,7 @@ Durum işaretleri: ✅ tamam · 🟡 devam ediyor · ⬜ başlanmadı
 |---|-------|----------------|-------|
 | 0 | Temel, mimari ve ilk dikey dilim | Shared protokol, grid inşa, kaynak tick (stub), test altyapısı | ✅ |
 | 1 | Otoriter oyun sunucusu çekirdeği | İstemci gerçek sunucuya karşı oynar; stub'lar kalkar (M3–M5) | ✅ |
-| 2 | **Dış erişim, kimlik ve dağıtım** | `hadal.cicibyte.com`, TLS, Auth API, CDN/patch, CI (M1–M2) | ⬜ ← sıradaki |
+| 2 | **Dış erişim, kimlik ve dağıtım** | `hadal-api.cicibyte.com`, TLS, Auth API, patch, dağıtım (M1–M2) | 🟡 |
 | 3 | Üs inşasının tamamlanması | Kaldırma, yükseltme, halka açma, mega kubbe, tam katalog | ⬜ |
 | 4 | Hayatta kalma döngüsü | Oksijen/enerji bağımlılıkları, acil durumlar, alarmlar | ⬜ |
 | 5 | Sunum katmanı | Ana menü, UI tasarım sistemi, sualtı görünümü, ses | ⬜ |
@@ -105,16 +105,23 @@ Durum işaretleri: ✅ tamam · 🟡 devam ediyor · ⬜ başlanmadı
 
 ---
 
-## Phase 2 — Dış erişim, kimlik ve dağıtım ⬜
+## Phase 2 — Dış erişim, kimlik ve dağıtım 🟡
 
 **Hedef:** Oyun dışarıdan güvenli şekilde erişilebilir, sürümlenir ve otomatik dağıtılır. (M1, M2)
 
-- Cloudflare Tunnel: `hadal.cicibyte.com` → gateway (`wss://…/gateway`), `/health`. Açık port olmaz.
-- Auth API: cihaz ile misafir giriş → JWT. Ardından hesap bağlama (Google Play / Apple / e-posta) ve token yenileme.
-- Gateway el sıkışması JWT doğrular; `DeviceId` ile kimlik belirleme kalkar.
-- CDN ve patch: `manifest/version.json`, Addressables uzak katalog, istemcide `PatchService`.
-- CI: sunucu imajı derleme, test ve CT'ye dağıtım; Unity testlerinin otomatik koşumu.
-- Ortamlar: `dev` (CT 160) ve `staging` ayrımı, yapılandırma ve sırlar yönetimi.
+> `hadal.cicibyte.com` yayındaki teaser sitesi olduğu için oyun sunucusu **`hadal-api.cicibyte.com`** üzerinde.
+
+- [x] Auth API: misafir hesap → JWT (60 dk) + tek kullanımlık, dönen yenileme anahtarı (hash'li saklanır), IP başına hız sınırı.
+- [x] Gateway el sıkışması JWT doğrular (şema 3); oyuncu kimliği hesap ID'si, `DeviceId` yalnızca bilgi amaçlı.
+- [x] Sürüm manifesti (`/manifest/version.json`) ve istemcide `PatchService`: zorunlu güncelleme ve bakım modu.
+- [x] İstemci: `AuthService` (giriş, yenileme, tekil istek), JWT'li bağlantı akışı, reddedilen jetonda yenileme.
+- [x] Tek komutla dağıtım: `server/deploy/deploy.sh` (testler → build → yayın → sağlık kontrolü → otomatik geri dönüş).
+- [x] cloudflared CT 160'a kuruldu; tünel script'i hazır (`server/deploy/setup-tunnel.sh`).
+- [ ] **Tünel ve DNS** — operatör çalıştırır (alan adı değişikliği): `ssh cicibyte@dl380 'bash -s' < server/deploy/setup-tunnel.sh`
+- [ ] Android geliştirme APK'sı (`unity.sh android`) ve telefonda internet üzerinden oyun testi.
+- [ ] Hesap bağlama (Google Play / Apple / e-posta) — geliştirici hesapları gerekiyor; o zamana kadar misafir hesap cihazda saklanan anahtara bağlı.
+- [ ] Addressables uzak katalog / CDN — uzak içerik olduğunda (Phase 5).
+- [ ] CI: GitHub Actions (push, sırlar ve self-hosted runner kararı gerekiyor); `staging` ortamı.
 
 **Çıkış kriteri:** Telefondaki bir build, internet üzerinden giriş yapıp oynar. Yeni sunucu sürümü tek komutla dağıtılır.
 
