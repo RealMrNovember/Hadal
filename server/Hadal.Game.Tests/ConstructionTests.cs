@@ -43,7 +43,7 @@ namespace Hadal.Game.Tests
             _world.HandleCommand(session, TestSupport.Place("oxygen_plant", 1, 0));
             var oxygen = session.StateForTests.Wallet[ResourceType.Oxygen];
 
-            Pass(TimeSpan.FromSeconds(11));
+            Pass(TimeSpan.FromSeconds(9));
             Assert.Equal(oxygen, session.StateForTests.Wallet[ResourceType.Oxygen]);
 
             Pass(TimeSpan.FromSeconds(2));
@@ -67,7 +67,7 @@ namespace Hadal.Game.Tests
             var ack = connection.Messages.Last().Delta().Ack()!;
             Assert.Equal(CommandResultCode.Rejected, ack.Result);
             Assert.Equal(nameof(ConstructionRejectReason.BuilderBusy), ack.Reason);
-            Assert.Equal(100, session.StateForTests.Wallet[ResourceType.Titanium]); // only the first build was charged
+            Assert.Equal(500 - 60, session.StateForTests.Wallet[ResourceType.Titanium]); // only the first build was charged
         }
 
         [Fact]
@@ -82,11 +82,11 @@ namespace Hadal.Game.Tests
             _world.HandleCommand(session, TestSupport.Upgrade(reactor));
             Assert.Equal(CommandResultCode.Accepted, connection.Messages.Last().Delta().Ack()!.Result);
 
-            // Level 2 costs buildCost x 1.55: 124 titanium, 93 energy; 40 s x 1.6 = 64 s.
-            Assert.Equal(1000 - 124, wallet[ResourceType.Titanium]);
+            // Level 2 costs buildCost x 1.09: 109 titanium; 30 s x 1.12 = 34 s.
+            Assert.Equal(1000 - 109, wallet[ResourceType.Titanium]);
             var updated = Assert.Single(connection.Messages.Last().Delta().UpdatedBuildings());
             Assert.Equal(1, updated.Level);
-            Assert.Equal(64_000, updated.ConstructionTotalMs);
+            Assert.Equal(34_000, updated.ConstructionTotalMs);
 
             // Still producing at level 1 during the upgrade.
             var energy = wallet[ResourceType.Energy];
@@ -119,17 +119,17 @@ namespace Hadal.Game.Tests
             var state = session.StateForTests;
             state.Wallet[ResourceType.Titanium] = 100_000;
             state.Wallet[ResourceType.Energy] = 100_000;
-            state.Buildings.Single(b => b.BuildingId == reactor).Level = 8; // level 9 takes 40 x 1.6^8 ≈ 1718 s
+            state.Buildings.Single(b => b.BuildingId == reactor).Level = 30; // level 31 takes 30 x 1.12^30 ≈ 899 s
 
             _world.HandleCommand(session, TestSupport.Upgrade(reactor));
             _world.HandleCommand(session, TestSupport.Finish(reactor));
             var early = connection.Messages.Last().Delta().Ack()!;
             Assert.Equal(nameof(ConstructionRejectReason.NotYetFree), early.Reason);
 
-            _clock.Advance(TimeSpan.FromSeconds(1718 - 299));
+            _clock.Advance(TimeSpan.FromSeconds(899 - 299));
             _world.HandleCommand(session, TestSupport.Finish(reactor));
             Assert.Equal(CommandResultCode.Accepted, connection.Messages.Last().Delta().Ack()!.Result);
-            Assert.Equal(9, state.Buildings.Single(b => b.BuildingId == reactor).Level);
+            Assert.Equal(31, state.Buildings.Single(b => b.BuildingId == reactor).Level);
         }
 
         [Fact]
@@ -145,7 +145,7 @@ namespace Hadal.Game.Tests
             _world.HandleCommand(session, TestSupport.Upgrade(reactor));
             Assert.Equal(nameof(ConstructionRejectReason.InsufficientResources), connection.Messages.Last().Delta().Ack()!.Reason);
 
-            session.StateForTests.Buildings.Single(b => b.BuildingId == reactor).Level = 10;
+            session.StateForTests.Buildings.Single(b => b.BuildingId == reactor).Level = 50;
             _world.HandleCommand(session, TestSupport.Upgrade(reactor));
             Assert.Equal(nameof(ConstructionRejectReason.MaxLevel), connection.Messages.Last().Delta().Ack()!.Reason);
 
@@ -158,7 +158,7 @@ namespace Hadal.Game.Tests
         {
             var first = new RecordingConnection();
             var session = await _world.ConnectAsync("device-a", first, default);
-            _world.HandleCommand(session, TestSupport.Place("oxygen_plant", 1, 0)); // 12 s build
+            _world.HandleCommand(session, TestSupport.Place("oxygen_plant", 1, 0)); // 10 s build
             var oxygen = session.StateForTests.Wallet[ResourceType.Oxygen];
             await _world.DisconnectAsync(session, first, default);
 
@@ -171,8 +171,8 @@ namespace Hadal.Game.Tests
             var plant = snapshot.Buildings.Single(b => b.DefinitionId == "oxygen_plant");
             Assert.Equal(1, plant.Level);
             Assert.Equal(0, plant.ConstructionRemainingMs);
-            // Produced for the 100 s after completion only (3 oxygen per tick), not the full 112 s.
-            Assert.Equal(oxygen + 3 * 100, snapshot.Resources.Amount(ResourceType.Oxygen));
+            // Produced for the 102 s after completion only (3 oxygen per tick), not the full 112 s.
+            Assert.Equal(oxygen + 3 * 102, snapshot.Resources.Amount(ResourceType.Oxygen));
         }
 
         [Fact]
@@ -189,8 +189,8 @@ namespace Hadal.Game.Tests
             var plant = second.Messages.Single().Snapshot().Buildings.Single(b => b.DefinitionId == "oxygen_plant");
 
             Assert.Equal(0, plant.Level);
-            Assert.Equal(7_000, plant.ConstructionRemainingMs);
-            Assert.Equal(12_000, plant.ConstructionTotalMs);
+            Assert.Equal(5_000, plant.ConstructionRemainingMs);
+            Assert.Equal(10_000, plant.ConstructionTotalMs);
         }
     }
 }

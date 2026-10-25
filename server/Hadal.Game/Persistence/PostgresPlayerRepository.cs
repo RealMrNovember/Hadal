@@ -144,6 +144,16 @@ ALTER TABLE hadal.buildings ADD COLUMN IF NOT EXISTS construction_seconds intege
                 await command.ExecuteNonQueryAsync(cancellationToken);
             }
 
+            // Deletes first: a removed building's slot may already hold its replacement.
+            if (player.RemovedBuildingIds.Count > 0)
+            {
+                await using var delete = new NpgsqlCommand(
+                    "DELETE FROM hadal.buildings WHERE player_id = @p AND building_id = ANY(@ids)", connection, transaction);
+                delete.Parameters.AddWithValue("p", player.PlayerId);
+                delete.Parameters.AddWithValue("ids", player.RemovedBuildingIds.ToArray());
+                await delete.ExecuteNonQueryAsync(cancellationToken);
+            }
+
             foreach (var building in player.UnsavedBuildings)
             {
                 await using var command = new NpgsqlCommand(
@@ -170,6 +180,7 @@ ALTER TABLE hadal.buildings ADD COLUMN IF NOT EXISTS construction_seconds intege
 
             await transaction.CommitAsync(cancellationToken);
             player.UnsavedBuildings.Clear();
+            player.RemovedBuildingIds.Clear();
         }
 
         private static string WriteWallet(IReadOnlyDictionary<ResourceType, long> wallet) =>

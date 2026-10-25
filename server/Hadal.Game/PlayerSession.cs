@@ -127,8 +127,17 @@ namespace Hadal.Game
                         FinishConstruction(finish!, now);
                         break;
 
+                    case CommandType.RemoveBuilding when TryDeserialize(envelope.Payload, out RemoveBuildingCommand? remove):
+                        RemoveBuilding(remove!, now);
+                        break;
+
+                    case CommandType.UnlockRing when TryDeserialize(envelope.Payload, out UnlockRingCommand? unlock):
+                        UnlockRing(unlock!, now);
+                        break;
+
                     default:
-                        var known = envelope.Type is CommandType.PlaceBuilding or CommandType.UpgradeBuilding or CommandType.FinishConstruction;
+                        var known = envelope.Type is CommandType.PlaceBuilding or CommandType.UpgradeBuilding or CommandType.FinishConstruction
+                            or CommandType.RemoveBuilding or CommandType.UnlockRing;
                         SendDelta(now, new List<EntityChangeDto>
                         {
                             AckChange(envelope.CommandId, envelope.ClientSequence, CommandResultCode.Rejected,
@@ -221,6 +230,8 @@ namespace Hadal.Game
 
                 copy.UnsavedBuildings.AddRange(_state.UnsavedBuildings);
                 _state.UnsavedBuildings.Clear();
+                copy.RemovedBuildingIds.AddRange(_state.RemovedBuildingIds);
+                _state.RemovedBuildingIds.Clear();
                 _state.IsDirty = false;
                 return copy;
             }
@@ -231,7 +242,9 @@ namespace Hadal.Game
         {
             lock (_gate)
             {
-                _state.UnsavedBuildings.InsertRange(0, snapshot.UnsavedBuildings);
+                // A building removed after this snapshot was taken must not come back.
+                _state.UnsavedBuildings.InsertRange(0, snapshot.UnsavedBuildings.Where(b => !_state.RemovedBuildingIds.Contains(b.BuildingId)));
+                _state.RemovedBuildingIds.InsertRange(0, snapshot.RemovedBuildingIds);
                 _state.IsDirty = true;
             }
         }
@@ -245,7 +258,7 @@ namespace Hadal.Game
         {
             var occupied = new HashSet<(int ring, int sector)>(_state.Buildings.Select(b => (b.Ring, b.Sector)));
             var verdict = PlacementRules.Validate(_catalog, command.BuildingDefinitionId, command.RingIndex,
-                command.SectorIndex, _state.UnlockedRings, occupied, _state.Wallet);
+                command.SectorIndex, _state.UnlockedRings, occupied, _state.Wallet, OwnedCounts(), ReactorLevel());
 
             if (verdict != PlacementRejectReason.None)
             {
@@ -365,6 +378,64 @@ namespace Hadal.Game
             changes.Add(AckChange(command.CommandId, command.ClientSequence, CommandResultCode.Accepted, string.Empty));
             SendDelta(now, changes);
         }
+
+        private void RemoveBuilding(RemoveBuildingCommand command, DateTimeOffset now)
+        {
+            var building = _state.Buildings.FirstOrDefault(b => b.BuildingId == command.BuildingEntityId);
+            var verdict = building == null
+                ? RemoveRejectReason.UnknownBuilding
+                : BaseRules.ValidateRemove(building.DefinitionId, building.Level, building.IsUnderConstruction);
+            if (verdict != RemoveRejectReason.None || !_catalog.TryGetBuilding(building!.DefinitionId, out var definition))
+            {
+                Reject(command.CommandId, command.ClientSequence,
+                    (verdict == RemoveRejectReason.None ? RemoveRejectReason.UnknownBuilding : verdict).ToString(), now);
+                return;
+            }
+
+            // Cancelling a first construction refunds it all; a finished building gives back a share.
+            var refund = BaseRules.Refund(definition, building.IsUnderConstruction ? 0 : building.Level, _catalog.Progression);
+            WalletOps.Add(_state.Wallet, refund.ToDictionary(p => p.Key, p => p.Value), _capacities);
+
+            _state.Buildings.Remove(building);
+            _state.UnsavedBuildings.Remove(building);
+            _state.RemovedBuildingIds.Add(building.BuildingId);
+            _state.IsDirty = true;
+            _netPerTick = ComputeNetPerTick();
+
+            SendDelta(now, new List<EntityChangeDto>
+            {
+                new() { EntityId = EntityIds.Building + building.BuildingId, Kind = EntityChangeKind.Delete },
+                WalletChange(),
+                ProductionChange(),
+                AckChange(command.CommandId, command.ClientSequence, CommandResultCode.Accepted, string.Empty)
+            });
+        }
+
+        private void UnlockRing(UnlockRingCommand command, DateTimeOffset now)
+        {
+            var finished = new HashSet<string>(_state.Buildings.Where(b => b.Level > 0).Select(b => b.DefinitionId));
+            var verdict = BaseRules.ValidateUnlock(_catalog, command.Ring, _state.UnlockedRings, ReactorLevel(), finished, _state.Wallet);
+            if (verdict != RingRejectReason.None)
+            {
+                Reject(command.CommandId, command.ClientSequence, verdict.ToString(), now);
+                return;
+            }
+
+            _catalog.TryGetRingUnlock(command.Ring, out var unlock);
+            BuildingProgression.Charge(unlock.Cost, _state.Wallet);
+            _state.UnlockedRings = command.Ring;
+            _state.IsDirty = true;
+
+            SendDelta(now, new List<EntityChangeDto>
+            {
+                LayoutChange(),
+                WalletChange(),
+                AckChange(command.CommandId, command.ClientSequence, CommandResultCode.Accepted, string.Empty)
+            });
+        }
+
+        private Dictionary<string, int> OwnedCounts() =>
+            _state.Buildings.GroupBy(b => b.DefinitionId).ToDictionary(g => g.Key, g => g.Count());
 
         private void Complete(PlacedBuilding building)
         {
@@ -505,7 +576,8 @@ namespace Hadal.Game
                 PlayerId = _state.PlayerId.ToString("N"),
                 Resources = WalletDto(),
                 Buildings = _state.Buildings.Select(b => ToDto(b, now)).ToList(),
-                Production = ProductionDto()
+                Production = ProductionDto(),
+                UnlockedRings = _state.UnlockedRings
             };
 
             return EnvelopeBuilder.WrapStateSnapshot(snapshot, _serializer.Serialize(snapshot));
@@ -523,6 +595,13 @@ namespace Hadal.Game
             EntityId = EntityIds.Wallet,
             Kind = EntityChangeKind.Update,
             Payload = _serializer.Serialize(WalletDto())
+        };
+
+        private EntityChangeDto LayoutChange() => new()
+        {
+            EntityId = EntityIds.BaseLayout,
+            Kind = EntityChangeKind.Update,
+            Payload = _serializer.Serialize(new BaseLayoutDto { UnlockedRings = _state.UnlockedRings })
         };
 
         private EntityChangeDto ProductionChange() => new()

@@ -14,6 +14,22 @@ namespace HADAL.Shared.Catalog
         public ProgressionData progression = new ProgressionData();
         public BuildingDefinitionData[] buildings = Array.Empty<BuildingDefinitionData>();
         public GridLayoutData grid = new GridLayoutData();
+
+        /// <summary>Requirements and costs of rings beyond <see cref="GridLayoutData.startingUnlockedRings"/>.</summary>
+        public RingUnlockData[] ringUnlocks = Array.Empty<RingUnlockData>();
+    }
+
+    /// <summary>What opening one outer ring takes (docs/23_Base_Management.md, rule 12).</summary>
+    [Serializable]
+    public sealed class RingUnlockData
+    {
+        public int ring;
+        public int reactorLevel;
+
+        /// <summary>A building the base must own (finished), e.g. the Mega Dome; empty = none.</summary>
+        public string requiresBuilding = string.Empty;
+
+        public ResourceAmountData[] cost = Array.Empty<ResourceAmountData>();
     }
 
     [Serializable]
@@ -54,6 +70,12 @@ namespace HADAL.Shared.Catalog
 
         /// <summary>0 = <see cref="ProgressionData.maxLevel"/>.</summary>
         public int maxLevel;
+
+        /// <summary>Core Reactor level needed to build it; 0 = always.</summary>
+        public int requiredReactorLevel;
+
+        /// <summary>How many one base may own (including ones under construction); 0 = unlimited.</summary>
+        public int maxCount;
     }
 
     /// <summary>Building level progression (docs/23_Base_Management.md).</summary>
@@ -73,6 +95,9 @@ namespace HADAL.Shared.Catalog
 
         /// <summary>Constructions that may run at the same time.</summary>
         public int builderSlots = 1;
+
+        /// <summary>Share of everything spent on a finished building that removing it gives back.</summary>
+        public int removeRefundPercent = 50;
     }
 
     [Serializable]

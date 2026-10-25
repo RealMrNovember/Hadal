@@ -31,8 +31,22 @@ namespace HADAL.Shared.Catalog
 
         public int MaxLevel { get; internal set; }
 
+        /// <summary>Core Reactor level needed to build it (0 = always).</summary>
+        public int RequiredReactorLevel { get; internal set; }
+
+        /// <summary>Most one base may own, counting constructions; 0 = unlimited.</summary>
+        public int MaxCount { get; internal set; }
+
         public bool MatchesSlotType(GridSlotType slotType) =>
             SlotType == GridSlotType.Universal || slotType == GridSlotType.Universal || SlotType == slotType;
+    }
+
+    public sealed class RingUnlock
+    {
+        public int Ring { get; internal set; }
+        public int ReactorLevel { get; internal set; }
+        public string RequiresBuilding { get; internal set; } = string.Empty;
+        public IReadOnlyList<KeyValuePair<ResourceType, long>> Cost { get; internal set; } = Array.Empty<KeyValuePair<ResourceType, long>>();
     }
 
     /// <summary>
@@ -45,6 +59,7 @@ namespace HADAL.Shared.Catalog
         private readonly Dictionary<ResourceType, ResourceDefinition> _resources = new Dictionary<ResourceType, ResourceDefinition>();
         private readonly Dictionary<string, BuildingDefinition> _buildings = new Dictionary<string, BuildingDefinition>(StringComparer.Ordinal);
         private readonly Dictionary<int, RingData> _rings = new Dictionary<int, RingData>();
+        private readonly Dictionary<int, RingUnlock> _ringUnlocks = new Dictionary<int, RingUnlock>();
 
         private GameCatalog(GameCatalogData data)
         {
@@ -120,7 +135,9 @@ namespace HADAL.Shared.Catalog
                     Consumption = ParseAmounts(building.id, "consumption", building.consumption, errors),
                     BuildCost = ParseAmounts(building.id, "buildCost", building.buildCost, errors),
                     BuildSeconds = Math.Max(0, building.buildSeconds),
-                    MaxLevel = building.maxLevel > 0 ? building.maxLevel : Math.Max(1, (data.progression ?? new ProgressionData()).maxLevel)
+                    MaxLevel = building.maxLevel > 0 ? building.maxLevel : Math.Max(1, (data.progression ?? new ProgressionData()).maxLevel),
+                    RequiredReactorLevel = Math.Max(0, building.requiredReactorLevel),
+                    MaxCount = Math.Max(0, building.maxCount)
                 };
             }
 
@@ -157,6 +174,27 @@ namespace HADAL.Shared.Catalog
                 catalog._rings[ring.ring] = ring;
             }
 
+            foreach (var unlock in data.ringUnlocks ?? Array.Empty<RingUnlockData>())
+            {
+                if (unlock == null)
+                    continue;
+
+                if (unlock.ring <= grid.startingUnlockedRings || unlock.ring > grid.maxRings)
+                    errors.Add($"ringUnlocks: ring {unlock.ring} outside {grid.startingUnlockedRings + 1}..{grid.maxRings}");
+                if (catalog._ringUnlocks.ContainsKey(unlock.ring))
+                    errors.Add($"ringUnlocks: duplicate ring {unlock.ring}");
+                if (!string.IsNullOrEmpty(unlock.requiresBuilding) && !catalog._buildings.ContainsKey(unlock.requiresBuilding))
+                    errors.Add($"ringUnlocks ring {unlock.ring}: unknown building '{unlock.requiresBuilding}'");
+
+                catalog._ringUnlocks[unlock.ring] = new RingUnlock
+                {
+                    Ring = unlock.ring,
+                    ReactorLevel = Math.Max(0, unlock.reactorLevel),
+                    RequiresBuilding = unlock.requiresBuilding ?? string.Empty,
+                    Cost = ParseAmounts("ring " + unlock.ring, "cost", unlock.cost, errors)
+                };
+            }
+
             if (errors.Count > 0)
                 throw new FormatException("Invalid game catalog:\n  " + string.Join("\n  ", errors));
 
@@ -168,6 +206,9 @@ namespace HADAL.Shared.Catalog
             building = null!;
             return !string.IsNullOrEmpty(id) && _buildings.TryGetValue(id, out building);
         }
+
+        /// <summary>Requirements of opening <paramref name="ring"/>; false when the catalog defines none.</summary>
+        public bool TryGetRingUnlock(int ring, out RingUnlock unlock) => _ringUnlocks.TryGetValue(ring, out unlock);
 
         public bool TryGetResource(ResourceType type, out ResourceDefinition resource) =>
             _resources.TryGetValue(type, out resource);

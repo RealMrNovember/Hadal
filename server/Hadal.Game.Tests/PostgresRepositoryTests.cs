@@ -61,6 +61,17 @@ namespace Hadal.Game.Tests
                 Assert.Equal(building.BuildingId, stored.BuildingId);
                 Assert.Equal(2, stored.RotationSteps);
 
+                // Removing deletes the row; a new building may take the same slot in the same save.
+                var replacement = new PlacedBuilding { BuildingId = "b" + Guid.NewGuid().ToString("N"), DefinitionId = "food_lab", Ring = 1, Sector = 0 };
+                player.RemovedBuildingIds.Add(building.BuildingId);
+                player.UnsavedBuildings.Add(replacement);
+                player.UnlockedRings = 6;
+                await repository.SaveAsync(player, default);
+                Assert.Empty(player.RemovedBuildingIds);
+                loaded = await repository.LoadByIdentityAsync(identityKey, default);
+                Assert.Equal(replacement.BuildingId, Assert.Single(loaded!.Buildings).BuildingId);
+                Assert.Equal(6, loaded.UnlockedRings);
+
                 Assert.Null(await repository.LoadByIdentityAsync("pgtest-missing-" + Guid.NewGuid(), default));
             }
             finally

@@ -11,10 +11,14 @@ namespace HADAL.Shared.Protocol
         public const string Production = "production:";
         public const string Hero = "hero:";
         public const string Command = "command:";
+        public const string Base = "base:";
 
         /// <summary>The wallet is a singleton entity; every frame carries the full wallet.</summary>
         public const string Wallet = Resource + "wallet";
 
         public const string ProductionSummary = Production + "summary";
+
+        /// <summary>Open rings of the base (<c>BaseLayoutDto</c>); a singleton like the wallet.</summary>
+        public const string BaseLayout = Base + "layout";
     }
 }

@@ -44,6 +44,9 @@ namespace Hadal.Game
         /// <summary>Buildings not yet written to the database.</summary>
         public List<PlacedBuilding> UnsavedBuildings { get; } = new();
 
+        /// <summary>Removed buildings not yet deleted from the database.</summary>
+        public List<string> RemovedBuildingIds { get; } = new();
+
         public bool IsDirty { get; set; }
     }
 }

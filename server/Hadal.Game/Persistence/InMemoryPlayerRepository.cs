@@ -36,6 +36,9 @@ namespace Hadal.Game.Persistence
             foreach (var pair in player.Wallet)
                 updated.Wallet[pair.Key] = pair.Value;
 
+            foreach (var removed in player.RemovedBuildingIds)
+                updated.Buildings.RemoveAll(b => b.BuildingId == removed);
+
             foreach (var building in player.UnsavedBuildings)
             {
                 updated.Buildings.RemoveAll(b => b.BuildingId == building.BuildingId);
@@ -44,6 +47,7 @@ namespace Hadal.Game.Persistence
 
             _byIdentity[player.IdentityKey] = Copy(updated);
             player.UnsavedBuildings.Clear();
+            player.RemovedBuildingIds.Clear();
             return Task.CompletedTask;
         }
 

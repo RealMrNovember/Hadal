@@ -20,6 +20,9 @@ namespace HADAL.Shared.DTOs
         /// </summary>
         [ProtoMember(5)] public ProductionStateDto Production { get; set; } = new();
 
+        /// <summary>Outermost open ring (docs/23, rule 12). 0 from older servers = use the catalog default.</summary>
+        [ProtoMember(6)] public int UnlockedRings { get; set; }
+
         [ProtoBeforeSerialization]
         private void BeforeSerialize() => BuildingsWire = Buildings?.ToArray() ?? System.Array.Empty<BuildingStateDto>();
 

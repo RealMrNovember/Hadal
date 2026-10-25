@@ -15,7 +15,7 @@ namespace Hadal.Game.Tests
         {
             Assert.True(Catalog.TryGetBuilding("oxygen_plant", out var plant));
             Assert.Equal(GridSlotType.Production, plant.SlotType);
-            Assert.Equal(500, Catalog.StartingWallet()[ResourceType.Oxygen]);
+            Assert.Equal(600, Catalog.StartingWallet()[ResourceType.Oxygen]);
             Assert.Equal(4, Catalog.Grid.startingUnlockedRings);
         }
 
@@ -59,7 +59,8 @@ namespace Hadal.Game.Tests
         [InlineData("oxygen_plant", 1, 3, PlacementRejectReason.SlotDoesNotExist)]
         [InlineData("oxygen_plant", 13, 0, PlacementRejectReason.SlotDoesNotExist)]
         [InlineData("mega_dome", 5, 0, PlacementRejectReason.RingLocked)]
-        [InlineData("oxygen_plant", 2, 0, PlacementRejectReason.RingNotAllowed)]
+        [InlineData("oxygen_plant", 2, 0, PlacementRejectReason.SlotTypeMismatch)]
+        [InlineData("oxygen_plant", 0, 0, PlacementRejectReason.RingNotAllowed)]
         [InlineData("research_center", 1, 0, PlacementRejectReason.RingNotAllowed)]
         public void InvalidPlacement_IsRejected(string building, int ring, int sector, PlacementRejectReason expected) =>
             Assert.Equal(expected, Validate(building, ring, sector));
@@ -93,7 +94,7 @@ namespace Hadal.Game.Tests
             Catalog.TryGetBuilding("oxygen_plant", out var plant);
             var wallet = new Dictionary<ResourceType, long> { [ResourceType.Titanium] = 150 };
             PlacementRules.Charge(plant, wallet);
-            Assert.Equal(100, wallet[ResourceType.Titanium]);
+            Assert.Equal(90, wallet[ResourceType.Titanium]);
         }
 
         private static PlacementRejectReason Validate(string building, int ring, int sector) =>

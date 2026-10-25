@@ -51,7 +51,7 @@ namespace Hadal.Game.Tests
 
             var snapshot = await ReceiveAsync(socket);
             Assert.Equal(ServerMessageKind.StateSnapshot, snapshot.Kind);
-            Assert.Equal(500, snapshot.Snapshot().Resources.Amount(ResourceType.Oxygen));
+            Assert.Equal(600, snapshot.Snapshot().Resources.Amount(ResourceType.Oxygen));
 
             await SendAsync(socket, TestSupport.Place("oxygen_plant", 1, 0, "e2e-cmd"));
 

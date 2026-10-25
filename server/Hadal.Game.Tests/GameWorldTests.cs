@@ -23,8 +23,8 @@ namespace Hadal.Game.Tests
             await _world.ConnectAsync("device-a", connection, default);
 
             var snapshot = Assert.Single(connection.Messages).Snapshot();
-            Assert.Equal(500, snapshot.Resources.Amount(ResourceType.Oxygen));
-            Assert.Equal(150, snapshot.Resources.Amount(ResourceType.Titanium));
+            Assert.Equal(600, snapshot.Resources.Amount(ResourceType.Oxygen));
+            Assert.Equal(500, snapshot.Resources.Amount(ResourceType.Titanium));
             var reactor = Assert.Single(snapshot.Buildings);
             Assert.Equal("core_reactor", reactor.DefinitionId);
             Assert.Equal(0, reactor.RingIndex);
@@ -45,8 +45,8 @@ namespace Hadal.Game.Tests
             var created = Assert.Single(delta.CreatedBuildings());
             Assert.Equal("oxygen_plant", created.DefinitionId);
             Assert.Equal(0, created.Level); // under its first construction
-            Assert.Equal(12_000, created.ConstructionTotalMs);
-            Assert.Equal(100, delta.Wallet()!.Amount(ResourceType.Titanium));
+            Assert.Equal(10_000, created.ConstructionTotalMs);
+            Assert.Equal(440, delta.Wallet()!.Amount(ResourceType.Titanium));
         }
 
         [Fact]
@@ -98,9 +98,9 @@ namespace Hadal.Game.Tests
             }
 
             var wallet = Assert.Single(connection.Messages).Delta().Wallet()!;
-            Assert.Equal(500 + 3 * SimulationTick.ReplicationIntervalSeconds, wallet.Amount(ResourceType.Oxygen));
-            // Starter reactor +4, oxygen plant -1.
-            Assert.Equal(200 + (4 - 1) * SimulationTick.ReplicationIntervalSeconds, wallet.Amount(ResourceType.Energy));
+            Assert.Equal(600 + 3 * SimulationTick.ReplicationIntervalSeconds, wallet.Amount(ResourceType.Oxygen));
+            // Starter reactor +8, oxygen plant -1.
+            Assert.Equal(400 + (8 - 1) * SimulationTick.ReplicationIntervalSeconds, wallet.Amount(ResourceType.Energy));
         }
 
         [Fact]
@@ -117,7 +117,7 @@ namespace Hadal.Game.Tests
             }
 
             var wallet = Assert.Single(connection.Messages).Delta().Wallet()!;
-            Assert.Equal(200 + 4 * SimulationTick.ReplicationIntervalSeconds, wallet.Amount(ResourceType.Energy));
+            Assert.Equal(400 + 8 * SimulationTick.ReplicationIntervalSeconds, wallet.Amount(ResourceType.Energy));
         }
 
         [Fact]
@@ -149,7 +149,7 @@ namespace Hadal.Game.Tests
             var snapshot = Assert.Single(second.Messages).Snapshot();
 
             Assert.Equal(2, snapshot.Buildings.Count); // starter reactor + oxygen plant
-            Assert.Equal(500 + 3 * 600, snapshot.Resources.Amount(ResourceType.Oxygen));
+            Assert.Equal(600 + 3 * 600, snapshot.Resources.Amount(ResourceType.Oxygen));
         }
 
         [Fact]
@@ -166,7 +166,7 @@ namespace Hadal.Game.Tests
             var resumed = await _world.ConnectAsync("device-a", second, default);
             var state = resumed.StateForTests;
 
-            Assert.Equal(3000, state.Wallet[ResourceType.Food]); // capacity
+            Assert.Equal(5000, state.Wallet[ResourceType.Food]); // capacity
             Assert.Equal((ulong)SimulationTick.MaxOfflineAccrualTicks, state.ServerTick);
             Assert.Equal(_clock.UtcNow, state.LastSimulatedAt); // the remainder is forfeited, not banked
         }

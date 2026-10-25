@@ -161,7 +161,8 @@ namespace Hadal.Game.Tests
             offline.EnsureSuccessStatusCode();
 
             var detail = await Proxied(gm).GetFromJsonAsync<JsonObject>($"/admin/api/players/{player.accountId}");
-            Assert.Equal(650, detail!["wallet"]!["Titanium"]!.GetValue<long>());
+            Assert.Equal(500 + 500, // starting titanium + grant
+                 detail!["wallet"]!["Titanium"]!.GetValue<long>());
 
             // Online: the change reaches the live session and its connection at once.
             var world = _factory.Services.GetRequiredService<GameWorld>();
@@ -221,7 +222,8 @@ namespace Hadal.Game.Tests
             Assert.Equal(AccountErrors.CouponExhausted, (await exhausted.Content.ReadFromJsonAsync<AccountError>(Json))!.error);
 
             var detail = await Proxied(gm).GetFromJsonAsync<JsonObject>($"/admin/api/players/{first.accountId}");
-            Assert.Equal(450, detail!["wallet"]!["Titanium"]!.GetValue<long>());
+            Assert.Equal(500 + 300, // starting titanium + coupon
+                 detail!["wallet"]!["Titanium"]!.GetValue<long>());
         }
 
         private async Task<string> RedeemErrorAsync(AuthResponse player, string code)
@@ -318,6 +320,15 @@ namespace Hadal.Game.Tests
             var original = await Proxied(owner).PutAsJsonAsync("/admin/api/catalog", new { json, note = "back to file" });
             original.EnsureSuccessStatusCode();
             Assert.Equal(300, world.Catalog.Catalog.Progression.freeFinishSeconds);
+        }
+
+        [Fact]
+        public void NewerCatalogFile_SupersedesOlderPanelEdits_OnlyWhenItsDesignIsNewer()
+        {
+            Assert.True(CatalogBootstrap.FileSupersedes("{\"version\": 3}", "{\"version\": 1, \"x\": 2}"));
+            Assert.False(CatalogBootstrap.FileSupersedes("{\"version\": 3}", "{\"version\": 3}"));
+            Assert.False(CatalogBootstrap.FileSupersedes("{\"version\": 2}", "{\"version\": 3}"));
+            Assert.Equal(0, CatalogBootstrap.DesignVersion("not json"));
         }
 
         [Fact]

@@ -51,6 +51,19 @@ namespace Hadal.Gateway.Admin
             if (latest == null)
                 return;
 
+            // A release whose catalog file is a newer design ("version" field) than the panel's last
+            // edit supersedes it; it is stored as a new version so the panel history shows it.
+            if (FileSupersedes(_live.Json, latest.Json))
+            {
+                var version = await _store.AddCatalogAsync(_live.Json, "release", $"catalog file v{DesignVersion(_live.Json)}", cancellationToken);
+                _world.ReplaceCatalog(CatalogLoader.Parse(_live.Json), version);
+                _live.Set(version, _live.Json);
+                await _store.AuditAsync("release", "catalog.publish", $"v{version}", "newer catalog file in the release", "server", cancellationToken);
+                _logger.LogInformation("Catalog file v{Design} supersedes stored catalog v{Stored}; published as v{Version}.",
+                    DesignVersion(_live.Json), latest.Version, version);
+                return;
+            }
+
             try
             {
                 _world.ReplaceCatalog(CatalogLoader.Parse(latest.Json), latest.Version);
@@ -64,5 +77,22 @@ namespace Hadal.Gateway.Admin
         }
 
         public Task StopAsync(CancellationToken cancellationToken) => Task.CompletedTask;
+
+        /// <summary>True when the file's design version is newer than the stored catalog's.</summary>
+        public static bool FileSupersedes(string fileJson, string storedJson) => DesignVersion(fileJson) > DesignVersion(storedJson);
+
+        /// <summary>The catalog's own top-level "version" (bumped with each balance design); 0 if missing.</summary>
+        public static int DesignVersion(string json)
+        {
+            try
+            {
+                using var document = System.Text.Json.JsonDocument.Parse(json);
+                return document.RootElement.TryGetProperty("version", out var v) && v.TryGetInt32(out var n) ? n : 0;
+            }
+            catch (System.Text.Json.JsonException)
+            {
+                return 0;
+            }
+        }
     }
 }

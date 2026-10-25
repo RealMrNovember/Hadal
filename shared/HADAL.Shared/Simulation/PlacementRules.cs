@@ -17,6 +17,8 @@ namespace HADAL.Shared.Simulation
         SlotTypeMismatch = 7,
         SectorRestricted = 8,
         InsufficientResources = 9,
+        ReactorLevelTooLow = 10,
+        LimitReached = 11,
     }
 
     /// <summary>
@@ -32,7 +34,9 @@ namespace HADAL.Shared.Simulation
             int sector,
             int unlockedRings,
             ISet<(int ring, int sector)> occupied,
-            IReadOnlyDictionary<ResourceType, long> wallet)
+            IReadOnlyDictionary<ResourceType, long> wallet,
+            IReadOnlyDictionary<string, int>? ownedCounts = null,
+            int reactorLevel = int.MaxValue)
         {
             if (!catalog.TryGetBuilding(buildingId, out var building))
                 return PlacementRejectReason.UnknownBuilding;
@@ -57,6 +61,13 @@ namespace HADAL.Shared.Simulation
 
             if (!catalog.SectorAllowsBuilding(ring, sector, building.Id))
                 return PlacementRejectReason.SectorRestricted;
+
+            if (reactorLevel < building.RequiredReactorLevel)
+                return PlacementRejectReason.ReactorLevelTooLow;
+
+            if (building.MaxCount > 0 && ownedCounts != null
+                && ownedCounts.TryGetValue(building.Id, out var owned) && owned >= building.MaxCount)
+                return PlacementRejectReason.LimitReached;
 
             if (!CanAfford(building, wallet))
                 return PlacementRejectReason.InsufficientResources;
