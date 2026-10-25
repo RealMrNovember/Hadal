@@ -1,0 +1,74 @@
+# Image-to-3D GPU images for HADAL (doku / doku2, RTX 5060 8 GB = sm_120 → CUDA 12.8 builds).
+#
+# Two targets, because the two model stacks pin different extension sets:
+#
+#   docker build -f Dockerfile.3d --target hunyuan -t hadal-3d-hunyuan .
+#   docker build -f Dockerfile.3d --target trellis -t hadal-3d-trellis .
+#
+# The CUDA extensions (Hunyuan3D-Paint's rasterizer, TRELLIS's nvdiffrast / gaussian rasterizer) need nvcc.
+# Instead of the ~20 GB -devel image we add just nvcc + the dev headers ATen includes from NVIDIA's apt repo
+# to the runtime image (doku2's disk is tight). TORCH_CUDA_ARCH_LIST=12.0 targets Blackwell only; add e.g.
+# "8.9" if the image should also run on an RTX 40xx.
+FROM pytorch/pytorch:2.7.1-cuda12.8-cudnn9-runtime AS base
+
+ENV DEBIAN_FRONTEND=noninteractive \
+    TORCH_CUDA_ARCH_LIST="12.0" \
+    MAX_JOBS=8 \
+    CUDA_HOME=/usr/local/cuda-12.8 \
+    HF_HOME=/work/models \
+    TORCH_HOME=/work/models/torch \
+    U2NET_HOME=/work/models/rembg
+
+RUN apt-get update && apt-get install -y --no-install-recommends wget ca-certificates gnupg \
+    && . /etc/os-release \
+    && wget -q https://developer.download.nvidia.com/compute/cuda/repos/ubuntu$(echo $VERSION_ID | tr -d .)/x86_64/cuda-keyring_1.1-1_all.deb \
+    && dpkg -i cuda-keyring_1.1-1_all.deb && rm cuda-keyring_1.1-1_all.deb && apt-get update \
+    && apt-get install -y --no-install-recommends \
+      git build-essential ninja-build libgl1 libglib2.0-0 libegl1 libgles2 libopengl0 \
+      cuda-nvcc-12-8 cuda-cudart-dev-12-8 cuda-nvtx-12-8 cuda-profiler-api-12-8 cuda-nvrtc-dev-12-8 \
+      libcublas-dev-12-8 libcusparse-dev-12-8 libcusolver-dev-12-8 libcurand-dev-12-8 \
+    && rm -rf /var/lib/apt/lists/* \
+    && find /usr/local/cuda-12.8 -name "*_static.a" -delete
+ENV PATH=/usr/local/cuda-12.8/bin:$PATH
+
+# Shared: background removal, mesh IO/cleanup, previews (matplotlib, no OpenGL needed).
+RUN pip install --no-cache-dir \
+      diffusers==0.33.1 transformers==4.51.3 accelerate==1.6.0 safetensors==0.5.3 huggingface_hub==0.30.2 \
+      trimesh==4.6.8 pymeshlab==2023.12.post3 pygltflib==1.16.4 xatlas==0.0.10 \
+      rembg==2.0.66 onnxruntime==1.21.1 opencv-python-headless==4.11.0.86 \
+      einops==0.8.1 omegaconf==2.3.0 matplotlib==3.10.1 scipy==1.15.2 pillow tqdm ninja pybind11
+
+WORKDIR /work
+
+# ---------------------------------------------------------------- Hunyuan3D-2 (shape + paint)
+FROM base AS hunyuan
+ARG HY3D_COMMIT=f8db63096c8282cb27354314d896feba5ba6ff8a
+RUN git clone https://github.com/Tencent-Hunyuan/Hunyuan3D-2.git /opt/Hunyuan3D-2 \
+    && cd /opt/Hunyuan3D-2 && git checkout ${HY3D_COMMIT} \
+    && pip install --no-cache-dir --no-deps -e . \
+    && cd hy3dgen/texgen/custom_rasterizer && pip install --no-cache-dir --no-build-isolation . \
+    && cd ../differentiable_renderer && pip install --no-cache-dir --no-build-isolation .
+
+# ---------------------------------------------------------------- TRELLIS (image-large)
+FROM base AS trellis
+ARG TRELLIS_COMMIT=442aa1e1afb9014e80681d3bf604e8d728a86ee7
+RUN pip install --no-cache-dir \
+      easydict==1.13 imageio==2.37.0 imageio-ffmpeg==0.6.0 open3d==0.19.0 pyvista==0.45.0 \
+      pymeshfix==0.17.0 igraph==0.11.8 plyfile==1.1 \
+      git+https://github.com/EasternJournalist/utils3d.git@9a4eb15e4021b67b12c460c7057d642626897ec8 \
+    && pip install --no-cache-dir xformers==0.0.31.post1 --index-url https://download.pytorch.org/whl/cu128 \
+    && pip install --no-cache-dir spconv-cu126==2.3.8
+RUN pip install --no-cache-dir --no-build-isolation git+https://github.com/NVlabs/nvdiffrast.git@v0.3.3 \
+    && git clone --recursive https://github.com/autonomousvision/mip-splatting.git /tmp/mip-splatting \
+    && pip install --no-cache-dir --no-build-isolation /tmp/mip-splatting/submodules/diff-gaussian-rasterization/ \
+    && rm -rf /tmp/mip-splatting
+# TRELLIS only imports kaolin for one input-checking helper in FlexiCubes; a no-op shim avoids building kaolin.
+RUN git clone --recursive https://github.com/microsoft/TRELLIS.git /opt/TRELLIS \
+    && cd /opt/TRELLIS && git checkout ${TRELLIS_COMMIT} \
+    && mkdir -p /opt/shims/kaolin/utils \
+    && touch /opt/shims/kaolin/__init__.py /opt/shims/kaolin/utils/__init__.py \
+    && printf 'def check_tensor(*args, **kwargs):\n    return True\n' > /opt/shims/kaolin/utils/testing.py
+ENV PYTHONPATH=/opt/TRELLIS:/opt/shims \
+    ATTN_BACKEND=xformers \
+    SPARSE_ATTN_BACKEND=xformers \
+    SPCONV_ALGO=native

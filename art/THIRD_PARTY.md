@@ -6,6 +6,8 @@ Everything the game ships under `Assets/_Hadal/Art/` is listed here: what it com
 |---|---|---|---|---|
 | `Art/Characters/crew_*`, `mech_*`, `creature_*` | **Ultimate Space Kit** by Quaternius. Mirror: [OpenGameArt](https://opengameart.org/content/ultimate-space-kit-by-quaternius) (`ultimate_space_kit-glb.zip`). Origin: quaternius.com | CC0 1.0 (public domain) | 2026-10-25 | `art/blender/characters.py` (recolour, scale, decimate, clip clean-up) |
 | `Art/Portraits/*` | Generated with **Stable Diffusion XL base 1.0** (Stability AI) on doku2, `art/gpu/portraits.py` | CreativeML Open RAIL++-M: commercial use allowed, with the license's use restrictions | 2026-10-25 | `art/gpu/portraits.py` with `art/gpu/heroes.json` (fixed seeds) |
+| (3D pipeline, `art/gpu/image_to_3d.py --model trellis`) | **TRELLIS-image-large** (Microsoft) on doku2 | MIT (code and weights): usable for shipped assets | 2026-10-25 | `art/gpu/concept.py` → `image_to_3d.py` |
+| (blockout only, `--model hunyuan-mini*`) | **Hunyuan3D-2mini** (Tencent) | Tencent Hunyuan 3D 2.0 Community License: **excludes the EU, UK and South Korea** (§5c bans using or displaying Output there). **Never ship Hunyuan output in a global build** without a license from Tencent | 2026-10-25 | — |
 | `Art/Buildings/*`, `Art/Environment/*` | Our own procedural art, `art/blender/generate.py` | Ours | — | `art/blender/generate.py` |
 
 CC0 requires no attribution. Quaternius is still credited in the game's credits screen as a courtesy.
