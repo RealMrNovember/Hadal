@@ -8,7 +8,9 @@
         "Hadal.Gameplay",
         "Hadal.UI",
         "HADAL.Shared",
-        "VContainer"
+        "VContainer",
+        "Unity.RenderPipelines.Universal.Runtime",
+        "Unity.RenderPipelines.Core.Runtime"
     ],
     "includePlatforms": [
         "Editor"

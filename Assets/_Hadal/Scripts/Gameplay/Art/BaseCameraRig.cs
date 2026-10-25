@@ -1,0 +1,93 @@
+using UnityEngine;
+
+namespace Hadal.Gameplay.Art
+{
+    /// <summary>
+    /// 3/4 top-down camera over the base: one-finger drag (or mouse drag) pans, pinch (or wheel)
+    /// zooms. The camera is a child looking at this rig's pivot from <see cref="_pitch"/> degrees.
+    /// </summary>
+    public sealed class BaseCameraRig : MonoBehaviour
+    {
+        [SerializeField] private Camera _camera;
+        [SerializeField] private float _pitch = 52f;
+        [SerializeField] private float _yaw = 35f;
+        [SerializeField] private float _distance = 34f;
+        [SerializeField] private float _minDistance = 14f;
+        [SerializeField] private float _maxDistance = 70f;
+        [SerializeField] private float _panLimit = 40f;
+
+        private Vector3 _lastPointer;
+        private bool _dragging;
+        private float _lastPinch;
+
+        public Camera Camera => _camera;
+
+        public void Configure(Camera camera, float distance)
+        {
+            _camera = camera;
+            _distance = distance;
+            Apply();
+        }
+
+        private void Start() => Apply();
+
+        private void LateUpdate()
+        {
+            if (_camera == null)
+                return;
+
+            if (Input.touchCount == 2)
+            {
+                var a = Input.GetTouch(0);
+                var b = Input.GetTouch(1);
+                var pinch = Vector2.Distance(a.position, b.position);
+                if (b.phase == TouchPhase.Began)
+                    _lastPinch = pinch;
+
+                _distance *= _lastPinch / Mathf.Max(1f, pinch);
+                _lastPinch = pinch;
+                _dragging = false;
+            }
+            else if (Input.GetMouseButton(0))
+            {
+                // Touch 0 is reported as mouse button 0 on mobile.
+                var pointer = Input.mousePosition;
+                if (_dragging)
+                    Pan(pointer - _lastPointer);
+
+                _lastPointer = pointer;
+                _dragging = true;
+            }
+            else
+            {
+                _dragging = false;
+            }
+
+            var wheel = Input.mouseScrollDelta.y;
+            if (Mathf.Abs(wheel) > 0.01f)
+                _distance *= 1f - wheel * 0.1f;
+
+            Apply();
+        }
+
+        private void Pan(Vector3 screenDelta)
+        {
+            // World units per pixel grow with distance so panning feels the same at any zoom.
+            var scale = _distance / Mathf.Max(1f, Screen.height) * 1.6f;
+            var yawRotation = Quaternion.Euler(0f, _yaw, 0f);
+            var move = yawRotation * new Vector3(-screenDelta.x, 0f, -screenDelta.y) * scale;
+            var p = transform.position + move;
+            transform.position = Vector3.ClampMagnitude(new Vector3(p.x, 0f, p.z), _panLimit);
+        }
+
+        private void Apply()
+        {
+            if (_camera == null)
+                return;
+
+            _distance = Mathf.Clamp(_distance, _minDistance, _maxDistance);
+            var rotation = Quaternion.Euler(_pitch, _yaw, 0f);
+            _camera.transform.SetPositionAndRotation(transform.position - rotation * Vector3.forward * _distance, rotation);
+        }
+    }
+}

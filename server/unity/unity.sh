@@ -45,6 +45,7 @@ run() {
     -v hadal_unity_config:/root/.config/unity3d \
     -v "${LIBRARY_VOLUME}:/project/Library" \
     -v hadal_unity_cache:/root/.cache/unity3d \
+    -v hadal_unity_android:/root/.android \
     -v "${REPO}/server/unity/gitconfig:/root/.gitconfig:ro" \
     -w /project \
     "${IMAGE}" "$@"

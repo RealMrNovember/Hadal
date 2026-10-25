@@ -32,5 +32,5 @@ MonoBehaviour:
   - Type: 6
     Amount: 1
   _pressureResistanceBonus: 0
-  _prefab: {fileID: 0}
+  _prefab: {fileID: 919132149155446097, guid: 2dd675baeb7a7dc9e9642aeac20fd950, type: 3}
   _ghostPrefab: {fileID: 0}

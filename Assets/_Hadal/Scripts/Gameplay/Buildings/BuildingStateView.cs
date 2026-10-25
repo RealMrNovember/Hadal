@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Hadal.Core.Contracts;
 using Hadal.Core.Events;
 using Hadal.Core.StateSync;
+using Hadal.Data.Config;
 using Hadal.Data.Models;
 using HADAL.Shared.DTOs;
 using UnityEngine;
@@ -12,6 +13,7 @@ namespace Hadal.Gameplay.Buildings
 {
     /// <summary>
     /// Renders authoritative buildings from <see cref="IStateSyncService"/> after server ack.
+    /// Uses the definition's prefab (generated art) and falls back to a tinted cube.
     /// </summary>
     public sealed class BuildingStateView : MonoBehaviour
     {
@@ -23,7 +25,9 @@ namespace Hadal.Gameplay.Buildings
         private IGridService _grid;
         private ICircularGridService _circularGrid;
         private ILocalEventBus _localBus;
-        private readonly Dictionary<string, GameObject> _instances = new();
+        private BuildingDatabaseSO _buildingDatabase;
+        private bool _subscribed;
+        private readonly Dictionary<string, Instance> _instances = new();
         private MaterialPropertyBlock _propertyBlock;
 
         [Inject]
@@ -31,26 +35,39 @@ namespace Hadal.Gameplay.Buildings
             IStateSyncService stateSync,
             IGridService grid,
             ICircularGridService circularGrid,
-            ILocalEventBus localBus)
+            ILocalEventBus localBus,
+            GameConfigSO config)
         {
             _stateSync = stateSync;
             _grid = grid;
             _circularGrid = circularGrid;
             _localBus = localBus;
+            _buildingDatabase = config != null ? config.BuildingDatabase : null;
+
+            // Scene objects are enabled before VContainer injects them, so OnEnable alone would
+            // never subscribe.
+            if (isActiveAndEnabled)
+                Subscribe();
         }
 
-        private void OnEnable()
-        {
-            if (_localBus != null)
-                _localBus.Subscribe<BuildingStateChangedEvent>(OnBuildingStateChanged);
-
-            RefreshFromStateView();
-        }
+        private void OnEnable() => Subscribe();
 
         private void OnDisable()
         {
-            if (_localBus != null)
+            if (_localBus != null && _subscribed)
                 _localBus.Unsubscribe<BuildingStateChangedEvent>(OnBuildingStateChanged);
+
+            _subscribed = false;
+        }
+
+        private void Subscribe()
+        {
+            if (_localBus == null || _subscribed)
+                return;
+
+            _localBus.Subscribe<BuildingStateChangedEvent>(OnBuildingStateChanged);
+            _subscribed = true;
+            RefreshFromStateView();
         }
 
         private void OnBuildingStateChanged(BuildingStateChangedEvent _)
@@ -79,13 +96,17 @@ namespace Hadal.Gameplay.Buildings
                 var position = _grid.SlotToWorld(slot);
                 var rotation = _grid.SlotToRotation(slot, building.rotation);
 
-                if (!_instances.TryGetValue(building.instanceKey, out var instance) || instance == null)
+                if (!_instances.TryGetValue(building.instanceKey, out var instance) || instance.Go == null
+                    || instance.DefinitionId != building.definitionId)
                 {
-                    instance = CreateSolidVisual(building.instanceKey);
+                    if (instance.Go != null)
+                        Destroy(instance.Go);
+
+                    instance = new Instance(CreateVisual(building), building.definitionId);
                     _instances[building.instanceKey] = instance;
                 }
 
-                instance.transform.SetPositionAndRotation(position, rotation);
+                instance.Go.transform.SetPositionAndRotation(position, rotation);
             }
 
             var staleKeys = new List<string>();
@@ -97,8 +118,8 @@ namespace Hadal.Gameplay.Buildings
 
             foreach (var key in staleKeys)
             {
-                if (_instances.TryGetValue(key, out var instance) && instance != null)
-                    Destroy(instance);
+                if (_instances.TryGetValue(key, out var instance) && instance.Go != null)
+                    Destroy(instance.Go);
 
                 _instances.Remove(key);
             }
@@ -121,9 +142,24 @@ namespace Hadal.Gameplay.Buildings
             return true;
         }
 
-        private GameObject CreateSolidVisual(string instanceKey)
+        public int InstanceCount => _instances.Count;
+
+        private GameObject CreateVisual(BuildingSaveEntry building)
         {
             var root = _buildingsRoot != null ? _buildingsRoot : transform;
+            var prefab = _buildingDatabase != null ? _buildingDatabase.GetById(building.definitionId)?.Prefab : null;
+            if (prefab != null)
+            {
+                var go = Instantiate(prefab, root, false);
+                go.name = $"Building_{building.instanceKey}";
+                return go;
+            }
+
+            return CreateSolidVisual(building.instanceKey, root);
+        }
+
+        private GameObject CreateSolidVisual(string instanceKey, Transform root)
+        {
             var go = GameObject.CreatePrimitive(PrimitiveType.Cube);
             go.name = $"Building_{instanceKey}";
             go.transform.SetParent(root, false);
@@ -141,6 +177,18 @@ namespace Hadal.Gameplay.Buildings
             }
 
             return go;
+        }
+
+        private readonly struct Instance
+        {
+            public readonly GameObject Go;
+            public readonly string DefinitionId;
+
+            public Instance(GameObject go, string definitionId)
+            {
+                Go = go;
+                DefinitionId = definitionId;
+            }
         }
     }
 }

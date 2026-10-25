@@ -4,6 +4,7 @@
     "references": [
         "Hadal.Core",
         "Hadal.Data",
+        "Hadal.Gameplay",
         "HADAL.Shared",
         "ProtobufNet",
         "UnityEngine.TestRunner",

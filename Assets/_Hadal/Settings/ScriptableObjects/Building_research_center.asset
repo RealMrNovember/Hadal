@@ -26,5 +26,5 @@ MonoBehaviour:
   _productionPerTick: []
   _consumptionPerTick: []
   _pressureResistanceBonus: 0
-  _prefab: {fileID: 0}
+  _prefab: {fileID: 919132149155446097, guid: d64592ecdb8b92c93b5e839667394288, type: 3}
   _ghostPrefab: {fileID: 0}
