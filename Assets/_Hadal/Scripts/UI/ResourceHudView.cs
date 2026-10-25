@@ -38,6 +38,7 @@ namespace Hadal.UI
         private IStateSyncService _stateSync;
         private ILocalEventBus _localBus;
         private ResourceDatabaseSO _resourceDatabase;
+        private bool _subscribed;
 
         private readonly Dictionary<ResourceType, long> _amounts = new();
 
@@ -47,17 +48,31 @@ namespace Hadal.UI
             _stateSync = stateSync;
             _localBus = localBus;
             _resourceDatabase = config != null ? config.ResourceDatabase : null;
+
+            // Scene objects are enabled before VContainer injects them, so OnEnable alone would
+            // never subscribe and the HUD would stay at 0.
+            if (isActiveAndEnabled)
+                Subscribe();
         }
 
-        private void OnEnable()
-        {
-            _localBus?.Subscribe<ResourceStateChangedEvent>(OnResourceStateChanged);
-            Refresh();
-        }
+        private void OnEnable() => Subscribe();
 
         private void OnDisable()
         {
-            _localBus?.Unsubscribe<ResourceStateChangedEvent>(OnResourceStateChanged);
+            if (_subscribed)
+                _localBus?.Unsubscribe<ResourceStateChangedEvent>(OnResourceStateChanged);
+
+            _subscribed = false;
+        }
+
+        private void Subscribe()
+        {
+            if (_localBus == null || _subscribed)
+                return;
+
+            _localBus.Subscribe<ResourceStateChangedEvent>(OnResourceStateChanged);
+            _subscribed = true;
+            Refresh();
         }
 
         private void OnResourceStateChanged(ResourceStateChangedEvent _) => Refresh();
