@@ -56,6 +56,9 @@ namespace Hadal.Gateway.Auth
 
         public Task InitializeAsync(CancellationToken cancellationToken) => Task.CompletedTask;
 
+        /// <summary>For the in-memory admin store (Overseer player list in tests and local runs).</summary>
+        public IReadOnlyCollection<Guid> AccountIds => _accounts.Keys.ToList();
+
         public Task<Guid> CreateGuestAsync(string deviceId, string clientVersion, CancellationToken cancellationToken)
         {
             var id = Guid.NewGuid();

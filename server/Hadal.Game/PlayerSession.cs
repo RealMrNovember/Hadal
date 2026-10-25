@@ -17,9 +17,7 @@ namespace Hadal.Game
     {
         private readonly object _gate = new();
         private readonly PlayerState _state;
-        private readonly GameCatalog _catalog;
-        private readonly ProductionCatalog _production;
-        private readonly IReadOnlyDictionary<ResourceType, long> _capacities;
+        private readonly CatalogRuntime _runtime;
         private readonly INetworkSerializer _serializer;
 
         private IClientConnection? _connection;
@@ -28,19 +26,17 @@ namespace Hadal.Game
         private ulong _lastReplicatedTick;
         private bool _walletDirty;
 
-        internal PlayerSession(
-            PlayerState state,
-            GameCatalog catalog,
-            ProductionCatalog production,
-            IReadOnlyDictionary<ResourceType, long> capacities,
-            INetworkSerializer serializer)
+        internal PlayerSession(PlayerState state, CatalogRuntime runtime, INetworkSerializer serializer)
         {
             _state = state;
-            _catalog = catalog;
-            _production = production;
-            _capacities = capacities;
+            _runtime = runtime;
             _serializer = serializer;
         }
+
+        // The catalog can be swapped at runtime (GameWorld.ReplaceCatalog); always read it fresh.
+        private GameCatalog _catalog => _runtime.Current.Catalog;
+        private ProductionCatalog _production => _runtime.Current.Production;
+        private IReadOnlyDictionary<ResourceType, long> _capacities => _runtime.Current.Capacities;
 
         public Guid PlayerId => _state.PlayerId;
 
@@ -140,6 +136,66 @@ namespace Hadal.Game
                         });
                         break;
                 }
+            }
+        }
+
+        /// <summary>Settles the economy up to now under the current rules (before a catalog swap).</summary>
+        internal void Settle(DateTimeOffset now)
+        {
+            lock (_gate)
+            {
+                var completed = AdvanceTo(now);
+                if (completed.Count > 0)
+                    SendDelta(now, CompletionChanges(completed, now));
+            }
+        }
+
+        /// <summary>Recomputes rates after a catalog swap and pushes them.</summary>
+        internal void ApplyCatalogChange(DateTimeOffset now)
+        {
+            lock (_gate)
+            {
+                _netPerTick = ComputeNetPerTick();
+                SendDelta(now, new List<EntityChangeDto> { WalletChange(), ProductionChange() });
+            }
+        }
+
+        /// <summary>Copy of wallet and buildings for the Overseer (taken under the session lock).</summary>
+        internal PlayerState Describe(DateTimeOffset now)
+        {
+            lock (_gate)
+            {
+                AdvanceTo(now);
+                var copy = new PlayerState
+                {
+                    PlayerId = _state.PlayerId,
+                    IdentityKey = _state.IdentityKey,
+                    ServerTick = _state.ServerTick,
+                    LastSimulatedAt = _state.LastSimulatedAt,
+                    UnlockedRings = _state.UnlockedRings
+                };
+                foreach (var pair in _state.Wallet)
+                    copy.Wallet[pair.Key] = pair.Value;
+                foreach (var b in _state.Buildings)
+                    copy.Buildings.Add(new PlacedBuilding
+                    {
+                        BuildingId = b.BuildingId, DefinitionId = b.DefinitionId, Ring = b.Ring, Sector = b.Sector,
+                        Level = b.Level, RotationSteps = b.RotationSteps, ConstructionEndsAt = b.ConstructionEndsAt,
+                        ConstructionSeconds = b.ConstructionSeconds
+                    });
+                return copy;
+            }
+        }
+
+        /// <summary>Overseer grant: adds resources (capped at storage) and pushes the wallet at once.</summary>
+        internal void Grant(IReadOnlyDictionary<ResourceType, long> amounts, DateTimeOffset now)
+        {
+            lock (_gate)
+            {
+                AdvanceTo(now);
+                WalletOps.Add(_state.Wallet, amounts, _capacities);
+                _state.IsDirty = true;
+                SendDelta(now, new List<EntityChangeDto> { WalletChange(), ProductionChange() });
             }
         }
 

@@ -17,10 +17,23 @@ namespace Hadal.Game
             if (!File.Exists(path))
                 throw new FileNotFoundException("Game catalog not found.", path);
 
-            var data = JsonSerializer.Deserialize<GameCatalogData>(File.ReadAllText(path), Options)
-                       ?? throw new FormatException($"Game catalog '{path}' is empty.");
+            return Parse(File.ReadAllText(path));
+        }
 
-            return GameCatalog.Create(data);
+        /// <summary>Parses and validates catalog JSON; FormatException (with every problem listed) when invalid.</summary>
+        public static GameCatalog Parse(string json)
+        {
+            GameCatalogData? data;
+            try
+            {
+                data = JsonSerializer.Deserialize<GameCatalogData>(json, Options);
+            }
+            catch (JsonException exception)
+            {
+                throw new FormatException("Catalog is not valid JSON: " + exception.Message, exception);
+            }
+
+            return GameCatalog.Create(data ?? throw new FormatException("Catalog is empty."));
         }
     }
 }

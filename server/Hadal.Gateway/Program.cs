@@ -1,10 +1,15 @@
 using Hadal.Game;
 using Hadal.Game.Persistence;
 using Hadal.Gateway;
+using Hadal.Gateway.Admin;
 using Hadal.Gateway.Auth;
 using HADAL.Shared.Serialization;
 using Microsoft.Extensions.Options;
 using Npgsql;
+
+// `dotnet Hadal.Gateway.dll admin ...` manages Overseer accounts and exits (see AdminCli).
+if (args.Length > 0 && args[0] == "admin")
+    return await AdminCli.RunAsync(args[1..]);
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -13,6 +18,7 @@ builder.Services.Configure<GatewayOptions>(builder.Configuration.GetSection(Gate
 builder.Services.AddSingleton<INetworkSerializer, ProtobufNetNetworkSerializer>();
 builder.Services.AddSingleton<IClock, SystemClock>();
 builder.Services.AddSingleton(sp => CatalogLoader.Load(sp.GetRequiredService<IOptions<GameOptions>>().Value.CatalogPath));
+builder.Services.AddSingleton(sp => new CatalogRuntime(sp.GetRequiredService<HADAL.Shared.Catalog.GameCatalog>()));
 
 // No connection string = in-memory store (local runs, tests). Production always sets one.
 var connectionString = builder.Configuration.GetConnectionString("Hadal");
@@ -20,17 +26,22 @@ if (string.IsNullOrWhiteSpace(connectionString))
 {
     builder.Services.AddSingleton<IPlayerRepository, InMemoryPlayerRepository>();
     builder.Services.AddSingleton<IAccountStore, InMemoryAccountStore>();
+    builder.Services.AddSingleton<IAdminStore, InMemoryAdminStore>();
 }
 else
 {
     builder.Services.AddSingleton(_ => NpgsqlDataSource.Create(connectionString));
     builder.Services.AddSingleton<IPlayerRepository, PostgresPlayerRepository>();
     builder.Services.AddSingleton<IAccountStore, PostgresAccountStore>();
+    builder.Services.AddSingleton<IAdminStore, PostgresAdminStore>();
 }
 
 builder.Services.AddHadalAuth(builder.Configuration);
+builder.Services.AddHadalAdmin(builder.Configuration);
 
-builder.Services.AddSingleton<GameWorld>();
+builder.Services.AddSingleton(sp => new GameWorld(
+    sp.GetRequiredService<CatalogRuntime>(), sp.GetRequiredService<IPlayerRepository>(), sp.GetRequiredService<IClock>(),
+    sp.GetRequiredService<INetworkSerializer>(), sp.GetRequiredService<ILogger<GameWorld>>()));
 builder.Services.AddHostedService<GameTickService>();
 builder.Services.AddSingleton<GatewaySessionHandler>();
 
@@ -38,6 +49,7 @@ var app = builder.Build();
 
 app.UseWebSockets(new WebSocketOptions { KeepAliveInterval = TimeSpan.FromSeconds(20) });
 
+app.MapHadalAdmin();
 app.MapHadalAuth();
 
 // Public health — no internal data (HADAL_SERVER_INFRASTRUCTURE.md §3).
@@ -57,6 +69,7 @@ app.Map("/gateway", async (HttpContext context, GatewaySessionHandler handler) =
 });
 
 app.Run();
+return 0;
 
 // Exposed for WebApplicationFactory in integration tests.
 public partial class Program;

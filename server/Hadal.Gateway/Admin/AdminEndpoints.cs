@@ -1,0 +1,381 @@
+using System.Security.Cryptography;
+using System.Text.Json;
+using System.Threading.RateLimiting;
+using Hadal.Game;
+using HADAL.Shared.Auth;
+using HADAL.Shared.Enums;
+using Microsoft.AspNetCore.RateLimiting;
+using Microsoft.Extensions.FileProviders;
+
+namespace Hadal.Gateway.Admin
+{
+    public sealed record LoginRequest(string Username, string Password, string Code);
+    public sealed record GrantRequest(Dictionary<string, long> Amounts, string Note);
+    public sealed record BanRequest(int Hours, string Reason);
+    public sealed record CouponRequest(string Code, Dictionary<string, long> Rewards, int MaxRedemptions, DateTimeOffset? ExpiresAt, string Note,
+        DateTimeOffset? StartsAt = null, string? TargetAccountId = null);
+    public sealed record ActiveRequest(bool Active);
+    public sealed record CatalogRequest(string Json, string Note);
+    public sealed record AdminCreateRequest(string Username, string Role);
+    public sealed record DisabledRequest(bool Disabled);
+
+    /// <summary>Overseer REST API under /admin/api and the panel itself under /admin (docs/22).</summary>
+    public static class AdminEndpoints
+    {
+        private const string LoginPolicy = "admin-login";
+        private const string ApiPolicy = "admin-api";
+
+        public static IServiceCollection AddHadalAdmin(this IServiceCollection services, IConfiguration configuration)
+        {
+            services.Configure<AdminOptions>(configuration.GetSection(AdminOptions.Section));
+            services.AddSingleton<AdminAuth>();
+            services.AddSingleton<LiveCatalog>();
+            services.AddSingleton<LiveOpsCache>();
+            services.AddSingleton<CouponService>();
+            services.AddHostedService<CatalogBootstrap>();
+
+            var perWindow = configuration.GetSection(AdminOptions.Section).GetValue(nameof(AdminOptions.LoginAttemptsPer15Minutes), 10);
+            services.AddRateLimiter(limiter =>
+            {
+                limiter.AddPolicy(LoginPolicy, context => RateLimitPartition.GetFixedWindowLimiter(AdminAuth.ClientIp(context),
+                    _ => new FixedWindowRateLimiterOptions { PermitLimit = perWindow, Window = TimeSpan.FromMinutes(15) }));
+                limiter.AddPolicy(ApiPolicy, context => RateLimitPartition.GetFixedWindowLimiter(AdminAuth.ClientIp(context),
+                    _ => new FixedWindowRateLimiterOptions { PermitLimit = 300, Window = TimeSpan.FromMinutes(1) }));
+            });
+            return services;
+        }
+
+        public static void MapHadalAdmin(this WebApplication app)
+        {
+            // One door: anything under /admin that did not come through the fronting proxy is a 404,
+            // so hadal-api.cicibyte.com/admin does not even reveal that the panel exists.
+            app.Use(async (http, next) =>
+            {
+                if (http.Request.Path.StartsWithSegments("/admin") && !http.RequestServices.GetRequiredService<AdminAuth>().IsFromProxy(http))
+                {
+                    http.Response.StatusCode = StatusCodes.Status404NotFound;
+                    return;
+                }
+
+                if (http.Request.Path.StartsWithSegments("/admin"))
+                {
+                    // The panel resolves "api/..." relative to itself, so it must live at /admin/.
+                    if (http.Request.Path.Value == "/admin")
+                    {
+                        http.Response.Redirect("/admin/");
+                        return;
+                    }
+
+                    http.Response.Headers["Cache-Control"] = "no-store";
+                    http.Response.Headers["X-Frame-Options"] = "DENY";
+                    http.Response.Headers["X-Content-Type-Options"] = "nosniff";
+                    http.Response.Headers["Referrer-Policy"] = "no-referrer";
+                    http.Response.Headers["Content-Security-Policy"] =
+                        "default-src 'self'; script-src 'self'; style-src 'self'; img-src 'self' data:; connect-src 'self'; frame-ancestors 'none'; base-uri 'none'; form-action 'self'";
+                }
+
+                await next();
+            });
+
+            var webRoot = Path.Combine(AppContext.BaseDirectory, "wwwroot");
+            if (Directory.Exists(webRoot))
+            {
+                var files = new PhysicalFileProvider(webRoot);
+                app.UseDefaultFiles(new DefaultFilesOptions { FileProvider = files, RequestPath = "" });
+                app.UseStaticFiles(new StaticFileOptions { FileProvider = files, RequestPath = "" });
+            }
+
+            var api = app.MapGroup("/admin/api").RequireRateLimiting(ApiPolicy);
+
+            api.MapPost("/login", async (LoginRequest request, HttpContext http, AdminAuth auth, IAdminStore store, CancellationToken ct) =>
+            {
+                var (token, principal) = await auth.LoginAsync(request.Username, request.Password, request.Code, ct);
+                await store.AuditAsync(request.Username ?? "?", principal != null ? "login" : "login.failed", string.Empty, string.Empty, AdminAuth.ClientIp(http), ct);
+                return principal == null
+                    ? Results.Json(new { error = "InvalidCredentials" }, statusCode: StatusCodes.Status401Unauthorized)
+                    : Results.Ok(new { token, username = principal.Username, role = principal.Role, expiresIn = auth.SessionSeconds });
+            }).RequireRateLimiting(LoginPolicy);
+
+            api.MapGet("/me", (AdminPrincipal me) => Results.Ok(new { me.Username, me.Role })).RequireAdmin(AdminRoles.Viewer);
+
+            api.MapGet("/stats", async (AdminPrincipal _, IAdminStore store, GameWorld world, LiveCatalog catalog,
+                LiveOpsCache liveOps, IClock clock, CancellationToken ct) =>
+            {
+                var (total, last24h) = await store.CountPlayersAsync(clock.UtcNow, ct);
+                var coupons = await store.ListCouponsAsync(ct);
+                return Results.Ok(new
+                {
+                    players = total,
+                    playersLast24h = last24h,
+                    online = world.OnlineIdentities.Count,
+                    catalogVersion = catalog.Version,
+                    couponRedemptions = coupons.Sum(c => c.Redeemed),
+                    liveOps = await liveOps.GetAsync(ct)
+                });
+            }).RequireAdmin(AdminRoles.Viewer);
+
+            // --- Players --------------------------------------------------------------------
+
+            api.MapGet("/players", async (AdminPrincipal _, string? q, IAdminStore store, GameWorld world, CancellationToken ct) =>
+            {
+                var players = await store.SearchPlayersAsync((q ?? string.Empty).Trim(), 100, ct);
+                return Results.Ok(players.Select(p => PlayerJson(p, world)));
+            }).RequireAdmin(AdminRoles.Viewer);
+
+            api.MapGet("/players/{id:guid}", async (AdminPrincipal _, Guid id, IAdminStore store, GameWorld world, CancellationToken ct) =>
+            {
+                var player = await store.GetPlayerAsync(id, ct);
+                if (player == null)
+                    return Results.NotFound();
+
+                var state = await world.DescribeAsync(id.ToString("N"), ct);
+                return Results.Ok(new
+                {
+                    player = PlayerJson(player, world),
+                    wallet = state?.Wallet.ToDictionary(p => p.Key.ToString(), p => p.Value) ?? new Dictionary<string, long>(),
+                    buildings = state?.Buildings.Select(b => new
+                    {
+                        b.BuildingId, b.DefinitionId, b.Ring, b.Sector, b.Level,
+                        constructionEndsAt = b.ConstructionEndsAt
+                    }) ?? Enumerable.Empty<object>(),
+                    serverTick = state?.ServerTick ?? 0
+                });
+            }).RequireAdmin(AdminRoles.Viewer);
+
+            api.MapPost("/players/{id:guid}/grant", async (AdminPrincipal me, Guid id, GrantRequest request,
+                HttpContext http, GameWorld world, IAdminStore store, CancellationToken ct) =>
+            {
+                var amounts = ParseAmounts(request.Amounts);
+                if (amounts == null || amounts.Count == 0)
+                    return Results.BadRequest(new { error = "InvalidAmounts" });
+                if (!await world.GrantAsync(id.ToString("N"), amounts, ct))
+                    return Results.NotFound(new { error = "PlayerNotStarted" });
+
+                await store.AuditAsync(me.Username, "player.grant", id.ToString("N"), $"{Describe(amounts)} {request.Note}".Trim(), AdminAuth.ClientIp(http), ct);
+                return Results.Ok(new { ok = true });
+            }).RequireAdmin(AdminRoles.GameMaster);
+
+            api.MapPost("/players/{id:guid}/ban", async (AdminPrincipal me, Guid id, BanRequest request,
+                HttpContext http, GameWorld world, IAdminStore store, IClock clock, CancellationToken ct) =>
+            {
+                if (request.Hours <= 0)
+                    return Results.BadRequest(new { error = "InvalidHours" });
+                var until = clock.UtcNow.AddHours(Math.Min(request.Hours, 24 * 365 * 100));
+                await store.SetBanAsync(id, until, request.Reason ?? string.Empty, ct);
+                world.Kick(id.ToString("N"), HandshakeRejectReasons.Banned);
+                await store.AuditAsync(me.Username, "player.ban", id.ToString("N"), $"{request.Hours}h {request.Reason}", AdminAuth.ClientIp(http), ct);
+                return Results.Ok(new { bannedUntil = until });
+            }).RequireAdmin(AdminRoles.GameMaster);
+
+            api.MapPost("/players/{id:guid}/unban", async (AdminPrincipal me, Guid id, HttpContext http, IAdminStore store, CancellationToken ct) =>
+            {
+                await store.SetBanAsync(id, null, string.Empty, ct);
+                await store.AuditAsync(me.Username, "player.unban", id.ToString("N"), string.Empty, AdminAuth.ClientIp(http), ct);
+                return Results.Ok(new { ok = true });
+            }).RequireAdmin(AdminRoles.GameMaster);
+
+            api.MapPost("/players/{id:guid}/kick", async (AdminPrincipal me, Guid id, HttpContext http, GameWorld world, IAdminStore store, CancellationToken ct) =>
+            {
+                var kicked = world.Kick(id.ToString("N"), "kicked by an operator");
+                await store.AuditAsync(me.Username, "player.kick", id.ToString("N"), kicked ? "online" : "offline", AdminAuth.ClientIp(http), ct);
+                return Results.Ok(new { kicked });
+            }).RequireAdmin(AdminRoles.GameMaster);
+
+            // --- Coupons --------------------------------------------------------------------
+
+            api.MapGet("/coupons", async (AdminPrincipal _, IAdminStore store, CancellationToken ct) =>
+                Results.Ok((await store.ListCouponsAsync(ct)).Select(CouponJson))).RequireAdmin(AdminRoles.Viewer);
+
+            api.MapPost("/coupons", async (AdminPrincipal me, CouponRequest request, HttpContext http, IAdminStore store, IClock clock, CancellationToken ct) =>
+            {
+                var rewards = ParseAmounts(request.Rewards);
+                if (rewards == null || rewards.Count == 0 || rewards.Values.Any(v => v <= 0))
+                    return Results.BadRequest(new { error = "InvalidRewards" });
+
+                var code = CouponService.Normalise(string.IsNullOrWhiteSpace(request.Code) ? CouponService.NewCode() : request.Code);
+                if (code.Length is < 4 or > 24 || !code.All(char.IsLetterOrDigit))
+                    return Results.BadRequest(new { error = "InvalidCode" });
+
+                if (request.StartsAt.HasValue && request.ExpiresAt.HasValue && request.StartsAt.Value >= request.ExpiresAt.Value)
+                    return Results.BadRequest(new { error = "InvalidWindow" });
+
+                Guid? target = null;
+                if (!string.IsNullOrWhiteSpace(request.TargetAccountId))
+                {
+                    if (!Guid.TryParse(request.TargetAccountId.Trim(), out var id) || await store.GetPlayerAsync(id, ct) == null)
+                        return Results.BadRequest(new { error = "UnknownPlayer" });
+                    target = id;
+                }
+
+                var coupon = new Coupon(code, rewards, Math.Max(0, request.MaxRedemptions), 0, request.ExpiresAt, true, me.Username, clock.UtcNow,
+                    request.Note ?? string.Empty, request.StartsAt, target);
+                if (!await store.CreateCouponAsync(coupon, ct))
+                    return Results.Conflict(new { error = "CodeExists" });
+
+                await store.AuditAsync(me.Username, "coupon.create", code,
+                    $"{Describe(rewards)} max={coupon.MaxRedemptions} window={coupon.StartsAt:u}..{coupon.ExpiresAt:u} target={target?.ToString("N") ?? "-"}",
+                    AdminAuth.ClientIp(http), ct);
+                return Results.Ok(CouponJson(coupon));
+            }).RequireAdmin(AdminRoles.GameMaster);
+
+            api.MapPost("/coupons/{code}/active", async (AdminPrincipal me, string code, ActiveRequest request, HttpContext http, IAdminStore store, CancellationToken ct) =>
+            {
+                await store.SetCouponActiveAsync(CouponService.Normalise(code), request.Active, ct);
+                await store.AuditAsync(me.Username, request.Active ? "coupon.enable" : "coupon.disable", code, string.Empty, AdminAuth.ClientIp(http), ct);
+                return Results.Ok(new { ok = true });
+            }).RequireAdmin(AdminRoles.GameMaster);
+
+            // --- Live ops -------------------------------------------------------------------
+
+            api.MapGet("/liveops", async (AdminPrincipal _, LiveOpsCache liveOps, CancellationToken ct) =>
+                Results.Ok(await liveOps.GetAsync(ct))).RequireAdmin(AdminRoles.Viewer);
+
+            api.MapPut("/liveops", async (AdminPrincipal me, LiveOpsSettings settings, HttpContext http, LiveOpsCache liveOps, IAdminStore store, CancellationToken ct) =>
+            {
+                settings.MaintenanceMessage = Clip(settings.MaintenanceMessage, 500);
+                settings.Announcement = Clip(settings.Announcement, 500);
+                await liveOps.SetAsync(settings, ct);
+                await store.AuditAsync(me.Username, "liveops.update", string.Empty,
+                    $"maintenance={settings.Maintenance} announcement={settings.Announcement}", AdminAuth.ClientIp(http), ct);
+                return Results.Ok(settings);
+            }).RequireAdmin(AdminRoles.GameMaster);
+
+            // --- Balance (catalog) ------------------------------------------------------------
+
+            api.MapGet("/catalog", (AdminPrincipal _, LiveCatalog catalog) =>
+                Results.Ok(new { version = catalog.Version, json = catalog.Json })).RequireAdmin(AdminRoles.Viewer);
+
+            api.MapGet("/catalog/versions", async (AdminPrincipal _, IAdminStore store, CancellationToken ct) =>
+                Results.Ok(await store.ListCatalogsAsync(50, ct))).RequireAdmin(AdminRoles.Viewer);
+
+            api.MapPut("/catalog", async (AdminPrincipal me, CatalogRequest request, HttpContext http, IAdminStore store,
+                GameWorld world, LiveCatalog live, CancellationToken ct) =>
+                await PublishCatalogAsync(request.Json, request.Note, me, http, store, world, live, ct)).RequireAdmin(AdminRoles.Owner);
+
+            api.MapPost("/catalog/{version:int}/restore", async (AdminPrincipal me, int version, HttpContext http,
+                IAdminStore store, GameWorld world, LiveCatalog live, CancellationToken ct) =>
+            {
+                var old = await store.GetCatalogAsync(version, ct);
+                return old == null
+                    ? Results.NotFound()
+                    : await PublishCatalogAsync(old.Json, $"restore of v{version}", me, http, store, world, live, ct);
+            }).RequireAdmin(AdminRoles.Owner);
+
+            // --- Audit and admins -------------------------------------------------------------
+
+            api.MapGet("/audit", async (AdminPrincipal _, IAdminStore store, CancellationToken ct) =>
+                Results.Ok(await store.ListAuditAsync(300, ct))).RequireAdmin(AdminRoles.Viewer);
+
+            api.MapGet("/admins", async (AdminPrincipal _, IAdminStore store, CancellationToken ct) =>
+                Results.Ok((await store.ListAdminsAsync(ct)).Select(a => new { a.Id, a.Username, a.Role, a.Disabled, a.CreatedAt, a.LastLoginAt }))).RequireAdmin(AdminRoles.Owner);
+
+            api.MapPost("/admins", async (AdminPrincipal me, AdminCreateRequest request, HttpContext http, IAdminStore store, CancellationToken ct) =>
+            {
+                var username = (request.Username ?? string.Empty).Trim();
+                if (username.Length is < 3 or > 32 || !username.All(c => char.IsLetterOrDigit(c) || c is '.' or '_' or '-') || !AdminRoles.IsValid(request.Role))
+                    return Results.BadRequest(new { error = "InvalidAdmin" });
+
+                var (admin, password) = AdminAuth.NewAdmin(username, request.Role);
+                if (!await store.CreateAdminAsync(admin, ct))
+                    return Results.Conflict(new { error = "UsernameExists" });
+
+                await store.AuditAsync(me.Username, "admin.create", username, request.Role, AdminAuth.ClientIp(http), ct);
+                // Shown once: the new admin enrols the TOTP secret in an authenticator app.
+                return Results.Ok(new { username, role = admin.Role, password, totpSecret = admin.TotpSecret, totpUri = Totp.ProvisioningUri(username, admin.TotpSecret) });
+            }).RequireAdmin(AdminRoles.Owner);
+
+            api.MapPost("/admins/{id:guid}/disabled", async (AdminPrincipal me, Guid id, DisabledRequest request, HttpContext http, IAdminStore store, CancellationToken ct) =>
+            {
+                if (id == me.Id)
+                    return Results.BadRequest(new { error = "CannotDisableSelf" });
+                await store.SetAdminDisabledAsync(id, request.Disabled, ct);
+                await store.AuditAsync(me.Username, request.Disabled ? "admin.disable" : "admin.enable", id.ToString("N"), string.Empty, AdminAuth.ClientIp(http), ct);
+                return Results.Ok(new { ok = true });
+            }).RequireAdmin(AdminRoles.Owner);
+        }
+
+        private static async Task<IResult> PublishCatalogAsync(string json, string note, AdminPrincipal me, HttpContext http, IAdminStore store,
+            GameWorld world, LiveCatalog live, CancellationToken ct)
+        {
+            HADAL.Shared.Catalog.GameCatalog catalog;
+            try
+            {
+                catalog = CatalogLoader.Parse(json ?? string.Empty);
+            }
+            catch (FormatException exception)
+            {
+                return Results.BadRequest(new { error = "InvalidCatalog", detail = exception.Message });
+            }
+
+            var version = await store.AddCatalogAsync(json!, me.Username, Clip(note, 200), ct);
+            world.ReplaceCatalog(catalog, version);
+            live.Set(version, json!);
+            await store.AuditAsync(me.Username, "catalog.publish", $"v{version}", Clip(note, 200), AdminAuth.ClientIp(http), ct);
+            return Results.Ok(new { version });
+        }
+
+        /// <summary>Requires a signed-in admin with at least <paramref name="minimumRole"/>; the handler gets them as <see cref="AdminPrincipal"/>.</summary>
+        private static RouteHandlerBuilder RequireAdmin(this RouteHandlerBuilder builder, string minimumRole) =>
+            builder.AddEndpointFilter(async (context, next) =>
+            {
+                var me = await AdminPrincipal.BindAsync(context.HttpContext) ?? AdminPrincipal.Anonymous;
+                if (me.IsAnonymous)
+                    return Results.Json(new { error = "Unauthorized" }, statusCode: StatusCodes.Status401Unauthorized);
+                if (AdminRoles.Rank(me.Role) < AdminRoles.Rank(minimumRole))
+                    return Results.Json(new { error = "Forbidden" }, statusCode: StatusCodes.Status403Forbidden);
+
+                return await next(context);
+            });
+
+        private static object PlayerJson(PlayerSummary p, GameWorld world) => new
+        {
+            accountId = p.AccountId.ToString("N"),
+            p.DisplayName,
+            p.CreatedAt,
+            p.LastLoginAt,
+            p.BannedUntil,
+            p.BanReason,
+            providers = p.Providers,
+            online = world.IsOnline(p.AccountId.ToString("N"))
+        };
+
+        private static object CouponJson(Coupon c) => new
+        {
+            c.Code,
+            rewards = c.Rewards.ToDictionary(p => p.Key.ToString(), p => p.Value),
+            c.MaxRedemptions,
+            c.Redeemed,
+            c.ExpiresAt,
+            c.Active,
+            c.CreatedBy,
+            c.CreatedAt,
+            c.Note,
+            c.StartsAt,
+            targetAccountId = c.TargetAccountId?.ToString("N")
+        };
+
+        private static Dictionary<ResourceType, long>? ParseAmounts(Dictionary<string, long>? raw)
+        {
+            if (raw == null)
+                return null;
+
+            var amounts = new Dictionary<ResourceType, long>();
+            foreach (var pair in raw)
+            {
+                if (!Enum.TryParse<ResourceType>(pair.Key, true, out var type) || type == ResourceType.Unknown || pair.Value == 0)
+                    continue;
+                if (Math.Abs(pair.Value) > 1_000_000_000)
+                    return null;
+                amounts[type] = pair.Value;
+            }
+
+            return amounts;
+        }
+
+        private static string Describe(IReadOnlyDictionary<ResourceType, long> amounts) =>
+            string.Join(", ", amounts.Select(a => $"{a.Key}:{a.Value:+#;-#;0}"));
+
+        private static string Clip(string? text, int max) =>
+            string.IsNullOrEmpty(text) ? string.Empty : text.Length <= max ? text : text[..max];
+    }
+}

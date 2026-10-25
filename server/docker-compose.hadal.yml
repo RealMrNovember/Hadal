@@ -47,6 +47,10 @@ services:
       Version__LatestClientVersion: "${HADAL_LATEST_CLIENT_VERSION:-0.0.0}"
       Version__Maintenance: "${HADAL_MAINTENANCE:-false}"
       Version__Message: "${HADAL_MAINTENANCE_MESSAGE:-}"
+      # Overseer (docs/22): the proxy key is shared only with the kale nginx that serves
+      # hadal.cicibyte.com/admin; the JWT secret signs admin sessions (separate from players').
+      Admin__ProxyKey: "${HADAL_ADMIN_PROXY_KEY:?set HADAL_ADMIN_PROXY_KEY in .env}"
+      Admin__JwtSecret: "${HADAL_ADMIN_JWT_SECRET:?set HADAL_ADMIN_JWT_SECRET in .env}"
       # Test-only (unity.sh latency). Must stay 0 outside latency runs.
       Gateway__SimulatedLatencyMs: "${HADAL_SIM_LATENCY_MS:-0}"
     depends_on:

@@ -21,14 +21,17 @@ namespace Hadal.Gateway
         private readonly INetworkSerializer _serializer;
         private readonly GameWorld _world;
         private readonly TokenService _tokens;
+        private readonly Admin.IAdminStore _admin;
         private readonly GatewayOptions _options;
         private readonly ILogger<GatewaySessionHandler> _logger;
 
-        public GatewaySessionHandler(INetworkSerializer serializer, GameWorld world, TokenService tokens, IOptions<GatewayOptions> options, ILogger<GatewaySessionHandler> logger)
+        public GatewaySessionHandler(INetworkSerializer serializer, GameWorld world, TokenService tokens, Admin.IAdminStore admin,
+            IOptions<GatewayOptions> options, ILogger<GatewaySessionHandler> logger)
         {
             _serializer = serializer;
             _world = world;
             _tokens = tokens;
+            _admin = admin;
             _options = options.Value;
             _logger = logger;
 
@@ -101,6 +104,10 @@ namespace Hadal.Gateway
             var token = compatible
                 ? await _tokens.ValidateAccessTokenAsync(auth.AccessToken)
                 : new TokenValidation(false, Guid.Empty, HandshakeRejectReasons.SchemaIncompatible);
+
+            // Suspended accounts are refused with a reason the client shows instead of retrying.
+            if (token.IsValid && await _admin.GetActiveBanAsync(token.AccountId, DateTimeOffset.UtcNow, cancellationToken) != null)
+                token = new TokenValidation(false, token.AccountId, HandshakeRejectReasons.Banned);
             var accepted = token.IsValid;
 
             connection.Send(EnvelopeBuilder.WrapServerMessage(new HandshakeAckEnvelope

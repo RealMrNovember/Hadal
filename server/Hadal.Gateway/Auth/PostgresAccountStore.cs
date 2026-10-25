@@ -28,6 +28,10 @@ CREATE INDEX IF NOT EXISTS refresh_tokens_account ON hadal.refresh_tokens (accou
 
 ALTER TABLE hadal.accounts ADD COLUMN IF NOT EXISTS display_name text NOT NULL DEFAULT '';
 
+-- Overseer bans (Admin/PostgresAdminStore reads and writes them).
+ALTER TABLE hadal.accounts ADD COLUMN IF NOT EXISTS banned_until timestamptz;
+ALTER TABLE hadal.accounts ADD COLUMN IF NOT EXISTS ban_reason text NOT NULL DEFAULT '';
+
 -- Identities that sign in to an account: transfer codes (secret_hash = PBKDF2 of the password),
 -- Google / Apple subjects (secret_hash empty). One subject belongs to exactly one account.
 CREATE TABLE IF NOT EXISTS hadal.account_links (

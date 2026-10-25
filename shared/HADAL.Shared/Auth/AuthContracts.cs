@@ -25,6 +25,12 @@ namespace HADAL.Shared.Auth
 
         /// <summary>POST: sign in with a linked Google / Apple identity.</summary>
         public const string ProviderLogin = "/api/v1/auth/provider";
+
+        /// <summary>POST (Bearer): redeem a gift code.</summary>
+        public const string CouponRedeem = "/api/v1/coupons/redeem";
+
+        /// <summary>GET: the live game catalog JSON (balance edited in the Overseer); header X-Catalog-Version.</summary>
+        public const string Catalog = "/api/v1/catalog";
     }
 
     /// <summary>Identity providers an account can be linked to.</summary>
@@ -46,6 +52,14 @@ namespace HADAL.Shared.Auth
         public const string ProviderTokenInvalid = "ProviderTokenInvalid";
         public const string ProviderLinkedElsewhere = "ProviderLinkedElsewhere";
         public const string ProviderNotLinked = "ProviderNotLinked";
+        public const string Banned = "Banned";
+        public const string CouponUnknown = "CouponUnknown";
+        public const string CouponInactive = "CouponInactive";
+        public const string CouponExpired = "CouponExpired";
+        public const string CouponExhausted = "CouponExhausted";
+        public const string CouponAlreadyRedeemed = "CouponAlreadyRedeemed";
+        public const string CouponNotStarted = "CouponNotStarted";
+        public const string CouponNotForYou = "CouponNotForYou";
     }
 
     /// <summary>Display-name and password rules, shared so the client validates before sending.</summary>
@@ -88,6 +102,9 @@ namespace HADAL.Shared.Auth
 
         /// <summary>The client should refresh its access token and reconnect.</summary>
         public const string TokenExpired = "TokenExpired";
+
+        /// <summary>The account is suspended; the client stops reconnecting.</summary>
+        public const string Banned = "Banned";
     }
 
     [Serializable]
@@ -167,6 +184,26 @@ namespace HADAL.Shared.Auth
     }
 
     [Serializable]
+    public sealed class CouponRedeemRequest
+    {
+        public string code = string.Empty;
+    }
+
+    [Serializable]
+    public sealed class CouponRewardEntry
+    {
+        public string resource = string.Empty;
+        public long amount;
+    }
+
+    [Serializable]
+    public sealed class CouponRedeemResponse
+    {
+        public string code = string.Empty;
+        public CouponRewardEntry[] rewards = Array.Empty<CouponRewardEntry>();
+    }
+
+    [Serializable]
     public sealed class AccountError
     {
         public string error = string.Empty;
@@ -180,5 +217,11 @@ namespace HADAL.Shared.Auth
         public uint schemaVersion;
         public bool maintenance;
         public string message = string.Empty;
+
+        /// <summary>Overseer announcement shown on the title screen; empty = none.</summary>
+        public string announcement = string.Empty;
+
+        /// <summary>Live catalog version; the client downloads <see cref="AuthRoutes.Catalog"/> when it differs.</summary>
+        public int catalogVersion;
     }
 }

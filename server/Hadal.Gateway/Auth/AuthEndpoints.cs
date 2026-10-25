@@ -1,4 +1,6 @@
 using System.Threading.RateLimiting;
+using Hadal.Game;
+using Hadal.Gateway.Admin;
 using HADAL.Shared.Auth;
 using HADAL.Shared.Serialization;
 using Microsoft.AspNetCore.RateLimiting;
@@ -59,22 +61,47 @@ namespace Hadal.Gateway.Auth
                 return Results.Ok(await tokens.IssueAsync(account, ct));
             }).RequireRateLimiting(GuestPolicy);
 
-            app.MapPost(AuthRoutes.Refresh, async (RefreshRequest? request, TokenService tokens, CancellationToken ct) =>
+            app.MapPost(AuthRoutes.Refresh, async (RefreshRequest? request, TokenService tokens, IAdminStore admin, IClock clock, CancellationToken ct) =>
             {
                 var response = await tokens.RefreshAsync(request?.refreshToken ?? string.Empty, ct);
-                return response == null ? Results.Unauthorized() : Results.Ok(response);
+                if (response == null)
+                    return Results.Unauthorized();
+                return await IsBannedAsync(response.accountId, admin, clock, ct) ? Error(StatusCodes.Status403Forbidden, AccountErrors.Banned) : Results.Ok(response);
             }).RequireRateLimiting(RefreshPolicy);
 
             MapAccount(app);
 
-            app.MapGet(AuthRoutes.Manifest, (IOptions<VersionOptions> version) => Results.Ok(new VersionManifest
+            app.MapPost(AuthRoutes.CouponRedeem, async (HttpContext http, CouponRedeemRequest? request, TokenService tokens, CouponService coupons, CancellationToken ct) =>
             {
-                minClientVersion = version.Value.MinClientVersion,
-                latestClientVersion = version.Value.LatestClientVersion,
-                schemaVersion = SchemaVersion.Current,
-                maintenance = version.Value.Maintenance,
-                message = version.Value.Message
-            }));
+                var account = await AuthenticateAsync(http, tokens);
+                if (account == null)
+                    return Results.Unauthorized();
+
+                var (error, coupon) = await coupons.RedeemAsync(request?.code ?? string.Empty, account.Value, ct);
+                return coupon == null ? Error(StatusCodes.Status400BadRequest, error) : Results.Ok(CouponService.ToResponse(coupon));
+            }).RequireRateLimiting(AccountPolicy);
+
+            // Live catalog for clients: the balance the server enforces right now (Overseer edits included).
+            app.MapGet(AuthRoutes.Catalog, (HttpContext http, LiveCatalog catalog) =>
+            {
+                http.Response.Headers["X-Catalog-Version"] = catalog.Version.ToString();
+                return Results.Text(catalog.Json, "application/json");
+            });
+
+            app.MapGet(AuthRoutes.Manifest, async (IOptions<VersionOptions> version, LiveOpsCache liveOps, LiveCatalog catalog, CancellationToken ct) =>
+            {
+                var ops = await liveOps.GetAsync(ct);
+                return Results.Ok(new VersionManifest
+                {
+                    minClientVersion = version.Value.MinClientVersion,
+                    latestClientVersion = version.Value.LatestClientVersion,
+                    schemaVersion = SchemaVersion.Current,
+                    maintenance = version.Value.Maintenance || ops.Maintenance,
+                    message = ops.Maintenance && ops.MaintenanceMessage.Length > 0 ? ops.MaintenanceMessage : version.Value.Message,
+                    announcement = ops.Announcement,
+                    catalogVersion = catalog.Version
+                });
+            });
         }
 
         private static void MapAccount(WebApplication app)
@@ -124,7 +151,8 @@ namespace Hadal.Gateway.Auth
                 return Results.StatusCode(StatusCodes.Status500InternalServerError);
             }).RequireRateLimiting(AccountPolicy);
 
-            app.MapPost(AuthRoutes.TransferLogin, async (TransferLoginRequest? request, IAccountStore accounts, TokenService tokens, CancellationToken ct) =>
+            app.MapPost(AuthRoutes.TransferLogin, async (TransferLoginRequest? request, IAccountStore accounts, TokenService tokens,
+                IAdminStore admin, IClock clock, CancellationToken ct) =>
             {
                 var code = AccountRules.NormaliseTransferCode(request?.transferCode);
                 var link = code.Length is > 0 and <= 32 ? await accounts.FindLinkAsync(AccountProviders.Transfer, code, ct) : null;
@@ -132,6 +160,9 @@ namespace Hadal.Gateway.Auth
                 // Same answer for unknown code and wrong password: no account enumeration.
                 if (link == null || !PasswordHasher.Verify(request?.password ?? string.Empty, link.Value.SecretHash))
                     return Error(StatusCodes.Status401Unauthorized, AccountErrors.InvalidCredentials);
+
+                if (await IsBannedAsync(link.Value.AccountId.ToString("N"), admin, clock, ct))
+                    return Error(StatusCodes.Status403Forbidden, AccountErrors.Banned);
 
                 return Results.Ok(await tokens.IssueAsync(link.Value.AccountId, ct));
             }).RequireRateLimiting(TransferPolicy);
@@ -155,7 +186,7 @@ namespace Hadal.Gateway.Auth
             }).RequireRateLimiting(AccountPolicy);
 
             app.MapPost(AuthRoutes.ProviderLogin, async (ProviderRequest? request, IAccountStore accounts, TokenService tokens,
-                IIdentityTokenValidator identities, CancellationToken ct) =>
+                IIdentityTokenValidator identities, IAdminStore admin, IClock clock, CancellationToken ct) =>
             {
                 var identity = await identities.ValidateAsync(request?.provider ?? string.Empty, request?.idToken ?? string.Empty, ct);
                 if (identity.Status != IdentityStatus.Valid)
@@ -163,11 +194,16 @@ namespace Hadal.Gateway.Auth
 
                 // Signing in never creates an account: an identity is linked from inside the game first.
                 var link = await accounts.FindLinkAsync(request!.provider, identity.Subject, ct);
-                return link == null
-                    ? Error(StatusCodes.Status404NotFound, AccountErrors.ProviderNotLinked)
-                    : Results.Ok(await tokens.IssueAsync(link.Value.AccountId, ct));
+                if (link == null)
+                    return Error(StatusCodes.Status404NotFound, AccountErrors.ProviderNotLinked);
+                if (await IsBannedAsync(link.Value.AccountId.ToString("N"), admin, clock, ct))
+                    return Error(StatusCodes.Status403Forbidden, AccountErrors.Banned);
+                return Results.Ok(await tokens.IssueAsync(link.Value.AccountId, ct));
             }).RequireRateLimiting(TransferPolicy);
         }
+
+        private static async Task<bool> IsBannedAsync(string accountId, IAdminStore admin, IClock clock, CancellationToken ct) =>
+            Guid.TryParse(accountId, out var id) && await admin.GetActiveBanAsync(id, clock.UtcNow, ct) != null;
 
         private static async Task<Guid?> AuthenticateAsync(HttpContext http, TokenService tokens)
         {
