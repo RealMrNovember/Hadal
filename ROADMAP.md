@@ -271,6 +271,8 @@ Durum işaretleri: ✅ tamam · 🟡 devam ediyor · ⬜ başlanmadı
 - Analitik hattı, çökme raporlama, istemci performans bütçeleri.
 - Yerelleştirme (TR/EN), erişilebilirlik, mağaza listeleri ve gizlilik politikası.
 - Güvenlik denetimi ve yedekleme/geri dönüş tatbikatı.
+- **iOS build hattı** (karar 2026-10-25: o zamana kadar test Android'de): DL380 Xcode projesini üretir; derleme ve imza macOS + Xcode'da yapılır — bir Mac (ör. Mac mini) ya da bulutta Mac (GitHub Actions macOS / Codemagic / Unity Build Automation). Apple Developer Program üyeliği, sertifikalar ve TestFlight gerekir. Linux'ta IPA üretilemez; DL380'de macOS sanallaştırmak Apple lisansına aykırı.
+- **Google Play yayın build'i:** kendi imzalama anahtarı (sırlarda saklanır), AAB çıktısı, Play Console hesabı. Android Studio gerekmez; Unity'nin Android imajı SDK/NDK/JDK/Gradle'ı içerir.
 
 **Çıkış kriteri:** Seçili bölgelerde soft launch; KPI takibi (retention D1/D7, ARPDAU).
 
