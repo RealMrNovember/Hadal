@@ -116,8 +116,7 @@ Durum işaretleri: ✅ tamam · 🟡 devam ediyor · ⬜ başlanmadı
 - [x] Sürüm manifesti (`/manifest/version.json`) ve istemcide `PatchService`: zorunlu güncelleme ve bakım modu.
 - [x] İstemci: `AuthService` (giriş, yenileme, tekil istek), JWT'li bağlantı akışı, reddedilen jetonda yenileme.
 - [x] Tek komutla dağıtım: `server/deploy/deploy.sh` (testler → build → yayın → sağlık kontrolü → otomatik geri dönüş).
-- [x] cloudflared CT 160'a kuruldu; tünel script'i hazır (`server/deploy/setup-tunnel.sh`).
-- [ ] **Tünel ve DNS** — operatör çalıştırır (alan adı değişikliği): `ssh cicibyte@dl380 'bash -s' < server/deploy/setup-tunnel.sh`
+- [x] Cloudflare Tunnel `hadal` → `hadal-api.cicibyte.com` yayında (2026-10-25, `server/deploy/setup-tunnel.sh`). İnternetten HTTPS giriş + WSS el sıkışma + yerleştirme uçtan uca doğrulandı.
 - [ ] Android geliştirme APK'sı (`unity.sh android`) ve telefonda internet üzerinden oyun testi.
 - [ ] Hesap bağlama (Google Play / Apple / e-posta) — geliştirici hesapları gerekiyor; o zamana kadar misafir hesap cihazda saklanan anahtara bağlı.
 - [ ] Addressables uzak katalog / CDN — uzak içerik olduğunda (Phase 5).

@@ -1,7 +1,7 @@
 # Phase 2 — Dış Erişim, Kimlik ve Dağıtım: Ara Sonuçlar
 
 **Tarih:** 2026-10-25
-**Durum:** 🟡 Kod ve dağıtım tamam; tünel/DNS operatör adımı ve telefon testi bekliyor.
+**Durum:** 🟡 Sunucu internete açık ve doğrulandı; telefon testi bekliyor.
 
 ## Özet
 
@@ -11,6 +11,7 @@
 | Unity EditMode | **71/71** |
 | Canlı kabul (`unity.sh acceptance`) | **2/2** — misafir giriş → JWT el sıkışma → yerleştirme → üretim → yeniden bağlanma; gateway yeniden başlatma sonrası yenileme anahtarıyla aynı hesaba dönüş |
 | Gecikme (`unity.sh latency`) | **100 ms ✔ · 200 ms ✔** |
+| Herkese açık uçtan uca | **✔** internetten `https://hadal-api.cicibyte.com` giriş → `wss://…/gateway` (Cloudflare TLS) el sıkışma → snapshot → yerleştirme onayı |
 | Dağıtım (`deploy.sh`) | 33 sn'de testler → build → yayın → sağlık kontrolü ✔ (geri dönüş dalı henüz canlıda tetiklenmedi) |
 
 ## Kimlik akışı
@@ -36,13 +37,13 @@ Red:          HandshakeAck.Reason = TokenMissing | TokenInvalid | TokenExpired |
 | `GameConfig.asset` eski adresi (`hadal.cicibyte.com`) saklıyordu; alan varsayılanı mevcut asset'e uygulanmaz | Setup adresi açıkça yazar |
 | `System.Version`: "1.0" < "1.0.0" | Sürümler üç parçaya tamamlanır |
 
-## Operatörün yapması gereken (tek seferlik)
+## Tünel (operatör tarafından kuruldu, 2026-10-25)
 
-```bash
-ssh cicibyte@dl380 'bash -s' < server/deploy/setup-tunnel.sh
+```cmd
+ssh cicibyte@dl380 "bash -s" < C:\Users\Captain\CicibyteProjects\Hadal\server\deploy\setup-tunnel.sh
 ```
 
-Alan adı/sertifika işlemi olduğu için otomatik çalıştırılmadı. Script hesap sertifikasını yalnızca tünel oluşturulurken CT'ye koyar ve sonra siler; `hadal.cicibyte.com` (teaser) değişmez.
+Tünel `hadal`, CNAME `hadal-api.cicibyte.com`; cloudflared CT 160'ta systemd servisi olarak çalışıyor. Hesap sertifikası CT'den silindi; `hadal.cicibyte.com` (teaser) değişmedi.
 
 ## Açık kalanlar
 
