@@ -15,7 +15,7 @@ namespace Hadal.EditorTools
         private const string OutputDirectory = "artifacts/build";
 
         /// <summary>
-        /// Development APK signed with Unity's debug key: sideload-only, connects to the
+        /// Development APK (ARM64, IL2CPP) signed with Unity's debug key: sideload-only, connects to the
         /// production gateway URL from GameConfig (wss://hadal-api.cicibyte.com/gateway).
         /// </summary>
         [MenuItem("Hadal/Build/Android (Development APK)")]
@@ -23,8 +23,10 @@ namespace Hadal.EditorTools
         {
             PlayerSettings.SetApplicationIdentifier(UnityEditor.Build.NamedBuildTarget.Android, ApplicationId);
             PlayerSettings.Android.minSdkVersion = AndroidSdkVersions.AndroidApiLevel26;
-            PlayerSettings.SetScriptingBackend(UnityEditor.Build.NamedBuildTarget.Android, ScriptingImplementation.Mono2x);
-            PlayerSettings.Android.targetArchitectures = AndroidArchitecture.ARMv7;
+            // IL2CPP + ARM64: current phones (e.g. Dimensity 8400 / Poco X7 Pro, Pixel 7+) have dropped
+            // 32-bit support, Mono cannot target ARM64, and Google Play requires 64-bit anyway.
+            PlayerSettings.SetScriptingBackend(UnityEditor.Build.NamedBuildTarget.Android, ScriptingImplementation.IL2CPP);
+            PlayerSettings.Android.targetArchitectures = AndroidArchitecture.ARM64;
             EditorUserBuildSettings.buildAppBundle = false;
 
             var scenes = EditorBuildSettings.scenes.Where(s => s.enabled).Select(s => s.path).ToArray();
