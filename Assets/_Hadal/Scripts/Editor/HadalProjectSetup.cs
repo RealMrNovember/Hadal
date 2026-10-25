@@ -489,6 +489,8 @@ namespace Hadal.EditorTools
             so.FindProperty("_enemyDatabase").objectReferenceValue = enemy;
             so.FindProperty("_depthZoneDatabase").objectReferenceValue = zones;
             so.FindProperty("_pressureDatabase").objectReferenceValue = pressure;
+            // Written explicitly: a field default only applies to newly created assets.
+            so.FindProperty("_gatewayUrl").stringValue = "wss://hadal-api.cicibyte.com/gateway";
             so.ApplyModifiedPropertiesWithoutUndo();
         }
 

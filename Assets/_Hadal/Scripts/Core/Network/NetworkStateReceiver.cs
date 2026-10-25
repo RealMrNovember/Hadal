@@ -1,4 +1,6 @@
 using System;
+using System.Threading.Tasks;
+using HADAL.Shared.Auth;
 using HADAL.Shared.Commands;
 using HADAL.Shared.DTOs;
 using HADAL.Shared.Enums;
@@ -26,12 +28,19 @@ namespace Hadal.Core.Network
         private readonly IGatewaySessionState _session;
         private readonly ILocalEventBus _localBus;
         private readonly GameConfigSO _config;
+        private readonly IAuthService _auth;
+        private readonly IPatchService _patch;
 
         private bool _listening;
         private bool _reconnectingAnnounced;
         private float _healthTimer;
         private float _reconnectDelay = InitialReconnectDelaySeconds;
         private float _nextReconnectAt;
+
+        private bool _connecting;
+        private bool _patchChecked;
+        private bool _blocked;
+        private string _accessToken = string.Empty;
 
         public NetworkStateReceiver(
             IWebSocketClient webSocket,
@@ -40,7 +49,9 @@ namespace Hadal.Core.Network
             ICommandDispatcher commandDispatcher,
             IGatewaySessionState session,
             ILocalEventBus localBus,
-            GameConfigSO config)
+            GameConfigSO config,
+            IAuthService auth,
+            IPatchService patch)
         {
             _webSocket = webSocket;
             _serialization = serialization;
@@ -49,6 +60,8 @@ namespace Hadal.Core.Network
             _session = session;
             _localBus = localBus;
             _config = config;
+            _auth = auth;
+            _patch = patch;
         }
 
         public void Start()
@@ -56,12 +69,12 @@ namespace Hadal.Core.Network
             StartListening();
 
             if (ShouldConnect)
-                _webSocket.Connect(_config.GatewayUrl);
+                _ = ConnectAsync();
         }
 
         // The in-process stub server replaces the gateway entirely in local-simulation mode.
         private bool ShouldConnect =>
-            _config != null && !_config.UseLocalSimulation && !string.IsNullOrWhiteSpace(_config.GatewayUrl);
+            !_blocked && _config != null && !_config.UseLocalSimulation && !string.IsNullOrWhiteSpace(_config.GatewayUrl);
 
         public void StartListening()
         {
@@ -102,6 +115,56 @@ namespace Hadal.Core.Network
             StopListening();
         }
 
+        /// <summary>
+        /// Patch check (once per session) → access token → socket. One attempt at a time; failures
+        /// fall back to the health loop's backoff.
+        /// </summary>
+        private async Task ConnectAsync()
+        {
+            if (_connecting || !ShouldConnect)
+                return;
+
+            _connecting = true;
+            try
+            {
+                if (!_patchChecked)
+                {
+                    var (verdict, manifest) = await _patch.CheckAsync();
+                    switch (verdict)
+                    {
+                        case PatchVerdict.UpdateRequired:
+                            Block(manifest.minClientVersion, manifest.latestClientVersion);
+                            return;
+
+                        case PatchVerdict.Maintenance:
+                            _localBus.Publish(new ServerMaintenanceEvent { Message = manifest.message });
+                            _nextReconnectAt = Time.realtimeSinceStartup + MaxReconnectDelaySeconds;
+                            return;
+                    }
+
+                    _patchChecked = true;
+                }
+
+                _accessToken = await _auth.GetAccessTokenAsync();
+                _webSocket.Connect(_config.GatewayUrl);
+            }
+            catch (Exception exception)
+            {
+                Debug.LogWarning($"[NetworkStateReceiver] Connect attempt failed: {exception.Message}");
+            }
+            finally
+            {
+                _connecting = false;
+            }
+        }
+
+        private void Block(string required, string latest)
+        {
+            _blocked = true;
+            _localBus.Publish(new ClientUpdateRequiredEvent { RequiredVersion = required, LatestVersion = latest });
+            Debug.LogWarning($"[NetworkStateReceiver] Client {Application.version} is below the required {required} — not connecting.");
+        }
+
         private void HandleConnected()
         {
             _session.Reset();
@@ -126,7 +189,8 @@ namespace Hadal.Core.Network
                 ClientSequence = 0,
                 ClientSchemaVersion = SchemaVersion.Current,
                 ClientVersion = Application.version,
-                DeviceId = _config?.DeviceIdOverride ?? SystemInfo.deviceUniqueIdentifier
+                DeviceId = SystemInfo.deviceUniqueIdentifier,
+                AccessToken = _accessToken
             };
 
             _commandDispatcher.DispatchHandshake(handshake);
@@ -145,7 +209,7 @@ namespace Hadal.Core.Network
                 return;
             }
 
-            if (!ShouldConnect)
+            if (!ShouldConnect || _connecting)
                 return;
 
             if (!_reconnectingAnnounced)
@@ -153,7 +217,7 @@ namespace Hadal.Core.Network
                 _session.Reset();
                 _localBus.Publish(new NetworkReconnectingEvent { Message = "Reconnecting..." });
                 _reconnectingAnnounced = true;
-                _nextReconnectAt = Time.realtimeSinceStartup + _reconnectDelay;
+                _nextReconnectAt = Mathf.Max(_nextReconnectAt, Time.realtimeSinceStartup + _reconnectDelay);
                 return;
             }
 
@@ -162,9 +226,9 @@ namespace Hadal.Core.Network
                 return;
 
             Debug.Log($"[NetworkStateReceiver] Reconnecting to {_config.GatewayUrl} (retry in {_reconnectDelay:0}s if it fails).");
-            _webSocket.Connect(_config.GatewayUrl);
             _nextReconnectAt = Time.realtimeSinceStartup + _reconnectDelay;
             _reconnectDelay = Mathf.Min(_reconnectDelay * 2f, MaxReconnectDelaySeconds);
+            _ = ConnectAsync();
         }
 
         private void HandleMessageReceived(byte[] wire)
@@ -212,7 +276,22 @@ namespace Hadal.Core.Network
         {
             if (ack == null || !ack.Accepted || ack.Result != CommandResultCode.Accepted)
             {
-                Debug.LogWarning($"[NetworkStateReceiver] Gateway handshake rejected ({ack?.Result}).");
+                Debug.LogWarning($"[NetworkStateReceiver] Gateway handshake rejected ({ack?.Result} {ack?.Reason}).");
+
+                switch (ack?.Reason)
+                {
+                    case HandshakeRejectReasons.TokenExpired:
+                    case HandshakeRejectReasons.TokenInvalid:
+                    case HandshakeRejectReasons.TokenMissing:
+                        // The server closes the socket; the next reconnect fetches a fresh token.
+                        _auth?.InvalidateAccessToken();
+                        break;
+
+                    case HandshakeRejectReasons.SchemaIncompatible:
+                        Block("(newer schema)", string.Empty);
+                        break;
+                }
+
                 return;
             }
 

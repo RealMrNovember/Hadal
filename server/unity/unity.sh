@@ -9,6 +9,7 @@
 #   unity.sh test <mode> [category]  run EditMode or PlayMode tests, results in artifacts/
 #   unity.sh acceptance    live PlayMode run vs the real gateway, gateway restart, persistence check
 #   unity.sh latency ["100 200"]  live PlayMode run with simulated server latency
+#   unity.sh android       development APK in artifacts/build/ (needs the android editor image)
 #   unity.sh shell         bash inside the editor container
 #
 # The license and the Library cache live in Docker volumes so they survive container restarts.
@@ -17,7 +18,12 @@ set -euo pipefail
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
 # ProjectVersion.txt is CRLF on Windows checkouts — strip the \r or the image tag is invalid.
 VERSION="$(sed -n 's/^m_EditorVersion: //p' "${REPO}/ProjectSettings/ProjectVersion.txt" | tr -d '\r')"
-IMAGE="unityci/editor:ubuntu-${VERSION}-base-3.2.2"
+# UNITY_MODULE=android selects the image with the Android SDK/NDK; each module keeps its own
+# Library volume so switching platforms never forces a full reimport of the other.
+UNITY_MODULE="${UNITY_MODULE:-base}"
+IMAGE="unityci/editor:ubuntu-${VERSION}-${UNITY_MODULE}-3.2.2"
+LIBRARY_VOLUME="hadal_unity_library"
+[[ "${UNITY_MODULE}" != base ]] && LIBRARY_VOLUME+="_${UNITY_MODULE}"
 ARTIFACTS="${REPO}/artifacts"
 mkdir -p "${ARTIFACTS}"
 
@@ -33,11 +39,11 @@ run() {
   docker run --rm -v "${REPO}:/project" "${IMAGE}" rm -rf /project/Temp >/dev/null 2>&1 || true
   docker run --rm --name hadal-unity-editor ${TTY:-} "${IDENTITY[@]}" \
     ${UNITY_NETWORK:+--network "${UNITY_NETWORK}"} \
-    -e HADAL_GATEWAY_URL -e HADAL_DEVICE_ID -e HADAL_LOCAL_SIM \
+    -e HADAL_GATEWAY_URL -e HADAL_AUTH_PROFILE -e HADAL_FRESH_ACCOUNT -e HADAL_LOCAL_SIM \
     -v "${REPO}:/project" \
     -v hadal_unity_license:/root/.local/share/unity3d \
     -v hadal_unity_config:/root/.config/unity3d \
-    -v hadal_unity_library:/project/Library \
+    -v "${LIBRARY_VOLUME}:/project/Library" \
     -v hadal_unity_cache:/root/.cache/unity3d \
     -v "${REPO}/server/unity/gitconfig:/root/.gitconfig:ro" \
     -w /project \
@@ -108,8 +114,8 @@ case "${1:-}" in
     # Phase 1 exit criterion: real client vs real server, including a gateway restart.
     export UNITY_NETWORK=hadal_isolated_net
     export HADAL_GATEWAY_URL=ws://hadal-gateway:8080/gateway
-    export HADAL_DEVICE_ID="acceptance-$(date +%s)"
-    echo "== live loop (device ${HADAL_DEVICE_ID})"
+    export HADAL_AUTH_PROFILE="acceptance-$(date +%s)"
+    echo "== live loop (auth profile ${HADAL_AUTH_PROFILE})"
     "$0" test PlayMode LiveServer; rc=$?
     cp "${ARTIFACTS}/tests-PlayMode.xml" "${ARTIFACTS}/tests-LiveServer.xml" 2>/dev/null
     [ $rc = 0 ] || exit $rc
@@ -132,12 +138,17 @@ case "${1:-}" in
     for ms in ${2:-100 200}; do
       echo "== live loop at ${ms} ms"
       set_latency "${ms}"
-      HADAL_DEVICE_ID="latency-${ms}-$(date +%s)" "$0" test PlayMode LiveServer || rc=1
+      HADAL_AUTH_PROFILE="latency-${ms}-$(date +%s)" "$0" test PlayMode LiveServer || rc=1
       cp "${ARTIFACTS}/tests-PlayMode.xml" "${ARTIFACTS}/tests-Latency${ms}.xml" 2>/dev/null
     done
     echo "== latency off"
     set_latency 0
     exit $rc
+    ;;
+  android)
+    # Development APK → artifacts/build/hadal-dev.apk (debug-signed, sideload only).
+    UNITY_MODULE=android "$0" exec Hadal.EditorTools.HadalBuild.BuildAndroidDev
+    ls -la "${ARTIFACTS}/build/" 2>/dev/null
     ;;
   shell)
     TTY=-it run bash

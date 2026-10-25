@@ -25,6 +25,7 @@ namespace Hadal.Tests.EditMode
         private FakeSocket _socket;
         private FakeSession _session;
         private FakeReconciliation _reconciliation;
+        private FakeAuth _auth;
         private GameConfigSO _config;
         private NetworkStateReceiver _receiver;
 
@@ -35,8 +36,9 @@ namespace Hadal.Tests.EditMode
             _session = new FakeSession();
             _reconciliation = new FakeReconciliation();
             _config = ScriptableObject.CreateInstance<GameConfigSO>();
+            _auth = new FakeAuth();
             _receiver = new NetworkStateReceiver(_socket, new NetworkSerializationLayer(), _reconciliation,
-                new FakeDispatcher(), _session, new FakeBus(), _config);
+                new FakeDispatcher(), _session, new FakeBus(), _config, _auth, new FakePatch());
             _receiver.StartListening();
         }
 
@@ -93,6 +95,19 @@ namespace Hadal.Tests.EditMode
             LogAssert.Expect(LogType.Warning, new System.Text.RegularExpressions.Regex("handshake rejected"));
             _socket.Receive(Wire(EnvelopeBuilder.WrapServerMessage(Ack(CommandResultCode.SchemaIncompatible, false))));
 
+            Assert.IsFalse(_session.IsHandshakeComplete);
+        }
+
+        [Test]
+        public void ExpiredTokenAck_InvalidatesTheAccessToken()
+        {
+            LogAssert.Expect(LogType.Warning, new System.Text.RegularExpressions.Regex("handshake rejected"));
+            var ack = Ack(CommandResultCode.Rejected, false);
+            ack.Reason = HADAL.Shared.Auth.HandshakeRejectReasons.TokenExpired;
+
+            _socket.Receive(Wire(EnvelopeBuilder.WrapServerMessage(ack)));
+
+            Assert.AreEqual(1, _auth.Invalidations);
             Assert.IsFalse(_session.IsHandshakeComplete);
         }
 
@@ -196,6 +211,20 @@ namespace Hadal.Tests.EditMode
             public void Dispatch<T>(T command) where T : ICommand { }
             public void DispatchHandshake<T>(T command) where T : ICommand { }
             public void FlushBuffer() { }
+        }
+
+        private sealed class FakeAuth : IAuthService
+        {
+            public int Invalidations { get; private set; }
+            public string AccountId => "test";
+            public System.Threading.Tasks.Task<string> GetAccessTokenAsync() => System.Threading.Tasks.Task.FromResult("token");
+            public void InvalidateAccessToken() => Invalidations++;
+        }
+
+        private sealed class FakePatch : IPatchService
+        {
+            public System.Threading.Tasks.Task<(PatchVerdict Verdict, HADAL.Shared.Auth.VersionManifest Manifest)> CheckAsync() =>
+                System.Threading.Tasks.Task.FromResult((PatchVerdict.Ok, new HADAL.Shared.Auth.VersionManifest()));
         }
 
         private sealed class FakeBus : ILocalEventBus

@@ -23,7 +23,8 @@ namespace Hadal.Data.Config
         [SerializeField] private float _expeditionBaseDurationSeconds = 300f;
 
         [Header("Networking")]
-        [SerializeField] private string _gatewayUrl = "wss://hadal.cicibyte.com/gateway";
+        [Tooltip("Game gateway. hadal.cicibyte.com is the public teaser site; the game lives on hadal-api.")]
+        [SerializeField] private string _gatewayUrl = "wss://hadal-api.cicibyte.com/gateway";
         [SerializeField] private float _networkHeartbeatInterval = 15f;
 
         [Tooltip("Editor/development builds only: run the in-process stub server instead of connecting to the gateway.")]
@@ -68,8 +69,32 @@ namespace Hadal.Data.Config
             }
         }
 
-        /// <summary>Editor/development override for the handshake device id (tests, multiple local players).</summary>
-        public string DeviceIdOverride => DevOverride("HADAL_DEVICE_ID");
+        /// <summary>
+        /// HTTP origin of the Auth API and version manifest, derived from the gateway URL
+        /// (wss://host/gateway → https://host) so the two can never point at different servers.
+        /// </summary>
+        public string ApiBaseUrl
+        {
+            get
+            {
+                var url = GatewayUrl ?? string.Empty;
+                if (url.StartsWith("wss://", System.StringComparison.OrdinalIgnoreCase))
+                    url = "https://" + url.Substring(6);
+                else if (url.StartsWith("ws://", System.StringComparison.OrdinalIgnoreCase))
+                    url = "http://" + url.Substring(5);
+
+                url = url.TrimEnd('/');
+                return url.EndsWith("/gateway", System.StringComparison.OrdinalIgnoreCase)
+                    ? url.Substring(0, url.Length - "/gateway".Length)
+                    : url;
+            }
+        }
+
+        /// <summary>Editor/development: separate stored login per profile (tests, several local players).</summary>
+        public string AuthProfile => DevOverride("HADAL_AUTH_PROFILE");
+
+        /// <summary>Editor/development: forget the stored login and start a brand-new guest account.</summary>
+        public bool FreshAccount => DevOverride("HADAL_FRESH_ACCOUNT") == "1";
 
         public float NetworkHeartbeatInterval => _networkHeartbeatInterval;
         public AssetCatalogSO AssetCatalog => _assetCatalog;

@@ -26,7 +26,7 @@ namespace Hadal.Tests.PlayMode
     {
         private const string ScenePath = "Assets/_Hadal/Scenes/Bootstrap.unity";
 
-        private string _previousDevice;
+        private string _profile;
 
         [SetUp]
         public void RequireGateway()
@@ -35,18 +35,24 @@ namespace Hadal.Tests.PlayMode
                 Assert.Ignore("HADAL_GATEWAY_URL not set — live server tests skipped.");
 
             Environment.SetEnvironmentVariable("HADAL_LOCAL_SIM", "0");
-            _previousDevice = Environment.GetEnvironmentVariable("HADAL_DEVICE_ID");
+            _profile = Environment.GetEnvironmentVariable("HADAL_AUTH_PROFILE");
         }
 
         [TearDown]
-        public void Restore() => Environment.SetEnvironmentVariable("HADAL_DEVICE_ID", _previousDevice);
+        public void Restore()
+        {
+            Environment.SetEnvironmentVariable("HADAL_AUTH_PROFILE", _profile);
+            Environment.SetEnvironmentVariable("HADAL_FRESH_ACCOUNT", null);
+        }
 
         /// <summary>A brand-new player places a producer, sees production, drops and resumes.</summary>
         [UnityTest, Category("LiveServer")]
         public IEnumerator NewPlayer_Place_Produce_Reconnect()
         {
-            if (string.IsNullOrWhiteSpace(_previousDevice))
-                Environment.SetEnvironmentVariable("HADAL_DEVICE_ID", "playmode-" + Guid.NewGuid().ToString("N"));
+            // A brand-new guest account under this profile; the persistence test reuses its stored login.
+            if (string.IsNullOrWhiteSpace(_profile))
+                Environment.SetEnvironmentVariable("HADAL_AUTH_PROFILE", "playmode-" + Guid.NewGuid().ToString("N"));
+            Environment.SetEnvironmentVariable("HADAL_FRESH_ACCOUNT", "1");
 
             yield return LoadScene();
             var container = Container();
@@ -85,14 +91,14 @@ namespace Hadal.Tests.PlayMode
         }
 
         /// <summary>
-        /// Run after the gateway restarts with HADAL_DEVICE_ID of a player created earlier:
-        /// the building and wallet come back from PostgreSQL.
+        /// Run after the gateway restarts with the HADAL_AUTH_PROFILE used by the first test: the
+        /// stored refresh token signs back into the same account, whose state comes from PostgreSQL.
         /// </summary>
         [UnityTest, Category("Persistence")]
         public IEnumerator ExistingPlayer_StateSurvivesServerRestart()
         {
-            if (string.IsNullOrWhiteSpace(_previousDevice))
-                Assert.Ignore("Set HADAL_DEVICE_ID to a player created before the restart.");
+            if (string.IsNullOrWhiteSpace(_profile))
+                Assert.Ignore("Set HADAL_AUTH_PROFILE to the profile used before the restart.");
 
             yield return LoadScene();
             var container = Container();
