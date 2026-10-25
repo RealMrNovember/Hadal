@@ -10,6 +10,7 @@ namespace Hadal.Core.StateSync
         public const string Production = EntityIds.Production;
         public const string Hero = EntityIds.Hero;
         public const string Command = EntityIds.Command;
+        public const string Base = EntityIds.Base;
 
         /// <summary>
         /// The player's wallet and production summary are singletons, so they replicate

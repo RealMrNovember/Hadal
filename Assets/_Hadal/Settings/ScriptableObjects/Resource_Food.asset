@@ -17,6 +17,6 @@ MonoBehaviour:
   _description: Crew sustenance.
   _icon: {fileID: 0}
   _uiColor: {r: 0, g: 1, b: 1, a: 1}
-  _startingAmount: 300
-  _maxCapacity: 3000
+  _startingAmount: 400
+  _maxCapacity: 5000
   _isCritical: 1

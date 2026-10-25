@@ -17,6 +17,6 @@ MonoBehaviour:
   _description: Reactor output.
   _icon: {fileID: 0}
   _uiColor: {r: 0, g: 1, b: 1, a: 1}
-  _startingAmount: 200
-  _maxCapacity: 2000
+  _startingAmount: 400
+  _maxCapacity: 10000
   _isCritical: 0

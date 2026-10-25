@@ -117,6 +117,8 @@ namespace Hadal.Core.Network
                 PlaceBuildingCommand => CommandType.PlaceBuilding,
                 UpgradeBuildingCommand => CommandType.UpgradeBuilding,
                 FinishConstructionCommand => CommandType.FinishConstruction,
+                RemoveBuildingCommand => CommandType.RemoveBuilding,
+                UnlockRingCommand => CommandType.UnlockRing,
                 ExecuteGachaCommand => CommandType.ExecuteGacha,
                 _ => CommandType.Unknown
             };

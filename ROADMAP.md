@@ -25,7 +25,7 @@ Durum işaretleri: ✅ tamam · 🟡 devam ediyor · ⬜ başlanmadı
 | 0 | Temel, mimari ve ilk dikey dilim | Shared protokol, grid inşa, kaynak tick (stub), test altyapısı | ✅ |
 | 1 | Otoriter oyun sunucusu çekirdeği | İstemci gerçek sunucuya karşı oynar; stub'lar kalkar (M3–M5) | ✅ |
 | 2 | **Dış erişim, kimlik ve dağıtım** | `hadal-api.cicibyte.com`, TLS, Auth API, patch, dağıtım (M1–M2) | 🟡 |
-| 3 | Üs inşasının tamamlanması | Kaldırma, yükseltme, halka açma, mega kubbe, tam katalog | ⬜ |
+| 3 | Üs inşasının tamamlanması | Kaldırma, yükseltme, halka açma, mega kubbe, tam katalog | ✅ |
 | 4 | Hayatta kalma döngüsü | Oksijen/enerji bağımlılıkları, acil durumlar, alarmlar | ⬜ |
 | 5 | Sunum katmanı | Ana menü, UI tasarım sistemi, sualtı görünümü, ses | ⬜ |
 | 6 | Denizaltılar | Filo, gövde/basınç istatistikleri, üretim | ⬜ |
@@ -126,7 +126,7 @@ Durum işaretleri: ✅ tamam · 🟡 devam ediyor · ⬜ başlanmadı
 
 ---
 
-## Phase 3 — Üs inşasının tamamlanması 🟡
+## Phase 3 — Üs inşasının tamamlanması ✅
 
 **Hedef:** `docs/05` tasarımındaki üs deneyiminin tamamı. Kurallar `docs/23_Base_Management.md`'de.
 
@@ -134,12 +134,13 @@ Durum işaretleri: ✅ tamam · 🟡 devam ediyor · ⬜ başlanmadı
 
 - [x] Sunucu: inşaat ve yükseltme süreleri (sunucu saati, çevrimdışı tamamlama), 1 inşaatçı, reaktör kapısı, ücretsiz bitirme (≤ 5 dk), seviye ölçekli maliyet ve süre.
 - [x] Titanyum kaynağı: Drone Factory.
-
-- `RemoveBuildingCommand` (iade kuralı) ve `UpgradeBuildingCommand` (seviye, maliyet, süre).
-- İnşa ve yükseltme süreleri sunucu saatiyle; hızlandırma kancası (monetizasyon Phase 13'te).
-- Halka açma ve mega kubbe genişlemesi (halka 4–12).
-- Tam bina kataloğu ve gerçek denge değerleri (yer tutucuların yerine).
-- Bina prefab'ları (yer tutucu art), seçim/inceleme UI'ı, mobil dokunma girdisi.
+- [x] Kaldırma ve iptal (`RemoveBuilding`): bitmiş bina %50, iptal edilen ilk inşaat %100 iade; reaktör kaldırılamaz.
+- [x] Halka açma (`UnlockRing`, halka 5–12): reaktör seviyesi + bedel; 7. halka ve ötesi Mega Kubbe ister. İstemcide "Üssü Genişlet" sayfası.
+- [x] Mega Kubbe ve Tarım Kubbesi; yeni bina Hidroponik Çiftlik (modelleriyle).
+- [x] Tam katalog ve ilk gerçek denge değerleri (`docs/23` denge tablosu): reaktör seviyesiyle açılan binalar, bina başına adet sınırı, üretim binaları dış halkalara da kurulabilir.
+- [x] Bina paneli ve inşa menüsü: kilitli binalar gereken reaktör seviyesini ve adet sınırını gösterir, kaldırma iki dokunuşla onaylanır.
+- [ ] Savaş ve Bilim kubbeleri (Phase 9 ve araştırma sistemiyle).
+- [ ] Hızlandırma kancası (monetizasyon Phase 13'te).
 
 **Çıkış kriteri:** Oyuncu tüm bina türlerini kurar, yükseltir, kaldırır ve halka açar; hepsi sunucu doğrulamalıdır.
 

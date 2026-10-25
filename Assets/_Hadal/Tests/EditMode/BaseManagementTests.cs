@@ -28,8 +28,8 @@ namespace Hadal.Tests.EditMode
             var catalog = ClientCatalog.Catalog;
             Assert.IsTrue(catalog.TryGetBuilding(BuildingProgression.ReactorId, out var reactor));
             var level2 = BuildingProgression.Cost(reactor, 2, catalog.Progression);
-            Assert.AreEqual(124, level2.Find(c => c.Key == HADAL.Shared.Enums.ResourceType.Titanium).Value);
-            Assert.AreEqual(64, BuildingProgression.Seconds(reactor, 2, catalog.Progression));
+            Assert.AreEqual(109, level2.Find(c => c.Key == HADAL.Shared.Enums.ResourceType.Titanium).Value);
+            Assert.AreEqual(34, BuildingProgression.Seconds(reactor, 2, catalog.Progression));
         }
 
         [Test]
@@ -38,7 +38,7 @@ namespace Hadal.Tests.EditMode
             try
             {
                 var json = File.ReadAllText(Path.Combine(Directory.GetCurrentDirectory(), "shared/catalog/catalog.json"))
-                    .Replace("\"buildSeconds\": 40", "\"buildSeconds\": 99");
+                    .Replace("\"buildSeconds\": 30", "\"buildSeconds\": 99");
                 var changed = 0;
                 ClientCatalog.Changed += Count;
                 Assert.IsTrue(ClientCatalog.Apply(json, 7));

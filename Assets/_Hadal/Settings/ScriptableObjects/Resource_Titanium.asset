@@ -17,6 +17,6 @@ MonoBehaviour:
   _description: Construction alloy.
   _icon: {fileID: 0}
   _uiColor: {r: 0, g: 1, b: 1, a: 1}
-  _startingAmount: 150
-  _maxCapacity: 5000
+  _startingAmount: 500
+  _maxCapacity: 25000
   _isCritical: 0

@@ -18,15 +18,15 @@ MonoBehaviour:
   _domeType: 0
   _requiredSlotType: 2
   _minRing: 2
-  _maxRing: 2
+  _maxRing: 12
   _maxLevel: 10
   _allowRotation: 1
   _rotationSnapOverride: 0
   _buildCosts:
   - Type: 7
-    Amount: 150
+    Amount: 180
   - Type: 3
-    Amount: 30
+    Amount: 40
   _productionPerTick: []
   _consumptionPerTick:
   - Type: 6

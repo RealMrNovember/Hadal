@@ -32,9 +32,18 @@ namespace Hadal.Gameplay.Grid
             RebuildLineRenderers();
         }
 
+        private int _builtRings = -1;
+
         private void OnEnable()
         {
             if (_grid != null)
+                RebuildLineRenderers();
+        }
+
+        // A ring unlock (server state) widens the drawn base.
+        private void Update()
+        {
+            if (_grid != null && _circularGrid != null && _circularGrid.UnlockedRingCount != _builtRings)
                 RebuildLineRenderers();
         }
 
@@ -60,6 +69,7 @@ namespace Hadal.Gameplay.Grid
 
             var def = _grid.Definition;
             var maxRing = Mathf.Min(_circularGrid?.UnlockedRingCount ?? def.RingCount, def.RingCount);
+            _builtRings = _circularGrid?.UnlockedRingCount ?? -1;
 
             for (var ring = 1; ring <= maxRing; ring++)
             {

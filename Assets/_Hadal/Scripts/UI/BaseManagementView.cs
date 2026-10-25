@@ -20,8 +20,8 @@ namespace Hadal.UI
 {
     /// <summary>
     /// Base management (docs/23_Base_Management.md): the build menu for a free slot, the building
-    /// panel (level, output, upgrade, free finish), construction timers above buildings and
-    /// rejection toasts. Every number comes from the shared catalog and BuildingProgression, the
+    /// panel (level, output, upgrade, free finish, remove / cancel), the "Expand Base" page that
+    /// opens outer rings, construction timers above buildings and rejection toasts. Every number comes from the shared catalog and BuildingProgression, the
     /// same rules the server enforces; the server's answer is the final word.
     /// </summary>
     public sealed class BaseManagementView : MonoBehaviour
@@ -45,6 +45,9 @@ namespace Hadal.UI
         private RectTransform _list;
         private Text _toast;
         private float _toastUntil;
+        private Button _expand;
+        private bool _expandOpen;
+        private string _confirmRemove = string.Empty;
 
         private int _ring;
         private int _sector;
@@ -118,6 +121,10 @@ namespace Hadal.UI
             _list = UiKit.ScrollList("List", sheetImage.transform);
             ((RectTransform)_list.parent).Place(0.04f, 0.03f, 0.96f, 0.8f);
 
+            _expand = UiKit.Button("Expand", _canvas.transform, Loc.T("base.expand"), OpenExpand, new Color(0.03f, 0.10f, 0.14f, 0.85f), 36);
+            _expand.GetComponentInChildren<Text>().color = UiKit.Accent;
+            ((RectTransform)_expand.transform).Place(0.03f, 0.02f, 0.4f, 0.07f);
+
             _toast = UiKit.Label("Toast", _canvas.transform, string.Empty, 38, UiKit.Text, TextAnchor.MiddleCenter, FontStyle.Bold);
             _toast.rectTransform.Place(0.05f, 0.55f, 0.95f, 0.6f);
             var outline = _toast.gameObject.AddComponent<Outline>();
@@ -134,6 +141,18 @@ namespace Hadal.UI
             _ring = tap.Ring;
             _sector = tap.Sector;
             _buildingKey = tap.BuildingInstanceKey ?? string.Empty;
+            _expandOpen = false;
+            _confirmRemove = string.Empty;
+            _sheet.gameObject.SetActive(true);
+            Render();
+        }
+
+        /// <summary>Shows the next ring's requirements and the button that opens it.</summary>
+        public void OpenExpand()
+        {
+            _expandOpen = true;
+            _buildingKey = string.Empty;
+            _confirmRemove = string.Empty;
             _sheet.gameObject.SetActive(true);
             Render();
         }
@@ -144,20 +163,36 @@ namespace Hadal.UI
                 return;
 
             // The slot may have just been built on (build menu -> building panel).
-            if (string.IsNullOrEmpty(_buildingKey))
+            if (string.IsNullOrEmpty(_buildingKey) && !_expandOpen)
                 _buildingKey = Buildings().FirstOrDefault(b => b.cellRing == _ring && b.cellSector == _sector).instanceKey ?? string.Empty;
             Render();
         }
 
         private void OnCommandResolved(CommandResolvedEvent result)
         {
-            if (result.Type is not (CommandType.PlaceBuilding or CommandType.UpgradeBuilding or CommandType.FinishConstruction))
+            if (result.Type is not (CommandType.PlaceBuilding or CommandType.UpgradeBuilding or CommandType.FinishConstruction
+                or CommandType.RemoveBuilding or CommandType.UnlockRing))
                 return;
 
             if (result.Result == CommandResultCode.Rejected)
+            {
                 Toast(Loc.Reason(result.Reason), UiKit.Danger);
-            else
-                Toast(result.Type == CommandType.FinishConstruction ? Loc.T("base.done") : Loc.T("base.started"), UiKit.Accent);
+                return;
+            }
+
+            Toast(result.Type switch
+            {
+                CommandType.FinishConstruction => Loc.T("base.done"),
+                CommandType.RemoveBuilding => Loc.T("base.removed"),
+                CommandType.UnlockRing => Loc.T("base.expand.done"),
+                _ => Loc.T("base.started")
+            }, UiKit.Accent);
+
+            // The removed building's panel has nothing left to show.
+            if (result.Type == CommandType.RemoveBuilding && IsOpen && !_expandOpen)
+                Close();
+            else if (IsOpen)
+                Render();
         }
 
         private void Update()
@@ -166,6 +201,7 @@ namespace Hadal.UI
                 return;
 
             UpdateTimers();
+            _expand.gameObject.SetActive(!IsOpen);
 
             if (_toast.text.Length > 0 && Time.unscaledTime > _toastUntil)
                 _toast.text = string.Empty;
@@ -192,12 +228,52 @@ namespace Hadal.UI
             for (var i = _list.childCount - 1; i >= 0; i--)
                 Destroy(_list.GetChild(i).gameObject);
 
+            if (_expandOpen)
+            {
+                RenderExpand();
+                return;
+            }
+
             var building = Buildings().FirstOrDefault(b => b.instanceKey == _buildingKey && !string.IsNullOrEmpty(_buildingKey));
             if (!string.IsNullOrEmpty(building.instanceKey))
                 RenderBuilding(building);
             else
                 RenderBuildMenu();
         }
+
+        private void RenderExpand()
+        {
+            _title.text = Loc.T("base.expand");
+            var maxRings = _catalog.Grid.maxRings;
+            var ring = _grid.UnlockedRingCount + 1;
+            _subtitle.text = Loc.F("base.expand.open.rings", _grid.UnlockedRingCount, maxRings);
+
+            if (ring > maxRings || !_catalog.TryGetRingUnlock(ring, out var unlock))
+            {
+                UiKit.Label("All", _list, Loc.T("base.expand.all"), 34, UiKit.Muted, TextAnchor.MiddleCenter).Row(160);
+                return;
+            }
+
+            var wallet = Wallet();
+            var finished = new HashSet<string>(Buildings().Where(b => b.level > 0).Select(b => b.definitionId));
+            var verdict = BaseRules.ValidateUnlock(_catalog, ring, _grid.UnlockedRingCount, ReactorLevel(), finished, wallet);
+
+            var needs = new StringBuilder();
+            needs.Append(Check(ReactorLevel() >= unlock.ReactorLevel)).Append(Loc.F("base.needs.reactor", unlock.ReactorLevel));
+            if (!string.IsNullOrEmpty(unlock.RequiresBuilding))
+                needs.Append("\n").Append(Check(finished.Contains(unlock.RequiresBuilding))).Append(Loc.Building(unlock.RequiresBuilding));
+
+            AddCard(
+                Loc.F("base.expand.ring", ring),
+                $"{Loc.F("base.expand.body", _catalog.GetSectorCount(ring))}\n{needs}",
+                $"{Loc.T("base.cost")}: {Cost(unlock.Cost, wallet)}",
+                verdict == RingRejectReason.None ? string.Empty : Loc.Reason(verdict.ToString()),
+                Loc.T("base.expand.open"),
+                verdict == RingRejectReason.None,
+                () => UnlockRing(ring));
+        }
+
+        private static string Check(bool ok) => ok ? "<color=#38D6F2>•</color> " : "<color=#FF7369>•</color> ";
 
         private void RenderBuildMenu()
         {
@@ -207,22 +283,31 @@ namespace Hadal.UI
             var wallet = Wallet();
             var occupied = new HashSet<(int ring, int sector)>(Buildings().Select(b => (b.cellRing, b.cellSector)));
             var builderBusy = ActiveConstructions() >= Math.Max(1, _catalog.Progression.builderSlots);
+            var owned = OwnedCounts();
+            var reactor = ReactorLevel();
             var any = false;
 
-            foreach (var definition in _catalog.Buildings.OrderBy(b => b.BuildCost.Sum(c => c.Value)))
+            // Buildable first, then by the reactor level that unlocks them, then by price.
+            foreach (var definition in _catalog.Buildings.OrderBy(b => b.RequiredReactorLevel).ThenBy(b => b.BuildCost.Sum(c => c.Value)))
             {
-                var verdict = PlacementRules.Validate(_catalog, definition.Id, _ring, _sector, _grid.UnlockedRingCount, occupied, wallet);
+                var verdict = PlacementRules.Validate(_catalog, definition.Id, _ring, _sector, _grid.UnlockedRingCount, occupied, wallet, owned, reactor);
                 // Buildings that can never go on this slot are not listed; the rest show why they are blocked.
                 if (verdict is PlacementRejectReason.RingNotAllowed or PlacementRejectReason.SlotTypeMismatch
                     or PlacementRejectReason.SectorRestricted or PlacementRejectReason.SlotDoesNotExist or PlacementRejectReason.UnknownBuilding)
                     continue;
 
                 any = true;
-                var reason = verdict != PlacementRejectReason.None ? Loc.Reason(verdict.ToString())
-                    : builderBusy ? Loc.Reason(nameof(ConstructionRejectReason.BuilderBusy)) : string.Empty;
+                owned.TryGetValue(definition.Id, out var count);
+                var reason = verdict switch
+                {
+                    PlacementRejectReason.None => builderBusy ? Loc.Reason(nameof(ConstructionRejectReason.BuilderBusy)) : string.Empty,
+                    PlacementRejectReason.ReactorLevelTooLow => Loc.F("base.needs.reactor", definition.RequiredReactorLevel),
+                    PlacementRejectReason.LimitReached => Loc.F("base.limit", count, definition.MaxCount),
+                    _ => Loc.Reason(verdict.ToString())
+                };
                 var id = definition.Id;
                 AddCard(
-                    Loc.Building(id),
+                    definition.MaxCount > 0 ? $"{Loc.Building(id)}  <size=30>{count}/{definition.MaxCount}</size>" : Loc.Building(id),
                     $"{Loc.T("desc." + id)}\n{Rates(definition, 1)}",
                     $"{Loc.T("base.cost")}: {Cost(BuildingProgression.Cost(definition, 1, _catalog.Progression), wallet)}   {Loc.T("base.time")}: {Loc.Duration(BuildingProgression.Seconds(definition, 1, _catalog.Progression))}",
                     reason,
@@ -261,11 +346,18 @@ namespace Hadal.UI
                 AddCard(Loc.T("base.finish"), string.Empty, string.Empty,
                     free ? string.Empty : Loc.Reason(nameof(ConstructionRejectReason.NotYetFree)),
                     Loc.T("base.finish"), free, () => Finish(key));
+
+                // A first construction can be called off for everything back; upgrades must finish.
+                if (building.level == 0)
+                    AddRemoveCard(building, definition);
                 return;
             }
 
             if (building.level >= definition.MaxLevel)
+            {
+                AddRemoveCard(building, definition);
                 return;
+            }
 
             var target = building.level + 1;
             var wallet = Wallet();
@@ -280,9 +372,31 @@ namespace Hadal.UI
                 Loc.T("base.upgrade"),
                 verdict == ConstructionRejectReason.None,
                 () => Upgrade(instanceKey));
+
+            AddRemoveCard(building, definition);
         }
 
-        private void AddCard(string title, string body, string cost, string reason, string action, bool enabled, Action onClick)
+        private void AddRemoveCard(BuildingSaveEntry building, BuildingDefinition definition)
+        {
+            if (BaseRules.ValidateRemove(definition.Id, building.level, building.IsUnderConstruction) != RemoveRejectReason.None)
+                return;
+
+            var cancel = building.level == 0;
+            var refund = BaseRules.Refund(definition, building.level, _catalog.Progression);
+            var confirming = _confirmRemove == building.instanceKey;
+            var key = building.instanceKey;
+            AddCard(
+                Loc.T(cancel ? "base.cancel.title" : "base.remove.title"),
+                string.Empty,
+                Loc.F("base.refund", string.Join("  ", refund.Select(c => $"{c.Value} {Loc.Resource(c.Key.ToString())}"))),
+                confirming ? Loc.T("base.confirm") : string.Empty,
+                confirming ? Loc.T("base.confirm.yes") : Loc.T(cancel ? "base.cancel" : "base.remove"),
+                true,
+                () => Remove(key),
+                UiKit.Danger);
+        }
+
+        private void AddCard(string title, string body, string cost, string reason, string action, bool enabled, Action onClick, Color? fill = null)
         {
             var card = UiKit.Box("Card", _list, UiKit.Field).Row(string.IsNullOrEmpty(body) ? 170 : 260);
             UiKit.Label("Title", card.transform, title, 40, UiKit.Text, TextAnchor.UpperLeft, FontStyle.Bold).rectTransform.Place(0.03f, 0.62f, 0.68f, 0.95f);
@@ -290,7 +404,7 @@ namespace Hadal.UI
                 UiKit.Label("Body", card.transform, body, 28, UiKit.Muted, TextAnchor.UpperLeft).rectTransform.Place(0.03f, 0.3f, 0.68f, 0.66f);
             UiKit.Label("Cost", card.transform, string.IsNullOrEmpty(reason) ? cost : $"{cost}\n<color=#FF7369>{reason}</color>", 28, UiKit.Amber,
                 TextAnchor.LowerLeft).rectTransform.Place(0.03f, 0.04f, 0.7f, 0.32f);
-            var button = UiKit.Button("Action", card.transform, action, () => onClick(), enabled ? UiKit.Accent : UiKit.Panel, 36);
+            var button = UiKit.Button("Action", card.transform, action, () => onClick(), enabled ? fill ?? UiKit.Accent : UiKit.Panel, 36);
             button.interactable = enabled;
             ((RectTransform)button.transform).Place(0.71f, 0.22f, 0.97f, 0.78f);
         }
@@ -366,6 +480,33 @@ namespace Hadal.UI
                 BuildingEntityId = instanceKey
             });
 
+        /// <summary>First tap asks for confirmation, the second sends the command.</summary>
+        private void Remove(string instanceKey)
+        {
+            if (_confirmRemove != instanceKey)
+            {
+                _confirmRemove = instanceKey;
+                Render();
+                return;
+            }
+
+            _confirmRemove = string.Empty;
+            _commands.Dispatch(new RemoveBuildingCommand
+            {
+                CommandId = Guid.NewGuid().ToString("N"),
+                ClientSequence = ++_sequence,
+                BuildingEntityId = instanceKey
+            });
+        }
+
+        private void UnlockRing(int ring) =>
+            _commands.Dispatch(new UnlockRingCommand
+            {
+                CommandId = Guid.NewGuid().ToString("N"),
+                ClientSequence = ++_sequence,
+                Ring = ring
+            });
+
         private void Finish(string instanceKey) =>
             _commands.Dispatch(new FinishConstructionCommand
             {
@@ -379,6 +520,9 @@ namespace Hadal.UI
         private BuildingSaveEntry[] Buildings() => _stateSync?.View.Data.buildings ?? Array.Empty<BuildingSaveEntry>();
 
         private int ActiveConstructions() => Buildings().Count(b => b.IsUnderConstruction);
+
+        private Dictionary<string, int> OwnedCounts() =>
+            Buildings().GroupBy(b => b.definitionId).ToDictionary(g => g.Key, g => g.Count());
 
         private int ReactorLevel() =>
             Buildings().Where(b => b.definitionId == BuildingProgression.ReactorId).Select(b => b.level).DefaultIfEmpty(0).Max();

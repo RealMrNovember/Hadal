@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using HADAL.Shared.DTOs;
 using HADAL.Shared.Enums;
+using HADAL.Shared.Protocol;
 using Hadal.Core.Network;
 using Hadal.Data.Models;
 
@@ -35,6 +36,10 @@ namespace Hadal.Core.StateSync
 
             if (snapshot.Buildings != null)
                 ApplyBuildingList(data, snapshot.Buildings);
+
+            // 0 = a server without ring unlocks; keep the catalog default then.
+            if (snapshot.UnlockedRings > 0)
+                data.unlockedGridRings = snapshot.UnlockedRings;
 
             view.ApplyProduction(snapshot.Production);
 
@@ -85,6 +90,13 @@ namespace Hadal.Core.StateSync
                 if (change.EntityId.StartsWith(EntityIdPrefixes.Hero, StringComparison.Ordinal))
                 {
                     ApplyHeroChange(data, change, serialization);
+                    continue;
+                }
+
+                if (change.EntityId == EntityIds.BaseLayout && change.Kind != EntityChangeKind.Delete
+                    && TryDeserializePayload(change.Payload, serialization, out BaseLayoutDto layout) && layout.UnlockedRings > 0)
+                {
+                    data.unlockedGridRings = layout.UnlockedRings;
                 }
             }
 

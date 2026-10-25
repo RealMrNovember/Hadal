@@ -17,6 +17,6 @@ MonoBehaviour:
   _description: Base survival resource.
   _icon: {fileID: 0}
   _uiColor: {r: 0, g: 1, b: 1, a: 1}
-  _startingAmount: 500
-  _maxCapacity: 5000
+  _startingAmount: 600
+  _maxCapacity: 6000
   _isCritical: 1

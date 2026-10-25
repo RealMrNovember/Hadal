@@ -24,12 +24,10 @@ MonoBehaviour:
   _rotationSnapOverride: 0
   _buildCosts:
   - Type: 7
-    Amount: 80
-  - Type: 6
-    Amount: 60
+    Amount: 100
   _productionPerTick:
   - Type: 6
-    Amount: 4
+    Amount: 8
   _consumptionPerTick: []
   _pressureResistanceBonus: 0
   _prefab: {fileID: 919132149155446097, guid: f5827a0984eb3bc94a979887e6201c4a, type: 3}

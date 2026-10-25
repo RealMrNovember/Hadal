@@ -92,6 +92,16 @@ namespace Hadal.Managers
 
         public bool TryReleaseSlot(PolarGridSlotId id) => _model.TryReleaseSlot(id);
 
+        /// <summary>Follows the server's open rings (ring unlocks, docs/23 rule 12). True when it changed.</summary>
+        public bool SyncUnlockedRings(int unlockedRings)
+        {
+            if (_model == null || unlockedRings <= 0 || unlockedRings == _model.UnlockedRingCount)
+                return false;
+
+            _model.SetUnlockedRingCount(unlockedRings);
+            return true;
+        }
+
         public void SyncOccupancyFromBuildings(BuildingSaveEntry[] buildings)
         {
             if (_model == null)

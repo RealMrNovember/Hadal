@@ -76,6 +76,8 @@ namespace Hadal.Managers.StateSync
 
         private void SyncGridFromView()
         {
+            // Rings first: buildings on a newly opened ring need its slots to exist.
+            _gridManager.SyncUnlockedRings(_view.Data.unlockedGridRings);
             _gridManager.SyncOccupancyFromBuildings(_view.Data.buildings);
             _localBus.Publish(new BuildingStateChangedEvent());
         }
