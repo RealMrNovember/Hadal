@@ -9,7 +9,7 @@ namespace Hadal.Gateway.Admin
     ///   docker exec -it hadal-gateway dotnet Hadal.Gateway.dll admin list
     ///   docker exec -it hadal-gateway dotnet Hadal.Gateway.dll admin disable &lt;username&gt;
     ///
-    /// "create" prints the password and TOTP secret once; nothing else stores them in clear text.
+    /// "create" prints the password once; nothing else stores it in clear text.
     /// </summary>
     public static class AdminCli
     {
@@ -47,9 +47,8 @@ namespace Hadal.Gateway.Admin
                     await store.AuditAsync("cli", "admin.create", admin.Username, role, "console", CancellationToken.None);
                     Console.WriteLine($"Overseer admin created: {admin.Username} ({role})");
                     Console.WriteLine($"  Password    : {password}");
-                    Console.WriteLine($"  TOTP secret : {admin.TotpSecret}");
-                    Console.WriteLine($"  TOTP URI    : {Totp.ProvisioningUri(admin.Username, admin.TotpSecret)}");
-                    Console.WriteLine("Add the secret to Google Authenticator / Authy (\"enter a setup key\"), then sign in at https://hadal.cicibyte.com/admin");
+                    Console.WriteLine($"  (only if Admin__RequireTotp=true) TOTP secret: {admin.TotpSecret}");
+                    Console.WriteLine("Sign in at https://hadal.cicibyte.com/admin with the username and password above.");
                     return 0;
                 }
 

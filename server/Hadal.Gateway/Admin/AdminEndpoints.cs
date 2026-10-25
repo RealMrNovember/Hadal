@@ -9,7 +9,7 @@ using Microsoft.Extensions.FileProviders;
 
 namespace Hadal.Gateway.Admin
 {
-    public sealed record LoginRequest(string Username, string Password, string Code);
+    public sealed record LoginRequest(string Username, string Password, string? Code = null);
     public sealed record GrantRequest(Dictionary<string, long> Amounts, string Note);
     public sealed record BanRequest(int Hours, string Reason);
     public sealed record CouponRequest(string Code, Dictionary<string, long> Rewards, int MaxRedemptions, DateTimeOffset? ExpiresAt, string Note,
@@ -277,7 +277,7 @@ namespace Hadal.Gateway.Admin
             api.MapGet("/admins", async (AdminPrincipal _, IAdminStore store, CancellationToken ct) =>
                 Results.Ok((await store.ListAdminsAsync(ct)).Select(a => new { a.Id, a.Username, a.Role, a.Disabled, a.CreatedAt, a.LastLoginAt }))).RequireAdmin(AdminRoles.Owner);
 
-            api.MapPost("/admins", async (AdminPrincipal me, AdminCreateRequest request, HttpContext http, IAdminStore store, CancellationToken ct) =>
+            api.MapPost("/admins", async (AdminPrincipal me, AdminCreateRequest request, HttpContext http, IAdminStore store, AdminAuth auth, CancellationToken ct) =>
             {
                 var username = (request.Username ?? string.Empty).Trim();
                 if (username.Length is < 3 or > 32 || !username.All(c => char.IsLetterOrDigit(c) || c is '.' or '_' or '-') || !AdminRoles.IsValid(request.Role))
@@ -288,8 +288,8 @@ namespace Hadal.Gateway.Admin
                     return Results.Conflict(new { error = "UsernameExists" });
 
                 await store.AuditAsync(me.Username, "admin.create", username, request.Role, AdminAuth.ClientIp(http), ct);
-                // Shown once: the new admin enrols the TOTP secret in an authenticator app.
-                return Results.Ok(new { username, role = admin.Role, password, totpSecret = admin.TotpSecret, totpUri = Totp.ProvisioningUri(username, admin.TotpSecret) });
+                // Shown once; the TOTP secret matters only when Admin__RequireTotp is on.
+                return Results.Ok(new { username, role = admin.Role, password, totpSecret = auth.RequireTotp ? admin.TotpSecret : null });
             }).RequireAdmin(AdminRoles.Owner);
 
             api.MapPost("/admins/{id:guid}/disabled", async (AdminPrincipal me, Guid id, DisabledRequest request, HttpContext http, IAdminStore store, CancellationToken ct) =>

@@ -235,7 +235,8 @@ installed by `server_deploy/install-overseer-proxy.sh`) and proxies to `hadal-ap
 panel does not exist on the API host. The key and the admin JWT secret live only in the CT's `.env`
 (`HADAL_ADMIN_PROXY_KEY`, `HADAL_ADMIN_JWT_SECRET`); the rendered nginx file exists only on kale.
 
-**Sign-in.** Username + PBKDF2 password + TOTP (RFC 6238, ±1 step) → 8 h HS256 Bearer token in
+**Sign-in.** Username + PBKDF2 password (the owner chose password-only; `Admin__RequireTotp=true`
+adds the TOTP code, RFC 6238 ±1 step, every admin already has a secret) → 8 h HS256 Bearer token in
 `sessionStorage` (no cookies, so no CSRF). Login is rate limited per client IP. Roles:
 `owner` (everything, balance publishing, admins), `gm` (players, coupons, live ops), `viewer` (read only).
 The first owner is created on the server, never through the web:
@@ -245,7 +246,7 @@ ssh cicibyte@dl380
 sudo pct exec 160 -- docker exec -it hadal-gateway dotnet Hadal.Gateway.dll admin create <user> owner
 ```
 
-It prints the password and the TOTP secret once (add the secret to an authenticator app).
+It prints the generated password once.
 `admin list`, `admin disable <user>`, `admin enable <user>` work the same way.
 
 **Pages.** Özet (counts, online, catalog version, maintenance) · Oyuncular (search by name or account id,

@@ -60,7 +60,7 @@ async function api(path, options = {}) {
 }
 
 const ERRORS = {
-  InvalidCredentials: "Kullanıcı adı, şifre ya da doğrulama kodu hatalı.",
+  InvalidCredentials: "Kullanıcı adı ya da şifre hatalı.",
   Forbidden: "Bu işlem için yetkin yok.",
   InvalidAmounts: "Geçerli bir miktar gir.",
   InvalidRewards: "En az bir pozitif ödül gir.",
@@ -86,11 +86,11 @@ async function login(event) {
   try {
     const data = await api("login", {
       method: "POST",
-      body: { username: $("#login-user").value.trim(), password: $("#login-pass").value, code: $("#login-code").value.trim() },
+      body: { username: $("#login-user").value.trim(), password: $("#login-pass").value },
     });
     state.token = data.token;
     sessionStorage.setItem("overseer.token", data.token);
-    $("#login-pass").value = $("#login-code").value = "";
+    $("#login-pass").value = "";
     await start();
   } catch (error) {
     $("#login-error").textContent = error.message;
@@ -406,8 +406,8 @@ async function admins(root) {
         onclick: () => api("admins", { method: "POST", body: { username: username.value.trim(), role: role.value } }).then((r) => {
           result.replaceChildren(el("div", { class: "secret" },
             el("div", {}, "Bu bilgiler YALNIZCA BİR KEZ gösterilir. Güvenli bir kanalla ilet:"),
-            el("div", {}, `Kullanıcı: ${r.username}`), el("div", {}, `Şifre: ${r.password}`), el("div", {}, `2FA anahtarı: ${r.totpSecret}`),
-            el("div", { class: "muted" }, "Authenticator uygulamasında 'kurulum anahtarı gir' ile eklenir.")));
+            el("div", {}, `Kullanıcı: ${r.username}`), el("div", {}, `Şifre: ${r.password}`),
+            r.totpSecret ? el("div", {}, `2FA anahtarı: ${r.totpSecret}`) : null));
         }, (e) => toast(e.message, true)),
       }, "Yönetici ekle")), result),
     el("table", {},

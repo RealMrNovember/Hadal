@@ -115,15 +115,16 @@ namespace Hadal.Game.Tests
         }
 
         [Fact]
-        public async Task Login_NeedsPasswordAndTotp()
+        public async Task Login_NeedsTheRightPassword_NoCode()
         {
             var admin = await CreateAdminAsync(AdminRoles.Owner);
-            var wrongCode = await Proxied().PostAsJsonAsync("/admin/api/login", new { username = admin.Username, password = "pw-" + admin.Username, code = "000000" });
-            Assert.Equal(HttpStatusCode.Unauthorized, wrongCode.StatusCode);
+            var passwordOnly = await Proxied().PostAsJsonAsync("/admin/api/login", new { username = admin.Username, password = "pw-" + admin.Username });
+            Assert.Equal(HttpStatusCode.OK, passwordOnly.StatusCode);
 
-            var code = Totp.Code(Totp.FromBase32(admin.TotpSecret), DateTimeOffset.UtcNow.ToUnixTimeSeconds() / 30);
-            var wrongPassword = await Proxied().PostAsJsonAsync("/admin/api/login", new { username = admin.Username, password = "nope", code });
+            var wrongPassword = await Proxied().PostAsJsonAsync("/admin/api/login", new { username = admin.Username, password = "nope" });
             Assert.Equal(HttpStatusCode.Unauthorized, wrongPassword.StatusCode);
+            var unknown = await Proxied().PostAsJsonAsync("/admin/api/login", new { username = "nobody-" + admin.Username, password = "pw-" + admin.Username });
+            Assert.Equal(HttpStatusCode.Unauthorized, unknown.StatusCode);
 
             Assert.Equal(HttpStatusCode.Unauthorized, (await Proxied().GetAsync("/admin/api/stats")).StatusCode);
             Assert.Equal(HttpStatusCode.Unauthorized, (await Proxied("not-a-token").GetAsync("/admin/api/stats")).StatusCode);

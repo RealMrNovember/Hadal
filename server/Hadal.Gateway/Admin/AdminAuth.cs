@@ -78,13 +78,15 @@ namespace Hadal.Gateway.Admin
             return ip.Length > 0 ? ip : http.Connection.RemoteIpAddress?.ToString() ?? "unknown";
         }
 
-        public async Task<(string? Token, AdminPrincipal? Principal)> LoginAsync(string username, string password, string code, CancellationToken cancellationToken)
+        public async Task<(string? Token, AdminPrincipal? Principal)> LoginAsync(string username, string password, string? code, CancellationToken cancellationToken)
         {
             var admin = await _store.FindAdminAsync(username ?? string.Empty, cancellationToken);
 
             // Always run the password hash, even for unknown users, so timing does not reveal accounts.
             var passwordOk = PasswordHasher.Verify(password ?? string.Empty, admin?.PasswordHash ?? DummyHash);
-            if (admin == null || admin.Disabled || !passwordOk || !Totp.Verify(admin.TotpSecret, code ?? string.Empty, _clock.UtcNow))
+            if (admin == null || admin.Disabled || !passwordOk)
+                return (null, null);
+            if (_options.RequireTotp && !Totp.Verify(admin.TotpSecret, code ?? string.Empty, _clock.UtcNow))
                 return (null, null);
 
             await _store.TouchLoginAsync(admin.Id, _clock.UtcNow, cancellationToken);
@@ -111,6 +113,8 @@ namespace Hadal.Gateway.Admin
         });
 
         public int SessionSeconds => _options.SessionHours * 3600;
+
+        public bool RequireTotp => _options.RequireTotp;
 
         /// <summary>Validates the Bearer token and re-checks the admin is still enabled with that role.</summary>
         public async Task<AdminPrincipal?> AuthenticateAsync(HttpContext http, CancellationToken cancellationToken)
