@@ -30,5 +30,9 @@ namespace HADAL.Shared.Enums
         [ProtoEnum] KickMember = 22,
         [ProtoEnum] RequestHelp = 23,
         [ProtoEnum] HelpAll = 24,
+        [ProtoEnum] ClaimQuest = 25,
+        [ProtoEnum] ClaimDailyChest = 26,
+        [ProtoEnum] OpenItem = 27,
+        [ProtoEnum] RecruitHero = 28,
     }
 }

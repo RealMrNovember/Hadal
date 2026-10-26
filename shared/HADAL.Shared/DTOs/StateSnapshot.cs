@@ -29,6 +29,11 @@ namespace HADAL.Shared.DTOs
         /// <summary>Heroes and the Cryo-Pod (docs/25); null from older servers.</summary>
         [ProtoMember(8)] public HeroRosterDto? Heroes { get; set; }
 
+        /// <summary>Quests and bag (docs/27); null from older servers.</summary>
+        [ProtoMember(9)] public QuestStateDto? Quests { get; set; }
+
+        [ProtoMember(10)] public InventoryDto? Inventory { get; set; }
+
         [ProtoBeforeSerialization]
         private void BeforeSerialize() => BuildingsWire = Buildings?.ToArray() ?? System.Array.Empty<BuildingStateDto>();
 

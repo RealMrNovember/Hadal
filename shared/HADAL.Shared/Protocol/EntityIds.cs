@@ -33,6 +33,15 @@ namespace HADAL.Shared.Protocol
         /// <summary>Prefix of one-off Cryo-Pod results (<c>GachaResultDto</c>), followed by the command id.</summary>
         public const string GachaResult = Base + "gacha:";
 
+        /// <summary>Chapter task, daily tasks and activity chests (<c>QuestStateDto</c>).</summary>
+        public const string Quests = Base + "quests";
+
+        /// <summary>Bag items and hero cards (<c>InventoryDto</c>).</summary>
+        public const string Inventory = Base + "inventory";
+
+        /// <summary>Prefix of one-off reward lists (<c>RewardReportDto</c>), followed by the command id.</summary>
+        public const string RewardReport = Base + "reward:";
+
         public const string Chat = "chat:";
 
         /// <summary>Recent messages of every channel the player can read, sent on login (<c>ChatHistoryDto</c>).</summary>

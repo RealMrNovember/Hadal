@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using HADAL.Shared.DTOs;
 using HADAL.Shared.Enums;
 using HADAL.Shared.Simulation;
@@ -78,6 +79,8 @@ namespace HADAL.Shared.Catalog
         public int EffectPerLevelTenths { get; internal set; }
         public int EffectPerStar { get; internal set; }
         public string Color { get; internal set; } = string.Empty;
+        public string Portrait { get; internal set; } = string.Empty;
+        public string Model { get; internal set; } = string.Empty;
     }
 
     public sealed class RingUnlock
@@ -147,6 +150,25 @@ namespace HADAL.Shared.Catalog
         public IReadOnlyList<KeyValuePair<ResourceType, long>> AllianceCreateCost { get; private set; } = Array.Empty<KeyValuePair<ResourceType, long>>();
 
         public ChatCatalogData Chat => Data.chat ?? new ChatCatalogData();
+
+        public QuestCatalogData Quests => Data.quests ?? new QuestCatalogData();
+
+        public bool TryGetItem(string id, out ItemData item)
+        {
+            item = Array.Find(Data.items ?? Array.Empty<ItemData>(), i => i != null && i.id == id)!;
+            return item != null;
+        }
+
+        public bool TryGetQuest(string id, out QuestData quest, out bool daily)
+        {
+            daily = false;
+            quest = Array.Find(Quests.chapter ?? Array.Empty<QuestData>(), q => q != null && q.id == id)!;
+            if (quest != null)
+                return true;
+            daily = true;
+            quest = Array.Find(Quests.daily ?? Array.Empty<QuestData>(), q => q != null && q.id == id)!;
+            return quest != null;
+        }
 
         /// <summary>Parses and validates. Throws <see cref="FormatException"/> listing every problem.</summary>
         public static GameCatalog Create(GameCatalogData data)
@@ -313,6 +335,7 @@ namespace HADAL.Shared.Catalog
             }
 
             ParseHeroes(catalog, data, errors);
+            ValidateQuests(catalog, data, errors);
             catalog.AllianceCreateCost = ParseAmounts("alliance", "createCost", (data.alliance ?? new AllianceCatalogData()).createCost, errors);
 
             foreach (var unlock in data.ringUnlocks ?? Array.Empty<RingUnlockData>())
@@ -402,7 +425,9 @@ namespace HADAL.Shared.Catalog
                     EffectBase = hero.effectBase,
                     EffectPerLevelTenths = hero.effectPerLevelTenths,
                     EffectPerStar = hero.effectPerStar,
-                    Color = hero.color ?? string.Empty
+                    Color = hero.color ?? string.Empty,
+                    Portrait = string.IsNullOrEmpty(hero.portrait) ? hero.id : hero.portrait,
+                    Model = hero.model ?? string.Empty
                 };
                 catalog._heroes.Add(parsed);
                 catalog._heroesById[hero.id] = parsed;
@@ -412,6 +437,63 @@ namespace HADAL.Shared.Catalog
                 errors.Add($"heroes: unknown starterHeroId '{rules.starterHeroId}'");
             if (!string.IsNullOrEmpty(rules.pod?.pityRarity) && catalog._heroes.Count > 0 && !catalog.TryGetRarity(rules.pod!.pityRarity, out _))
                 errors.Add($"heroes.pod: unknown pityRarity '{rules.pod.pityRarity}'");
+        }
+
+        private static void ValidateQuests(GameCatalog catalog, GameCatalogData data, List<string> errors)
+        {
+            var itemIds = new HashSet<string>(StringComparer.Ordinal);
+            foreach (var item in data.items ?? Array.Empty<ItemData>())
+            {
+                if (item == null || string.IsNullOrEmpty(item.id) || !itemIds.Add(item.id))
+                    errors.Add($"items: missing or duplicate id '{item?.id}'");
+            }
+
+            void Reward(string where, RewardData? r)
+            {
+                if (r == null)
+                    return;
+                var ok = r.type switch
+                {
+                    "resource" => TryParseResource(r.id, out _),
+                    "item" => itemIds.Contains(r.id),
+                    "shards" => string.IsNullOrEmpty(r.id) ? catalog.TryGetRarity(r.rarity, out _) : catalog._heroesById.ContainsKey(r.id),
+                    _ => false
+                };
+                if (!ok || r.amount <= 0)
+                    errors.Add($"{where}: bad reward {r.type} '{r.id}{r.rarity}' x{r.amount}");
+            }
+
+            foreach (var item in data.items ?? Array.Empty<ItemData>())
+            {
+                foreach (var r in item?.guaranteed ?? Array.Empty<RewardData>())
+                    Reward("item " + item!.id, r);
+                foreach (var w in item?.table ?? Array.Empty<WeightedRewardData>())
+                    Reward("item " + item!.id, w?.reward);
+            }
+
+            var quests = data.quests ?? new QuestCatalogData();
+            var questIds = new HashSet<string>(StringComparer.Ordinal);
+            foreach (var q in (quests.chapter ?? Array.Empty<QuestData>()).Concat(quests.daily ?? Array.Empty<QuestData>()))
+            {
+                if (q == null || string.IsNullOrEmpty(q.id) || !questIds.Add(q.id))
+                {
+                    errors.Add($"quests: missing or duplicate id '{q?.id}'");
+                    continue;
+                }
+
+                if (!Simulation.QuestRules.IsKnownType(q.type))
+                    errors.Add($"quest '{q.id}': unknown type '{q.type}'");
+                if (q.type is "level" or "count" && !catalog._buildings.ContainsKey(q.target))
+                    errors.Add($"quest '{q.id}': unknown building '{q.target}'");
+                foreach (var r in q.rewards ?? Array.Empty<RewardData>())
+                    Reward("quest " + q.id, r);
+            }
+
+            foreach (var chest in quests.dailyChests ?? Array.Empty<DailyChestData>())
+            {
+                foreach (var r in chest?.rewards ?? Array.Empty<RewardData>())
+                    Reward("daily chest " + chest!.points, r);
+            }
         }
 
         public bool TryGetSalvageMission(string id, out SalvageMission mission)

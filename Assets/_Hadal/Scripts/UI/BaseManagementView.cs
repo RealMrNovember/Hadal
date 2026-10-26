@@ -155,6 +155,9 @@ namespace Hadal.UI
                 Research = OpenResearchFromHud,
                 Expand = () => { _social.Close(); OpenExpand(); },
                 Settings = () => FindFirstObjectByType<AccountPanelView>()?.Open(),
+                Quests = () => { Close(); _social.OpenQuests(); },
+                Bag = () => { Close(); _social.OpenBag(); },
+                ClaimQuest = id => _social.ClaimQuest(id),
                 Building = key => { _social.Close(); OpenBuilding(key); },
                 Toast = Toast,
                 SheetOpen = () => IsOpen || _social.IsOpen

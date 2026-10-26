@@ -65,6 +65,50 @@ namespace Hadal.Core.StateSync
         /// <summary>Bumps on any alliance change (membership, browse results, help requests).</summary>
         public int AllianceVersion { get; private set; }
 
+        // --- Quests and bag (docs/27) ---------------------------------------------------------
+
+        private readonly Queue<RewardReportDto> _rewardReports = new();
+
+        /// <summary>Null until the server sent quest state (older servers never do).</summary>
+        public QuestStateDto Quests { get; private set; }
+
+        /// <summary>Time.realtimeSinceStartup of the next daily reset.</summary>
+        public float DailyResetAt { get; private set; }
+
+        public IReadOnlyDictionary<string, int> Items => _items;
+        public IReadOnlyDictionary<string, int> HeroCards => _heroCards;
+        private readonly Dictionary<string, int> _items = new(System.StringComparer.Ordinal);
+        private readonly Dictionary<string, int> _heroCards = new(System.StringComparer.Ordinal);
+
+        /// <summary>Bumps on any quest or bag change.</summary>
+        public int QuestVersion { get; private set; }
+
+        public bool TryTakeRewardReport(out RewardReportDto report) => _rewardReports.TryDequeue(out report);
+
+        public void AddRewardReport(RewardReportDto report)
+        {
+            if (report != null)
+                _rewardReports.Enqueue(report);
+        }
+
+        public void ApplyQuests(QuestStateDto quests)
+        {
+            Quests = quests;
+            DailyResetAt = UnityEngine.Time.realtimeSinceStartup + quests.DailyResetMs / 1000f;
+            QuestVersion++;
+        }
+
+        public void ApplyInventory(InventoryDto inventory)
+        {
+            _items.Clear();
+            foreach (var i in inventory.Items ?? System.Array.Empty<ItemCountDto>())
+                _items[i.Id] = i.Count;
+            _heroCards.Clear();
+            foreach (var c in inventory.HeroCards ?? System.Array.Empty<ItemCountDto>())
+                _heroCards[c.Id] = c.Count;
+            QuestVersion++;
+        }
+
         public bool TryTakeGachaResult(out GachaResultDto result) => _gachaResults.TryDequeue(out result);
 
         public bool TryGetHero(string heroId, out HeroView hero)
@@ -144,6 +188,11 @@ namespace Hadal.Core.StateSync
 
         private void ResetSocial()
         {
+            Quests = null;
+            _items.Clear();
+            _heroCards.Clear();
+            _rewardReports.Clear();
+            QuestVersion++;
             PlayerId = string.Empty;
             _heroes.Clear();
             _gachaResults.Clear();

@@ -41,6 +41,9 @@ namespace HADAL.Shared.Catalog
         /// <summary>Shards a duplicate pull of this rarity gives.</summary>
         public int duplicateShards = 10;
 
+        /// <summary>Shards (hero cards) that recruit a hero of this rarity the player does not have yet.</summary>
+        public int recruitShards = 10;
+
         public double costMultiplier = 1;
         public int basePower = 100;
     }
@@ -86,8 +89,14 @@ namespace HADAL.Shared.Catalog
         /// <summary>Added per star above 1, in percent.</summary>
         public int effectPerStar;
 
-        /// <summary>Portrait tint (hex, no #) until painted portraits arrive.</summary>
+        /// <summary>Accent colour (hex, no #) for the hero's frame and placeholder portrait.</summary>
         public string color = "4FC3F7";
+
+        /// <summary>Painted portrait id (Assets/_Hadal/Art/Portraits/&lt;id&gt;.png).</summary>
+        public string portrait = string.Empty;
+
+        /// <summary>Animated 3D character shown on the hero screen (Assets/_Hadal/Art/Characters/&lt;id&gt;.fbx).</summary>
+        public string model = string.Empty;
     }
 
     /// <summary>Alliances (docs/25).</summary>

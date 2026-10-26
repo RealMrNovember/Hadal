@@ -136,6 +136,10 @@ namespace Hadal.Core.Network
                 KickMemberCommand => CommandType.KickMember,
                 RequestHelpCommand => CommandType.RequestHelp,
                 HelpAllCommand => CommandType.HelpAll,
+                ClaimQuestCommand => CommandType.ClaimQuest,
+                ClaimDailyChestCommand => CommandType.ClaimDailyChest,
+                OpenItemCommand => CommandType.OpenItem,
+                RecruitHeroCommand => CommandType.RecruitHero,
                 _ => CommandType.Unknown
             };
         }

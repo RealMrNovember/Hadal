@@ -92,6 +92,7 @@ namespace Hadal.Game
         {
             lock (_gate)
             {
+                RollDailyIfNeeded(now);
                 var changes = AdvanceTo(now);
                 if (changes.Count > 0)
                 {
@@ -175,11 +176,28 @@ namespace Hadal.Game
                         AssignHero(assign!, now);
                         break;
 
+                    case CommandType.ClaimQuest when TryDeserialize(envelope.Payload, out ClaimQuestCommand? claim):
+                        ClaimQuest(claim!, now);
+                        break;
+
+                    case CommandType.ClaimDailyChest when TryDeserialize(envelope.Payload, out ClaimDailyChestCommand? chest):
+                        ClaimDailyChest(chest!, now);
+                        break;
+
+                    case CommandType.OpenItem when TryDeserialize(envelope.Payload, out OpenItemCommand? open):
+                        OpenItem(open!, now);
+                        break;
+
+                    case CommandType.RecruitHero when TryDeserialize(envelope.Payload, out RecruitHeroCommand? recruit):
+                        RecruitHero(recruit!, now);
+                        break;
+
                     default:
                         var known = envelope.Type is CommandType.PlaceBuilding or CommandType.UpgradeBuilding or CommandType.FinishConstruction
                             or CommandType.RemoveBuilding or CommandType.UnlockRing or CommandType.StartResearch or CommandType.FinishResearch
                             or CommandType.BoostBuilding or CommandType.Overdrive or CommandType.StartSalvage or CommandType.ExecuteGacha
-                            or CommandType.LevelUpHero or CommandType.PromoteHero or CommandType.AssignHero;
+                            or CommandType.LevelUpHero or CommandType.PromoteHero or CommandType.AssignHero
+                            or CommandType.ClaimQuest or CommandType.ClaimDailyChest or CommandType.OpenItem or CommandType.RecruitHero;
                         Reject(envelope.CommandId, envelope.ClientSequence, known ? "MalformedCommand" : "NotSupported", now);
                         break;
                 }
@@ -335,6 +353,7 @@ namespace Hadal.Game
 
             _state.Buildings.Add(building);
             MarkChanged(building);
+            Record("upgrade");
 
             SendDelta(now, new List<EntityChangeDto>
             {
@@ -371,6 +390,8 @@ namespace Hadal.Game
             var target = building.Level + 1;
             BuildingProgression.Charge(BuildingProgression.Cost(definition, target, _catalog.Progression), _state.Wallet);
             var seconds = _modifiers.BuildSeconds(BuildingProgression.Seconds(definition, target, _catalog.Progression));
+
+            Record("upgrade");
 
             // The building keeps producing at its current level while it is being upgraded.
             if (seconds > 0)
@@ -494,6 +515,7 @@ namespace Hadal.Game
             BuildingProgression.Charge(ResearchRules.Cost(node, target, _catalog.Research), _state.Wallet);
             var seconds = _modifiers.ResearchSeconds(ResearchRules.BaseSeconds(node, target, _catalog.Research));
 
+            Record("research");
             if (seconds > 0)
                 _state.ActiveResearch.Add(new ActiveResearch { NodeId = node.Id, TargetLevel = target, EndsAt = now.AddSeconds(seconds), Seconds = seconds });
             else
@@ -545,6 +567,7 @@ namespace Hadal.Game
 
             BuildingProgression.Charge(_catalog.BoostCost, _state.Wallet);
             building!.BoostEndsAt = now.AddSeconds(Math.Max(1, _catalog.Boost.seconds));
+            Record("boost");
             _state.IsDirty = true;
             SendFunctionAccepted(command.CommandId, command.ClientSequence, building, now);
         }
@@ -583,6 +606,7 @@ namespace Hadal.Game
             building.MissionSeconds = mission.Seconds;
             building.MissionEndsAt = now.AddSeconds(mission.Seconds);
             building.MissionSeed = Random.Shared.Next();
+            Record("salvage");
             _state.IsDirty = true;
             SendFunctionAccepted(command.CommandId, command.ClientSequence, building, now);
         }
@@ -822,6 +846,7 @@ namespace Hadal.Game
             if (!_state.UnsavedBuildings.Contains(building))
                 _state.UnsavedBuildings.Add(building);
             _state.IsDirty = true;
+            _questsDirty = true; // building levels drive chapter tasks
         }
 
         private void Reject(string commandId, ulong sequence, string reason, DateTimeOffset now) =>
@@ -848,6 +873,15 @@ namespace Hadal.Game
         private void SendDelta(DateTimeOffset now, List<EntityChangeDto> changes)
         {
             if (_connection == null)
+                return;
+
+            if (_questsDirty)
+            {
+                changes.Add(QuestsChange(now));
+                _questsDirty = false;
+            }
+
+            if (changes.Count == 0)
                 return;
 
             var delta = new StateDelta
@@ -880,8 +914,11 @@ namespace Hadal.Game
                 Production = ProductionDto(now),
                 UnlockedRings = _state.UnlockedRings,
                 Research = ResearchDto(now),
-                Heroes = RosterDto(now)
+                Heroes = RosterDto(now),
+                Quests = QuestDto(now),
+                Inventory = InventoryDto()
             };
+            _questsDirty = false;
 
             return EnvelopeBuilder.WrapStateSnapshot(snapshot, _serializer.Serialize(snapshot));
         }

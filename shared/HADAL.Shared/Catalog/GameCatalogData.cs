@@ -28,6 +28,10 @@ namespace HADAL.Shared.Catalog
         public HeroCatalogData heroes = new HeroCatalogData();
         public AllianceCatalogData alliance = new AllianceCatalogData();
         public ChatCatalogData chat = new ChatCatalogData();
+
+        // Quests, gift chests and hero cards (docs/27_Quests_And_Items.md).
+        public QuestCatalogData quests = new QuestCatalogData();
+        public ItemData[] items = System.Array.Empty<ItemData>();
     }
 
     /// <summary>What opening one outer ring takes (docs/23_Base_Management.md, rule 12).</summary>

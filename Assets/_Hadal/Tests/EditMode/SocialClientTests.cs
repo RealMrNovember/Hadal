@@ -96,6 +96,45 @@ namespace Hadal.Tests.EditMode
         }
 
         [Test]
+        public void Quests_bag_and_reward_reports_replicate()
+        {
+            ClientStateViewMutator.ApplySnapshot(_view, new StateSnapshot
+            {
+                ServerTick = 1,
+                Quests = new QuestStateDto { Chapter = new QuestProgressDto { Id = "q_oxygen2", Progress = 1, Target = 2 }, ChapterNumber = 1, ChapterTotal = 20, DailyResetMs = 60_000 },
+                Inventory = new InventoryDto
+                {
+                    Items = new[] { new ItemCountDto { Id = "chest_bronze", Count = 2 } },
+                    HeroCards = new[] { new ItemCountDto { Id = "juno", Count = 12 } }
+                }
+            }, _serialization);
+
+            Assert.AreEqual("q_oxygen2", _view.Quests.Chapter.Id);
+            Assert.AreEqual(2, _view.Items["chest_bronze"]);
+            Assert.AreEqual(12, _view.HeroCards["juno"]);
+
+            // An empty bag arrives as an empty payload.
+            Apply(EntityIds.Inventory, null);
+            Assert.AreEqual(0, _view.Items.Count);
+
+            Apply(EntityIds.RewardReport + "c1", new RewardReportDto { Rewards = new[] { new RewardEntryDto { Type = "shards", Id = "lyra", Amount = 10 } } });
+            Assert.IsTrue(_view.TryTakeRewardReport(out var report));
+            Assert.AreEqual("lyra", report.Rewards.Single().Id);
+        }
+
+        [Test]
+        public void The_catalog_quests_and_items_are_consistent()
+        {
+            var catalog = ClientCatalog.Catalog;
+            Assert.GreaterOrEqual(catalog.Quests.chapter.Length, 10);
+            Assert.IsTrue(catalog.TryGetItem("chest_gold", out var gold));
+            var rewards = QuestRules.Open(catalog, gold, n => 0);
+            Assert.That(rewards.Any(r => r.Type == "resource" && r.Id == "Hadalite"));
+            Assert.IsTrue(catalog.TryGetHero("mara", out var mara));
+            Assert.AreEqual("rourke", mara.Portrait);
+        }
+
+        [Test]
         public void The_shared_catalog_has_heroes_and_the_crew_speeds_things_up()
         {
             var catalog = ClientCatalog.Catalog;

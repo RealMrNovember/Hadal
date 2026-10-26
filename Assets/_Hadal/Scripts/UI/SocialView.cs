@@ -29,14 +29,18 @@ namespace Hadal.UI
             HeroDetail,
             PodResult,
             Alliance,
-            Chat
+            Chat,
+            Quests,
+            Bag,
+            Reward
         }
 
         private static readonly CommandType[] OwnCommands =
         {
             CommandType.ExecuteGacha, CommandType.LevelUpHero, CommandType.PromoteHero, CommandType.AssignHero, CommandType.SendChat,
             CommandType.CreateAlliance, CommandType.JoinAlliance, CommandType.LeaveAlliance, CommandType.BrowseAlliances,
-            CommandType.KickMember, CommandType.RequestHelp, CommandType.HelpAll
+            CommandType.KickMember, CommandType.RequestHelp, CommandType.HelpAll,
+            CommandType.ClaimQuest, CommandType.ClaimDailyChest, CommandType.OpenItem, CommandType.RecruitHero
         };
 
         private IStateSyncService _stateSync;
@@ -70,7 +74,13 @@ namespace Hadal.UI
             _localBus = localBus;
             Build();
             _localBus.Subscribe<CommandResolvedEvent>(OnCommandResolved);
+
+            var stage = new GameObject("HeroStage");
+            stage.transform.SetParent(transform, false);
+            _stage = stage.AddComponent<HeroStage>();
         }
+
+        private HeroStage _stage;
 
         private void OnDestroy() => _localBus?.Unsubscribe<CommandResolvedEvent>(OnCommandResolved);
 
@@ -138,6 +148,7 @@ namespace Hadal.UI
 
         public void Close()
         {
+            _stage?.Hide();
             _sheet.SetActive(false);
             _footer.gameObject.SetActive(false);
             _page = Page.None;
@@ -159,6 +170,12 @@ namespace Hadal.UI
                 Open(Page.PodResult);
             }
 
+            while (View.TryTakeRewardReport(out var report))
+            {
+                _reward = report;
+                Open(Page.Reward);
+            }
+
             if (!IsOpen)
                 return;
 
@@ -175,9 +192,10 @@ namespace Hadal.UI
 
         private string PageKey() => _page switch
         {
-            Page.Heroes or Page.HeroDetail => $"{_page}|{_heroId}|{HeroesKey()}",
+            Page.Heroes or Page.HeroDetail => $"{_page}|{_heroId}|{HeroesKey()}|{View.QuestVersion}",
             Page.Alliance => $"{_page}|{View.AllianceVersion}|{_confirmLeave}|{_allianceTab}",
             Page.Chat => $"{_page}|{View.ChatVersion}|{_chatChannel}",
+            Page.Quests or Page.Bag => $"{_page}|{QuestKey()}",
             _ => _page.ToString()
         };
 
@@ -212,6 +230,9 @@ namespace Hadal.UI
             listRect.Place(0.04f, _page == Page.Chat ? 0.085f : 0.02f, 0.96f, 0.875f);
             _footer.gameObject.SetActive(_page == Page.Chat);
 
+            if (_page != Page.HeroDetail)
+                _stage.Hide();
+
             switch (_page)
             {
                 case Page.Heroes: RenderHeroes(); break;
@@ -219,6 +240,9 @@ namespace Hadal.UI
                 case Page.PodResult: RenderPodResult(); break;
                 case Page.Alliance: RenderAlliance(); break;
                 case Page.Chat: RenderChat(force); break;
+                case Page.Quests: RenderQuests(); break;
+                case Page.Bag: RenderBag(); break;
+                case Page.Reward: RenderReward(); break;
             }
 
             if (_page == Page.Chat)
@@ -255,6 +279,7 @@ namespace Hadal.UI
                 CommandType.KickMember => Loc.T("alliance.kicked"),
                 CommandType.RequestHelp => Loc.T("alliance.help.requested"),
                 CommandType.HelpAll => Loc.T("alliance.help.sent"),
+                CommandType.RecruitHero => Loc.T("hero.recruited"),
                 _ => string.Empty
             };
             if (text.Length > 0)
@@ -300,6 +325,8 @@ namespace Hadal.UI
             var button = UiKit.Button("Action", card, label, () => onClick(), enabled ? fill ?? UiKit.Accent : UiKit.Panel, 34);
             button.interactable = enabled;
             ((RectTransform)button.transform).Place(x0, y0, x1, y1);
+            if (fill == UiKit.Field)
+                button.GetComponentInChildren<Text>().color = UiKit.Text; // light text on dark buttons
             return button;
         }
 

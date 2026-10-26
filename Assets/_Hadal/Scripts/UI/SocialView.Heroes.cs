@@ -57,9 +57,29 @@ namespace Hadal.UI
             return Loc.F("effect." + kind, change, kind == "production" ? Loc.Resource(subject) : string.Empty);
         }
 
-        /// <summary>A coloured tile with the hero's initial until painted portraits arrive.</summary>
+        /// <summary>The hero's painted portrait in a rarity-coloured frame (darkened until found); initials if it is missing.</summary>
         private static void Portrait(Transform parent, HeroDefinition hero, bool owned, float x0, float y0, float x1, float y1)
         {
+            var painted = Hadal.Core.Catalog.CharacterLibrary.Instance?.Portrait(hero.Portrait);
+            if (painted != null)
+            {
+                ColorUtility.TryParseHtmlString(RarityColor(hero.Rarity.id), out var rim);
+                var frame = UiKit.Box("PortraitFrame", parent, rim);
+                frame.rectTransform.Place(x0, y0, x1, y1, 6);
+                frame.raycastTarget = false;
+                var picture = UiKit.Rect("Portrait", frame.transform).gameObject.AddComponent<RawImage>();
+                picture.texture = painted;
+                picture.color = owned ? Color.white : new Color(0.22f, 0.25f, 0.28f, 1f);
+                picture.raycastTarget = false;
+                ((RectTransform)picture.transform).Place(0, 0, 1, 1, 4);
+                var band = UiKit.Box("Band", frame.transform, new Color(0f, 0f, 0f, 0.6f));
+                band.rectTransform.Place(0, 0, 1, 0.24f, 4);
+                band.raycastTarget = false;
+                var caption = UiKit.Label("Class", band.transform, Loc.T("class." + hero.HeroClass), 20, Color.white, TextAnchor.MiddleCenter, FontStyle.Bold);
+                caption.rectTransform.Place(0, 0, 1, 1);
+                return;
+            }
+
             ColorUtility.TryParseHtmlString("#" + hero.Color, out var tint);
             var tile = UiKit.Box("Portrait", parent, owned ? new Color(tint.r * 0.35f, tint.g * 0.35f, tint.b * 0.35f, 1f) : new Color(0.05f, 0.08f, 0.1f, 1f));
             tile.rectTransform.Place(x0, y0, x1, y1, 8);
@@ -166,7 +186,19 @@ namespace Hadal.UI
                 }
                 else
                 {
-                    CardText(card.transform, Loc.T("hero.locked"), 26, UiKit.Muted, 0.23f, 0.03f, 0.98f, 0.46f);
+                    // Hero cards collected towards recruiting this hero.
+                    var cards = View.HeroCards.TryGetValue(definition.Id, out var c) ? c : 0;
+                    var need = QuestRules.RecruitShards(definition);
+                    CardText(card.transform, Loc.F("hero.cards", cards, need), 24, cards >= need ? UiKit.Accent : UiKit.Muted, 0.23f, 0.25f, 0.7f, 0.46f);
+                    CardText(card.transform, Loc.T("hero.locked.how"), 20, UiKit.Muted, 0.23f, 0.03f, 0.7f, 0.25f);
+                    if (cards >= need)
+                    {
+                        var recruitId = definition.Id;
+                        CardButton(card.transform, Loc.T("hero.recruit"), true, () => _commands.Dispatch(new RecruitHeroCommand
+                        {
+                            CommandId = NewId(), ClientSequence = NextSequence(), HeroId = recruitId
+                        }), UiKit.Amber, 0.72f, 0.1f, 0.97f, 0.5f);
+                    }
                 }
 
                 var id = definition.Id;
@@ -199,12 +231,29 @@ namespace Hadal.UI
             var back = Card(90);
             CardButton(back.transform, "‹ " + Loc.T("hero.back"), true, () => Open(Page.Heroes), UiKit.Field, 0.01f, 0.08f, 0.35f, 0.92f);
 
-            var bio = Card(330);
-            Portrait(bio.transform, hero, owned, 0.01f, 0.03f, 0.3f, 0.97f);
-            CardText(bio.transform, Loc.T("hero." + hero.Id + ".bio"), 27, UiKit.Text, 0.33f, 0.05f, 0.97f, 0.95f);
+            // Animated 3D model (drag to turn, tap to wave) beside the painted portrait and the story.
+            var showcase = Card(640);
+            var stageTexture = _stage.Show(hero.Model);
+            if (stageTexture != null)
+            {
+                var stage = UiKit.Rect("Stage", showcase.transform).gameObject.AddComponent<RawImage>();
+                stage.texture = stageTexture;
+                stage.color = owned ? Color.white : new Color(0.25f, 0.28f, 0.3f, 1f);
+                ((RectTransform)stage.transform).Place(0.01f, 0.02f, 0.5f, 0.98f, 4);
+                stage.gameObject.AddComponent<HeroStageInput>().Stage = _stage;
+                CardText(showcase.transform, Loc.T("hero.stage.hint"), 20, UiKit.Muted, 0.02f, 0.02f, 0.5f, 0.09f, TextAnchor.LowerCenter);
+                Portrait(showcase.transform, hero, owned, 0.53f, 0.5f, 0.98f, 0.98f);
+                CardText(showcase.transform, Loc.T("hero." + hero.Id + ".bio"), 24, UiKit.Text, 0.53f, 0.03f, 0.98f, 0.48f);
+            }
+            else
+            {
+                Portrait(showcase.transform, hero, owned, 0.01f, 0.3f, 0.45f, 0.98f);
+                CardText(showcase.transform, Loc.T("hero." + hero.Id + ".bio"), 27, UiKit.Text, 0.48f, 0.05f, 0.97f, 0.95f);
+            }
 
             if (!owned)
             {
+                RecruitCard(hero, View.HeroCards.TryGetValue(hero.Id, out var cards) ? cards : 0);
                 Note(Loc.T("hero.locked.how"));
                 return;
             }

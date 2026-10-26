@@ -117,6 +117,7 @@ namespace Hadal.Game.Social
             {
                 _online[session.PublicId] = session;
                 var alliance = AllianceOf(session.PublicId);
+                session.SetInAlliance(alliance != null, now);
                 if (alliance != null)
                 {
                     UpdateMember(alliance, session.PublicId, session.DisplayName, session.Power);
@@ -214,6 +215,7 @@ namespace Hadal.Game.Social
             }
 
             _lastChat[session.PublicId] = now;
+            session.RecordEvent("chat", 1, now);
             Post(new ChatRecord(_nextChatId++, channel, session.PublicId, session.DisplayName, alliance?.Record.Tag ?? string.Empty, text, now, false), now);
             return SocialRejectReason.None;
         }
@@ -245,6 +247,7 @@ namespace Hadal.Game.Social
             _alliances[alliance.Record.Id] = alliance;
             Write(ct => _store.SaveAllianceAsync(alliance.Record, ct));
             AddMember(alliance, session.PublicId, session.DisplayName, session.Power, now);
+            session.SetInAlliance(true, now);
 
             session.Push(new List<EntityChangeDto> { HistoryChange(session.PublicId), HelpChange(session.PublicId, now) }, now);
             PushAlliance(alliance, now);
@@ -261,6 +264,7 @@ namespace Hadal.Game.Social
                 return SocialRejectReason.AllianceFull;
 
             AddMember(alliance, session.PublicId, session.DisplayName, session.Power, now);
+            session.SetInAlliance(true, now);
             SystemMessage(alliance, "sys.joined", session.DisplayName, now);
             session.Push(new List<EntityChangeDto> { HistoryChange(session.PublicId), HelpChange(session.PublicId, now) }, now);
             PushAlliance(alliance, now);
@@ -282,6 +286,8 @@ namespace Hadal.Game.Social
                 _help.Remove(request.Id);
 
             if (_online.TryGetValue(playerId, out var leaver))
+                leaver.SetInAlliance(false, now);
+            if (leaver != null)
                 leaver.Push(new List<EntityChangeDto>
                 {
                     new() { EntityId = EntityIds.MyAlliance, Kind = EntityChangeKind.Delete },
@@ -385,6 +391,9 @@ namespace Hadal.Game.Social
 
             if (helped == 0)
                 return SocialRejectReason.NothingToHelp;
+
+            if (_online.TryGetValue(helperId, out var helper))
+                helper.RecordEvent("help", helped, now);
 
             PushHelp(alliance, now);
             return SocialRejectReason.None;

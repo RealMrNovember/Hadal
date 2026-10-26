@@ -68,6 +68,25 @@ namespace Hadal.EditorTools
             var crew = go.AddComponent<CrewView>();
             crew.Configure(buildings, Pick("crew_engineer", "crew_medic", "crew_scientist"), Pick("mech_worker"));
             EditorUtility.SetDirty(crew);
+
+            // Heroes screen: every character model and painted portrait, by id (docs/25).
+            var library = go.AddComponent<Hadal.Core.Catalog.CharacterLibrary>();
+            var models = new List<Hadal.Core.Catalog.CharacterLibrary.ModelEntry>();
+            foreach (var pair in prefabs)
+                models.Add(new Hadal.Core.Catalog.CharacterLibrary.ModelEntry { id = pair.Key, prefab = pair.Value });
+            var portraits = new List<Hadal.Core.Catalog.CharacterLibrary.PortraitEntry>();
+            foreach (var guid in AssetDatabase.FindAssets("t:Texture2D", new[] { "Assets/_Hadal/Art/Portraits" }))
+            {
+                var path = AssetDatabase.GUIDToAssetPath(guid);
+                portraits.Add(new Hadal.Core.Catalog.CharacterLibrary.PortraitEntry
+                {
+                    id = System.IO.Path.GetFileNameWithoutExtension(path),
+                    texture = AssetDatabase.LoadAssetAtPath<Texture2D>(path)
+                });
+            }
+
+            library.Configure(models.ToArray(), portraits.ToArray());
+            EditorUtility.SetDirty(library);
         }
 
         private static void ConfigureAtmosphere()

@@ -46,6 +46,10 @@ namespace Hadal.Core.StateSync
                 view.ApplyResearch(snapshot.Research);
             if (snapshot.Heroes != null)
                 view.ApplyHeroes(snapshot.Heroes);
+            if (snapshot.Quests != null)
+                view.ApplyQuests(snapshot.Quests);
+            if (snapshot.Inventory != null)
+                view.ApplyInventory(snapshot.Inventory);
             if (!string.IsNullOrEmpty(snapshot.PlayerId))
                 view.PlayerId = snapshot.PlayerId;
 
@@ -134,6 +138,25 @@ namespace Hadal.Core.StateSync
             {
                 if (change.Kind != EntityChangeKind.Delete && TryDeserializePayload(change.Payload, serialization, out HeroRosterDto roster))
                     view.ApplyHeroes(roster);
+                return true;
+            }
+
+            if (id == EntityIds.Quests)
+            {
+                view.ApplyQuests(TryDeserializePayload(change.Payload, serialization, out QuestStateDto quests) ? quests : new QuestStateDto());
+                return true;
+            }
+
+            if (id == EntityIds.Inventory)
+            {
+                view.ApplyInventory(TryDeserializePayload(change.Payload, serialization, out InventoryDto inventory) ? inventory : new InventoryDto());
+                return true;
+            }
+
+            if (id.StartsWith(EntityIds.RewardReport, StringComparison.Ordinal))
+            {
+                if (TryDeserializePayload(change.Payload, serialization, out RewardReportDto report))
+                    view.AddRewardReport(report);
                 return true;
             }
 

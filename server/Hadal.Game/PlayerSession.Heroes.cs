@@ -81,6 +81,7 @@ namespace Hadal.Game
 
             _state.SincePity = sincePity;
             _state.IsDirty = true;
+            Record("pod", pulls.Count);
 
             SendDelta(now, new List<EntityChangeDto>
             {
@@ -108,6 +109,7 @@ namespace Hadal.Game
 
             BuildingProgression.Charge(HeroRules.LevelCost(_catalog, hero!, owned!.Level), _state.Wallet);
             owned.Level += 1;
+            Record("heroTrain");
             HeroChanged(command.CommandId, command.ClientSequence, now);
         }
 
@@ -153,6 +155,7 @@ namespace Hadal.Game
             AdvanceTo(now);
             RefreshModifiers();
             _state.IsDirty = true;
+            _questsDirty = true;
             SendDelta(now, new List<EntityChangeDto>
             {
                 HeroesChange(now),

@@ -91,6 +91,19 @@ namespace Hadal.Game
         /// <summary>When the next free Cryo-Pod pull is ready; null = now.</summary>
         public DateTimeOffset? FreePullAt { get; set; }
 
+        // Quests and bag (docs/27).
+        public int ChapterIndex { get; set; }
+        public Dictionary<string, long> QuestCounters { get; } = new(StringComparer.Ordinal);
+        public Dictionary<string, long> DailyCounters { get; } = new(StringComparer.Ordinal);
+        public int DailyDay { get; set; }
+        public HashSet<string> ClaimedDaily { get; } = new(StringComparer.Ordinal);
+        public int DailyPoints { get; set; }
+        public HashSet<int> ClaimedChests { get; } = new();
+        public Dictionary<string, int> Items { get; } = new(StringComparer.Ordinal);
+
+        /// <summary>Hero cards of heroes not owned yet; an owned hero keeps its shards on <see cref="OwnedHeroState"/>.</summary>
+        public Dictionary<string, int> HeroCards { get; } = new(StringComparer.Ordinal);
+
         /// <summary>Fractions of a unit (thousandths) carried between economy steps; not persisted.</summary>
         public Dictionary<ResourceType, long> CarryMilli { get; } = new();
 

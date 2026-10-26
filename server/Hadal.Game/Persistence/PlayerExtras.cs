@@ -18,7 +18,11 @@ namespace Hadal.Game.Persistence
 
         private sealed record Doc(
             Dictionary<string, int>? Research, List<ActiveDoc>? Active, Dictionary<string, BuildingDoc>? Buildings,
-            List<HeroDoc>? Heroes = null, int SincePity = 0, DateTimeOffset? FreePullAt = null);
+            List<HeroDoc>? Heroes = null, int SincePity = 0, DateTimeOffset? FreePullAt = null, QuestDoc? Quests = null);
+
+        private sealed record QuestDoc(
+            int ChapterIndex, Dictionary<string, long>? Counters, Dictionary<string, long>? Daily, int DailyDay,
+            List<string>? ClaimedDaily, int DailyPoints, List<int>? ClaimedChests, Dictionary<string, int>? Items, Dictionary<string, int>? HeroCards);
 
         public static string Write(PlayerState state)
         {
@@ -37,7 +41,10 @@ namespace Hadal.Game.Persistence
                 buildings,
                 state.Heroes.Select(h => new HeroDoc(h.HeroId, h.Level, h.Stars, h.Shards, h.Slot)).ToList(),
                 state.SincePity,
-                state.FreePullAt));
+                state.FreePullAt,
+                new QuestDoc(state.ChapterIndex, new Dictionary<string, long>(state.QuestCounters), new Dictionary<string, long>(state.DailyCounters),
+                    state.DailyDay, state.ClaimedDaily.ToList(), state.DailyPoints, state.ClaimedChests.ToList(),
+                    new Dictionary<string, int>(state.Items), new Dictionary<string, int>(state.HeroCards))));
         }
 
         /// <summary>Applies a stored document to a freshly loaded player (after its buildings).</summary>
@@ -68,6 +75,23 @@ namespace Hadal.Game.Persistence
                 state.Heroes.Add(new OwnedHeroState { HeroId = h.HeroId, Level = h.Level, Stars = h.Stars, Shards = h.Shards, Slot = h.Slot });
             state.SincePity = doc.SincePity;
             state.FreePullAt = doc.FreePullAt;
+
+            if (doc.Quests is { } q)
+            {
+                state.ChapterIndex = q.ChapterIndex;
+                foreach (var pair in q.Counters ?? new Dictionary<string, long>())
+                    state.QuestCounters[pair.Key] = pair.Value;
+                foreach (var pair in q.Daily ?? new Dictionary<string, long>())
+                    state.DailyCounters[pair.Key] = pair.Value;
+                state.DailyDay = q.DailyDay;
+                state.ClaimedDaily.UnionWith(q.ClaimedDaily ?? new List<string>());
+                state.DailyPoints = q.DailyPoints;
+                state.ClaimedChests.UnionWith(q.ClaimedChests ?? new List<int>());
+                foreach (var pair in q.Items ?? new Dictionary<string, int>())
+                    state.Items[pair.Key] = pair.Value;
+                foreach (var pair in q.HeroCards ?? new Dictionary<string, int>())
+                    state.HeroCards[pair.Key] = pair.Value;
+            }
 
             foreach (var b in state.Buildings)
             {

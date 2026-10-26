@@ -31,6 +31,9 @@ namespace Hadal.UI.Hud
             public Action Research;
             public Action Expand;
             public Action Settings;
+            public Action Quests;
+            public Action Bag;
+            public Action<string> ClaimQuest;
             public Action<string> Building;
             public Action<string, Color> Toast;
             public Func<bool> SheetOpen;
@@ -57,6 +60,10 @@ namespace Hadal.UI.Hud
         private GameObject _heroDot;
         private GameObject _allianceDot;
         private GameObject _helpDot;
+        private GameObject _questDot;
+        private GameObject _bagDot;
+        private string _taskQuest = string.Empty;
+        private bool _taskDone;
         private Text _chatPreview;
         private GameObject _chatDot;
         private RectTransform _queue;
@@ -157,14 +164,14 @@ namespace Hadal.UI.Hud
             SideButton(_lower.transform, "Expand", "left_expand", Loc.T("hud.expand"), 0.012f, 0.45f, 0.142f, 0.515f, _actions.Expand);
             SideButton(_lower.transform, "Research", "left_research", Loc.T("hud.research"), 0.012f, 0.37f, 0.142f, 0.435f, _actions.Research);
             _helpDot = SideButton(_lower.transform, "Help", "left_help", Loc.T("hud.help"), 0.012f, 0.29f, 0.142f, 0.355f, _actions.AllianceHelp).Dot;
-            SideButton(_lower.transform, "Search", "left_search", Loc.T("hud.search"), 0.012f, 0.21f, 0.142f, 0.275f, () => Soon("hud.search"));
+            _questDot = SideButton(_lower.transform, "Quests", "quest", Loc.T("hud.quests"), 0.012f, 0.21f, 0.142f, 0.275f, _actions.Quests).Dot;
         }
 
         private void BuildLowerRight()
         {
             _allianceDot = SideButton(_lower.transform, "Alliance", "side_alliance", Loc.T("social.alliance"), 0.845f, 0.37f, 0.985f, 0.44f, _actions.Alliance).Dot;
             SideButton(_lower.transform, "Mail", "side_mail", Loc.T("hud.mail"), 0.845f, 0.285f, 0.985f, 0.355f, () => Soon("hud.mail"));
-            SideButton(_lower.transform, "Bag", "side_bag", Loc.T("hud.bag"), 0.845f, 0.2f, 0.985f, 0.27f, () => Soon("hud.bag"));
+            _bagDot = SideButton(_lower.transform, "Bag", "side_bag", Loc.T("hud.bag"), 0.845f, 0.2f, 0.985f, 0.27f, _actions.Bag).Dot;
         }
 
         private void BuildQueue()
@@ -181,7 +188,11 @@ namespace Hadal.UI.Hud
         {
             var strip = Tap(_lower.transform, "Task", 0.012f, 0.125f, 0.66f, 0.18f, () =>
             {
-                if (_taskBuilding.Length > 0)
+                if (_taskDone && _taskQuest.Length > 0)
+                    _actions.ClaimQuest?.Invoke(_taskQuest);
+                else if (_taskQuest.Length > 0)
+                    _actions.Quests?.Invoke();
+                else if (_taskBuilding.Length > 0)
                     _actions.Building?.Invoke(_taskBuilding);
             }, new Color(0.02f, 0.05f, 0.08f, 0.75f));
             HudIcons.Image(strip, "quest", 0.0f, 0.0f, 0.16f, 1f);
@@ -376,9 +387,22 @@ namespace Hadal.UI.Hud
             }
         }
 
-        /// <summary>Suggests the next upgrade: the reactor when nothing else is behind it, otherwise the lowest building.</summary>
+        /// <summary>The current chapter task (claim it when done); without quests, the next upgrade to make.</summary>
         private void RefreshTask()
         {
+            var chapter = View.Quests?.Chapter;
+            if (chapter != null && _catalog.TryGetQuest(chapter.Id, out var quest, out _))
+            {
+                _taskQuest = quest.id;
+                _taskDone = chapter.Progress >= chapter.Target;
+                _task.text = _taskDone
+                    ? $"<color=#FFB74D>{Loc.T("quest.claim")}!</color>  {QuestText.Task(quest)}"
+                    : $"{QuestText.Task(quest)}  <color=#8AA9B5>({chapter.Progress}/{chapter.Target})</color>";
+                return;
+            }
+
+            _taskQuest = string.Empty;
+            _taskDone = false;
             var candidates = Buildings()
                 .Where(b => b.level > 0 && !b.IsUnderConstruction && _catalog.TryGetBuilding(b.definitionId, out var d) && b.level < d.MaxLevel)
                 .ToList();
@@ -399,6 +423,13 @@ namespace Hadal.UI.Hud
 
         private void RefreshSocial()
         {
+            var quests = View.Quests;
+            var questReady = quests != null && ((quests.Chapter != null && quests.Chapter.Progress >= quests.Chapter.Target)
+                || quests.Daily.Any(d => !d.Claimed && d.Progress >= d.Target)
+                || (_catalog.Quests.dailyChests ?? Array.Empty<DailyChestData>()).Any(c => quests.DailyPoints >= c.points && !quests.ClaimedChests.Contains(c.points)));
+            _questDot.SetActive(questReady);
+            _bagDot.SetActive(View.Items.Any(p => p.Value > 0)
+                || View.HeroCards.Any(p => _catalog.TryGetHero(p.Key, out var h) && p.Value >= QuestRules.RecruitShards(h)));
             _allianceDot.SetActive(View.MyAlliance != null && View.HelpRequests.Any(r => !r.HelpedByMe));
             _helpDot.SetActive(_allianceDot.activeSelf);
             _chatDot.SetActive(View.UnreadChat > 0);
