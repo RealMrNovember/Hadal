@@ -26,5 +26,30 @@ namespace HADAL.Shared.Protocol
 
         /// <summary>Prefix of one-off salvage results (<c>SalvageReportDto</c>), followed by the building id.</summary>
         public const string SalvageReport = Base + "salvage:";
+
+        /// <summary>Owned heroes, crew and Cryo-Pod state (<c>HeroRosterDto</c>).</summary>
+        public const string Heroes = Base + "heroes";
+
+        /// <summary>Prefix of one-off Cryo-Pod results (<c>GachaResultDto</c>), followed by the command id.</summary>
+        public const string GachaResult = Base + "gacha:";
+
+        public const string Chat = "chat:";
+
+        /// <summary>Recent messages of every channel the player can read, sent on login (<c>ChatHistoryDto</c>).</summary>
+        public const string ChatHistory = Chat + "history";
+
+        /// <summary>Prefix of one new chat line (<c>ChatMessageDto</c>), followed by its id.</summary>
+        public const string ChatMessage = Chat + "msg:";
+
+        public const string Alliance = "alliance:";
+
+        /// <summary>The player's alliance (<c>AllianceDto</c>); Delete when the player has none.</summary>
+        public const string MyAlliance = Alliance + "mine";
+
+        /// <summary>Browse results (<c>AllianceListDto</c>).</summary>
+        public const string AllianceList = Alliance + "list";
+
+        /// <summary>Open help requests of alliance mates (<c>HelpListDto</c>).</summary>
+        public const string AllianceHelp = Alliance + "help";
     }
 }

@@ -1,5 +1,6 @@
 using Hadal.Game;
 using Hadal.Game.Persistence;
+using Hadal.Game.Social;
 using Hadal.Gateway;
 using Hadal.Gateway.Admin;
 using Hadal.Gateway.Auth;
@@ -27,6 +28,7 @@ if (string.IsNullOrWhiteSpace(connectionString))
     builder.Services.AddSingleton<IPlayerRepository, InMemoryPlayerRepository>();
     builder.Services.AddSingleton<IAccountStore, InMemoryAccountStore>();
     builder.Services.AddSingleton<IAdminStore, InMemoryAdminStore>();
+    builder.Services.AddSingleton<ISocialStore, InMemorySocialStore>();
 }
 else
 {
@@ -34,13 +36,14 @@ else
     builder.Services.AddSingleton<IPlayerRepository, PostgresPlayerRepository>();
     builder.Services.AddSingleton<IAccountStore, PostgresAccountStore>();
     builder.Services.AddSingleton<IAdminStore, PostgresAdminStore>();
+    builder.Services.AddSingleton<ISocialStore, PostgresSocialStore>();
 }
 
 builder.Services.AddHadalAuth(builder.Configuration);
 builder.Services.AddHadalAdmin(builder.Configuration);
 
 builder.Services.AddSingleton(sp => new GameWorld(
-    sp.GetRequiredService<CatalogRuntime>(), sp.GetRequiredService<IPlayerRepository>(), sp.GetRequiredService<IClock>(),
+    sp.GetRequiredService<CatalogRuntime>(), sp.GetRequiredService<IPlayerRepository>(), sp.GetRequiredService<ISocialStore>(), sp.GetRequiredService<IClock>(),
     sp.GetRequiredService<INetworkSerializer>(), sp.GetRequiredService<ILogger<GameWorld>>()));
 builder.Services.AddHostedService<GameTickService>();
 builder.Services.AddSingleton<GatewaySessionHandler>();

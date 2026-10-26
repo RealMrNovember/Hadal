@@ -46,6 +46,8 @@ namespace Hadal.UI
         private Text _toast;
         private float _toastUntil;
         private Button _expand;
+        private SocialView _social;
+        private readonly HashSet<string> _helpRequested = new();
         private bool _expandOpen;
         private string _confirmRemove = string.Empty;
 
@@ -133,6 +135,12 @@ namespace Hadal.UI
             outline.effectDistance = new Vector2(2, -2);
 
             _sheet.gameObject.SetActive(false);
+
+            // Heroes, alliance and chat share this view's services.
+            var social = new GameObject("SocialUi");
+            social.transform.SetParent(transform, false);
+            _social = social.AddComponent<SocialView>();
+            _social.Initialize(_stateSync, _commands, _localBus);
         }
 
         // --- Events --------------------------------------------------------------------------
@@ -208,7 +216,8 @@ namespace Hadal.UI
 
             UpdateTimers();
             ShowSalvageReports();
-            _expand.gameObject.SetActive(!IsOpen);
+            _expand.gameObject.SetActive(!IsOpen && !_social.IsOpen);
+            _social.AllowBar(!IsOpen);
 
             if (_toast.text.Length > 0 && Time.unscaledTime > _toastUntil)
                 _toast.text = string.Empty;
@@ -381,6 +390,15 @@ namespace Hadal.UI
                     free ? string.Empty : Loc.Reason(nameof(ConstructionRejectReason.NotYetFree)),
                     Loc.T("base.finish"), free, () => Finish(key));
 
+                // Alliance mates can shave time off a running construction (docs/25).
+                if (_stateSync.View.MyAlliance != null && !free)
+                {
+                    var asked = _helpRequested.Contains(key + ":" + building.level);
+                    var level = building.level;
+                    AddCard(Loc.T("alliance.help.ask.title"), string.Empty, string.Empty, string.Empty,
+                        asked ? Loc.T("alliance.help.asked") : Loc.T("alliance.help.ask"), !asked, () => AskHelp(key, level));
+                }
+
                 // A first construction can be called off for everything back; upgrades must finish.
                 if (building.level == 0)
                     AddRemoveCard(building, definition);
@@ -541,6 +559,18 @@ namespace Hadal.UI
                 ClientSequence = ++_sequence,
                 Ring = ring
             });
+
+        private void AskHelp(string instanceKey, int level)
+        {
+            _helpRequested.Add(instanceKey + ":" + level);
+            _commands.Dispatch(new RequestHelpCommand
+            {
+                CommandId = Guid.NewGuid().ToString("N"),
+                ClientSequence = ++_sequence,
+                BuildingEntityId = instanceKey
+            });
+            Render();
+        }
 
         private void Finish(string instanceKey) =>
             _commands.Dispatch(new FinishConstructionCommand

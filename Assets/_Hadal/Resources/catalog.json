@@ -1,5 +1,5 @@
 {
-  "version": 4,
+  "version": 5,
   "_note": "Single source of truth for buildings, resources and base layout. Read by the server (validation, economy) and by Hadal > Setup in Unity (ScriptableObjects). Rules and the balance table: docs/23_Base_Management.md. Rates are per simulation tick (SimulationTick.IntervalSeconds) at level 1. buildCost/buildSeconds are for level 1; higher levels scale by progression.costGrowth/timeGrowth. requiredReactorLevel gates a building, maxCount caps how many a base may own.",
   "resources": [
     { "type": "Oxygen",   "displayName": "Oxygen",   "description": "Base survival resource.", "startingAmount": 600, "maxCapacity": 6000,  "critical": true },
@@ -7,7 +7,7 @@
     { "type": "Food",     "displayName": "Food",     "description": "Crew sustenance.",        "startingAmount": 400, "maxCapacity": 5000,  "critical": true },
     { "type": "Biomass",  "displayName": "Biomass",  "description": "Organic material.",       "startingAmount": 200, "maxCapacity": 6000,  "critical": false },
     { "type": "Titanium", "displayName": "Titanium", "description": "Construction alloy.",     "startingAmount": 500, "maxCapacity": 25000, "critical": false },
-    { "type": "Hadalite", "displayName": "Hadalite", "description": "Deep abyss crystal.",     "startingAmount": 0,   "maxCapacity": 1000,  "critical": false }
+    { "type": "Hadalite", "displayName": "Hadalite", "description": "Deep abyss crystal.",     "startingAmount": 100, "maxCapacity": 1000,  "critical": false }
   ],
   "progression": { "maxLevel": 50, "costGrowth": 1.09, "timeGrowth": 1.12, "freeFinishSeconds": 300, "builderSlots": 1, "removeRefundPercent": 50 },
   "buildings": [
@@ -99,9 +99,34 @@
   "overdrive": {"percent": 50, "seconds": 3600, "cooldownSeconds": 28800},
   "salvageMissions": [
     {"id": "quick", "seconds": 900, "rewards": [{"resource": "Titanium", "amount": 1500}], "levelBonusPercent": 10, "hadaliteChancePercent": 0, "hadaliteMin": 0, "hadaliteMax": 0},
-    {"id": "standard", "seconds": 3600, "rewards": [{"resource": "Titanium", "amount": 5000}, {"resource": "Biomass", "amount": 400}], "levelBonusPercent": 10, "hadaliteChancePercent": 10, "hadaliteMin": 1, "hadaliteMax": 2},
-    {"id": "deep", "seconds": 14400, "rewards": [{"resource": "Titanium", "amount": 15000}, {"resource": "Biomass", "amount": 1500}], "levelBonusPercent": 10, "hadaliteChancePercent": 30, "hadaliteMin": 2, "hadaliteMax": 5}
+    {"id": "standard", "seconds": 3600, "rewards": [{"resource": "Titanium", "amount": 5000}, {"resource": "Biomass", "amount": 400}], "levelBonusPercent": 10, "hadaliteChancePercent": 25, "hadaliteMin": 2, "hadaliteMax": 4},
+    {"id": "deep", "seconds": 14400, "rewards": [{"resource": "Titanium", "amount": 15000}, {"resource": "Biomass", "amount": 1500}], "levelBonusPercent": 10, "hadaliteChancePercent": 60, "hadaliteMin": 4, "hadaliteMax": 8}
   ],
+  "heroes": {
+    "maxStars": 5, "levelCapPerStar": 10, "starterHeroId": "mara",
+    "levelCost": [{"resource": "Titanium", "amount": 150}, {"resource": "Biomass", "amount": 100}], "levelCostGrowth": 1.08,
+    "shardsPerStar": [10, 20, 40, 80],
+    "crewSlotReactorLevels": [1, 5, 10],
+    "rarities": [
+      {"id": "common",    "weight": 65, "duplicateShards": 10, "costMultiplier": 1.0, "basePower": 100},
+      {"id": "rare",      "weight": 25, "duplicateShards": 10, "costMultiplier": 1.2, "basePower": 150},
+      {"id": "epic",      "weight": 8,  "duplicateShards": 15, "costMultiplier": 1.5, "basePower": 220},
+      {"id": "legendary", "weight": 2,  "duplicateShards": 20, "costMultiplier": 2.0, "basePower": 320}
+    ],
+    "pod": {"cost": [{"resource": "Hadalite", "amount": 20}], "tenCost": [{"resource": "Hadalite", "amount": 180}], "freeSeconds": 86400, "pity": 30, "pityRarity": "epic"},
+    "list": [
+      {"id": "mara",  "heroClass": "Commander", "faction": "AtlanticUnion", "rarity": "common",    "effect": "buildTime",           "effectBase": -3, "effectPerLevelTenths": -2, "effectPerStar": -2, "color": "4FC3F7"},
+      {"id": "lyra",  "heroClass": "Medic",     "faction": "PacificOrder",  "rarity": "common",    "effect": "production:Oxygen",   "effectBase": 3,  "effectPerLevelTenths": 2,  "effectPerStar": 2,  "color": "80DEEA"},
+      {"id": "tess",  "heroClass": "Engineer",  "faction": "AtlanticUnion", "rarity": "common",    "effect": "production:Titanium", "effectBase": 3,  "effectPerLevelTenths": 2,  "effectPerStar": 2,  "color": "B0BEC5"},
+      {"id": "kael",  "heroClass": "Hunter",    "faction": "Deepborn",      "rarity": "rare",      "effect": "production:Food",     "effectBase": 4,  "effectPerLevelTenths": 3,  "effectPerStar": 3,  "color": "81C784"},
+      {"id": "orin",  "heroClass": "Scientist", "faction": "PacificOrder",  "rarity": "rare",      "effect": "researchTime",        "effectBase": -4, "effectPerLevelTenths": -3, "effectPerStar": -3, "color": "9575CD"},
+      {"id": "juno",  "heroClass": "Pilot",     "faction": "ForgottenOnes", "rarity": "epic",      "effect": "production:Energy",   "effectBase": 5,  "effectPerLevelTenths": 4,  "effectPerStar": 4,  "color": "FFB74D"},
+      {"id": "sable", "heroClass": "Engineer",  "faction": "AbyssCult",     "rarity": "epic",      "effect": "capacity:All",        "effectBase": 5,  "effectPerLevelTenths": 4,  "effectPerStar": 4,  "color": "E57373"},
+      {"id": "aelis", "heroClass": "Scientist", "faction": "Deepborn",      "rarity": "legendary", "effect": "production:Biomass",  "effectBase": 8,  "effectPerLevelTenths": 5,  "effectPerStar": 5,  "color": "64FFDA"}
+    ]
+  },
+  "alliance": {"createCost": [{"resource": "Titanium", "amount": 3000}], "maxMembers": 30, "nameMin": 3, "nameMax": 20, "tagMin": 3, "tagMax": 4, "maxHelps": 10, "helpPercent": 1, "helpMinSeconds": 60},
+  "chat": {"maxLength": 200, "minIntervalSeconds": 2, "history": 50},
   "ringUnlocks": [
     { "ring": 5,  "reactorLevel": 3,  "cost": [ { "resource": "Titanium", "amount": 400 },  { "resource": "Biomass", "amount": 100 } ] },
     { "ring": 6,  "reactorLevel": 4,  "cost": [ { "resource": "Titanium", "amount": 800 },  { "resource": "Biomass", "amount": 200 } ] },

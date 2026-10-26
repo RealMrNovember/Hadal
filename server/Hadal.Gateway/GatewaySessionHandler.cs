@@ -22,16 +22,18 @@ namespace Hadal.Gateway
         private readonly GameWorld _world;
         private readonly TokenService _tokens;
         private readonly Admin.IAdminStore _admin;
+        private readonly IAccountStore _accounts;
         private readonly GatewayOptions _options;
         private readonly ILogger<GatewaySessionHandler> _logger;
 
         public GatewaySessionHandler(INetworkSerializer serializer, GameWorld world, TokenService tokens, Admin.IAdminStore admin,
-            IOptions<GatewayOptions> options, ILogger<GatewaySessionHandler> logger)
+            IAccountStore accounts, IOptions<GatewayOptions> options, ILogger<GatewaySessionHandler> logger)
         {
             _serializer = serializer;
             _world = world;
             _tokens = tokens;
             _admin = admin;
+            _accounts = accounts;
             _options = options.Value;
             _logger = logger;
 
@@ -131,7 +133,10 @@ namespace Hadal.Gateway
             }
 
             // Snapshot follows the ack on the same ordered outbox.
-            return await _world.ConnectAsync(token.AccountId.ToString("N"), connection, cancellationToken);
+            // Chat and alliances show the account's display name.
+            var profile = await _accounts.GetProfileAsync(token.AccountId, cancellationToken);
+            var name = string.IsNullOrWhiteSpace(profile?.DisplayName) ? AccountNames.Default(token.AccountId) : profile!.DisplayName;
+            return await _world.ConnectAsync(token.AccountId.ToString("N"), connection, cancellationToken, name);
         }
 
         private static async Task<byte[]?> ReceiveFrameAsync(WebSocket socket, CancellationToken cancellationToken)

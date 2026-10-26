@@ -138,7 +138,7 @@ namespace Hadal.Game.Tests
 
             var again = new RecordingConnection();
             await _world.ConnectAsync("device-a", again, default);
-            Assert.DoesNotContain(again.Messages.Single().Snapshot().Buildings, b => b.EntityId == plant);
+            Assert.DoesNotContain(again.Messages.First().Snapshot().Buildings, b => b.EntityId == plant);
         }
 
         [Fact]
@@ -163,7 +163,7 @@ namespace Hadal.Game.Tests
         public async Task Rings_OpenInOrder_WithReactorLevel_Cost_And_MegaDome()
         {
             var (session, connection) = await Connect();
-            Assert.Equal(4, connection.Messages.Single().Snapshot().UnlockedRings);
+            Assert.Equal(4, connection.Messages.First().Snapshot().UnlockedRings);
             Rich(session);
 
             _world.HandleCommand(session, TestSupport.Place("oxygen_plant", 5, 0));

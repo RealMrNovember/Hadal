@@ -138,6 +138,8 @@ Client rendering; encounter triggers from server NetworkEvents → Translator.
 
 Server combat stats. Client animation from LocalEventBus.
 
+**Status (2026-10-26):** 🟡 Base part done: 8 heroes, Cryo-Pod (pity, daily free pull), training, star promotion with shards, a 3-slot command crew whose skills feed the economy ([25_Heroes_Alliance_Chat.md](./25_Heroes_Alliance_Chat.md)). Combat stats and painted portraits remain.
+
 ---
 
 ## Phase 10 — Combat
@@ -155,6 +157,8 @@ Server world state. Client map view.
 ## Phase 12 — Alliance
 
 Server sharded alliance state.
+
+**Status (2026-10-26):** 🟡 First part done on one node: found/join/leave/kick, browse and search, alliance help on constructions, world and alliance chat with Overseer moderation ([25_Heroes_Alliance_Chat.md](./25_Heroes_Alliance_Chat.md)). Shared alliance buildings, sieges and sharding remain.
 
 ---
 

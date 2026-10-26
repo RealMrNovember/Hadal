@@ -67,6 +67,19 @@ namespace HADAL.Shared.Catalog
         public int HadaliteMax { get; internal set; }
     }
 
+    public sealed class HeroDefinition
+    {
+        public string Id { get; internal set; } = string.Empty;
+        public string HeroClass { get; internal set; } = string.Empty;
+        public string Faction { get; internal set; } = string.Empty;
+        public HeroRarityData Rarity { get; internal set; } = new HeroRarityData();
+        public string Effect { get; internal set; } = string.Empty;
+        public int EffectBase { get; internal set; }
+        public int EffectPerLevelTenths { get; internal set; }
+        public int EffectPerStar { get; internal set; }
+        public string Color { get; internal set; } = string.Empty;
+    }
+
     public sealed class RingUnlock
     {
         public int Ring { get; internal set; }
@@ -89,6 +102,8 @@ namespace HADAL.Shared.Catalog
         private readonly List<ResearchNode> _research = new List<ResearchNode>();
         private readonly Dictionary<string, ResearchNode> _researchById = new Dictionary<string, ResearchNode>(StringComparer.Ordinal);
         private readonly List<SalvageMission> _salvage = new List<SalvageMission>();
+        private readonly List<HeroDefinition> _heroes = new List<HeroDefinition>();
+        private readonly Dictionary<string, HeroDefinition> _heroesById = new Dictionary<string, HeroDefinition>(StringComparer.Ordinal);
 
         private GameCatalog(GameCatalogData data)
         {
@@ -118,6 +133,20 @@ namespace HADAL.Shared.Catalog
         public OverdriveData Overdrive => Data.overdrive ?? new OverdriveData();
 
         public IReadOnlyList<SalvageMission> SalvageMissions => _salvage;
+
+        public HeroCatalogData HeroRules => Data.heroes ?? new HeroCatalogData();
+
+        /// <summary>Heroes in catalog order.</summary>
+        public IReadOnlyList<HeroDefinition> Heroes => _heroes;
+
+        public IReadOnlyList<KeyValuePair<ResourceType, long>> HeroLevelCost { get; private set; } = Array.Empty<KeyValuePair<ResourceType, long>>();
+        public IReadOnlyList<KeyValuePair<ResourceType, long>> PodCost { get; private set; } = Array.Empty<KeyValuePair<ResourceType, long>>();
+        public IReadOnlyList<KeyValuePair<ResourceType, long>> PodTenCost { get; private set; } = Array.Empty<KeyValuePair<ResourceType, long>>();
+
+        public AllianceCatalogData Alliance => Data.alliance ?? new AllianceCatalogData();
+        public IReadOnlyList<KeyValuePair<ResourceType, long>> AllianceCreateCost { get; private set; } = Array.Empty<KeyValuePair<ResourceType, long>>();
+
+        public ChatCatalogData Chat => Data.chat ?? new ChatCatalogData();
 
         /// <summary>Parses and validates. Throws <see cref="FormatException"/> listing every problem.</summary>
         public static GameCatalog Create(GameCatalogData data)
@@ -283,6 +312,9 @@ namespace HADAL.Shared.Catalog
                 });
             }
 
+            ParseHeroes(catalog, data, errors);
+            catalog.AllianceCreateCost = ParseAmounts("alliance", "createCost", (data.alliance ?? new AllianceCatalogData()).createCost, errors);
+
             foreach (var unlock in data.ringUnlocks ?? Array.Empty<RingUnlockData>())
             {
                 if (unlock == null)
@@ -320,6 +352,66 @@ namespace HADAL.Shared.Catalog
         {
             node = null!;
             return !string.IsNullOrEmpty(id) && _researchById.TryGetValue(id, out node);
+        }
+
+        public bool TryGetHero(string id, out HeroDefinition hero)
+        {
+            hero = null!;
+            return !string.IsNullOrEmpty(id) && _heroesById.TryGetValue(id, out hero);
+        }
+
+        public bool TryGetRarity(string id, out HeroRarityData rarity)
+        {
+            rarity = Array.Find(HeroRules.rarities ?? Array.Empty<HeroRarityData>(), r => r != null && r.id == id)!;
+            return rarity != null;
+        }
+
+        private static void ParseHeroes(GameCatalog catalog, GameCatalogData data, List<string> errors)
+        {
+            var rules = data.heroes ?? new HeroCatalogData();
+            catalog.HeroLevelCost = ParseAmounts("heroes", "levelCost", rules.levelCost, errors);
+            catalog.PodCost = ParseAmounts("heroes.pod", "cost", (rules.pod ?? new CryoPodData()).cost, errors);
+            catalog.PodTenCost = ParseAmounts("heroes.pod", "tenCost", (rules.pod ?? new CryoPodData()).tenCost, errors);
+
+            foreach (var hero in rules.list ?? Array.Empty<HeroData>())
+            {
+                if (hero == null || string.IsNullOrEmpty(hero.id))
+                {
+                    errors.Add("heroes: hero without id");
+                    continue;
+                }
+
+                if (catalog._heroesById.ContainsKey(hero.id))
+                    errors.Add($"hero '{hero.id}': duplicate id");
+                if (!catalog.TryGetRarity(hero.rarity, out var rarity))
+                {
+                    errors.Add($"hero '{hero.id}': unknown rarity '{hero.rarity}'");
+                    rarity = new HeroRarityData { id = hero.rarity };
+                }
+
+                if (!Simulation.HeroRules.IsKnownEffect(hero.effect))
+                    errors.Add($"hero '{hero.id}': unknown effect '{hero.effect}'");
+
+                var parsed = new HeroDefinition
+                {
+                    Id = hero.id,
+                    HeroClass = hero.heroClass ?? string.Empty,
+                    Faction = hero.faction ?? string.Empty,
+                    Rarity = rarity,
+                    Effect = hero.effect ?? string.Empty,
+                    EffectBase = hero.effectBase,
+                    EffectPerLevelTenths = hero.effectPerLevelTenths,
+                    EffectPerStar = hero.effectPerStar,
+                    Color = hero.color ?? string.Empty
+                };
+                catalog._heroes.Add(parsed);
+                catalog._heroesById[hero.id] = parsed;
+            }
+
+            if (!string.IsNullOrEmpty(rules.starterHeroId) && !catalog._heroesById.ContainsKey(rules.starterHeroId))
+                errors.Add($"heroes: unknown starterHeroId '{rules.starterHeroId}'");
+            if (!string.IsNullOrEmpty(rules.pod?.pityRarity) && catalog._heroes.Count > 0 && !catalog.TryGetRarity(rules.pod!.pityRarity, out _))
+                errors.Add($"heroes.pod: unknown pityRarity '{rules.pod.pityRarity}'");
         }
 
         public bool TryGetSalvageMission(string id, out SalvageMission mission)

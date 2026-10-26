@@ -26,6 +26,9 @@ namespace HADAL.Shared.DTOs
         /// <summary>Research levels and running researches (docs/24); null from older servers.</summary>
         [ProtoMember(7)] public ResearchStateDto? Research { get; set; }
 
+        /// <summary>Heroes and the Cryo-Pod (docs/25); null from older servers.</summary>
+        [ProtoMember(8)] public HeroRosterDto? Heroes { get; set; }
+
         [ProtoBeforeSerialization]
         private void BeforeSerialize() => BuildingsWire = Buildings?.ToArray() ?? System.Array.Empty<BuildingStateDto>();
 

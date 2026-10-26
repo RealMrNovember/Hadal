@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using Hadal.Game.Persistence;
+using Hadal.Game.Social;
 using HADAL.Shared.Catalog;
 using HADAL.Shared.Commands;
 using HADAL.Shared.Enums;
@@ -40,13 +41,28 @@ namespace Hadal.Game
             IClock clock,
             INetworkSerializer serializer,
             ILogger<GameWorld> logger)
+            : this(runtime, repository, new InMemorySocialStore(), clock, serializer, logger)
+        {
+        }
+
+        public GameWorld(
+            CatalogRuntime runtime,
+            IPlayerRepository repository,
+            ISocialStore socialStore,
+            IClock clock,
+            INetworkSerializer serializer,
+            ILogger<GameWorld> logger)
         {
             _runtime = runtime;
             _repository = repository;
             _clock = clock;
             _serializer = serializer;
             _logger = logger;
+            Social = new SocialHub(socialStore, runtime, serializer, logger);
         }
+
+        /// <summary>Chat, alliances and alliance help (docs/25).</summary>
+        public SocialHub Social { get; }
 
         public int SessionCount => _sessions.Count;
 
@@ -125,7 +141,8 @@ namespace Hadal.Game
             return true;
         }
 
-        public async Task<PlayerSession> ConnectAsync(string identityKey, IClientConnection connection, CancellationToken cancellationToken)
+        public async Task<PlayerSession> ConnectAsync(string identityKey, IClientConnection connection, CancellationToken cancellationToken,
+            string? displayName = null)
         {
             if (string.IsNullOrWhiteSpace(identityKey))
                 throw new ArgumentException("Identity key (account id) is required.", nameof(identityKey));
@@ -142,12 +159,18 @@ namespace Hadal.Game
                     _sessions[identityKey] = session;
                 }
 
-                var previous = session.Attach(connection, _clock.UtcNow);
+                var now = _clock.UtcNow;
+                session.DisplayName = string.IsNullOrWhiteSpace(displayName) ? "Diver" : displayName;
+                session.ApplyOfflineHelps(Social.TakeOfflineHelps(session.PublicId), now);
+
+                var previous = session.Attach(connection, now);
                 if (previous != null && !ReferenceEquals(previous, connection))
                 {
                     _logger.LogInformation("Player {PlayerId} reconnected; closing previous connection.", session.PlayerId);
                     previous.Close("replaced by a newer connection");
                 }
+
+                Social.OnConnected(session, now);
 
                 return session;
             }
@@ -157,14 +180,21 @@ namespace Hadal.Game
             }
         }
 
-        public void HandleCommand(PlayerSession session, CommandEnvelope envelope) =>
-            session.HandleCommand(envelope, _clock.UtcNow);
+        public void HandleCommand(PlayerSession session, CommandEnvelope envelope)
+        {
+            if (SocialHub.Handles(envelope.Type))
+                Social.Handle(session, envelope, _clock.UtcNow);
+            else
+                session.HandleCommand(envelope, _clock.UtcNow);
+        }
 
         /// <summary>Detaches, saves and unloads the session if this connection still owns it.</summary>
         public async Task DisconnectAsync(PlayerSession session, IClientConnection connection, CancellationToken cancellationToken)
         {
             if (!session.Detach(connection, _clock.UtcNow))
                 return;
+
+            Social.OnDisconnected(session, _clock.UtcNow);
 
             await SaveAsync(session, cancellationToken);
 

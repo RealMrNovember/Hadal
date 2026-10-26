@@ -28,6 +28,7 @@ namespace Hadal.Game
         public override async Task StartAsync(CancellationToken cancellationToken)
         {
             await _repository.InitializeAsync(cancellationToken);
+            await _world.Social.InitializeAsync(cancellationToken);
             await base.StartAsync(cancellationToken);
         }
 

@@ -39,6 +39,18 @@ namespace Hadal.Game
         public int Seconds { get; init; }
     }
 
+    /// <summary>An owned hero (docs/25).</summary>
+    public sealed class OwnedHeroState
+    {
+        public string HeroId { get; init; } = string.Empty;
+        public int Level { get; set; } = 1;
+        public int Stars { get; set; } = 1;
+        public int Shards { get; set; }
+
+        /// <summary>Command crew slot, -1 when off the crew.</summary>
+        public int Slot { get; set; } = -1;
+    }
+
     /// <summary>
     /// Authoritative per-player state. Mutated only by <see cref="PlayerSession"/> under its lock.
     /// </summary>
@@ -69,6 +81,15 @@ namespace Hadal.Game
         public Dictionary<string, int> ResearchLevels { get; } = new(StringComparer.Ordinal);
 
         public List<ActiveResearch> ActiveResearch { get; } = new();
+
+        /// <summary>Owned heroes (docs/25).</summary>
+        public List<OwnedHeroState> Heroes { get; } = new();
+
+        /// <summary>Cryo-Pod pulls since the last guaranteed-rarity hero.</summary>
+        public int SincePity { get; set; }
+
+        /// <summary>When the next free Cryo-Pod pull is ready; null = now.</summary>
+        public DateTimeOffset? FreePullAt { get; set; }
 
         /// <summary>Fractions of a unit (thousandths) carried between economy steps; not persisted.</summary>
         public Dictionary<ResourceType, long> CarryMilli { get; } = new();

@@ -125,6 +125,17 @@ namespace Hadal.Core.Network
                 OverdriveCommand => CommandType.Overdrive,
                 StartSalvageCommand => CommandType.StartSalvage,
                 ExecuteGachaCommand => CommandType.ExecuteGacha,
+                LevelUpHeroCommand => CommandType.LevelUpHero,
+                PromoteHeroCommand => CommandType.PromoteHero,
+                AssignHeroCommand => CommandType.AssignHero,
+                SendChatCommand => CommandType.SendChat,
+                CreateAllianceCommand => CommandType.CreateAlliance,
+                JoinAllianceCommand => CommandType.JoinAlliance,
+                LeaveAllianceCommand => CommandType.LeaveAlliance,
+                BrowseAlliancesCommand => CommandType.BrowseAlliances,
+                KickMemberCommand => CommandType.KickMember,
+                RequestHelpCommand => CommandType.RequestHelp,
+                HelpAllCommand => CommandType.HelpAll,
                 _ => CommandType.Unknown
             };
         }

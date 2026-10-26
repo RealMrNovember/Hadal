@@ -44,6 +44,10 @@ namespace Hadal.Core.StateSync
             view.ApplyProduction(snapshot.Production);
             if (snapshot.Research != null)
                 view.ApplyResearch(snapshot.Research);
+            if (snapshot.Heroes != null)
+                view.ApplyHeroes(snapshot.Heroes);
+            if (!string.IsNullOrEmpty(snapshot.PlayerId))
+                view.PlayerId = snapshot.PlayerId;
 
             view.MarkCaptured();
         }
@@ -109,6 +113,9 @@ namespace Hadal.Core.StateSync
                     continue;
                 }
 
+                if (ApplySocialChange(view, change, serialization))
+                    continue;
+
                 if (change.EntityId == EntityIds.BaseLayout && change.Kind != EntityChangeKind.Delete
                     && TryDeserializePayload(change.Payload, serialization, out BaseLayoutDto layout) && layout.UnlockedRings > 0)
                 {
@@ -117,6 +124,64 @@ namespace Hadal.Core.StateSync
             }
 
             view.MarkCaptured();
+        }
+
+        /// <summary>Heroes, Cryo-Pod results, chat and alliance entities (docs/25). True when the change was one of them.</summary>
+        private static bool ApplySocialChange(ClientStateView view, EntityChangeDto change, NetworkSerializationLayer serialization)
+        {
+            var id = change.EntityId;
+            if (id == EntityIds.Heroes)
+            {
+                if (change.Kind != EntityChangeKind.Delete && TryDeserializePayload(change.Payload, serialization, out HeroRosterDto roster))
+                    view.ApplyHeroes(roster);
+                return true;
+            }
+
+            if (id.StartsWith(EntityIds.GachaResult, StringComparison.Ordinal))
+            {
+                if (TryDeserializePayload(change.Payload, serialization, out GachaResultDto result))
+                    view.AddGachaResult(result);
+                return true;
+            }
+
+            if (id == EntityIds.ChatHistory)
+            {
+                if (TryDeserializePayload(change.Payload, serialization, out ChatHistoryDto history))
+                    view.ApplyChatHistory(history);
+                else if (change.Kind != EntityChangeKind.Delete)
+                    view.ApplyChatHistory(new ChatHistoryDto()); // an empty history serializes to nothing
+                return true;
+            }
+
+            if (id.StartsWith(EntityIds.ChatMessage, StringComparison.Ordinal))
+            {
+                if (TryDeserializePayload(change.Payload, serialization, out ChatMessageDto message))
+                    view.AddChat(message);
+                return true;
+            }
+
+            if (id == EntityIds.MyAlliance)
+            {
+                if (change.Kind == EntityChangeKind.Delete)
+                    view.ApplyMyAlliance(null);
+                else if (TryDeserializePayload(change.Payload, serialization, out AllianceDto alliance))
+                    view.ApplyMyAlliance(alliance);
+                return true;
+            }
+
+            if (id == EntityIds.AllianceList)
+            {
+                view.ApplyAllianceBrowse(TryDeserializePayload(change.Payload, serialization, out AllianceListDto list) ? list : new AllianceListDto());
+                return true;
+            }
+
+            if (id == EntityIds.AllianceHelp)
+            {
+                view.ApplyHelp(TryDeserializePayload(change.Payload, serialization, out HelpListDto help) ? help : new HelpListDto());
+                return true;
+            }
+
+            return false;
         }
 
         private static void ApplyBuildingList(SaveGameData data, IEnumerable<BuildingStateDto> buildings)

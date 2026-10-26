@@ -19,5 +19,16 @@ namespace HADAL.Shared.Enums
         [ProtoEnum] BoostBuilding = 11,
         [ProtoEnum] Overdrive = 12,
         [ProtoEnum] StartSalvage = 13,
+        [ProtoEnum] LevelUpHero = 14,
+        [ProtoEnum] PromoteHero = 15,
+        [ProtoEnum] AssignHero = 16,
+        [ProtoEnum] SendChat = 17,
+        [ProtoEnum] CreateAlliance = 18,
+        [ProtoEnum] JoinAlliance = 19,
+        [ProtoEnum] LeaveAlliance = 20,
+        [ProtoEnum] BrowseAlliances = 21,
+        [ProtoEnum] KickMember = 22,
+        [ProtoEnum] RequestHelp = 23,
+        [ProtoEnum] HelpAll = 24,
     }
 }

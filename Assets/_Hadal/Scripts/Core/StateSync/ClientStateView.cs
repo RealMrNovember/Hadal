@@ -9,7 +9,7 @@ namespace Hadal.Core.StateSync
     /// <summary>
     /// Non-authoritative in-memory visual state cache (RAM only — never written to disk).
     /// </summary>
-    public sealed class ClientStateView
+    public sealed partial class ClientStateView
     {
         private SaveGameData _data = new();
         private readonly Dictionary<ResourceType, long> _productionPerTick = new();
@@ -86,6 +86,7 @@ namespace Hadal.Core.StateSync
             _researchLevels.Clear();
             _activeResearch.Clear();
             _salvageReports.Clear();
+            ResetSocial();
             ProductionTickIntervalSeconds = SimulationTick.IntervalSeconds;
             LastResourceTick = 0UL;
             HasPersistedData = false;

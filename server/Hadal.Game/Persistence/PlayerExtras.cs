@@ -3,7 +3,7 @@ using System.Text.Json;
 namespace Hadal.Game.Persistence
 {
     /// <summary>
-    /// Research and building-function state (docs/24) stored as one JSON document per player
+    /// Research, building-function (docs/24) and hero (docs/25) state stored as one JSON document per player
     /// (<c>hadal.players.extras</c>), so new systems do not need a table each.
     /// </summary>
     public static class PlayerExtras
@@ -14,7 +14,11 @@ namespace Hadal.Game.Persistence
             DateTimeOffset? BoostEndsAt, string? MissionId, DateTimeOffset? MissionEndsAt, int MissionSeconds, int MissionSeed,
             DateTimeOffset? OverdriveEndsAt, DateTimeOffset? OverdriveReadyAt);
 
-        private sealed record Doc(Dictionary<string, int>? Research, List<ActiveDoc>? Active, Dictionary<string, BuildingDoc>? Buildings);
+        private sealed record HeroDoc(string HeroId, int Level, int Stars, int Shards, int Slot);
+
+        private sealed record Doc(
+            Dictionary<string, int>? Research, List<ActiveDoc>? Active, Dictionary<string, BuildingDoc>? Buildings,
+            List<HeroDoc>? Heroes = null, int SincePity = 0, DateTimeOffset? FreePullAt = null);
 
         public static string Write(PlayerState state)
         {
@@ -30,7 +34,10 @@ namespace Hadal.Game.Persistence
             return JsonSerializer.Serialize(new Doc(
                 new Dictionary<string, int>(state.ResearchLevels),
                 state.ActiveResearch.Select(a => new ActiveDoc(a.NodeId, a.TargetLevel, a.EndsAt, a.Seconds)).ToList(),
-                buildings));
+                buildings,
+                state.Heroes.Select(h => new HeroDoc(h.HeroId, h.Level, h.Stars, h.Shards, h.Slot)).ToList(),
+                state.SincePity,
+                state.FreePullAt));
         }
 
         /// <summary>Applies a stored document to a freshly loaded player (after its buildings).</summary>
@@ -56,6 +63,11 @@ namespace Hadal.Game.Persistence
                 state.ResearchLevels[pair.Key] = pair.Value;
             foreach (var a in doc.Active ?? new List<ActiveDoc>())
                 state.ActiveResearch.Add(new ActiveResearch { NodeId = a.NodeId, TargetLevel = a.TargetLevel, EndsAt = a.EndsAt, Seconds = a.Seconds });
+
+            foreach (var h in doc.Heroes ?? new List<HeroDoc>())
+                state.Heroes.Add(new OwnedHeroState { HeroId = h.HeroId, Level = h.Level, Stars = h.Stars, Shards = h.Shards, Slot = h.Slot });
+            state.SincePity = doc.SincePity;
+            state.FreePullAt = doc.FreePullAt;
 
             foreach (var b in state.Buildings)
             {

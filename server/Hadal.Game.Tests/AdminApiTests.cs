@@ -170,7 +170,7 @@ namespace Hadal.Game.Tests
             await world.ConnectAsync(player.accountId, connection, default);
             (await Proxied(gm).PostAsJsonAsync($"/admin/api/players/{player.accountId}/grant",
                 new { amounts = new Dictionary<string, long> { ["Hadalite"] = 25 } })).EnsureSuccessStatusCode();
-            Assert.Equal(25, connection.Messages.Last().Delta().Wallet()!.Amount(ResourceType.Hadalite));
+            Assert.Equal(125, connection.Messages.Last().Delta().Wallet()!.Amount(ResourceType.Hadalite)); // 100 to start + 25
 
             var audit = await Proxied(gm).GetFromJsonAsync<JsonArray>("/admin/api/audit");
             Assert.Contains(audit!, e => e!["action"]!.GetValue<string>() == "player.grant" && e["details"]!.GetValue<string>().Contains("support ticket 42"));

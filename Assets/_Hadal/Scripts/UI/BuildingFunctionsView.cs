@@ -21,7 +21,13 @@ namespace Hadal.UI
         private bool _researchOpen;
         private string _researchTree = "development";
 
-        private PlayerModifiers Modifiers() => ResearchRules.Modifiers(_catalog, _stateSync.View.ResearchLevels);
+        /// <summary>Research plus the command crew's skills, as the server computes them.</summary>
+        private PlayerModifiers Modifiers()
+        {
+            var modifiers = ResearchRules.Modifiers(_catalog, _stateSync.View.ResearchLevels);
+            HeroRules.AddCrew(_catalog, modifiers, _stateSync.View.Heroes.Select(h => new OwnedHero(h.HeroId, h.Level, h.Stars, h.Shards, h.Slot)));
+            return modifiers;
+        }
 
         private static float Left(float endsAt) => endsAt > 0f ? Mathf.Max(0f, endsAt - Time.realtimeSinceStartup) : 0f;
 

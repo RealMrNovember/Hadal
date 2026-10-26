@@ -23,6 +23,11 @@ namespace HADAL.Shared.Catalog
         public BoostData boost = new BoostData();
         public OverdriveData overdrive = new OverdriveData();
         public SalvageMissionData[] salvageMissions = Array.Empty<SalvageMissionData>();
+
+        // Heroes, alliances and chat (docs/25_Heroes_Alliance_Chat.md).
+        public HeroCatalogData heroes = new HeroCatalogData();
+        public AllianceCatalogData alliance = new AllianceCatalogData();
+        public ChatCatalogData chat = new ChatCatalogData();
     }
 
     /// <summary>What opening one outer ring takes (docs/23_Base_Management.md, rule 12).</summary>

@@ -21,6 +21,7 @@ namespace Hadal.Game.Tests
         {
             var connection = new RecordingConnection();
             var session = await _world.ConnectAsync(identity, connection, default);
+            session.ClearCrewForTests(); // exact timings below; heroes have their own tests
             return (session, connection);
         }
 
@@ -166,7 +167,7 @@ namespace Hadal.Game.Tests
 
             var second = new RecordingConnection();
             await _world.ConnectAsync("device-a", second, default);
-            var snapshot = second.Messages.Single().Snapshot();
+            var snapshot = second.Messages.First().Snapshot();
 
             var plant = snapshot.Buildings.Single(b => b.DefinitionId == "oxygen_plant");
             Assert.Equal(1, plant.Level);
@@ -186,7 +187,7 @@ namespace Hadal.Game.Tests
 
             var second = new RecordingConnection();
             await _world.ConnectAsync("device-a", second, default);
-            var plant = second.Messages.Single().Snapshot().Buildings.Single(b => b.DefinitionId == "oxygen_plant");
+            var plant = second.Messages.First().Snapshot().Buildings.Single(b => b.DefinitionId == "oxygen_plant");
 
             Assert.Equal(0, plant.Level);
             Assert.Equal(5_000, plant.ConstructionRemainingMs);

@@ -181,6 +181,21 @@ namespace Hadal.Gateway.Admin
                 return Results.Ok(new { kicked });
             }).RequireAdmin(AdminRoles.GameMaster);
 
+            // --- Chat moderation (docs/25) --------------------------------------------------
+
+            api.MapGet("/chat", (AdminPrincipal _, string? channel, GameWorld world) =>
+                Results.Ok(world.Social.RecentChat(string.IsNullOrWhiteSpace(channel) ? Hadal.Game.Social.SocialHub.WorldChannel : channel)
+                    .OrderByDescending(l => l.Id)
+                    .Select(l => new { id = l.Id.ToString(), l.Channel, l.SenderId, l.SenderName, l.AllianceTag, l.Text, l.SentAt, l.IsSystem })))
+                .RequireAdmin(AdminRoles.Viewer);
+
+            api.MapDelete("/chat/{id:long}", async (AdminPrincipal me, long id, HttpContext http, GameWorld world, IClock clock, IAdminStore store, CancellationToken ct) =>
+            {
+                var deleted = world.Social.DeleteChat(id, clock.UtcNow);
+                await store.AuditAsync(me.Username, "chat.delete", id.ToString(), deleted ? string.Empty : "not found", AdminAuth.ClientIp(http), ct);
+                return deleted ? Results.Ok(new { ok = true }) : Results.NotFound();
+            }).RequireAdmin(AdminRoles.GameMaster);
+
             // --- Coupons --------------------------------------------------------------------
 
             api.MapGet("/coupons", async (AdminPrincipal _, IAdminStore store, CancellationToken ct) =>

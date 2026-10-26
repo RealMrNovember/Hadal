@@ -120,7 +120,7 @@ async function start() {
 }
 
 // ---------------------------------------------------------------- Router
-const PAGES = { overview, players, coupons, liveops, balance, audit, admins };
+const PAGES = { overview, players, coupons, liveops, balance, chat, audit, admins };
 
 function route() {
   if (!state.user) return;
@@ -381,6 +381,21 @@ async function balance(root) {
         el("td", {}, editable && v.version !== current.version ? el("button", {
           onclick: () => api(`catalog/${v.version}/restore`, { method: "POST" }).then((r) => { toast(`v${v.version} geri yüklendi (yeni sürüm v${r.version}).`); route(); }, (e) => toast(e.message, true)),
         }, "Geri yükle") : ""))))));
+}
+
+async function chat(root) {
+  const rows = await api("chat?channel=world");
+  render(root, el("h1", {}, "Sohbet · Dünya kanalı"),
+    el("p", { class: "muted" }, "Son 50 mesaj, en yenisi üstte. Silinen mesaj tüm oyuncuların ekranından kalkar."),
+    el("table", {},
+      el("thead", {}, el("tr", {}, ["Zaman", "Oyuncu", "Mesaj", ""].map((h) => el("th", {}, h)))),
+      el("tbody", {}, rows.map((m) => el("tr", {},
+        el("td", {}, fmtDate(m.sentAt)),
+        el("td", {}, (m.allianceTag ? `[${m.allianceTag}] ` : "") + (m.senderName || "sistem")),
+        el("td", {}, m.text),
+        el("td", {}, el("button", {
+          onclick: () => api(`chat/${m.id}`, { method: "DELETE" }).then(() => { toast("Mesaj silindi."); route(); }, (e) => toast(e.message, true)),
+        }, "Sil")))))));
 }
 
 async function audit(root) {

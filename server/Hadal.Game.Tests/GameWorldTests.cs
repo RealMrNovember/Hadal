@@ -22,7 +22,7 @@ namespace Hadal.Game.Tests
             var connection = new RecordingConnection();
             await _world.ConnectAsync("device-a", connection, default);
 
-            var snapshot = Assert.Single(connection.Messages).Snapshot();
+            var snapshot = connection.Messages.First().Snapshot();
             Assert.Equal(600, snapshot.Resources.Amount(ResourceType.Oxygen));
             Assert.Equal(500, snapshot.Resources.Amount(ResourceType.Titanium));
             var reactor = Assert.Single(snapshot.Buildings);
@@ -130,7 +130,7 @@ namespace Hadal.Game.Tests
             var second = new RecordingConnection();
             await _world.ConnectAsync("device-a", second, default);
 
-            Assert.Equal("core_reactor", Assert.Single(Assert.Single(second.Messages).Snapshot().Buildings).DefinitionId);
+            Assert.Equal("core_reactor", Assert.Single(second.Messages.First().Snapshot().Buildings).DefinitionId);
         }
 
         [Fact]
@@ -146,7 +146,7 @@ namespace Hadal.Game.Tests
 
             var second = new RecordingConnection();
             await _world.ConnectAsync("device-a", second, default);
-            var snapshot = Assert.Single(second.Messages).Snapshot();
+            var snapshot = second.Messages.First().Snapshot();
 
             Assert.Equal(2, snapshot.Buildings.Count); // starter reactor + oxygen plant
             Assert.Equal(600 + 3 * 600, snapshot.Resources.Amount(ResourceType.Oxygen));
@@ -214,7 +214,7 @@ namespace Hadal.Game.Tests
 
             _world.HandleCommand(session, new HADAL.Shared.Commands.CommandEnvelope
             {
-                CommandId = "x", Type = CommandType.ExecuteGacha, Payload = new byte[] { 1 }
+                CommandId = "x", Type = CommandType.StartExpedition, Payload = new byte[] { 1 }
             });
 
             var ack = connection.Messages.Last().Delta().Ack()!;
@@ -236,7 +236,7 @@ namespace Hadal.Game.Tests
 
             var second = new RecordingConnection();
             await _world.ConnectAsync("device-a", second, default);
-            Assert.True(second.Messages.Single().Snapshot!.ServerTick >= lastDeltaTick);
+            Assert.True(second.Messages.First().Snapshot!.ServerTick >= lastDeltaTick);
         }
     }
 }

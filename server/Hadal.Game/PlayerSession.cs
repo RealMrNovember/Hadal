@@ -14,7 +14,7 @@ namespace Hadal.Game
     /// Every state change happens under <see cref="_gate"/>; the economy only ever advances
     /// against the server clock.
     /// </summary>
-    public sealed class PlayerSession
+    public sealed partial class PlayerSession
     {
         private readonly object _gate = new();
         private readonly PlayerState _state;
@@ -32,6 +32,7 @@ namespace Hadal.Game
             _state = state;
             _runtime = runtime;
             _serializer = serializer;
+            EnsureStarterHero();
             RefreshModifiers();
         }
 
@@ -158,10 +159,27 @@ namespace Hadal.Game
                         StartSalvage(salvage!, now);
                         break;
 
+                    case CommandType.ExecuteGacha when TryDeserialize(envelope.Payload, out ExecuteGachaCommand? gacha):
+                        Pull(gacha!, now);
+                        break;
+
+                    case CommandType.LevelUpHero when TryDeserialize(envelope.Payload, out LevelUpHeroCommand? levelUp):
+                        LevelUpHero(levelUp!, now);
+                        break;
+
+                    case CommandType.PromoteHero when TryDeserialize(envelope.Payload, out PromoteHeroCommand? promote):
+                        PromoteHero(promote!, now);
+                        break;
+
+                    case CommandType.AssignHero when TryDeserialize(envelope.Payload, out AssignHeroCommand? assign):
+                        AssignHero(assign!, now);
+                        break;
+
                     default:
                         var known = envelope.Type is CommandType.PlaceBuilding or CommandType.UpgradeBuilding or CommandType.FinishConstruction
                             or CommandType.RemoveBuilding or CommandType.UnlockRing or CommandType.StartResearch or CommandType.FinishResearch
-                            or CommandType.BoostBuilding or CommandType.Overdrive or CommandType.StartSalvage;
+                            or CommandType.BoostBuilding or CommandType.Overdrive or CommandType.StartSalvage or CommandType.ExecuteGacha
+                            or CommandType.LevelUpHero or CommandType.PromoteHero or CommandType.AssignHero;
                         Reject(envelope.CommandId, envelope.ClientSequence, known ? "MalformedCommand" : "NotSupported", now);
                         break;
                 }
@@ -184,8 +202,9 @@ namespace Hadal.Game
         {
             lock (_gate)
             {
+                EnsureStarterHero();
                 RefreshModifiers();
-                SendDelta(now, new List<EntityChangeDto> { WalletChange(), ProductionChange(now), ResearchChange(now) });
+                SendDelta(now, new List<EntityChangeDto> { WalletChange(), ProductionChange(now), ResearchChange(now), HeroesChange(now) });
             }
         }
 
@@ -784,7 +803,12 @@ namespace Hadal.Game
             return bonus;
         }
 
-        private void RefreshModifiers() => _modifiers = ResearchRules.Modifiers(_catalog, _state.ResearchLevels);
+        private void RefreshModifiers()
+        {
+            var modifiers = ResearchRules.Modifiers(_catalog, _state.ResearchLevels);
+            HeroRules.AddCrew(_catalog, modifiers, Crew());
+            _modifiers = modifiers;
+        }
 
         // --- Helpers ------------------------------------------------------------------------------
 
@@ -855,7 +879,8 @@ namespace Hadal.Game
                 Buildings = _state.Buildings.Select(b => ToDto(b, now)).ToList(),
                 Production = ProductionDto(now),
                 UnlockedRings = _state.UnlockedRings,
-                Research = ResearchDto(now)
+                Research = ResearchDto(now),
+                Heroes = RosterDto(now)
             };
 
             return EnvelopeBuilder.WrapStateSnapshot(snapshot, _serializer.Serialize(snapshot));
