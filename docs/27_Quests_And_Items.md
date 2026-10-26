@@ -37,7 +37,7 @@ Last Asylum'da kahramanlar yalnızca çekilişten gelmez: görevler, günlük et
 ## Kahraman görselleri
 
 - Kartlarda ve detay sayfasında boyalı portreler (`Art/Portraits`, SDXL ile üretildi; lisans `art/THIRD_PARTY.md`). Eşleme katalogda `heroes.list[].portrait`.
-- Detay sayfasında kahramanın **hareketli 3D modeli** (`heroes.list[].model`, `Art/Characters`): sürükleyince döner, dokununca el sallar (`HeroStage`, ayrı kamera → RenderTexture).
+- Detay sayfasında **canlı portre** (`LivingPortrait`: resmin üzerinde yavaş kayma ve yakınlaşma, geçen bir ışık bandı). Üssün ortak mürettebat modelleri portrelere benzemediği için 3D model gösterilmiyor; kahramana özel 3D modeller gelince `heroes.list[].model` ve `HeroStage` (ayrı kamera → RenderTexture, sürükle-döndür, dokun-el salla) hazır.
 - Başlangıç kahramanı portresine uygun olarak **Komutan Elias Rourke** oldu (kimlik `mara` aynı kaldı).
 
 ## Teknik Not

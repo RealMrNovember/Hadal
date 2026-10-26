@@ -1,4 +1,5 @@
 using UnityEngine;
+using UnityEngine.EventSystems;
 
 namespace Hadal.Gameplay.Art
 {
@@ -20,6 +21,9 @@ namespace Hadal.Gameplay.Art
         private bool _dragging;
         private float _lastPinch;
 
+        // A gesture that starts on a menu (a panel, the hero model, a list) belongs to the UI: the world stays put.
+        private bool _gestureOnUi;
+
         public Camera Camera => _camera;
 
         public void Configure(Camera camera, float distance)
@@ -35,6 +39,18 @@ namespace Hadal.Gameplay.Art
         {
             if (_camera == null)
                 return;
+
+            if (Input.GetMouseButtonDown(0) || (Input.touchCount > 0 && Input.GetTouch(0).phase == TouchPhase.Began))
+                _gestureOnUi = PointerOverUi();
+            if (Input.touchCount == 0 && !Input.GetMouseButton(0))
+                _gestureOnUi = false;
+
+            if (_gestureOnUi)
+            {
+                _dragging = false;
+                Apply();
+                return;
+            }
 
             if (Input.touchCount == 2)
             {
@@ -68,6 +84,17 @@ namespace Hadal.Gameplay.Art
                 _distance *= 1f - wheel * 0.1f;
 
             Apply();
+        }
+
+        private static bool PointerOverUi()
+        {
+            var events = EventSystem.current;
+            if (events == null)
+                return false;
+
+            return Input.touchCount > 0
+                ? events.IsPointerOverGameObject(Input.GetTouch(0).fingerId)
+                : events.IsPointerOverGameObject();
         }
 
         private void Pan(Vector3 screenDelta)

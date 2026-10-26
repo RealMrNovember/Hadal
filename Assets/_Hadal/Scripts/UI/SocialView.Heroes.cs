@@ -231,25 +231,29 @@ namespace Hadal.UI
             var back = Card(90);
             CardButton(back.transform, "‹ " + Loc.T("hero.back"), true, () => Open(Page.Heroes), UiKit.Field, 0.01f, 0.08f, 0.35f, 0.92f);
 
-            // Animated 3D model (drag to turn, tap to wave) beside the painted portrait and the story.
+            // The painted portrait, alive (slow drift and a light sweep), beside the hero's story. The base's crew
+            // models do not match the paintings, so no 3D model is shown until per-hero models exist.
             var showcase = Card(640);
-            var stageTexture = _stage.Show(hero.Model);
-            if (stageTexture != null)
+            var painted = Hadal.Core.Catalog.CharacterLibrary.Instance?.Portrait(hero.Portrait);
+            if (painted != null)
             {
-                var stage = UiKit.Rect("Stage", showcase.transform).gameObject.AddComponent<RawImage>();
-                stage.texture = stageTexture;
-                stage.color = owned ? Color.white : new Color(0.25f, 0.28f, 0.3f, 1f);
-                ((RectTransform)stage.transform).Place(0.01f, 0.02f, 0.5f, 0.98f, 4);
-                stage.gameObject.AddComponent<HeroStageInput>().Stage = _stage;
-                CardText(showcase.transform, Loc.T("hero.stage.hint"), 20, UiKit.Muted, 0.02f, 0.02f, 0.5f, 0.09f, TextAnchor.LowerCenter);
-                Portrait(showcase.transform, hero, owned, 0.53f, 0.5f, 0.98f, 0.98f);
-                CardText(showcase.transform, Loc.T("hero." + hero.Id + ".bio"), 24, UiKit.Text, 0.53f, 0.03f, 0.98f, 0.48f);
+                ColorUtility.TryParseHtmlString(RarityColor(hero.Rarity.id), out var rim);
+                var frame = UiKit.Box("PortraitFrame", showcase.transform, rim);
+                frame.rectTransform.Place(0.01f, 0.02f, 0.56f, 0.98f, 4);
+                frame.raycastTarget = false;
+                var picture = UiKit.Rect("Living", frame.transform).gameObject.AddComponent<RawImage>();
+                picture.texture = painted;
+                picture.color = owned ? Color.white : new Color(0.25f, 0.28f, 0.3f, 1f);
+                picture.raycastTarget = false;
+                ((RectTransform)picture.transform).Place(0, 0, 1, 1, 5);
+                LivingPortrait.Attach(picture);
             }
             else
             {
                 Portrait(showcase.transform, hero, owned, 0.01f, 0.3f, 0.45f, 0.98f);
-                CardText(showcase.transform, Loc.T("hero." + hero.Id + ".bio"), 27, UiKit.Text, 0.48f, 0.05f, 0.97f, 0.95f);
             }
+
+            CardText(showcase.transform, Loc.T("hero." + hero.Id + ".bio"), 26, UiKit.Text, 0.6f, 0.05f, 0.98f, 0.95f);
 
             if (!owned)
             {

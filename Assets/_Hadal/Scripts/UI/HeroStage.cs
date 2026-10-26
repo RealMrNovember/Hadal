@@ -165,3 +165,47 @@ namespace Hadal.UI
         }
     }
 }
+
+namespace Hadal.UI
+{
+    /// <summary>
+    /// A painted portrait that feels alive: a slow drift and zoom over the painting (like a camera
+    /// breathing in front of it) and a soft light sweep. Used where a matching 3D model does not exist.
+    /// </summary>
+    public sealed class LivingPortrait : MonoBehaviour
+    {
+        private UnityEngine.UI.RawImage _image;
+        private UnityEngine.UI.Image _sheen;
+        private float _seed;
+
+        public static void Attach(UnityEngine.UI.RawImage image)
+        {
+            var living = image.gameObject.AddComponent<LivingPortrait>();
+            living._image = image;
+            living._seed = UnityEngine.Random.value * 10f;
+
+            var sheen = UiKit.Box("Sheen", image.transform, new Color(0.4f, 0.9f, 1f, 0f));
+            sheen.raycastTarget = false;
+            ((RectTransform)sheen.transform).Place(0, 0, 0.35f, 1);
+            living._sheen = sheen;
+        }
+
+        private void Update()
+        {
+            if (_image == null)
+                return;
+
+            var t = Time.time + _seed;
+            var size = 0.9f + 0.05f * Mathf.Sin(t * 0.45f);
+            var cx = 0.5f + 0.025f * Mathf.Sin(t * 0.23f);
+            var cy = 0.52f + 0.02f * Mathf.Cos(t * 0.31f);
+            _image.uvRect = new Rect(cx - size / 2f, cy - size / 2f, size, size);
+
+            // A light band crosses the painting every few seconds.
+            var phase = Mathf.Repeat(t * 0.12f, 1f);
+            var x = Mathf.Lerp(-0.4f, 1.1f, phase);
+            ((RectTransform)_sheen.transform).Place(x, 0f, x + 0.3f, 1f);
+            _sheen.color = new Color(0.4f, 0.9f, 1f, 0.10f * Mathf.Sin(phase * Mathf.PI));
+        }
+    }
+}
