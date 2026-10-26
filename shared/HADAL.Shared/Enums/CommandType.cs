@@ -34,5 +34,6 @@ namespace HADAL.Shared.Enums
         [ProtoEnum] ClaimDailyChest = 26,
         [ProtoEnum] OpenItem = 27,
         [ProtoEnum] RecruitHero = 28,
+        [ProtoEnum] ViewWorld = 29,
     }
 }

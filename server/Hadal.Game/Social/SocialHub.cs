@@ -399,6 +399,13 @@ namespace Hadal.Game.Social
             return SocialRejectReason.None;
         }
 
+        /// <summary>The alliance tag shown next to a player (world map), empty without an alliance.</summary>
+        public string TagOf(string playerId)
+        {
+            lock (_gate)
+                return AllianceOf(playerId)?.Record.Tag ?? string.Empty;
+        }
+
         // --- Moderation (Overseer) ----------------------------------------------------------------
 
         /// <summary>Recent lines of a channel ("world" or "alliance:&lt;id&gt;"), oldest first.</summary>

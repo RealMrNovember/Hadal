@@ -500,3 +500,11 @@ reason.UnknownItem = Böyle bir eşya yok.
 reason.NotEnoughItems = O kadar eşyan yok.
 reason.AlreadyOwned = Bu kahraman zaten sende.
 reason.NotEnoughCards = Kahraman kartı yetersiz.
+
+hud.base = Üs
+world.myBase = Üssüm
+world.coords = X:{0}  Y:{1}
+world.level = Seviye {0}
+world.online = Çevrimiçi
+world.offline = Çevrimdışı
+world.you = Bu senin üssün.

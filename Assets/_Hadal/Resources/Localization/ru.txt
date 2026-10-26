@@ -500,3 +500,11 @@ reason.UnknownItem = Неизвестный предмет.
 reason.NotEnoughItems = У вас нет столько.
 reason.AlreadyOwned = Этот герой у вас уже есть.
 reason.NotEnoughCards = Недостаточно карт героев.
+
+hud.base = База
+world.myBase = Моя база
+world.coords = X:{0}  Y:{1}
+world.level = Уровень {0}
+world.online = В сети
+world.offline = Не в сети
+world.you = Это ваша база.

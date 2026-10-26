@@ -500,3 +500,11 @@ reason.UnknownItem = Vật phẩm không xác định.
 reason.NotEnoughItems = Bạn không có nhiều như vậy.
 reason.AlreadyOwned = Bạn đã có anh hùng này.
 reason.NotEnoughCards = Không đủ thẻ anh hùng.
+
+hud.base = Căn cứ
+world.myBase = Căn cứ của tôi
+world.coords = X:{0}  Y:{1}
+world.level = Cấp {0}
+world.online = Trực tuyến
+world.offline = Ngoại tuyến
+world.you = Đây là căn cứ của bạn.

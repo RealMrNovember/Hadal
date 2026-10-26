@@ -500,3 +500,11 @@ reason.UnknownItem = 未知物品。
 reason.NotEnoughItems = 你没有那么多。
 reason.AlreadyOwned = 你已拥有该英雄。
 reason.NotEnoughCards = 英雄卡不足。
+
+hud.base = 基地
+world.myBase = 我的基地
+world.coords = X:{0}  Y:{1}
+world.level = 等级 {0}
+world.online = 在线
+world.offline = 离线
+world.you = 这是你的基地。

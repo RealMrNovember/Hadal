@@ -500,3 +500,11 @@ reason.UnknownItem = Oggetto sconosciuto.
 reason.NotEnoughItems = Non ne hai così tanti.
 reason.AlreadyOwned = Hai già questo eroe.
 reason.NotEnoughCards = Carte eroe insufficienti.
+
+hud.base = Base
+world.myBase = La mia base
+world.coords = X:{0}  Y:{1}
+world.level = Livello {0}
+world.online = Online
+world.offline = Offline
+world.you = Questa è la tua base.

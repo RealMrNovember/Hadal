@@ -83,6 +83,17 @@ namespace Hadal.Core.StateSync
         /// <summary>Bumps on any quest or bag change.</summary>
         public int QuestVersion { get; private set; }
 
+        /// <summary>The last world map area the server sent (docs/28); null until the map was opened.</summary>
+        public WorldViewDto WorldView { get; private set; }
+
+        public int WorldVersion { get; private set; }
+
+        public void ApplyWorldView(WorldViewDto view)
+        {
+            WorldView = view;
+            WorldVersion++;
+        }
+
         public bool TryTakeRewardReport(out RewardReportDto report) => _rewardReports.TryDequeue(out report);
 
         public void AddRewardReport(RewardReportDto report)

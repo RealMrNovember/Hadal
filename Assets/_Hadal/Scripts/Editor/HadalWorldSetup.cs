@@ -74,6 +74,21 @@ namespace Hadal.EditorTools
             var models = new List<Hadal.Core.Catalog.CharacterLibrary.ModelEntry>();
             foreach (var pair in prefabs)
                 models.Add(new Hadal.Core.Catalog.CharacterLibrary.ModelEntry { id = pair.Key, prefab = pair.Value });
+
+            // World map (docs/28): seabed, decoration and the buildings that stand for a base.
+            foreach (var id in new[] { "seabed_tile", "rock_large", "rock_medium", "kelp_cluster", "crystal_cluster", "coral_branch", "thermal_vent" })
+            {
+                var asset = Load(id);
+                if (asset != null)
+                    models.Add(new Hadal.Core.Catalog.CharacterLibrary.ModelEntry { id = "env_" + id, prefab = asset });
+            }
+
+            foreach (var id in new[] { "core_reactor", "mega_dome", "shield_generator", "oxygen_plant", "radar_center" })
+            {
+                var asset = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/_Hadal/Art/Buildings/" + id + ".fbx");
+                if (asset != null)
+                    models.Add(new Hadal.Core.Catalog.CharacterLibrary.ModelEntry { id = "bld_" + id, prefab = asset });
+            }
             var portraits = new List<Hadal.Core.Catalog.CharacterLibrary.PortraitEntry>();
             foreach (var guid in AssetDatabase.FindAssets("t:Texture2D", new[] { "Assets/_Hadal/Art/Portraits" }))
             {

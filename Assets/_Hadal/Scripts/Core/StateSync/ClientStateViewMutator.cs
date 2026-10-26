@@ -141,6 +141,13 @@ namespace Hadal.Core.StateSync
                 return true;
             }
 
+            if (id == EntityIds.WorldView)
+            {
+                if (TryDeserializePayload(change.Payload, serialization, out WorldViewDto world))
+                    view.ApplyWorldView(world);
+                return true;
+            }
+
             if (id == EntityIds.Quests)
             {
                 view.ApplyQuests(TryDeserializePayload(change.Payload, serialization, out QuestStateDto quests) ? quests : new QuestStateDto());

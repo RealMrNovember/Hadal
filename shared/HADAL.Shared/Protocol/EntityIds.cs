@@ -50,6 +50,9 @@ namespace HADAL.Shared.Protocol
         /// <summary>Prefix of one new chat line (<c>ChatMessageDto</c>), followed by its id.</summary>
         public const string ChatMessage = Chat + "msg:";
 
+        /// <summary>Bases around the tile the player looks at on the world map (<c>WorldViewDto</c>).</summary>
+        public const string WorldView = "world:view";
+
         public const string Alliance = "alliance:";
 
         /// <summary>The player's alliance (<c>AllianceDto</c>); Delete when the player has none.</summary>

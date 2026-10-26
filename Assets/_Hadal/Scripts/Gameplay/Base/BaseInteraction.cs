@@ -41,7 +41,7 @@ namespace Hadal.Gameplay.Base
 
         private void Update()
         {
-            if (_grid == null || _localBus == null)
+            if (_grid == null || _localBus == null || Hadal.Core.State.GameMode.InWorld)
                 return;
 
             if (Input.GetMouseButtonDown(0))

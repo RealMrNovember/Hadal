@@ -47,6 +47,7 @@ namespace Hadal.UI
         private float _toastUntil;
         private Button _expand;
         private SocialView _social;
+        private WorldMapView _map;
         private readonly HashSet<string> _helpRequested = new();
         private bool _expandOpen;
         private string _confirmRemove = string.Empty;
@@ -142,6 +143,11 @@ namespace Hadal.UI
             _social = social.AddComponent<SocialView>();
             _social.Initialize(_stateSync, _commands, _localBus);
 
+            var map = new GameObject("WorldMap");
+            map.transform.SetParent(transform, false);
+            _map = map.AddComponent<WorldMapView>();
+            _map.Initialize(_stateSync, _commands, Toast);
+
             // The main screen frame: header, side columns, bottom bar (docs/26_HUD.md).
             var hud = new GameObject("MainHud");
             hud.transform.SetParent(transform, false);
@@ -153,14 +159,24 @@ namespace Hadal.UI
                 AllianceHelp = () => { Close(); _social.OpenAlliance(help: true); },
                 Chat = () => { Close(); _social.OpenChat(); },
                 Research = OpenResearchFromHud,
-                Expand = () => { _social.Close(); OpenExpand(); },
+                Expand = () => { _social.Close(); _map.Close(); OpenExpand(); },
                 Settings = () => FindFirstObjectByType<AccountPanelView>()?.Open(),
                 Quests = () => { Close(); _social.OpenQuests(); },
                 Bag = () => { Close(); _social.OpenBag(); },
                 ClaimQuest = id => _social.ClaimQuest(id),
-                Building = key => { _social.Close(); OpenBuilding(key); },
+                Building = key => { _social.Close(); _map.Close(); OpenBuilding(key); },
                 Toast = Toast,
-                SheetOpen = () => IsOpen || _social.IsOpen
+                SheetOpen = () => IsOpen || _social.IsOpen,
+                Territory = () =>
+                {
+                    Close();
+                    _social.Close();
+                    if (_map.IsOpen)
+                        _map.Close();
+                    else
+                        _map.Open();
+                },
+                InWorld = () => _map.IsOpen
             });
 
             // The HUD replaces the old resource list, the gear and the Expand button.
@@ -220,6 +236,7 @@ namespace Hadal.UI
         private void OpenResearchFromHud()
         {
             _social.Close();
+            _map.Close();
             var center = Buildings().FirstOrDefault(b => b.definitionId == ResearchRules.CenterId && b.level > 0);
             if (string.IsNullOrEmpty(center.instanceKey))
             {

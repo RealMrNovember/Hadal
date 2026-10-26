@@ -37,6 +37,8 @@ namespace Hadal.UI.Hud
             public Action<string> Building;
             public Action<string, Color> Toast;
             public Func<bool> SheetOpen;
+            public Action Territory;
+            public Func<bool> InWorld;
         }
 
         private const float TicksPerMinute = 60f / SimulationTick.IntervalSeconds;
@@ -61,6 +63,9 @@ namespace Hadal.UI.Hud
         private GameObject _allianceDot;
         private GameObject _helpDot;
         private GameObject _questDot;
+        private Image _territoryIcon;
+        private Text _territoryLabel;
+        private bool _shownInWorld;
         private GameObject _bagDot;
         private string _taskQuest = string.Empty;
         private bool _taskDone;
@@ -221,10 +226,12 @@ namespace Hadal.UI.Hud
             _chatPreview.verticalOverflow = VerticalWrapMode.Truncate;
             _chatDot = Dot(chat);
 
-            var territory = Tap(bar.transform, "Territory", 0.76f, 0, 1, 1.18f, () => Soon("hud.territory"), new Color(0.06f, 0.20f, 0.30f, 1f));
+            // Territory goes out to the world map; on the map the same button brings you home.
+            var territory = Tap(bar.transform, "Territory", 0.76f, 0, 1, 1.18f, () => _actions.Territory?.Invoke(), new Color(0.06f, 0.20f, 0.30f, 1f));
             Frame(territory, UiKit.Accent);
-            HudIcons.Image(territory, "nav_world", 0.1f, 0.3f, 0.9f, 1.0f);
-            Outlined(UiKit.Label("Label", territory, Loc.T("hud.territory"), 30, Color.white, TextAnchor.MiddleCenter, FontStyle.Bold)).rectTransform.Place(0, 0.02f, 1, 0.3f);
+            _territoryIcon = HudIcons.Image(territory, "nav_world", 0.1f, 0.3f, 0.9f, 1.0f);
+            _territoryLabel = Outlined(UiKit.Label("Label", territory, Loc.T("hud.territory"), 30, Color.white, TextAnchor.MiddleCenter, FontStyle.Bold));
+            _territoryLabel.rectTransform.Place(0, 0.02f, 1, 0.3f);
         }
 
         // --- Widgets -------------------------------------------------------------------------
@@ -294,6 +301,17 @@ namespace Hadal.UI.Hud
                 return;
 
             _lower.SetActive(!(_actions.SheetOpen?.Invoke() ?? false));
+
+            var inWorld = _actions.InWorld?.Invoke() ?? false;
+            if (inWorld != _shownInWorld)
+            {
+                _shownInWorld = inWorld;
+                _territoryIcon.sprite = HudIcons.Get(inWorld ? "left_home" : "nav_world");
+                _territoryLabel.text = Loc.T(inWorld ? "hud.base" : "hud.territory");
+                _queue.gameObject.SetActive(!inWorld);
+                _queueTitle.transform.parent.gameObject.SetActive(!inWorld);
+                _task.transform.parent.gameObject.SetActive(!inWorld);
+            }
 
             // Rows are rebuilt on refresh; never under a finger, or the tap is lost.
             if (Input.touchCount > 0 || Input.GetMouseButton(0))

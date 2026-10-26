@@ -500,3 +500,11 @@ reason.UnknownItem = عنصر غير معروف.
 reason.NotEnoughItems = لا تملك هذا العدد.
 reason.AlreadyOwned = لديك هذا البطل بالفعل.
 reason.NotEnoughCards = بطاقات الأبطال غير كافية.
+
+hud.base = القاعدة
+world.myBase = قاعدتي
+world.coords = X:{0}  Y:{1}
+world.level = المستوى {0}
+world.online = متصل
+world.offline = غير متصل
+world.you = هذه قاعدتك.

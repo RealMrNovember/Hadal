@@ -140,6 +140,7 @@ namespace Hadal.Core.Network
                 ClaimDailyChestCommand => CommandType.ClaimDailyChest,
                 OpenItemCommand => CommandType.OpenItem,
                 RecruitHeroCommand => CommandType.RecruitHero,
+                ViewWorldCommand => CommandType.ViewWorld,
                 _ => CommandType.Unknown
             };
         }

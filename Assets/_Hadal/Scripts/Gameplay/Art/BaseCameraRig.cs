@@ -37,7 +37,7 @@ namespace Hadal.Gameplay.Art
 
         private void LateUpdate()
         {
-            if (_camera == null)
+            if (_camera == null || Hadal.Core.State.GameMode.InWorld)
                 return;
 
             if (Input.GetMouseButtonDown(0) || (Input.touchCount > 0 && Input.GetTouch(0).phase == TouchPhase.Began))

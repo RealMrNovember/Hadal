@@ -29,6 +29,7 @@ namespace Hadal.Game
         {
             await _repository.InitializeAsync(cancellationToken);
             await _world.Social.InitializeAsync(cancellationToken);
+            await _world.Map.InitializeAsync(cancellationToken);
             await base.StartAsync(cancellationToken);
         }
 

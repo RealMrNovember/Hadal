@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using Hadal.Game.Persistence;
 using Hadal.Game.Social;
+using Hadal.Game.World;
 using HADAL.Shared.Catalog;
 using HADAL.Shared.Commands;
 using HADAL.Shared.Enums;
@@ -41,7 +42,7 @@ namespace Hadal.Game
             IClock clock,
             INetworkSerializer serializer,
             ILogger<GameWorld> logger)
-            : this(runtime, repository, new InMemorySocialStore(), clock, serializer, logger)
+            : this(runtime, repository, new InMemorySocialStore(), new InMemoryWorldStore(), clock, serializer, logger)
         {
         }
 
@@ -49,6 +50,7 @@ namespace Hadal.Game
             CatalogRuntime runtime,
             IPlayerRepository repository,
             ISocialStore socialStore,
+            IWorldStore worldStore,
             IClock clock,
             INetworkSerializer serializer,
             ILogger<GameWorld> logger)
@@ -59,7 +61,11 @@ namespace Hadal.Game
             _serializer = serializer;
             _logger = logger;
             Social = new SocialHub(socialStore, runtime, serializer, logger);
+            Map = new WorldService(worldStore, runtime, serializer, Social, logger);
         }
+
+        /// <summary>The outer world map (docs/28).</summary>
+        public WorldService Map { get; }
 
         /// <summary>Chat, alliances and alliance help (docs/25).</summary>
         public SocialHub Social { get; }
@@ -171,6 +177,7 @@ namespace Hadal.Game
                 }
 
                 Social.OnConnected(session, now);
+                Map.OnConnected(session);
 
                 return session;
             }
@@ -184,6 +191,8 @@ namespace Hadal.Game
         {
             if (SocialHub.Handles(envelope.Type))
                 Social.Handle(session, envelope, _clock.UtcNow);
+            else if (WorldService.Handles(envelope.Type))
+                Map.Handle(session, envelope, _clock.UtcNow);
             else
                 session.HandleCommand(envelope, _clock.UtcNow);
         }
@@ -195,6 +204,7 @@ namespace Hadal.Game
                 return;
 
             Social.OnDisconnected(session, _clock.UtcNow);
+            Map.OnDisconnected(session);
 
             await SaveAsync(session, cancellationToken);
 

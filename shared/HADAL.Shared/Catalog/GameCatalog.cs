@@ -153,6 +153,8 @@ namespace HADAL.Shared.Catalog
 
         public QuestCatalogData Quests => Data.quests ?? new QuestCatalogData();
 
+        public WorldCatalogData World => Data.world ?? new WorldCatalogData();
+
         public bool TryGetItem(string id, out ItemData item)
         {
             item = Array.Find(Data.items ?? Array.Empty<ItemData>(), i => i != null && i.id == id)!;

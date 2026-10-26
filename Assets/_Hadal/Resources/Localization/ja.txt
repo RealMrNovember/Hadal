@@ -500,3 +500,11 @@ reason.UnknownItem = 不明なアイテムです。
 reason.NotEnoughItems = そんなに持っていません。
 reason.AlreadyOwned = このヒーローはすでに所持しています。
 reason.NotEnoughCards = ヒーローカードが足りません。
+
+hud.base = 基地
+world.myBase = 自分の基地
+world.coords = X:{0}  Y:{1}
+world.level = Lv.{0}
+world.online = オンライン
+world.offline = オフライン
+world.you = あなたの基地です。

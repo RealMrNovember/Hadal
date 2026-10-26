@@ -500,3 +500,11 @@ reason.UnknownItem = Item tidak dikenali.
 reason.NotEnoughItems = Anda tidak mempunyai sebanyak itu.
 reason.AlreadyOwned = Anda sudah memiliki wira ini.
 reason.NotEnoughCards = Kad wira tidak mencukupi.
+
+hud.base = Pangkalan
+world.myBase = Pangkalan saya
+world.coords = X:{0}  Y:{1}
+world.level = Tahap {0}
+world.online = Dalam talian
+world.offline = Luar talian
+world.you = Ini pangkalan anda.

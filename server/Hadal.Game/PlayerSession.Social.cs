@@ -28,6 +28,12 @@ namespace Hadal.Game
             get { lock (_gate) return ComputePower(); }
         }
 
+        /// <summary>Core Reactor level (world map).</summary>
+        public int BaseLevel
+        {
+            get { lock (_gate) return ReactorLevel(); }
+        }
+
         /// <summary>Sends entity changes that are not part of this player's economy (chat, alliance).</summary>
         internal void Push(List<EntityChangeDto> changes, DateTimeOffset now)
         {

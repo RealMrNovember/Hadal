@@ -500,3 +500,11 @@ reason.UnknownItem = Item tidak dikenal.
 reason.NotEnoughItems = Kamu tidak punya sebanyak itu.
 reason.AlreadyOwned = Kamu sudah punya pahlawan ini.
 reason.NotEnoughCards = Kartu pahlawan tidak cukup.
+
+hud.base = Markas
+world.myBase = Markasku
+world.coords = X:{0}  Y:{1}
+world.level = Level {0}
+world.online = Online
+world.offline = Offline
+world.you = Ini markasmu.
