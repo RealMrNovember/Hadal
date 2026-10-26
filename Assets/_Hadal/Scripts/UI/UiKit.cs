@@ -12,8 +12,57 @@ namespace Hadal.UI
     public static class UiKit
     {
         public static readonly Color Abyss = new(0.015f, 0.055f, 0.08f, 0.96f);
-        public static readonly Color Panel = new(0.03f, 0.10f, 0.14f, 0.97f);
-        public static readonly Color Field = new(0.06f, 0.16f, 0.21f, 1f);
+        public static readonly Color Panel = new(0.02f, 0.07f, 0.10f, 0.93f);
+        public static readonly Color Field = new(0.05f, 0.13f, 0.18f, 0.94f);
+
+        /// <summary>
+        /// Everything is drawn a little smaller than the first screens were laid out for: text sizes and
+        /// list row heights are multiplied by this, so screens read as a modern mobile game, not a form.
+        /// </summary>
+        public const float Scale = 0.8f;
+
+        /// <summary>Corner radius of boxes, cards and buttons (reference pixels).</summary>
+        public const int Radius = 22;
+
+        private static Sprite _rounded;
+        private static Sprite _ring;
+
+        /// <summary>A white rounded rectangle for 9-slicing.</summary>
+        public static Sprite Rounded => _rounded != null ? _rounded : _rounded = MakeRounded(false);
+
+        /// <summary>The same shape as an outline (thin frame).</summary>
+        public static Sprite Ring => _ring != null ? _ring : _ring = MakeRounded(true);
+
+        private static Sprite MakeRounded(bool ring)
+        {
+            const int size = 64;
+            const float thickness = 2.5f;
+            var texture = new Texture2D(size, size, TextureFormat.RGBA32, false)
+            {
+                wrapMode = TextureWrapMode.Clamp,
+                filterMode = FilterMode.Bilinear,
+                name = ring ? "HadalRing" : "HadalRounded"
+            };
+            var pixels = new Color32[size * size];
+            for (var y = 0; y < size; y++)
+            {
+                for (var x = 0; x < size; x++)
+                {
+                    // Distance from the rounded-rectangle edge (negative inside).
+                    var cx = Mathf.Clamp(x + 0.5f, Radius, size - Radius);
+                    var cy = Mathf.Clamp(y + 0.5f, Radius, size - Radius);
+                    var d = Vector2.Distance(new Vector2(x + 0.5f, y + 0.5f), new Vector2(cx, cy)) - Radius;
+                    var inside = Mathf.Clamp01(0.5f - d);
+                    var alpha = ring ? inside * Mathf.Clamp01(d + thickness + 0.5f) : inside;
+                    pixels[y * size + x] = new Color32(255, 255, 255, (byte)(alpha * 255));
+                }
+            }
+
+            texture.SetPixels32(pixels);
+            texture.Apply(false, true);
+            return Sprite.Create(texture, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), 100f, 0, SpriteMeshType.FullRect,
+                new Vector4(Radius, Radius, Radius, Radius));
+        }
         public static readonly Color Accent = new(0.22f, 0.84f, 0.95f, 1f);
         public static readonly Color Amber = new(1f, 0.64f, 0.22f, 1f);
         public static readonly Color Text = new(0.86f, 0.94f, 0.97f, 1f);
@@ -72,11 +121,25 @@ namespace Hadal.UI
             return rect;
         }
 
+        /// <summary>A rounded box. Panels and cards (the Panel and Field colours) get a thin glowing frame.</summary>
         public static Image Box(string name, Transform parent, Color color)
         {
             var rect = Rect(name, parent);
             var image = rect.gameObject.AddComponent<Image>();
+            image.sprite = Rounded;
+            image.type = UnityEngine.UI.Image.Type.Sliced;
             image.color = color;
+
+            if (color == Panel || color == Field)
+            {
+                var frame = Rect("Frame", rect).gameObject.AddComponent<Image>();
+                frame.sprite = Ring;
+                frame.type = UnityEngine.UI.Image.Type.Sliced;
+                frame.color = new Color(Accent.r, Accent.g, Accent.b, color == Panel ? 0.35f : 0.18f);
+                frame.raycastTarget = false;
+                ((RectTransform)frame.transform).Place(0, 0, 1, 1);
+            }
+
             return image;
         }
 
@@ -87,7 +150,7 @@ namespace Hadal.UI
             var label = rect.gameObject.AddComponent<Text>();
             label.font = Font;
             label.text = text;
-            label.fontSize = size;
+            label.fontSize = Mathf.RoundToInt(size * Scale);
             label.fontStyle = style;
             label.color = color;
             label.alignment = anchor;
@@ -113,8 +176,11 @@ namespace Hadal.UI
             label.rectTransform.Place(0, 0, 1, 1, 8);
             // Long translations shrink to fit instead of spilling out of the button.
             label.resizeTextForBestFit = true;
-            label.resizeTextMinSize = Mathf.Min(18, fontSize);
-            label.resizeTextMaxSize = fontSize;
+            label.resizeTextMinSize = Mathf.Min(16, label.fontSize);
+            label.resizeTextMaxSize = label.fontSize;
+            var shadow = image.gameObject.AddComponent<Shadow>();
+            shadow.effectColor = new Color(0, 0, 0, 0.45f);
+            shadow.effectDistance = new Vector2(0, -4);
             label.verticalOverflow = VerticalWrapMode.Truncate;
             return button;
         }
@@ -157,8 +223,8 @@ namespace Hadal.UI
         public static T Row<T>(this T component, float height) where T : Component
         {
             var element = component.gameObject.GetComponent<LayoutElement>() ?? component.gameObject.AddComponent<LayoutElement>();
-            element.minHeight = height;
-            element.preferredHeight = height;
+            element.minHeight = height * Scale;
+            element.preferredHeight = height * Scale;
             return component;
         }
 

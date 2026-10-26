@@ -152,6 +152,8 @@ Server adjudicated. Protobuf combat deltas.
 
 Server world state. Client map view.
 
+**Product requirement (2026-10-26):** two places — the base interior (today's circular base) and the outer world. The world map must show **other players' bases** (name, alliance tag, level), reached from the HUD's "Territory" button. Reference implementation reviewed: EmpireWars hex map (chunked loading, minimap, fog of war) — see [26_HUD.md](./26_HUD.md).
+
 ---
 
 ## Phase 12 — Alliance

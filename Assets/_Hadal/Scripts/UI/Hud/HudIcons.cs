@@ -28,6 +28,7 @@ namespace Hadal.UI.Hud
         {
             var image = UiKit.Box("Icon_" + id, parent, Color.white);
             image.sprite = Get(id);
+            image.type = UnityEngine.UI.Image.Type.Simple;
             image.preserveAspect = true;
             image.raycastTarget = false;
             image.enabled = image.sprite != null;

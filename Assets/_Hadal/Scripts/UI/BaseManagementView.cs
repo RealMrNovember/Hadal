@@ -165,7 +165,36 @@ namespace Hadal.UI
             var oldHud = FindFirstObjectByType<ResourceHudView>();
             if (oldHud != null)
                 oldHud.gameObject.SetActive(false);
-            FindFirstObjectByType<AccountPanelView>()?.HideGear();
+        }
+
+        private bool _gearHidden;
+        private float _nextGearCheck;
+
+        /// <summary>The account UI is built after this view, so the gear is hidden once it exists.</summary>
+        private void HideGearWhenReady()
+        {
+            if (_gearHidden || Time.unscaledTime < _nextGearCheck)
+                return;
+            _nextGearCheck = Time.unscaledTime + 1f;
+            var account = FindFirstObjectByType<AccountPanelView>();
+            if (account == null)
+                return;
+            account.HideGear();
+            _gearHidden = true;
+        }
+
+        /// <summary>Android back closes the top panel: settings, then the social sheet, then the building sheet.</summary>
+        private void HandleBack()
+        {
+            if (!Input.GetKeyDown(KeyCode.Escape))
+                return;
+            var account = FindFirstObjectByType<AccountPanelView>();
+            if (account != null && account.IsOpen)
+                account.Close();
+            else if (_social.IsOpen)
+                _social.Close();
+            else if (IsOpen)
+                Close();
         }
 
         /// <summary>Opens a building's panel (HUD queue rows, the suggested task).</summary>
@@ -272,6 +301,8 @@ namespace Hadal.UI
 
             UpdateTimers();
             ShowSalvageReports();
+            HideGearWhenReady();
+            HandleBack();
 
             if (_toast.text.Length > 0 && Time.unscaledTime > _toastUntil)
                 _toast.text = string.Empty;
