@@ -224,7 +224,7 @@ namespace Hadal.UI
             string Value(int level)
             {
                 var v = node.ValuePerLevel * level;
-                var sign = v > 0 ? "+" : v < 0 ? "−" : string.Empty;
+                var sign = v > 0 ? "+" : v < 0 ? "-" : string.Empty;
                 return percent ? $"{sign}%{Math.Abs(v)}" : $"{sign}{Math.Abs(v)}";
             }
 

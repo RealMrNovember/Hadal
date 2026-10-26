@@ -141,6 +141,62 @@ namespace Hadal.UI
             social.transform.SetParent(transform, false);
             _social = social.AddComponent<SocialView>();
             _social.Initialize(_stateSync, _commands, _localBus);
+
+            // The main screen frame: header, side columns, bottom bar (docs/26_HUD.md).
+            var hud = new GameObject("MainHud");
+            hud.transform.SetParent(transform, false);
+            hud.AddComponent<Hud.MainHudView>().Initialize(_stateSync, new Hud.MainHudView.Actions
+            {
+                Heroes = () => { Close(); _social.OpenHeroes(); },
+                Pod = () => { Close(); _social.OpenHeroes(); },
+                Alliance = () => { Close(); _social.OpenAlliance(); },
+                AllianceHelp = () => { Close(); _social.OpenAlliance(help: true); },
+                Chat = () => { Close(); _social.OpenChat(); },
+                Research = OpenResearchFromHud,
+                Expand = () => { _social.Close(); OpenExpand(); },
+                Settings = () => FindFirstObjectByType<AccountPanelView>()?.Open(),
+                Building = key => { _social.Close(); OpenBuilding(key); },
+                Toast = Toast,
+                SheetOpen = () => IsOpen || _social.IsOpen
+            });
+
+            // The HUD replaces the old resource list, the gear and the Expand button.
+            _expand.gameObject.SetActive(false);
+            var oldHud = FindFirstObjectByType<ResourceHudView>();
+            if (oldHud != null)
+                oldHud.gameObject.SetActive(false);
+            FindFirstObjectByType<AccountPanelView>()?.HideGear();
+        }
+
+        /// <summary>Opens a building's panel (HUD queue rows, the suggested task).</summary>
+        public void OpenBuilding(string instanceKey)
+        {
+            var building = Buildings().FirstOrDefault(b => b.instanceKey == instanceKey);
+            if (string.IsNullOrEmpty(building.instanceKey))
+                return;
+
+            _ring = building.cellRing;
+            _sector = building.cellSector;
+            _buildingKey = instanceKey;
+            _expandOpen = false;
+            _researchOpen = false;
+            _confirmRemove = string.Empty;
+            _sheet.gameObject.SetActive(true);
+            Render();
+        }
+
+        private void OpenResearchFromHud()
+        {
+            _social.Close();
+            var center = Buildings().FirstOrDefault(b => b.definitionId == ResearchRules.CenterId && b.level > 0);
+            if (string.IsNullOrEmpty(center.instanceKey))
+            {
+                Toast(Loc.Reason(nameof(ResearchRejectReason.NoResearchCenter)), UiKit.Danger);
+                return;
+            }
+
+            OpenBuilding(center.instanceKey);
+            OpenResearch();
         }
 
         // --- Events --------------------------------------------------------------------------
@@ -216,8 +272,6 @@ namespace Hadal.UI
 
             UpdateTimers();
             ShowSalvageReports();
-            _expand.gameObject.SetActive(!IsOpen && !_social.IsOpen);
-            _social.AllowBar(!IsOpen);
 
             if (_toast.text.Length > 0 && Time.unscaledTime > _toastUntil)
                 _toast.text = string.Empty;

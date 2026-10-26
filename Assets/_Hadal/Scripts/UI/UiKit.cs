@@ -111,6 +111,11 @@ namespace Hadal.UI
 
             var label = Label("Label", image.transform, text, fontSize, new Color(0.02f, 0.07f, 0.1f), TextAnchor.MiddleCenter, FontStyle.Bold);
             label.rectTransform.Place(0, 0, 1, 1, 8);
+            // Long translations shrink to fit instead of spilling out of the button.
+            label.resizeTextForBestFit = true;
+            label.resizeTextMinSize = Mathf.Min(18, fontSize);
+            label.resizeTextMaxSize = fontSize;
+            label.verticalOverflow = VerticalWrapMode.Truncate;
             return button;
         }
 

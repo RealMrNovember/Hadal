@@ -43,7 +43,7 @@ namespace Hadal.UI
             var kind = colon < 0 ? hero.Effect : hero.Effect.Substring(0, colon);
             var subject = colon < 0 ? string.Empty : hero.Effect.Substring(colon + 1);
 
-            static string Value(int v) => (v > 0 ? "+" : v < 0 ? "−" : string.Empty) + "%" + Math.Abs(v);
+            static string Value(int v) => (v > 0 ? "+" : v < 0 ? "-" : string.Empty) + "%" + Math.Abs(v);
 
             var now = HeroRules.EffectValue(hero, level, stars);
             var change = Value(now);
@@ -108,7 +108,7 @@ namespace Hadal.UI
                         0.2f, 0.5f, 0.7f, 0.95f, TextAnchor.UpperLeft, FontStyle.Bold);
                     CardText(card.transform, Effect(hero, holder.Level, holder.Stars), 28, UiKit.Accent, 0.2f, 0.05f, 0.7f, 0.5f);
                     var id = hero.Id;
-                    CardButton(card.transform, Loc.T("hero.open"), true, () => ShowHero(id), UiKit.Field);
+                    CardButton(card.transform, Loc.T("hero.open"), true, () => ShowHero(id));
                 }
                 else
                 {
@@ -257,7 +257,7 @@ namespace Hadal.UI
                 0.04f, 0.62f, 0.96f, 0.95f, TextAnchor.UpperLeft, FontStyle.Bold);
             if (state.Slot >= 0)
             {
-                CardButton(crew.transform, Loc.T("hero.unassign"), true, () => Assign(heroId, -1), UiKit.Field, 0.03f, 0.08f, 0.5f, 0.55f);
+                CardButton(crew.transform, Loc.T("hero.unassign"), true, () => Assign(heroId, -1), UiKit.Danger, 0.03f, 0.08f, 0.5f, 0.55f);
             }
             else
             {

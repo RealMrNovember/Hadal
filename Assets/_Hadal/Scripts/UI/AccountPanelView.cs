@@ -46,6 +46,7 @@ namespace Hadal.UI
         private Text _giftMessage;
 
         private bool _busy;
+        private GameObject _gear;
 
         public bool IsOpen => _panel != null && _panel.gameObject.activeSelf;
 
@@ -72,6 +73,7 @@ namespace Hadal.UI
             // Gear button.
             var gear = UiKit.Button("Gear", root, "≡", Open, new Color(0.03f, 0.10f, 0.14f, 0.85f), 64);
             gear.GetComponentInChildren<Text>().color = UiKit.Accent;
+            _gear = gear.gameObject;
             ((RectTransform)gear.transform).Place(0.86f, 0.935f, 0.985f, 0.995f);
             _badge = UiKit.Box("Badge", gear.transform, UiKit.Amber).gameObject;
             ((RectTransform)_badge.transform).Place(0.78f, 0.72f, 0.98f, 0.98f);
@@ -185,6 +187,13 @@ namespace Hadal.UI
             _accountId.text = $"{Loc.T("account.id")}: {profile.accountId.Substring(0, Math.Min(8, profile.accountId.Length)).ToUpperInvariant()}";
             _protection.text = isProtected ? Loc.T("account.protected") : Loc.T("account.unprotected");
             _protection.color = isProtected ? UiKit.Accent : UiKit.Amber;
+        }
+
+        /// <summary>The main HUD opens settings from the avatar; the corner gear is then not needed.</summary>
+        public void HideGear()
+        {
+            if (_gear != null)
+                _gear.SetActive(false);
         }
 
         public void Open()

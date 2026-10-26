@@ -53,10 +53,6 @@ namespace Hadal.UI
         private RectTransform _footer;
         private Text _toast;
         private float _toastUntil;
-        private GameObject _bar;
-        private Text _ticker;
-        private Text _chatBadge;
-        private Text _allianceBadge;
 
         private Page _page = Page.None;
         private string _renderedKey = string.Empty;
@@ -85,22 +81,12 @@ namespace Hadal.UI
             _canvas = UiKit.Canvas("SocialUi", 45);
             _canvas.transform.SetParent(transform, false);
 
-            // Bottom bar next to "Expand Base", and the last chat line above it.
-            _bar = UiKit.Rect("Bar", _canvas.transform).Place(0.41f, 0.02f, 0.98f, 0.07f).gameObject;
-            BarButton("Heroes", Loc.T("social.heroes"), 0f, 0.333f, () => Open(Page.Heroes));
-            _allianceBadge = BarButton("Alliance", Loc.T("social.alliance"), 0.333f, 0.666f, () => Open(Page.Alliance));
-            _chatBadge = BarButton("Chat", Loc.T("social.chat"), 0.666f, 1f, () => Open(Page.Chat));
+            // The HUD (Hud/MainHudView) opens these pages; the sheet sits under the HUD header.
 
-            var tickerBox = UiKit.Box("Ticker", _canvas.transform, new Color(0.01f, 0.04f, 0.06f, 0.75f));
-            tickerBox.rectTransform.Place(0.03f, 0.075f, 0.98f, 0.11f);
-            tickerBox.gameObject.AddComponent<Button>().onClick.AddListener(() => Open(Page.Chat));
-            _ticker = UiKit.Label("Line", tickerBox.transform, string.Empty, 28, UiKit.Text);
-            _ticker.rectTransform.Place(0.02f, 0, 0.98f, 1);
-            _ticker.horizontalOverflow = HorizontalWrapMode.Overflow;
-            _ticker.raycastTarget = false;
-
-            var sheetImage = UiKit.Box("Sheet", _canvas.transform, UiKit.Panel);
-            sheetImage.rectTransform.Place(0.02f, 0.01f, 0.98f, 0.88f);
+            var safe = UiKit.Rect("Safe", _canvas.transform).Place(0, 0, 1, 1);
+            safe.gameObject.AddComponent<Hud.SafeArea>();
+            var sheetImage = UiKit.Box("Sheet", safe, UiKit.Panel);
+            sheetImage.rectTransform.Place(0.01f, 0.005f, 0.99f, 0.89f);
             _sheet = sheetImage.gameObject;
 
             _title = UiKit.Label("Title", sheetImage.transform, string.Empty, 52, UiKit.Accent, TextAnchor.MiddleLeft, FontStyle.Bold);
@@ -120,7 +106,7 @@ namespace Hadal.UI
             _footer.gameObject.SetActive(false);
 
             _toast = UiKit.Label("Toast", _canvas.transform, string.Empty, 38, UiKit.Text, TextAnchor.MiddleCenter, FontStyle.Bold);
-            _toast.rectTransform.Place(0.05f, 0.89f, 0.95f, 0.93f);
+            _toast.rectTransform.Place(0.05f, 0.46f, 0.95f, 0.52f);
             var outline = _toast.gameObject.AddComponent<Outline>();
             outline.effectColor = new Color(0, 0, 0, 0.8f);
             outline.effectDistance = new Vector2(2, -2);
@@ -129,23 +115,17 @@ namespace Hadal.UI
             _sheet.SetActive(false);
         }
 
-        private Text BarButton(string name, string label, float x0, float x1, Action onClick)
-        {
-            var button = UiKit.Button(name, _bar.transform, label, () => onClick(), new Color(0.03f, 0.10f, 0.14f, 0.85f), 30);
-            button.GetComponentInChildren<Text>().color = UiKit.Accent;
-            ((RectTransform)button.transform).Place(x0, 0, x1, 1, 4);
+        // --- Navigation ----------------------------------------------------------------------
 
-            var badge = UiKit.Box("Badge", button.transform, UiKit.Amber);
-            badge.rectTransform.Place(0.8f, 0.62f, 0.99f, 1.08f);
-            badge.raycastTarget = false;
-            var text = UiKit.Label("Count", badge.transform, string.Empty, 26, UiKit.Abyss, TextAnchor.MiddleCenter, FontStyle.Bold);
-            text.rectTransform.Place(0, 0, 1, 1);
-            text.raycastTarget = false;
-            badge.gameObject.SetActive(false);
-            return text;
+        public void OpenHeroes() => Open(Page.Heroes);
+
+        public void OpenAlliance(bool help = false)
+        {
+            _allianceTab = help && View.MyAlliance != null ? 1 : 0;
+            Open(Page.Alliance);
         }
 
-        // --- Navigation ----------------------------------------------------------------------
+        public void OpenChat() => Open(Page.Chat);
 
         private void Open(Page page)
         {
@@ -201,29 +181,21 @@ namespace Hadal.UI
             _ => _page.ToString()
         };
 
+        private bool _wasInAlliance;
+
         private void UpdateBar()
         {
-            _bar.SetActive(!IsOpen && _barAllowed);
-            _ticker.transform.parent.gameObject.SetActive(!IsOpen && _barAllowed && View.Chat.Count > 0);
-            if (View.Chat.Count > 0)
-                _ticker.text = ChatLine(View.Chat[View.Chat.Count - 1], compact: true);
-
             if (_page == Page.Chat && IsOpen)
                 View.UnreadChat = 0;
-            Badge(_chatBadge, View.UnreadChat);
-            Badge(_allianceBadge, View.MyAlliance != null ? View.HelpRequests.Count(r => !r.HelpedByMe) : 0);
-        }
 
-        private bool _barAllowed = true;
-
-        /// <summary>BaseManagementView calls this each frame with whether its own sheet is open.</summary>
-        public void AllowBar(bool allowed) => _barAllowed = allowed;
-
-        private static void Badge(Text badge, int count)
-        {
-            var root = badge.transform.parent.gameObject;
-            root.SetActive(count > 0);
-            badge.text = count > 99 ? "99+" : count.ToString();
+            // Joining, founding or leaving starts on the first tab.
+            var inAlliance = View.MyAlliance != null;
+            if (inAlliance != _wasInAlliance)
+            {
+                _wasInAlliance = inAlliance;
+                _allianceTab = 0;
+                _confirmLeave = false;
+            }
         }
 
         private void Render(bool force)
