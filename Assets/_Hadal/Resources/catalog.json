@@ -8308,6 +8308,944 @@
       ]
     },
     {
+      "id": "med_bay",
+      "displayName": "Med Bay",
+      "category": "Military",
+      "slotType": "Military",
+      "minRing": 3,
+      "maxRing": 12,
+      "buildSeconds": 48,
+      "requiredReactorLevel": 6,
+      "maxCount": 2,
+      "consumption": [],
+      "buildCost": [
+        {
+          "resource": "Titanium",
+          "amount": 144
+        }
+      ],
+      "levels": [
+        {
+          "reactor": 6,
+          "cost": [
+            {
+              "resource": "Titanium",
+              "amount": 9
+            }
+          ],
+          "seconds": 1,
+          "power": 8,
+          "production": [],
+          "consumption": []
+        },
+        {
+          "reactor": 6,
+          "cost": [
+            {
+              "resource": "Titanium",
+              "amount": 15
+            }
+          ],
+          "seconds": 1,
+          "power": 10,
+          "production": [],
+          "consumption": []
+        },
+        {
+          "reactor": 6,
+          "cost": [
+            {
+              "resource": "Titanium",
+              "amount": 27
+            }
+          ],
+          "seconds": 2,
+          "power": 13,
+          "production": [],
+          "consumption": []
+        },
+        {
+          "reactor": 6,
+          "cost": [
+            {
+              "resource": "Titanium",
+              "amount": 54
+            }
+          ],
+          "seconds": 3,
+          "power": 17,
+          "production": [],
+          "consumption": []
+        },
+        {
+          "reactor": 6,
+          "cost": [
+            {
+              "resource": "Titanium",
+              "amount": 105
+            },
+            {
+              "resource": "Food",
+              "amount": 42
+            }
+          ],
+          "seconds": 6,
+          "power": 22,
+          "production": [],
+          "consumption": []
+        },
+        {
+          "reactor": 6,
+          "cost": [
+            {
+              "resource": "Titanium",
+              "amount": 156
+            },
+            {
+              "resource": "Food",
+              "amount": 63
+            }
+          ],
+          "seconds": 11,
+          "power": 30,
+          "production": [],
+          "consumption": []
+        },
+        {
+          "reactor": 7,
+          "cost": [
+            {
+              "resource": "Titanium",
+              "amount": 231
+            },
+            {
+              "resource": "Food",
+              "amount": 93
+            }
+          ],
+          "seconds": 23,
+          "power": 40,
+          "production": [],
+          "consumption": []
+        },
+        {
+          "reactor": 8,
+          "cost": [
+            {
+              "resource": "Titanium",
+              "amount": 342
+            },
+            {
+              "resource": "Food",
+              "amount": 138
+            }
+          ],
+          "seconds": 46,
+          "power": 52,
+          "production": [],
+          "consumption": []
+        },
+        {
+          "reactor": 9,
+          "cost": [
+            {
+              "resource": "Titanium",
+              "amount": 507
+            },
+            {
+              "resource": "Food",
+              "amount": 201
+            }
+          ],
+          "seconds": 86,
+          "power": 68,
+          "production": [],
+          "consumption": []
+        },
+        {
+          "reactor": 10,
+          "cost": [
+            {
+              "resource": "Titanium",
+              "amount": 750
+            },
+            {
+              "resource": "Food",
+              "amount": 300
+            }
+          ],
+          "seconds": 192,
+          "power": 90,
+          "production": [],
+          "consumption": []
+        },
+        {
+          "reactor": 11,
+          "cost": [
+            {
+              "resource": "Titanium",
+              "amount": 1074
+            },
+            {
+              "resource": "Food",
+              "amount": 429
+            }
+          ],
+          "seconds": 288,
+          "power": 104,
+          "production": [],
+          "consumption": []
+        },
+        {
+          "reactor": 12,
+          "cost": [
+            {
+              "resource": "Titanium",
+              "amount": 1536
+            },
+            {
+              "resource": "Food",
+              "amount": 612
+            }
+          ],
+          "seconds": 480,
+          "power": 120,
+          "production": [],
+          "consumption": []
+        },
+        {
+          "reactor": 13,
+          "cost": [
+            {
+              "resource": "Titanium",
+              "amount": 2196
+            },
+            {
+              "resource": "Food",
+              "amount": 882
+            }
+          ],
+          "seconds": 672,
+          "power": 138,
+          "production": [],
+          "consumption": []
+        },
+        {
+          "reactor": 14,
+          "cost": [
+            {
+              "resource": "Titanium",
+              "amount": 3144
+            },
+            {
+              "resource": "Food",
+              "amount": 1260
+            }
+          ],
+          "seconds": 960,
+          "power": 160,
+          "production": [],
+          "consumption": []
+        },
+        {
+          "reactor": 15,
+          "cost": [
+            {
+              "resource": "Titanium",
+              "amount": 4500
+            },
+            {
+              "resource": "Food",
+              "amount": 1800
+            }
+          ],
+          "seconds": 1392,
+          "power": 184,
+          "production": [],
+          "consumption": []
+        },
+        {
+          "reactor": 16,
+          "cost": [
+            {
+              "resource": "Titanium",
+              "amount": 6060
+            },
+            {
+              "resource": "Food",
+              "amount": 2412
+            }
+          ],
+          "seconds": 1776,
+          "power": 212,
+          "production": [],
+          "consumption": []
+        },
+        {
+          "reactor": 17,
+          "cost": [
+            {
+              "resource": "Titanium",
+              "amount": 8100
+            },
+            {
+              "resource": "Food",
+              "amount": 3234
+            }
+          ],
+          "seconds": 2304,
+          "power": 244,
+          "production": [],
+          "consumption": []
+        },
+        {
+          "reactor": 18,
+          "cost": [
+            {
+              "resource": "Titanium",
+              "amount": 10860
+            },
+            {
+              "resource": "Food",
+              "amount": 4338
+            }
+          ],
+          "seconds": 2928,
+          "power": 282,
+          "production": [],
+          "consumption": []
+        },
+        {
+          "reactor": 19,
+          "cost": [
+            {
+              "resource": "Titanium",
+              "amount": 14520
+            },
+            {
+              "resource": "Food",
+              "amount": 5820
+            }
+          ],
+          "seconds": 3744,
+          "power": 325,
+          "production": [],
+          "consumption": []
+        },
+        {
+          "reactor": 20,
+          "cost": [
+            {
+              "resource": "Titanium",
+              "amount": 19500
+            },
+            {
+              "resource": "Food",
+              "amount": 7800
+            }
+          ],
+          "seconds": 4848,
+          "power": 375,
+          "production": [],
+          "consumption": []
+        },
+        {
+          "reactor": 21,
+          "cost": [
+            {
+              "resource": "Titanium",
+              "amount": 24660
+            },
+            {
+              "resource": "Food",
+              "amount": 9840
+            }
+          ],
+          "seconds": 6240,
+          "power": 416,
+          "production": [],
+          "consumption": []
+        },
+        {
+          "reactor": 22,
+          "cost": [
+            {
+              "resource": "Titanium",
+              "amount": 31200
+            },
+            {
+              "resource": "Food",
+              "amount": 12480
+            }
+          ],
+          "seconds": 7920,
+          "power": 460,
+          "production": [],
+          "consumption": []
+        },
+        {
+          "reactor": 23,
+          "cost": [
+            {
+              "resource": "Titanium",
+              "amount": 39420
+            },
+            {
+              "resource": "Food",
+              "amount": 15780
+            }
+          ],
+          "seconds": 10080,
+          "power": 510,
+          "production": [],
+          "consumption": []
+        },
+        {
+          "reactor": 24,
+          "cost": [
+            {
+              "resource": "Titanium",
+              "amount": 49800
+            },
+            {
+              "resource": "Food",
+              "amount": 19920
+            }
+          ],
+          "seconds": 12960,
+          "power": 566,
+          "production": [],
+          "consumption": []
+        },
+        {
+          "reactor": 25,
+          "cost": [
+            {
+              "resource": "Titanium",
+              "amount": 63000
+            },
+            {
+              "resource": "Food",
+              "amount": 25200
+            }
+          ],
+          "seconds": 16560,
+          "power": 628,
+          "production": [],
+          "consumption": []
+        },
+        {
+          "reactor": 26,
+          "cost": [
+            {
+              "resource": "Titanium",
+              "amount": 76200
+            },
+            {
+              "resource": "Food",
+              "amount": 30540
+            }
+          ],
+          "seconds": 19440,
+          "power": 696,
+          "production": [],
+          "consumption": []
+        },
+        {
+          "reactor": 27,
+          "cost": [
+            {
+              "resource": "Titanium",
+              "amount": 92400
+            },
+            {
+              "resource": "Food",
+              "amount": 37020
+            }
+          ],
+          "seconds": 23040,
+          "power": 771,
+          "production": [],
+          "consumption": []
+        },
+        {
+          "reactor": 28,
+          "cost": [
+            {
+              "resource": "Titanium",
+              "amount": 112200
+            },
+            {
+              "resource": "Food",
+              "amount": 44880
+            }
+          ],
+          "seconds": 26880,
+          "power": 854,
+          "production": [],
+          "consumption": []
+        },
+        {
+          "reactor": 29,
+          "cost": [
+            {
+              "resource": "Titanium",
+              "amount": 136200
+            },
+            {
+              "resource": "Food",
+              "amount": 54420
+            }
+          ],
+          "seconds": 31680,
+          "power": 948,
+          "production": [],
+          "consumption": []
+        },
+        {
+          "reactor": 30,
+          "cost": [
+            {
+              "resource": "Titanium",
+              "amount": 165000
+            },
+            {
+              "resource": "Food",
+              "amount": 66000
+            }
+          ],
+          "seconds": 37440,
+          "power": 1050,
+          "production": [],
+          "consumption": []
+        },
+        {
+          "reactor": 31,
+          "cost": [
+            {
+              "resource": "Titanium",
+              "amount": 194400
+            },
+            {
+              "resource": "Food",
+              "amount": 78000
+            },
+            {
+              "resource": "Alloy",
+              "amount": 9
+            }
+          ],
+          "seconds": 43440,
+          "power": 1133,
+          "production": [],
+          "consumption": []
+        },
+        {
+          "reactor": 32,
+          "cost": [
+            {
+              "resource": "Titanium",
+              "amount": 229200
+            },
+            {
+              "resource": "Food",
+              "amount": 91800
+            },
+            {
+              "resource": "Alloy",
+              "amount": 10
+            }
+          ],
+          "seconds": 50400,
+          "power": 1223,
+          "production": [],
+          "consumption": []
+        },
+        {
+          "reactor": 33,
+          "cost": [
+            {
+              "resource": "Titanium",
+              "amount": 270000
+            },
+            {
+              "resource": "Food",
+              "amount": 108000
+            },
+            {
+              "resource": "Alloy",
+              "amount": 12
+            }
+          ],
+          "seconds": 58320,
+          "power": 1320,
+          "production": [],
+          "consumption": []
+        },
+        {
+          "reactor": 34,
+          "cost": [
+            {
+              "resource": "Titanium",
+              "amount": 318000
+            },
+            {
+              "resource": "Food",
+              "amount": 127200
+            },
+            {
+              "resource": "Alloy",
+              "amount": 12
+            }
+          ],
+          "seconds": 67920,
+          "power": 1424,
+          "production": [],
+          "consumption": []
+        },
+        {
+          "reactor": 35,
+          "cost": [
+            {
+              "resource": "Titanium",
+              "amount": 375000
+            },
+            {
+              "resource": "Food",
+              "amount": 150000
+            },
+            {
+              "resource": "Alloy",
+              "amount": 15
+            }
+          ],
+          "seconds": 78480,
+          "power": 1537,
+          "production": [],
+          "consumption": []
+        },
+        {
+          "reactor": 36,
+          "cost": [
+            {
+              "resource": "Titanium",
+              "amount": 430800
+            },
+            {
+              "resource": "Food",
+              "amount": 172200
+            },
+            {
+              "resource": "Alloy",
+              "amount": 18
+            }
+          ],
+          "seconds": 88560,
+          "power": 1659,
+          "production": [],
+          "consumption": []
+        },
+        {
+          "reactor": 37,
+          "cost": [
+            {
+              "resource": "Titanium",
+              "amount": 495000
+            },
+            {
+              "resource": "Food",
+              "amount": 198000
+            },
+            {
+              "resource": "Alloy",
+              "amount": 21
+            }
+          ],
+          "seconds": 99360,
+          "power": 1790,
+          "production": [],
+          "consumption": []
+        },
+        {
+          "reactor": 38,
+          "cost": [
+            {
+              "resource": "Titanium",
+              "amount": 568200
+            },
+            {
+              "resource": "Food",
+              "amount": 227400
+            },
+            {
+              "resource": "Alloy",
+              "amount": 24
+            }
+          ],
+          "seconds": 111600,
+          "power": 1932,
+          "production": [],
+          "consumption": []
+        },
+        {
+          "reactor": 39,
+          "cost": [
+            {
+              "resource": "Titanium",
+              "amount": 654000
+            },
+            {
+              "resource": "Food",
+              "amount": 261000
+            },
+            {
+              "resource": "Alloy",
+              "amount": 27
+            }
+          ],
+          "seconds": 125280,
+          "power": 2085,
+          "production": [],
+          "consumption": []
+        },
+        {
+          "reactor": 40,
+          "cost": [
+            {
+              "resource": "Titanium",
+              "amount": 750000
+            },
+            {
+              "resource": "Food",
+              "amount": 300000
+            },
+            {
+              "resource": "Alloy",
+              "amount": 30
+            }
+          ],
+          "seconds": 141120,
+          "power": 2250,
+          "production": [],
+          "consumption": []
+        },
+        {
+          "reactor": 41,
+          "cost": [
+            {
+              "resource": "Titanium",
+              "amount": 864000
+            },
+            {
+              "resource": "Food",
+              "amount": 344400
+            },
+            {
+              "resource": "Alloy",
+              "amount": 33
+            }
+          ],
+          "seconds": 155520,
+          "power": 2390,
+          "production": [],
+          "consumption": []
+        },
+        {
+          "reactor": 42,
+          "cost": [
+            {
+              "resource": "Titanium",
+              "amount": 990000
+            },
+            {
+              "resource": "Food",
+              "amount": 396000
+            },
+            {
+              "resource": "Alloy",
+              "amount": 39
+            }
+          ],
+          "seconds": 172080,
+          "power": 2540,
+          "production": [],
+          "consumption": []
+        },
+        {
+          "reactor": 43,
+          "cost": [
+            {
+              "resource": "Titanium",
+              "amount": 1134000
+            },
+            {
+              "resource": "Food",
+              "amount": 454800
+            },
+            {
+              "resource": "Alloy",
+              "amount": 42
+            }
+          ],
+          "seconds": 190080,
+          "power": 2698,
+          "production": [],
+          "consumption": []
+        },
+        {
+          "reactor": 44,
+          "cost": [
+            {
+              "resource": "Titanium",
+              "amount": 1308000
+            },
+            {
+              "resource": "Food",
+              "amount": 522600
+            },
+            {
+              "resource": "Alloy",
+              "amount": 48
+            }
+          ],
+          "seconds": 210240,
+          "power": 2868,
+          "production": [],
+          "consumption": []
+        },
+        {
+          "reactor": 45,
+          "cost": [
+            {
+              "resource": "Titanium",
+              "amount": 1500000
+            },
+            {
+              "resource": "Food",
+              "amount": 600000
+            },
+            {
+              "resource": "Alloy",
+              "amount": 54
+            }
+          ],
+          "seconds": 232560,
+          "power": 3046,
+          "production": [],
+          "consumption": []
+        },
+        {
+          "reactor": 46,
+          "cost": [
+            {
+              "resource": "Titanium",
+              "amount": 1722000
+            },
+            {
+              "resource": "Food",
+              "amount": 690000
+            },
+            {
+              "resource": "Alloy",
+              "amount": 60
+            }
+          ],
+          "seconds": 252000,
+          "power": 3237,
+          "production": [],
+          "consumption": []
+        },
+        {
+          "reactor": 47,
+          "cost": [
+            {
+              "resource": "Titanium",
+              "amount": 1980000
+            },
+            {
+              "resource": "Food",
+              "amount": 792000
+            },
+            {
+              "resource": "Alloy",
+              "amount": 69
+            }
+          ],
+          "seconds": 272880,
+          "power": 3439,
+          "production": [],
+          "consumption": []
+        },
+        {
+          "reactor": 48,
+          "cost": [
+            {
+              "resource": "Titanium",
+              "amount": 2274000
+            },
+            {
+              "resource": "Food",
+              "amount": 912000
+            },
+            {
+              "resource": "Alloy",
+              "amount": 75
+            }
+          ],
+          "seconds": 295920,
+          "power": 3654,
+          "production": [],
+          "consumption": []
+        },
+        {
+          "reactor": 49,
+          "cost": [
+            {
+              "resource": "Titanium",
+              "amount": 2610000
+            },
+            {
+              "resource": "Food",
+              "amount": 1044000
+            },
+            {
+              "resource": "Alloy",
+              "amount": 84
+            }
+          ],
+          "seconds": 321120,
+          "power": 3882,
+          "production": [],
+          "consumption": []
+        },
+        {
+          "reactor": 50,
+          "cost": [
+            {
+              "resource": "Titanium",
+              "amount": 3000000
+            },
+            {
+              "resource": "Food",
+              "amount": 1200000
+            },
+            {
+              "resource": "Alloy",
+              "amount": 96
+            }
+          ],
+          "seconds": 348480,
+          "power": 4125,
+          "production": [],
+          "consumption": []
+        }
+      ],
+      "countUnlocks": [
+        6,
+        15
+      ]
+    },
+    {
       "id": "shield_generator",
       "displayName": "Shield Generator",
       "category": "Military",
@@ -11283,6 +12221,92 @@
       }
     ],
     "speedPerLevel": 0.5,
-    "capacityBuilding": "military_dome"
+    "capacityBuilding": "military_dome",
+    "infirmary": {
+      "building": "med_bay",
+      "capacity": [
+        {
+          "level": 1,
+          "value": 100
+        },
+        {
+          "level": 5,
+          "value": 300
+        },
+        {
+          "level": 10,
+          "value": 700
+        },
+        {
+          "level": 15,
+          "value": 1600
+        },
+        {
+          "level": 20,
+          "value": 3000
+        },
+        {
+          "level": 25,
+          "value": 5000
+        },
+        {
+          "level": 30,
+          "value": 7200
+        },
+        {
+          "level": 35,
+          "value": 10000
+        },
+        {
+          "level": 40,
+          "value": 13000
+        },
+        {
+          "level": 45,
+          "value": 16500
+        },
+        {
+          "level": 50,
+          "value": 20000
+        }
+      ],
+      "costPercent": 30,
+      "timePercent": 25,
+      "speedPerLevel": 1
+    },
+    "command": {
+      "base": 50,
+      "perLevel": 6,
+      "perStar": 30,
+      "perDomeLevel": 3,
+      "maxHeroes": 5
+    },
+    "affinity": [
+      {
+        "heroClass": "Commander",
+        "type": "armored"
+      },
+      {
+        "heroClass": "Medic",
+        "type": "armored"
+      },
+      {
+        "heroClass": "Hunter",
+        "type": "harpoon"
+      },
+      {
+        "heroClass": "Pilot",
+        "type": "harpoon"
+      },
+      {
+        "heroClass": "Engineer",
+        "type": "arc"
+      },
+      {
+        "heroClass": "Scientist",
+        "type": "arc"
+      }
+    ],
+    "marchLoad": 1.0
   }
 }

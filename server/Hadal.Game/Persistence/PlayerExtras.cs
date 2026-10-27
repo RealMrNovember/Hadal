@@ -21,7 +21,10 @@ namespace Hadal.Game.Persistence
             Dictionary<string, int>? Research, List<ActiveDoc>? Active, Dictionary<string, BuildingDoc>? Buildings,
             List<HeroDoc>? Heroes = null, int SincePity = 0, DateTimeOffset? FreePullAt = null, QuestDoc? Quests = null,
             List<MarchDoc>? Marches = null, int ExpeditionCleared = 0, string? Avatar = null,
-            Dictionary<string, long>? Troops = null, List<TrainingDoc>? Training = null);
+            Dictionary<string, long>? Troops = null, List<TrainingDoc>? Training = null,
+            Dictionary<string, long>? Wounded = null, HealDoc? Healing = null);
+
+        private sealed record HealDoc(Dictionary<string, long>? Troops, DateTimeOffset StartedAt, DateTimeOffset EndsAt, Dictionary<string, long>? Cost);
 
         private sealed record TrainingDoc(string BuildingId, string Type, int Tier, int Count, DateTimeOffset StartedAt, DateTimeOffset EndsAt,
             Dictionary<string, long>? Cost);
@@ -29,7 +32,8 @@ namespace Hadal.Game.Persistence
         private sealed record MarchDoc(
             string Id, string NodeId, string NodeType, int NodeLevel, int X, int Y, DateTimeOffset StartedAt, DateTimeOffset ArrivesAt,
             DateTimeOffset GatheredAt, DateTimeOffset HomeAt, long Reserved, Dictionary<string, double>? Rates, Dictionary<string, long>? Cargo,
-            string? HeroId = null, int Crew = 0, int FromX = 0, int FromY = 0);
+            string? HeroId = null, int Crew = 0, int FromX = 0, int FromY = 0,
+            List<string>? HeroIds = null, List<long>? HeroTroops = null, Dictionary<string, long>? Troops = null);
 
         private sealed record QuestDoc(
             int ChapterIndex, Dictionary<string, long>? Counters, Dictionary<string, long>? Daily, int DailyDay,
@@ -59,12 +63,15 @@ namespace Hadal.Game.Persistence
                 state.Marches.Select(m => new MarchDoc(m.Id, m.NodeId, m.NodeType, m.NodeLevel, m.X, m.Y, m.StartedAt, m.ArrivesAt,
                     m.GatheredAt, m.HomeAt, m.Reserved,
                     m.Rates.ToDictionary(p => p.Key.ToString(), p => p.Value), m.Cargo.ToDictionary(p => p.Key.ToString(), p => p.Value),
-                    m.HeroId, m.Crew, m.FromX, m.FromY)).ToList(),
+                    m.HeroId, m.Crew, m.FromX, m.FromY, m.HeroIds.ToList(), m.HeroTroops.ToList(), new Dictionary<string, long>(m.Troops))).ToList(),
                 state.ExpeditionCleared,
                 state.AvatarId,
                 new Dictionary<string, long>(state.Troops),
                 state.Training.Select(t => new TrainingDoc(t.BuildingId, t.Type, t.Tier, t.Count, t.StartedAt, t.EndsAt,
-                    t.Cost.ToDictionary(p => p.Key.ToString(), p => p.Value))).ToList()));
+                    t.Cost.ToDictionary(p => p.Key.ToString(), p => p.Value))).ToList(),
+                new Dictionary<string, long>(state.Wounded),
+                state.Healing == null ? null : new HealDoc(new Dictionary<string, long>(state.Healing.Troops), state.Healing.StartedAt, state.Healing.EndsAt,
+                    state.Healing.Cost.ToDictionary(p => p.Key.ToString(), p => p.Value))));
         }
 
         private static Dictionary<ResourceType, T> Resources<T>(Dictionary<string, T>? map)
@@ -129,7 +136,9 @@ namespace Hadal.Game.Persistence
                     Id = m.Id, NodeId = m.NodeId, NodeType = m.NodeType, NodeLevel = m.NodeLevel, X = m.X, Y = m.Y,
                     StartedAt = m.StartedAt, ArrivesAt = m.ArrivesAt, GatheredAt = m.GatheredAt, HomeAt = m.HomeAt, Reserved = m.Reserved,
                     Rates = Resources(m.Rates), Cargo = Resources(m.Cargo),
-                    HeroId = m.HeroId ?? string.Empty, Crew = m.Crew, FromX = m.FromX, FromY = m.FromY
+                    HeroId = m.HeroId ?? string.Empty, Crew = m.Crew, FromX = m.FromX, FromY = m.FromY,
+                    HeroIds = m.HeroIds ?? new List<string>(), HeroTroops = m.HeroTroops ?? new List<long>(),
+                    Troops = new Dictionary<string, long>(m.Troops ?? new Dictionary<string, long>(), StringComparer.Ordinal)
                 });
             }
 
@@ -137,6 +146,19 @@ namespace Hadal.Game.Persistence
             state.AvatarId = doc.Avatar ?? string.Empty;
             foreach (var pair in doc.Troops ?? new Dictionary<string, long>())
                 state.Troops[pair.Key] = pair.Value;
+            foreach (var pair in doc.Wounded ?? new Dictionary<string, long>())
+                state.Wounded[pair.Key] = pair.Value;
+            if (doc.Healing is { } heal)
+            {
+                state.Healing = new HealState
+                {
+                    Troops = new Dictionary<string, long>(heal.Troops ?? new Dictionary<string, long>(), StringComparer.Ordinal),
+                    StartedAt = heal.StartedAt, EndsAt = heal.EndsAt,
+                    Cost = (heal.Cost ?? new Dictionary<string, long>()).Where(p => Enum.TryParse<ResourceType>(p.Key, out _))
+                        .ToDictionary(p => Enum.Parse<ResourceType>(p.Key), p => p.Value)
+                };
+            }
+
             foreach (var t in doc.Training ?? new List<TrainingDoc>())
             {
                 state.Training.Add(new TrainingState

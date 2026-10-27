@@ -144,6 +144,40 @@ namespace Hadal.Game.Tests
         }
 
         [Fact]
+        public async Task The_med_bay_heals_wounded_at_a_share_of_the_price_and_the_army_eats()
+        {
+            var (session, connection) = await Connect("heal-a");
+            var state = session.StateForTests;
+            var key = TroopRules.Key("armored", 1);
+
+            Send(session, new HealTroopsCommand { CommandId = "h0" }, CommandType.HealTroops);
+            Assert.Equal(nameof(TroopRejectReason.NoMedBay), LastAck(connection).Reason);
+
+            state.Buildings.Add(new PlacedBuilding { BuildingId = "bay", DefinitionId = "med_bay", Ring = 4, Sector = 2, Level = 1 });
+            Assert.Equal(100, session.WoundForTests(key, 150)); // a level-1 Med Bay holds 100; the rest is lost
+            var food = state.Wallet[ResourceType.Food];
+
+            Send(session, new HealTroopsCommand { CommandId = "h1" }, CommandType.HealTroops);
+            Assert.Equal(CommandResultCode.Accepted, LastAck(connection).Result);
+            var tier = TroopRules.Tier(Catalog.Troops, 1)!;
+            Assert.Equal(food - (long)Math.Ceiling(tier.food * 100 * 0.3), state.Wallet[ResourceType.Food]);
+            var army = Army(connection);
+            Assert.Empty(army.Wounded);
+            Assert.Equal(100, army.Healing!.Troops.Single().Count);
+
+            _clock.UtcNow = DateTimeOffset.FromUnixTimeMilliseconds(army.Healing.EndsAtMs).AddSeconds(1);
+            _world.Tick();
+            Assert.Null(Army(connection).Healing);
+            Assert.Equal(100, state.Troops[key]);
+
+            // Upkeep: the base's food rate drops by the army's appetite.
+            var before = session.ProductionForTests(ResourceType.Food);
+            state.Troops[key] = 10_100;
+            var after = session.ProductionForTests(ResourceType.Food);
+            Assert.True(after < before, $"{before} -> {after}");
+        }
+
+        [Fact]
         public async Task Troops_and_training_survive_a_save()
         {
             var (session, _) = await Connect("train-e");

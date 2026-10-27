@@ -201,6 +201,14 @@ namespace Hadal.Game
                         CancelTraining(cancel!, now);
                         break;
 
+                    case CommandType.HealTroops when TryDeserialize(envelope.Payload, out HealTroopsCommand? heal):
+                        HealTroops(heal!, now);
+                        break;
+
+                    case CommandType.CancelHeal when TryDeserialize(envelope.Payload, out CancelHealCommand? cancelHeal):
+                        CancelHeal(cancelHeal!, now);
+                        break;
+
                     case CommandType.SetProfile when TryDeserialize(envelope.Payload, out SetProfileCommand? profile):
                         SetProfile(profile!, now);
                         break;
@@ -215,7 +223,8 @@ namespace Hadal.Game
                             or CommandType.BoostBuilding or CommandType.Overdrive or CommandType.StartSalvage or CommandType.ExecuteGacha
                             or CommandType.LevelUpHero or CommandType.PromoteHero or CommandType.AssignHero
                             or CommandType.ClaimQuest or CommandType.ClaimDailyChest or CommandType.OpenItem or CommandType.RecruitHero
-                            or CommandType.DiveStage or CommandType.SetProfile or CommandType.TrainTroops or CommandType.CancelTraining;
+                            or CommandType.DiveStage or CommandType.SetProfile or CommandType.TrainTroops or CommandType.CancelTraining
+                            or CommandType.HealTroops or CommandType.CancelHeal;
                         Reject(envelope.CommandId, envelope.ClientSequence, known ? "MalformedCommand" : "NotSupported", now);
                         break;
                 }
@@ -717,6 +726,8 @@ namespace Hadal.Game
 
                 foreach (var training in _state.Training.Where(t => t.EndsAt <= at).ToList())
                     CompleteTraining(training);
+                if (_state.Healing is { } healing && healing.EndsAt <= at)
+                    CompleteHeal(healing);
 
                 foreach (var research in _state.ActiveResearch.Where(a => a.EndsAt <= at).ToList())
                 {
@@ -734,7 +745,10 @@ namespace Hadal.Game
             if (_marchesDirty)
                 changes.Add(MarchesChange(now));
             if (_armyDirty)
+            {
                 changes.Add(ArmyChange(now));
+                changes.Add(ProductionChange(now));
+            }
             if (changedBuildings.Count == 0 && !researchChanged && changes.Count == 0)
                 return changes;
 
@@ -771,6 +785,7 @@ namespace Hadal.Game
                 Consider(march.HomeAt);
             foreach (var training in _state.Training)
                 Consider(training.EndsAt);
+            Consider(_state.Healing?.EndsAt);
             return next;
         }
 
@@ -854,8 +869,24 @@ namespace Hadal.Game
             _walletDirty = true;
         }
 
-        private Dictionary<ResourceType, long> NetMilliPerTick(DateTimeOffset at) =>
-            ProductionSimulator.ComputeNetMilliPerTick(Inputs(at), _production, _modifiers.ProductionPercent);
+        private Dictionary<ResourceType, long> NetMilliPerTick(DateTimeOffset at)
+        {
+            var net = ProductionSimulator.ComputeNetMilliPerTick(Inputs(at), _production, _modifiers.ProductionPercent);
+
+            // The army eats (docs/rehber 07 §2.5): troops at home and out on marches; the wounded do not.
+            var (food, oxygen) = TroopRules.Upkeep(_catalog.Troops, FedTroops());
+            var perTick = SimulationTick.SecondsFromTicks(1) / 3600.0 * 1000.0;
+            void Eat(ResourceType type, double perHour)
+            {
+                var milli = (long)Math.Round(perHour * perTick);
+                if (milli > 0)
+                    net[type] = (net.TryGetValue(type, out var have) ? have : 0) - milli;
+            }
+
+            Eat(ResourceType.Food, food);
+            Eat(ResourceType.Oxygen, oxygen);
+            return net;
+        }
 
         private List<BuildingProductionInput> Inputs(DateTimeOffset at) =>
             _state.Buildings.Where(b => b.Level > 0).Select(b => new BuildingProductionInput(b.DefinitionId, b.Level, BonusPercent(b, at))).ToList();

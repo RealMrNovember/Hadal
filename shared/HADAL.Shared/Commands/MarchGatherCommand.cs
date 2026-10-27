@@ -12,5 +12,8 @@ namespace HADAL.Shared.Commands
 
         /// <summary>The hero who leads the march (owned, not on another march); empty = the strongest free one.</summary>
         [ProtoMember(4)] public string HeroId { get; set; } = string.Empty;
+
+        /// <summary>The team: up to five heroes, each leading their command capacity of troops (docs/rehber 19 §1.2).</summary>
+        [ProtoMember(5)] public string[] HeroIds { get; set; } = System.Array.Empty<string>();
     }
 }

@@ -14,11 +14,32 @@ namespace Hadal.Game
     {
         private bool _armyDirty;
 
-        /// <summary>Troops at home plus the ones in training (both count against the army capacity).</summary>
-        private long ArmyCount() => _state.Troops.Values.Sum() + _state.Training.Sum(t => (long)t.Count);
+        /// <summary>Every troop the base keeps: at home, in training, wounded or healing, out on marches (docs/rehber 07 §2.4).</summary>
+        private long ArmyCount() => _state.Troops.Values.Sum() + _state.Training.Sum(t => (long)t.Count) + _state.Wounded.Values.Sum()
+                                    + (_state.Healing?.Troops.Values.Sum() ?? 0) + Marching();
 
-        private long ArmyCapacity() =>
-            TroopRules.ArmyCapacity(_catalog.Troops, _state.Buildings.Select(b => (b.DefinitionId, b.Level)));
+        private long Marching() => _state.Marches.Sum(m => m.Troops.Values.Sum());
+
+        /// <summary>Troops that eat: at home and on marches (the wounded do not).</summary>
+        private Dictionary<string, long> FedTroops()
+        {
+            var fed = new Dictionary<string, long>(_state.Troops, StringComparer.Ordinal);
+            foreach (var march in _state.Marches)
+                foreach (var pair in march.Troops)
+                    fed[pair.Key] = (fed.TryGetValue(pair.Key, out var n) ? n : 0) + pair.Value;
+            return fed;
+        }
+
+        private IEnumerable<(string DefinitionId, int Level)> Levels() => _state.Buildings.Select(b => (b.DefinitionId, b.Level));
+
+        /// <summary>Troops a hero leads (command capacity: level, stars, the best Military Dome).</summary>
+        private int CommandOf(OwnedHeroState hero) =>
+            TroopRules.CommandCapacity(_catalog.Troops, hero.Level, hero.Stars, TroopRules.BestDome(_catalog.Troops, Levels()));
+
+        private string Affinity(string heroId) =>
+            _catalog.TryGetHero(heroId, out var hero) ? TroopRules.Affinity(_catalog.Troops, hero.HeroClass) : string.Empty;
+
+        private long ArmyCapacity() => TroopRules.ArmyCapacity(_catalog.Troops, Levels());
 
         private void TrainTroops(TrainTroopsCommand command, DateTimeOffset now)
         {
@@ -62,6 +83,97 @@ namespace Hadal.Game
             SendDelta(now, new List<EntityChangeDto> { WalletChange(), ArmyChange(now), Accepted(command.CommandId, command.ClientSequence) });
         }
 
+        /// <summary>Heals wounded troops (docs/rehber 07 §2.7): a share of the training price, one batch at a time.</summary>
+        private void HealTroops(HealTroopsCommand command, DateTimeOffset now)
+        {
+            var troops = _catalog.Troops;
+            var request = new Dictionary<string, long>(StringComparer.Ordinal);
+            if (command.Troops.Length == 0)
+            {
+                foreach (var pair in _state.Wounded.Where(p => p.Value > 0))
+                    request[pair.Key] = pair.Value;
+            }
+            else
+            {
+                foreach (var stack in command.Troops)
+                {
+                    var key = TroopRules.Key(stack.Type, stack.Tier);
+                    request[key] = (request.TryGetValue(key, out var n) ? n : 0) + stack.Count;
+                }
+            }
+
+            var best = TroopRules.BestInfirmary(troops, Levels());
+            var verdict = TroopRules.ValidateHeal(troops, best, _state.Healing != null, _state.Wounded, request, _state.Wallet);
+            if (verdict != TroopRejectReason.None)
+            {
+                Reject(command.CommandId, command.ClientSequence, verdict.ToString(), now);
+                return;
+            }
+
+            var cost = TroopRules.HealCost(troops, request);
+            BuildingProgression.Charge(cost, _state.Wallet);
+            foreach (var pair in request)
+            {
+                _state.Wounded[pair.Key] -= pair.Value;
+                if (_state.Wounded[pair.Key] <= 0)
+                    _state.Wounded.Remove(pair.Key);
+            }
+
+            _state.Healing = new HealState
+            {
+                Troops = request, StartedAt = now, EndsAt = now.AddSeconds(TroopRules.HealSeconds(troops, request, best)),
+                Cost = cost.ToDictionary(p => p.Key, p => p.Value)
+            };
+            _state.IsDirty = true;
+            SendDelta(now, new List<EntityChangeDto> { WalletChange(), ArmyChange(now), Accepted(command.CommandId, command.ClientSequence) });
+        }
+
+        private void CancelHeal(CancelHealCommand command, DateTimeOffset now)
+        {
+            if (_state.Healing is not { } healing)
+            {
+                Reject(command.CommandId, command.ClientSequence, TroopRejectReason.NothingToHeal.ToString(), now);
+                return;
+            }
+
+            _state.Healing = null;
+            foreach (var pair in healing.Troops)
+                _state.Wounded[pair.Key] = (_state.Wounded.TryGetValue(pair.Key, out var n) ? n : 0) + pair.Value;
+            foreach (var pair in healing.Cost)
+                _state.Wallet[pair.Key] = (_state.Wallet.TryGetValue(pair.Key, out var have) ? have : 0) + pair.Value;
+            _state.IsDirty = true;
+            SendDelta(now, new List<EntityChangeDto> { WalletChange(), ArmyChange(now), Accepted(command.CommandId, command.ClientSequence) });
+        }
+
+        /// <summary>Healed troops go back to the army at home.</summary>
+        private void CompleteHeal(HealState healing)
+        {
+            _state.Healing = null;
+            foreach (var pair in healing.Troops)
+                _state.Troops[pair.Key] = (_state.Troops.TryGetValue(pair.Key, out var n) ? n : 0) + pair.Value;
+            _armyDirty = true;
+        }
+
+        /// <summary>Puts troops in the Med Bay (combat, D4); whatever does not fit is lost. Returns how many fit.</summary>
+        internal long WoundForTests(string key, long count)
+        {
+            lock (_gate)
+            {
+                var room = Math.Max(0, TroopRules.InfirmaryCapacity(_catalog.Troops, Levels()) - _state.Wounded.Values.Sum()
+                                          - (_state.Healing?.Troops.Values.Sum() ?? 0));
+                var fit = Math.Min(room, count);
+                _state.Wounded[key] = (_state.Wounded.TryGetValue(key, out var n) ? n : 0) + fit;
+                return fit;
+            }
+        }
+
+        /// <summary>Net milli-units per tick of one resource (upkeep included).</summary>
+        internal long ProductionForTests(ResourceType type)
+        {
+            lock (_gate)
+                return NetMilliPerTick(_state.LastSimulatedAt).TryGetValue(type, out var net) ? net : 0;
+        }
+
         /// <summary>A finished batch joins the army at home.</summary>
         private void CompleteTraining(TrainingState training)
         {
@@ -73,7 +185,7 @@ namespace Hadal.Game
 
         private ArmyDto ArmyDto()
         {
-            var (food, oxygen) = TroopRules.Upkeep(_catalog.Troops, _state.Troops);
+            var (food, oxygen) = TroopRules.Upkeep(_catalog.Troops, FedTroops());
             return new ArmyDto
             {
                 Troops = _state.Troops.Where(p => p.Value > 0)
@@ -86,9 +198,24 @@ namespace Hadal.Game
                 }).ToArray(),
                 Capacity = ArmyCapacity(),
                 UpkeepFood = food,
-                UpkeepOxygen = oxygen
+                UpkeepOxygen = oxygen,
+                Wounded = Stacks(_state.Wounded),
+                Healing = _state.Healing == null ? null : new HealingDto
+                {
+                    Troops = Stacks(_state.Healing.Troops),
+                    StartedAtMs = _state.Healing.StartedAt.ToUnixTimeMilliseconds(),
+                    EndsAtMs = _state.Healing.EndsAt.ToUnixTimeMilliseconds()
+                },
+                InfirmaryCapacity = TroopRules.InfirmaryCapacity(_catalog.Troops, Levels()),
+                Marching = Marching(),
+                Command = _state.Heroes.Select(h => new HeroCommandDto { HeroId = h.HeroId, Capacity = CommandOf(h) }).ToArray()
             };
         }
+
+        private static TroopStackDto[] Stacks(IReadOnlyDictionary<string, long> stacks) =>
+            stacks.Where(p => p.Value > 0)
+                .Select(p => TroopRules.TryParseKey(p.Key, out var type, out var tier) ? new TroopStackDto { Type = type, Tier = tier, Count = p.Value } : null)
+                .Where(s => s != null).Select(s => s!).OrderBy(s => s.Type, StringComparer.Ordinal).ThenByDescending(s => s.Tier).ToArray();
 
         private EntityChangeDto ArmyChange(DateTimeOffset now)
         {

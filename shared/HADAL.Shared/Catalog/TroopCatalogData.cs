@@ -23,6 +23,51 @@ namespace HADAL.Shared.Catalog
 
         /// <summary>Building that holds the army (capacity).</summary>
         public string capacityBuilding = "military_dome";
+
+        public InfirmaryData infirmary = new InfirmaryData();
+
+        public CommandData command = new CommandData();
+
+        /// <summary>Hero class → the troop type it leads best (auto-fill prefers it).</summary>
+        public AffinityData[] affinity = Array.Empty<AffinityData>();
+
+        /// <summary>What one troop carries on a march, relative to its tier load (the v8 economy runs it small).</summary>
+        public double marchLoad = 1;
+    }
+
+    /// <summary>The Med Bay (docs/rehber 07 §2.6–2.7): wounded capacity and healing at a share of the training price.</summary>
+    [Serializable]
+    public sealed class InfirmaryData
+    {
+        public string building = "med_bay";
+        public LevelValueData[] capacity = Array.Empty<LevelValueData>();
+        public double costPercent = 30;
+        public double timePercent = 25;
+
+        /// <summary>Healing speed per level of the best Med Bay, in percent.</summary>
+        public double speedPerLevel = 1;
+    }
+
+    /// <summary>How many troops a hero leads (docs/rehber 19 §1.2, Last Asylum's command capacity).</summary>
+    [Serializable]
+    public sealed class CommandData
+    {
+        public int @base = 50;
+        public int perLevel = 6;
+        public int perStar = 30;
+
+        /// <summary>Per level of the best Military Dome (the "building bonus").</summary>
+        public int perDomeLevel = 3;
+
+        /// <summary>Heroes in one team.</summary>
+        public int maxHeroes = 5;
+    }
+
+    [Serializable]
+    public sealed class AffinityData
+    {
+        public string heroClass = string.Empty;
+        public string type = string.Empty;
     }
 
     [Serializable]

@@ -29,6 +29,8 @@ namespace Hadal.Game.Tests
             var session = await _world.ConnectAsync(identity, connection, default, identity);
             session.ClearCrewForTests();
             session.StateForTests.Buildings.Single(b => b.DefinitionId == BuildingProgression.ReactorId).Level = reactor;
+            // Marches go with troops (docs/rehber 19 §1.2): a reserve at home to fill the team from.
+            session.StateForTests.Troops[TroopRules.Key("armored", 1)] = 5000;
             View(session);
             return (session, connection);
         }
@@ -87,9 +89,11 @@ namespace Hadal.Game.Tests
             var cargo = march.Cargo[ResourceType.Titanium];
             Assert.True(cargo > 0);
             Assert.False(string.IsNullOrEmpty(march.HeroId)); // the strongest free hero leads when none is chosen
-            Assert.Equal(GatherRules.Crew(10), march.Crew);
+            Assert.True(march.Crew > 0);
+            Assert.Equal(march.Troops.Values.Sum(), march.Crew);
+            Assert.Equal(5000 - march.Crew, session.StateForTests.Troops[TroopRules.Key("armored", 1)]);
             Assert.Equal(_world.Map.PositionOf(session.PublicId)!.Value, (march.FromX, march.FromY));
-            Assert.True(GatherRules.LoadOf(Catalog.World, march.Cargo) <= GatherRules.Load(Catalog.Gather, 10));
+            Assert.True(GatherRules.LoadOf(Catalog.World, march.Cargo) <= TroopRules.MarchLoad(Catalog.Troops, march.Troops));
             Assert.Equal(node.Remaining - march.Reserved, _world.Map.NodeForTests(node.Id)!.Remaining);
             Assert.True(Latest<MarchListDto>(connection, EntityIds.Marches).Marches.Length == 1);
 
@@ -107,6 +111,41 @@ namespace Hadal.Game.Tests
             _world.Tick();
             Assert.Empty(session.MarchesForTests);
             Assert.True(session.StateForTests.Wallet[ResourceType.Titanium] >= titanium + cargo);
+            Assert.Equal(5000, session.StateForTests.Troops[TroopRules.Key("armored", 1)]); // the troops came home
+        }
+
+        [Fact]
+        public async Task Each_hero_takes_their_command_of_troops_and_a_march_needs_troops()
+        {
+            var (session, connection) = await Connect("team-a", 10);
+            var state = session.StateForTests;
+            foreach (var id in Catalog.Heroes.Select(h => h.Id).Where(id => state.Heroes.All(h => h.HeroId != id)).Take(5))
+                state.Heroes.Add(new OwnedHeroState { HeroId = id, Level = 10, Stars = 2 });
+            state.Troops[TroopRules.Key("armored", 1)] = 300;
+            state.Troops[TroopRules.Key("harpoon", 2)] = 5000;
+
+            var team = state.Heroes.Take(3).Select(h => h.HeroId).ToArray();
+            Send(session, new MarchGatherCommand { CommandId = "t1", NodeId = Nearest(session, "enkaz_alani").Id, HeroIds = team }, CommandType.MarchGather);
+            Assert.Equal(CommandResultCode.Accepted, LastAck(connection).Result);
+            var march = Assert.Single(session.MarchesForTests);
+            Assert.Equal(team, march.HeroIds);
+            for (var i = 0; i < team.Length; i++)
+            {
+                var hero = state.Heroes.Single(h => h.HeroId == team[i]);
+                Assert.Equal(TroopRules.CommandCapacity(Catalog.Troops, hero.Level, hero.Stars, 0), march.HeroTroops[i]);
+            }
+
+            // Highest tier first; the slowest type sets the pace.
+            Assert.True(march.Troops.ContainsKey(TroopRules.Key("harpoon", 2)));
+            Assert.Equal(march.HeroTroops.Sum(), march.Troops.Values.Sum());
+
+            // Six heroes is one too many; with nobody left at home the march is refused.
+            Send(session, new MarchGatherCommand { CommandId = "t2", NodeId = Nearest(session, "enkaz_alani").Id,
+                HeroIds = state.Heroes.Select(h => h.HeroId).Concat(new[] { "x1", "x2", "x3", "x4", "x5" }).Take(6).ToArray() }, CommandType.MarchGather);
+            Assert.Equal(nameof(MarchRejectReason.TooManyHeroes), LastAck(connection).Reason);
+            state.Troops.Clear();
+            Send(session, new MarchGatherCommand { CommandId = "t3", NodeId = Nearest(session, "enkaz_alani").Id }, CommandType.MarchGather);
+            Assert.Equal(nameof(MarchRejectReason.NoTroops), LastAck(connection).Reason);
         }
 
         [Fact]
@@ -229,6 +268,8 @@ namespace Hadal.Game.Tests
             var march = Assert.Single(restored.Marches);
             Assert.Equal(session.MarchesForTests[0].HomeAt, march.HomeAt);
             Assert.Equal(session.MarchesForTests[0].Cargo, march.Cargo);
+            Assert.Equal(session.MarchesForTests[0].Troops, march.Troops);
+            Assert.Equal(session.MarchesForTests[0].HeroIds, march.HeroIds);
             Assert.Equal(4, restored.ExpeditionCleared);
         }
     }

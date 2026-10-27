@@ -15,6 +15,35 @@ namespace HADAL.Shared.DTOs
         /// <summary>Upkeep an hour (docs/rehber 07 §2.5).</summary>
         [ProtoMember(4)] public double UpkeepFood { get; set; }
         [ProtoMember(5)] public double UpkeepOxygen { get; set; }
+
+        /// <summary>Wounded troops in the Med Bays (docs/rehber 07 §2.6).</summary>
+        [ProtoMember(6)] public TroopStackDto[] Wounded { get; set; } = System.Array.Empty<TroopStackDto>();
+
+        /// <summary>The healing batch, if any.</summary>
+        [ProtoMember(7)] public HealingDto? Healing { get; set; }
+
+        [ProtoMember(8)] public long InfirmaryCapacity { get; set; }
+
+        /// <summary>Troops out on marches (they count against the army capacity).</summary>
+        [ProtoMember(9)] public long Marching { get; set; }
+
+        /// <summary>Troops one hero leads, by hero id (the march setup shows it under each portrait).</summary>
+        [ProtoMember(10)] public HeroCommandDto[] Command { get; set; } = System.Array.Empty<HeroCommandDto>();
+    }
+
+    [ProtoContract]
+    public sealed class HealingDto
+    {
+        [ProtoMember(1)] public TroopStackDto[] Troops { get; set; } = System.Array.Empty<TroopStackDto>();
+        [ProtoMember(2)] public long StartedAtMs { get; set; }
+        [ProtoMember(3)] public long EndsAtMs { get; set; }
+    }
+
+    [ProtoContract]
+    public sealed class HeroCommandDto
+    {
+        [ProtoMember(1)] public string HeroId { get; set; } = string.Empty;
+        [ProtoMember(2)] public int Capacity { get; set; }
     }
 
     [ProtoContract]

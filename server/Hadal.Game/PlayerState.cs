@@ -45,6 +45,15 @@ namespace Hadal.Game
         public Dictionary<ResourceType, long> Cost { get; init; } = new();
     }
 
+    /// <summary>The Med Bay's healing batch (docs/rehber 07 §2.7).</summary>
+    public sealed class HealState
+    {
+        public Dictionary<string, long> Troops { get; init; } = new(StringComparer.Ordinal);
+        public DateTimeOffset StartedAt { get; init; }
+        public DateTimeOffset EndsAt { get; set; }
+        public Dictionary<ResourceType, long> Cost { get; init; } = new();
+    }
+
     public sealed class ActiveResearch
     {
         public string NodeId { get; init; } = string.Empty;
@@ -126,6 +135,12 @@ namespace Hadal.Game
 
         /// <summary>Running training batches, one per training yard.</summary>
         public List<TrainingState> Training { get; } = new();
+
+        /// <summary>Wounded troops in the Med Bays by "type:tier".</summary>
+        public Dictionary<string, long> Wounded { get; } = new(StringComparer.Ordinal);
+
+        /// <summary>The healing batch; null when the Med Bay is idle.</summary>
+        public HealState? Healing { get; set; }
 
         /// <summary>Chosen avatar (a hero portrait id); empty shows the initial.</summary>
         public string AvatarId { get; set; } = string.Empty;

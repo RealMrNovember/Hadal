@@ -55,5 +55,12 @@ namespace HADAL.Shared.DTOs
         /// <summary>Where the march set out from (the base tile).</summary>
         [ProtoMember(15)] public int FromX { get; set; }
         [ProtoMember(16)] public int FromY { get; set; }
+
+        /// <summary>The team's heroes and how many troops each leads (same order).</summary>
+        [ProtoMember(17)] public string[] HeroIds { get; set; } = System.Array.Empty<string>();
+        [ProtoMember(18)] public long[] HeroTroops { get; set; } = System.Array.Empty<long>();
+
+        /// <summary>The troops aboard by type and tier.</summary>
+        [ProtoMember(19)] public TroopStackDto[] Troops { get; set; } = System.Array.Empty<TroopStackDto>();
     }
 }
