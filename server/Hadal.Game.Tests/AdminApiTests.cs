@@ -7,6 +7,7 @@ using Hadal.Game;
 using Hadal.Gateway.Admin;
 using HADAL.Shared.Auth;
 using HADAL.Shared.Enums;
+using HADAL.Shared.Simulation;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.Extensions.DependencyInjection;
@@ -167,10 +168,20 @@ namespace Hadal.Game.Tests
             // Online: the change reaches the live session and its connection at once.
             var world = _factory.Services.GetRequiredService<GameWorld>();
             var connection = new RecordingConnection();
-            await world.ConnectAsync(player.accountId, connection, default);
+            var session = await world.ConnectAsync(player.accountId, connection, default);
             (await Proxied(gm).PostAsJsonAsync($"/admin/api/players/{player.accountId}/grant",
                 new { amounts = new Dictionary<string, long> { ["Hadalite"] = 25 } })).EnsureSuccessStatusCode();
             Assert.Equal(125, connection.Messages.Last().Delta().Wallet()!.Amount(ResourceType.Hadalite)); // 100 to start + 25
+
+            // Direct grants pass the storage cap: nothing given is lost.
+            (await Proxied(gm).PostAsJsonAsync($"/admin/api/players/{player.accountId}/grant",
+                new { amounts = new Dictionary<string, long> { ["Titanium"] = 5_000_000 } })).EnsureSuccessStatusCode();
+            Assert.True(session.StateForTests.Wallet[ResourceType.Titanium] >= 5_000_000);
+
+            // Packages: one capsule of exactly that amount in the bag.
+            (await Proxied(gm).PostAsJsonAsync($"/admin/api/players/{player.accountId}/grant",
+                new { amounts = new Dictionary<string, long> { ["Food"] = 250_000 }, packages = true })).EnsureSuccessStatusCode();
+            Assert.Equal(1, session.StateForTests.Items[Capsules.Id(ResourceType.Food, 250_000)]);
 
             var audit = await Proxied(gm).GetFromJsonAsync<JsonArray>("/admin/api/audit");
             Assert.Contains(audit!, e => e!["action"]!.GetValue<string>() == "player.grant" && e["details"]!.GetValue<string>().Contains("support ticket 42"));
@@ -221,9 +232,12 @@ namespace Hadal.Game.Tests
             var exhausted = await other.PostAsJsonAsync(AuthRoutes.CouponRedeem, new CouponRedeemRequest { code = code }, Json);
             Assert.Equal(AccountErrors.CouponExhausted, (await exhausted.Content.ReadFromJsonAsync<AccountError>(Json))!.error);
 
-            var detail = await Proxied(gm).GetFromJsonAsync<JsonObject>($"/admin/api/players/{first.accountId}");
-            Assert.Equal(500 + 300, // starting titanium + coupon
-                 detail!["wallet"]!["Titanium"]!.GetValue<long>());
+            // Coupon gifts land in the bag as a package of exactly their amount; Hadalite is paid out directly.
+            var world = _factory.Services.GetRequiredService<GameWorld>();
+            var state = (await world.DescribeAsync(first.accountId, default))!;
+            Assert.Equal(1, state.Items[Capsules.Id(ResourceType.Titanium, 300)]);
+            Assert.Equal(500, state.Wallet[ResourceType.Titanium]);
+            Assert.Equal(100 + 10, state.Wallet[ResourceType.Hadalite]);
         }
 
         private async Task<string> RedeemErrorAsync(AuthResponse player, string code)

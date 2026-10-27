@@ -10,7 +10,8 @@ using Microsoft.Extensions.FileProviders;
 namespace Hadal.Gateway.Admin
 {
     public sealed record LoginRequest(string Username, string Password, string? Code = null);
-    public sealed record GrantRequest(Dictionary<string, long> Amounts, string Note);
+    /// <param name="Packages">True: each resource goes to the bag as a package; false: straight to the wallet (past the cap).</param>
+    public sealed record GrantRequest(Dictionary<string, long> Amounts, string Note, bool Packages = false);
     public sealed record BanRequest(int Hours, string Reason);
     public sealed record CouponRequest(string Code, Dictionary<string, long> Rewards, int MaxRedemptions, DateTimeOffset? ExpiresAt, string Note,
         DateTimeOffset? StartsAt = null, string? TargetAccountId = null);
@@ -133,6 +134,7 @@ namespace Hadal.Gateway.Admin
                 {
                     player = PlayerJson(player, world),
                     wallet = state?.Wallet.ToDictionary(p => p.Key.ToString(), p => p.Value) ?? new Dictionary<string, long>(),
+                    bag = state?.Items.Where(p => p.Value > 0).ToDictionary(p => p.Key, p => p.Value) ?? new Dictionary<string, int>(),
                     buildings = state?.Buildings.Select(b => new
                     {
                         b.BuildingId, b.DefinitionId, b.Ring, b.Sector, b.Level,
@@ -148,10 +150,11 @@ namespace Hadal.Gateway.Admin
                 var amounts = ParseAmounts(request.Amounts);
                 if (amounts == null || amounts.Count == 0)
                     return Results.BadRequest(new { error = "InvalidAmounts" });
-                if (!await world.GrantAsync(id.ToString("N"), amounts, ct))
+                if (!await world.GrantAsync(id.ToString("N"), amounts, ct, request.Packages))
                     return Results.NotFound(new { error = "PlayerNotStarted" });
 
-                await store.AuditAsync(me.Username, "player.grant", id.ToString("N"), $"{Describe(amounts)} {request.Note}".Trim(), AdminAuth.ClientIp(http), ct);
+                await store.AuditAsync(me.Username, "player.grant", id.ToString("N"),
+                    $"{(request.Packages ? "[paket] " : string.Empty)}{Describe(amounts)} {request.Note}".Trim(), AdminAuth.ClientIp(http), ct);
                 return Results.Ok(new { ok = true });
             }).RequireAdmin(AdminRoles.GameMaster);
 

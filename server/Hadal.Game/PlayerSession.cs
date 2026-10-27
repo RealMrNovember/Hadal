@@ -278,19 +278,45 @@ namespace Hadal.Game
                     });
                 foreach (var pair in _state.ResearchLevels)
                     copy.ResearchLevels[pair.Key] = pair.Value;
+                foreach (var pair in _state.Items)
+                    copy.Items[pair.Key] = pair.Value;
+                foreach (var pair in _state.Troops)
+                    copy.Troops[pair.Key] = pair.Value;
                 return copy;
             }
         }
 
-        /// <summary>Overseer grant: adds resources (capped at storage) and pushes the wallet at once.</summary>
-        internal void Grant(IReadOnlyDictionary<ResourceType, long> amounts, DateTimeOffset now)
+        /// <summary>
+        /// Overseer grant and coupons: as packages, each resource lands in the bag as one capsule of exactly that amount
+        /// (Last Asylum's resource items; opening it may pass the storage cap); otherwise it goes straight to the wallet,
+        /// past the cap as well, so nothing given is ever lost. Negative amounts take away (never below zero).
+        /// </summary>
+        internal void Grant(IReadOnlyDictionary<ResourceType, long> amounts, DateTimeOffset now, bool asPackages = false)
         {
             lock (_gate)
             {
                 AdvanceTo(now);
-                WalletOps.Add(_state.Wallet, amounts, Capacities());
+                ApplyGrant(_state, amounts, asPackages);
                 _state.IsDirty = true;
-                SendDelta(now, new List<EntityChangeDto> { WalletChange(), ProductionChange(now) });
+                SendDelta(now, new List<EntityChangeDto> { WalletChange(), InventoryChange(), ProductionChange(now) });
+            }
+        }
+
+        internal static void ApplyGrant(PlayerState state, IReadOnlyDictionary<ResourceType, long> amounts, bool asPackages)
+        {
+            foreach (var pair in amounts)
+            {
+                if (pair.Value == 0)
+                    continue;
+                if (asPackages && pair.Value > 0 && Capsules.Holds(pair.Key))
+                {
+                    var id = Capsules.Id(pair.Key, pair.Value);
+                    state.Items[id] = (state.Items.TryGetValue(id, out var held) ? held : 0) + 1;
+                    continue;
+                }
+
+                var have = state.Wallet.TryGetValue(pair.Key, out var w) ? w : 0;
+                state.Wallet[pair.Key] = Math.Max(0, have + pair.Value);
             }
         }
 

@@ -108,14 +108,15 @@ namespace Hadal.Game
         /// players are loaded, changed and saved under the connect gate so a login cannot race it.
         /// False when the player does not exist.
         /// </summary>
-        public async Task<bool> GrantAsync(string identityKey, IReadOnlyDictionary<ResourceType, long> amounts, CancellationToken cancellationToken)
+        public async Task<bool> GrantAsync(string identityKey, IReadOnlyDictionary<ResourceType, long> amounts, CancellationToken cancellationToken,
+            bool asPackages = false)
         {
             await _connectGate.WaitAsync(cancellationToken);
             try
             {
                 if (_sessions.TryGetValue(identityKey, out var session))
                 {
-                    session.Grant(amounts, _clock.UtcNow);
+                    session.Grant(amounts, _clock.UtcNow, asPackages);
                     return true;
                 }
 
@@ -123,8 +124,9 @@ namespace Hadal.Game
                 if (state == null)
                     return false;
 
-                var reactor = state.Buildings.Where(b => b.DefinitionId == BuildingProgression.ReactorId).Select(b => b.Level).DefaultIfEmpty(0).Max();
-                WalletOps.Add(state.Wallet, amounts, _catalog.Capacities(reactor));
+                PlayerSession.ApplyGrant(state, amounts, asPackages);
+                // Packages live in the extras document: write it again or the bag change is lost on save.
+                state.ExtrasJson = PlayerExtras.Write(state);
                 await _repository.SaveAsync(state, cancellationToken);
                 return true;
             }

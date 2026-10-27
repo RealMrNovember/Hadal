@@ -83,7 +83,8 @@ namespace Hadal.Gateway.Admin
                 case RedeemResult.NotForThisAccount: return (AccountErrors.CouponNotForYou, null);
             }
 
-            if (!await _world.GrantAsync(accountId.ToString("N"), coupon!.Rewards, cancellationToken))
+            // Coupon gifts land in the bag as packages of exactly their amount.
+            if (!await _world.GrantAsync(accountId.ToString("N"), coupon!.Rewards, cancellationToken, asPackages: true))
             {
                 // The account never entered the game yet: give the code back rather than lose it.
                 await _store.UndoRedemptionAsync(code, accountId, cancellationToken);
