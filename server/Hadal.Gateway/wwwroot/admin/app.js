@@ -2,8 +2,8 @@
 // The session token lives in sessionStorage and goes out as a Bearer header (no cookies, no CSRF).
 "use strict";
 
-const RESOURCES = ["Oxygen", "Energy", "Food", "Biomass", "Titanium", "Hadalite"];
-const RESOURCE_TR = { Oxygen: "Oksijen", Energy: "Enerji", Food: "Gıda", Biomass: "Biyokütle", Titanium: "Titanyum", Hadalite: "Hadalit" };
+const RESOURCES = ["Oxygen", "Energy", "Food", "Biomass", "Titanium", "Hadalite", "Alloy"];
+const RESOURCE_TR = { Oxygen: "Oksijen", Energy: "Enerji", Food: "Gıda", Biomass: "Biyokütle", Titanium: "Titanyum", Hadalite: "Hadalit", Alloy: "Süperalaşım" };
 const ROLE_TR = { owner: "Sahip", gm: "Oyun Yöneticisi", viewer: "İzleyici" };
 const RANK = { viewer: 1, gm: 2, owner: 3 };
 
