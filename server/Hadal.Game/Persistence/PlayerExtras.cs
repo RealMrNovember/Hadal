@@ -24,7 +24,8 @@ namespace Hadal.Game.Persistence
 
         private sealed record MarchDoc(
             string Id, string NodeId, string NodeType, int NodeLevel, int X, int Y, DateTimeOffset StartedAt, DateTimeOffset ArrivesAt,
-            DateTimeOffset GatheredAt, DateTimeOffset HomeAt, long Reserved, Dictionary<string, double>? Rates, Dictionary<string, long>? Cargo);
+            DateTimeOffset GatheredAt, DateTimeOffset HomeAt, long Reserved, Dictionary<string, double>? Rates, Dictionary<string, long>? Cargo,
+            string? HeroId = null, int Crew = 0, int FromX = 0, int FromY = 0);
 
         private sealed record QuestDoc(
             int ChapterIndex, Dictionary<string, long>? Counters, Dictionary<string, long>? Daily, int DailyDay,
@@ -53,7 +54,8 @@ namespace Hadal.Game.Persistence
                     new Dictionary<string, int>(state.Items), new Dictionary<string, int>(state.HeroCards)),
                 state.Marches.Select(m => new MarchDoc(m.Id, m.NodeId, m.NodeType, m.NodeLevel, m.X, m.Y, m.StartedAt, m.ArrivesAt,
                     m.GatheredAt, m.HomeAt, m.Reserved,
-                    m.Rates.ToDictionary(p => p.Key.ToString(), p => p.Value), m.Cargo.ToDictionary(p => p.Key.ToString(), p => p.Value))).ToList(),
+                    m.Rates.ToDictionary(p => p.Key.ToString(), p => p.Value), m.Cargo.ToDictionary(p => p.Key.ToString(), p => p.Value),
+                    m.HeroId, m.Crew, m.FromX, m.FromY)).ToList(),
                 state.ExpeditionCleared));
         }
 
@@ -118,7 +120,8 @@ namespace Hadal.Game.Persistence
                 {
                     Id = m.Id, NodeId = m.NodeId, NodeType = m.NodeType, NodeLevel = m.NodeLevel, X = m.X, Y = m.Y,
                     StartedAt = m.StartedAt, ArrivesAt = m.ArrivesAt, GatheredAt = m.GatheredAt, HomeAt = m.HomeAt, Reserved = m.Reserved,
-                    Rates = Resources(m.Rates), Cargo = Resources(m.Cargo)
+                    Rates = Resources(m.Rates), Cargo = Resources(m.Cargo),
+                    HeroId = m.HeroId ?? string.Empty, Crew = m.Crew, FromX = m.FromX, FromY = m.FromY
                 });
             }
 

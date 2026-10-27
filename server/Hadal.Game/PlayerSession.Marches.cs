@@ -15,6 +15,13 @@ namespace Hadal.Game
         public int NodeLevel { get; init; }
         public int X { get; init; }
         public int Y { get; init; }
+        public int FromX { get; init; }
+        public int FromY { get; init; }
+
+        /// <summary>The hero leading the march and the divers aboard.</summary>
+        public string HeroId { get; init; } = string.Empty;
+        public int Crew { get; init; }
+
         public DateTimeOffset StartedAt { get; set; }
         public DateTimeOffset ArrivesAt { get; set; }
         public DateTimeOffset GatheredAt { get; set; }
@@ -42,7 +49,9 @@ namespace Hadal.Game
         NoFreeQueue = 4,
         UnknownMarch = 5,
         AlreadyReturning = 6,
-        NotYourDeposit = 7
+        NotYourDeposit = 7,
+        HeroBusy = 8,
+        UnknownHero = 9
     }
 
     public sealed partial class PlayerSession
@@ -53,7 +62,8 @@ namespace Hadal.Game
         /// Plans and starts a march to <paramref name="node"/> from the base at (homeX, homeY). The world holds its
         /// lock and reserves the returned load on the node. Returns the march or why not.
         /// </summary>
-        internal (MarchState? March, MarchRejectReason Reason) TryStartMarch(NodeOffer node, int homeX, int homeY, string commandId, ulong sequence, DateTimeOffset now)
+        internal (MarchState? March, MarchRejectReason Reason) TryStartMarch(NodeOffer node, int homeX, int homeY, string commandId, ulong sequence, DateTimeOffset now,
+            string heroId = "")
         {
             lock (_gate)
             {
@@ -65,6 +75,17 @@ namespace Hadal.Game
                 var reactor = ReactorLevel();
                 if (_state.Marches.Count >= GatherRules.Queues(_catalog.Gather, reactor))
                     reason = MarchRejectReason.NoFreeQueue;
+
+                // A hero leads every march: the one asked for, or the strongest who is not out already.
+                var marching = _state.Marches.Select(m => m.HeroId).ToHashSet(StringComparer.Ordinal);
+                var hero = string.IsNullOrEmpty(heroId)
+                    ? _state.Heroes.Where(h => !marching.Contains(h.HeroId))
+                        .OrderByDescending(h => _catalog.TryGetHero(h.HeroId, out var d) ? HeroRules.Power(d, h.Level, h.Stars) : 0).FirstOrDefault()
+                    : _state.Heroes.FirstOrDefault(h => h.HeroId == heroId);
+                if (reason == MarchRejectReason.None && !string.IsNullOrEmpty(heroId) && hero == null)
+                    reason = MarchRejectReason.UnknownHero;
+                else if (reason == MarchRejectReason.None && hero != null && marching.Contains(hero.HeroId))
+                    reason = MarchRejectReason.HeroBusy;
 
                 var world = _catalog.World;
                 var rates = GatherRules.Rates(world, _catalog.Gather, node.Type, node.Level, reactor);
@@ -92,6 +113,10 @@ namespace Hadal.Game
                     NodeLevel = node.Level,
                     X = node.X,
                     Y = node.Y,
+                    FromX = homeX,
+                    FromY = homeY,
+                    HeroId = hero?.HeroId ?? string.Empty,
+                    Crew = GatherRules.Crew(reactor),
                     StartedAt = now,
                     ArrivesAt = arrives,
                     GatheredAt = arrives.AddSeconds(gather),
@@ -211,7 +236,11 @@ namespace Hadal.Game
                     ArrivesAtMs = m.ArrivesAt.ToUnixTimeMilliseconds(),
                     GatheredAtMs = m.GatheredAt.ToUnixTimeMilliseconds(),
                     HomeAtMs = m.HomeAt.ToUnixTimeMilliseconds(),
-                    Cargo = ResourceAmountEntry.FromMap(m.Cargo)
+                    Cargo = ResourceAmountEntry.FromMap(m.Cargo),
+                    HeroId = m.HeroId,
+                    Crew = m.Crew,
+                    FromX = m.FromX,
+                    FromY = m.FromY
                 }).ToArray()
             };
         }

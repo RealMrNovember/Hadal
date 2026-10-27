@@ -47,5 +47,13 @@ namespace HADAL.Shared.DTOs
 
         /// <summary>What the march brings home (planned; shrinks if recalled early).</summary>
         [ProtoMember(12)] public ResourceAmountEntry[] Cargo { get; set; } = System.Array.Empty<ResourceAmountEntry>();
+
+        /// <summary>The hero leading the march and the divers aboard (troops stand in until Paket D).</summary>
+        [ProtoMember(13)] public string HeroId { get; set; } = string.Empty;
+        [ProtoMember(14)] public int Crew { get; set; }
+
+        /// <summary>Where the march set out from (the base tile).</summary>
+        [ProtoMember(15)] public int FromX { get; set; }
+        [ProtoMember(16)] public int FromY { get; set; }
     }
 }

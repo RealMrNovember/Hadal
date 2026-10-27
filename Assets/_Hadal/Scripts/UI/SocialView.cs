@@ -61,6 +61,7 @@ namespace Hadal.UI
         private RectTransform _footer;
         private Text _toast;
         private float _toastUntil;
+        private bool _keyboardUp;
 
         private Page _page = Page.None;
         private string _renderedKey = string.Empty;
@@ -118,7 +119,7 @@ namespace Hadal.UI
             ((RectTransform)_list.parent).Place(0.04f, 0.02f, 0.96f, 0.875f);
 
             // Chat input lives outside the list so redraws never touch it.
-            _footer = UiKit.Rect("Footer", sheetImage.transform).Place(0.04f, 0.015f, 0.96f, 0.075f);
+            _footer = UiKit.Rect("Footer", sheetImage.transform).Place(0.03f, 0.018f, 0.97f, 0.085f);
             _footer.gameObject.SetActive(false);
 
             _toast = UiKit.Label("Toast", _canvas.transform, string.Empty, 38, UiKit.Text, TextAnchor.MiddleCenter, FontStyle.Bold);
@@ -158,6 +159,8 @@ namespace Hadal.UI
             _stage?.Hide();
             _sheet.SetActive(false);
             _footer.gameObject.SetActive(false);
+            if (_chatTabs != null)
+                _chatTabs.gameObject.SetActive(false);
             _page = Page.None;
         }
 
@@ -168,6 +171,18 @@ namespace Hadal.UI
 
             if (_toast.text.Length > 0 && Time.unscaledTime > _toastUntil)
                 _toast.text = string.Empty;
+
+            // The page rises above the on-screen keyboard while the chat input is focused.
+            if (_sheet.activeSelf)
+            {
+                var sheet = (RectTransform)_sheet.transform;
+                var lift = KeyboardLift();
+                sheet.offsetMin = new Vector2(sheet.offsetMin.x, Mathf.Lerp(sheet.offsetMin.y, lift, 0.4f));
+                // When the keyboard opens, show the newest lines right above the input.
+                if (lift > 0f && !_keyboardUp)
+                    _list.anchoredPosition = new Vector2(0, 100000);
+                _keyboardUp = lift > 0f;
+            }
 
             UpdateBar();
 
@@ -234,14 +249,23 @@ namespace Hadal.UI
         {
             _nextRefresh = Time.unscaledTime + 1f;
             var key = PageKey();
-            var scroll = !force && key.Split('|')[0] == _renderedKey.Split('|')[0] ? _list.anchoredPosition : Vector2.zero;
+            var samePage = key.Split('|')[0] == _renderedKey.Split('|')[0];
+            var scroll = !force && samePage ? _list.anchoredPosition : Vector2.zero;
+            // Chat follows new lines only while the player is at the bottom (genre behaviour).
+            var scrollRect = _list.parent.GetComponent<ScrollRect>();
+            var atBottom = force || !samePage || scrollRect == null || scrollRect.verticalNormalizedPosition <= 0.02f
+                           || _list.rect.height <= ((RectTransform)_list.parent).rect.height;
             _renderedKey = key;
 
             for (var i = _list.childCount - 1; i >= 0; i--)
                 Destroy(_list.GetChild(i).gameObject);
 
+            // Chat is a full page (Last Asylum): it covers the HUD header and leaves room for the input bar.
+            ((RectTransform)_sheet.transform).Place(0.01f, 0.005f, 0.99f, _page == Page.Chat ? 0.995f : 0.89f);
             var listRect = (RectTransform)_list.parent;
-            listRect.Place(0.04f, _page == Page.Chat ? 0.085f : 0.02f, 0.96f, 0.875f);
+            listRect.Place(0.03f, _page == Page.Chat ? 0.1f : 0.02f, 0.97f, _page == Page.Chat ? 0.865f : 0.875f);
+            if (_page != Page.Chat && _chatTabs != null)
+                _chatTabs.gameObject.SetActive(false);
             _footer.gameObject.SetActive(_page == Page.Chat && !(_chatChannel == ChatChannel.Private && _chatPeer.Length == 0));
 
             if (_page != Page.HeroDetail)
@@ -261,10 +285,17 @@ namespace Hadal.UI
                 case Page.DiveResult: RenderDiveResult(); break;
             }
 
-            if (_page == Page.Chat)
+            if (_page == Page.Chat && atBottom)
+            {
                 _list.anchoredPosition = new Vector2(0, 100000); // newest at the bottom; ScrollRect clamps
+                _chatSeen = View.Chat.Count;
+            }
             else
+            {
                 _list.anchoredPosition = scroll;
+            }
+
+            ShowNewMessages(_page == Page.Chat ? Math.Max(0, View.Chat.Count - _chatSeen) : 0);
         }
 
         // --- Commands ------------------------------------------------------------------------

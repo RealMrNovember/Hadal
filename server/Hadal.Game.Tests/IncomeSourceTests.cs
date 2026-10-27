@@ -86,9 +86,17 @@ namespace Hadal.Game.Tests
             var march = Assert.Single(session.MarchesForTests);
             var cargo = march.Cargo[ResourceType.Titanium];
             Assert.True(cargo > 0);
+            Assert.False(string.IsNullOrEmpty(march.HeroId)); // the strongest free hero leads when none is chosen
+            Assert.Equal(GatherRules.Crew(10), march.Crew);
+            Assert.Equal(_world.Map.PositionOf(session.PublicId)!.Value, (march.FromX, march.FromY));
             Assert.True(GatherRules.LoadOf(Catalog.World, march.Cargo) <= GatherRules.Load(Catalog.Gather, 10));
             Assert.Equal(node.Remaining - march.Reserved, _world.Map.NodeForTests(node.Id)!.Remaining);
             Assert.True(Latest<MarchListDto>(connection, EntityIds.Marches).Marches.Length == 1);
+
+            // The hero is out: a second march cannot take them.
+            var second = _world.Map.NodesForTests().First(n => n.Type == "enkaz_alani" && n.Remaining > 0 && n.BusyUntil == null && n.Id != node.Id);
+            Send(session, new MarchGatherCommand { CommandId = "g3", NodeId = second.Id, HeroId = march.HeroId }, CommandType.MarchGather);
+            Assert.Equal(nameof(MarchRejectReason.HeroBusy), LastAck(connection).Reason);
 
             // Nobody else may work the node meanwhile.
             var (other, otherConnection) = await Connect("node-c", 10);

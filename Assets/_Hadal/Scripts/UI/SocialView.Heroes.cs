@@ -58,7 +58,7 @@ namespace Hadal.UI
         }
 
         /// <summary>The hero's painted portrait in a rarity-coloured frame (darkened until found); initials if it is missing.</summary>
-        private static void Portrait(Transform parent, HeroDefinition hero, bool owned, float x0, float y0, float x1, float y1)
+        internal static void Portrait(Transform parent, HeroDefinition hero, bool owned, float x0, float y0, float x1, float y1)
         {
             var painted = Hadal.Core.Catalog.CharacterLibrary.Instance?.Portrait(hero.Portrait);
             if (painted != null)

@@ -390,10 +390,22 @@ namespace Hadal.UI.Hud
             foreach (var r in View.ActiveResearch)
                 rows.Add(("left_research", Loc.T("research.node." + r.NodeId), r.EndsAt - now, string.Empty));
 
+            // Marches sit in the same queue as builders (the genre's "who is out" list); a tap opens the map.
+            var marchList = View.Marches;
+            var serverNow = View.ServerNowMs;
+            foreach (var m in marchList?.Marches ?? Array.Empty<HADAL.Shared.DTOs.MarchDto>())
+            {
+                var until = serverNow < m.ArrivesAtMs ? m.ArrivesAtMs : serverNow < m.GatheredAtMs ? m.GatheredAtMs : m.HomeAtMs;
+                var who = _catalog.TryGetHero(m.HeroId, out var leader) ? Loc.T("hero." + leader.Id) : Loc.T("march.divers");
+                rows.Add(("queue_drone", $"{who} · {Loc.T("node." + m.NodeType)} {m.NodeLevel}", (until - serverNow) / 1000f, "march"));
+            }
+
             var builders = Math.Max(1, _catalog.Progression.builderSlots) + Modifiers().ExtraBuilders;
             var building = Buildings().Count(b => b.IsUnderConstruction);
             var idle = rows.Count == 0;
-            _queueTitle.text = $"{(_queueOpen ? "▼" : "▶")} {Loc.T("hud.queue")}  {building}/{builders}" +
+            var marchCount = marchList?.Marches?.Length ?? 0;
+            var marchText = marchList != null && marchList.Queues > 0 ? $"   {Loc.F("march.queue", marchCount, marchList.Queues)}" : string.Empty;
+            _queueTitle.text = $"{(_queueOpen ? "▼" : "▶")} {Loc.T("hud.queue")}  {building}/{builders}{marchText}" +
                                (idle ? $"   <color=#FFB347>{Loc.T("hud.queue.free")}</color>" : string.Empty);
 
             for (var i = _queue.childCount - 1; i >= 0; i--)
@@ -409,7 +421,9 @@ namespace Hadal.UI.Hud
                 var y1 = 1f - i * (rowHeight + 0.02f);
                 var rect = Tap(_queue, "Row", 0, y1 - rowHeight, 1, y1, () =>
                 {
-                    if (key.Length > 0)
+                    if (key == "march")
+                        _actions.Territory?.Invoke();
+                    else if (key.Length > 0)
                         _actions.Building?.Invoke(key);
                     else
                         _actions.Research?.Invoke();

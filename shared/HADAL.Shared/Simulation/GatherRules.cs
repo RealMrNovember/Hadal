@@ -29,6 +29,9 @@ namespace HADAL.Shared.Simulation
         /// <summary>Marches the player may have out at once (one per Submarine Hangar).</summary>
         public static int Queues(GatherCatalogData gather, int reactorLevel) => gather.queueReactors.Count(r => r <= reactorLevel);
 
+        /// <summary>Divers aboard one march; they stand in for troops until the army arrives (docs/rehber 07).</summary>
+        public static int Crew(int reactorLevel) => 10 + 5 * Math.Max(1, reactorLevel);
+
         public static long Load(GatherCatalogData gather, int reactorLevel) =>
             gather.loadByReactor.Length == 0 ? 0
                 : (long)Math.Round(gather.loadByReactor[Math.Clamp(reactorLevel, 0, gather.loadByReactor.Length - 1)] * Scale(gather));

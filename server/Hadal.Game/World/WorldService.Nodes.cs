@@ -279,7 +279,7 @@ ON CONFLICT (id) DO UPDATE SET type = EXCLUDED.type, level = EXCLUDED.level, x =
                 }
 
                 var (march, _) = session.TryStartMarch(new NodeOffer(node!.Id, node.Type, node.Level, node.X, node.Y, node.Remaining, node.FadesAt),
-                    me.X, me.Y, command.CommandId, command.ClientSequence, now);
+                    me.X, me.Y, command.CommandId, command.ClientSequence, now, command.HeroId ?? string.Empty);
                 if (march == null)
                     return;
 

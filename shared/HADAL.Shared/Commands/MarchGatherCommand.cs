@@ -9,5 +9,8 @@ namespace HADAL.Shared.Commands
         [ProtoMember(1)] public string CommandId { get; set; } = string.Empty;
         [ProtoMember(2)] public ulong ClientSequence { get; set; }
         [ProtoMember(3)] public string NodeId { get; set; } = string.Empty;
+
+        /// <summary>The hero who leads the march (owned, not on another march); empty = the strongest free one.</summary>
+        [ProtoMember(4)] public string HeroId { get; set; } = string.Empty;
     }
 }
