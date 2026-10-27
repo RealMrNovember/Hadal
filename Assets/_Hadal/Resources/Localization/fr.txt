@@ -628,3 +628,4 @@ reason.RankFull = Tous les postes d'officier sont pris.
 reason.UnknownPlayer = Joueur introuvable.
 reason.AlreadyApplied = Tu as déjà postulé.
 reason.NoApplication = Cette candidature n'existe plus.
+hud.queue.free = Libre

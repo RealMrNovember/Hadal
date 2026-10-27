@@ -112,6 +112,7 @@ namespace Hadal.UI
             var sheetImage = UiKit.Box("Sheet", _canvas.transform, UiKit.Panel);
             sheetImage.rectTransform.Place(0.02f, 0.01f, 0.98f, 0.52f);
             _sheet = sheetImage.gameObject.AddComponent<CanvasGroup>();
+            sheetImage.gameObject.AddComponent<PopIn>().Slide = true;
 
             _title = UiKit.Label("Title", sheetImage.transform, string.Empty, 52, UiKit.Accent, TextAnchor.MiddleLeft, FontStyle.Bold);
             _title.rectTransform.Place(0.05f, 0.88f, 0.8f, 0.98f);
@@ -165,7 +166,13 @@ namespace Hadal.UI
                 Chat = () => { Close(); _social.OpenChat(); },
                 Research = OpenResearchFromHud,
                 Expand = () => { _social.Close(); _map.Close(); OpenExpand(); },
-                Settings = () => FindFirstObjectByType<AccountPanelView>()?.Open(),
+                Settings = () =>
+                {
+                    // One panel at a time: settings never open over a building or a social page.
+                    Close();
+                    _social.Close();
+                    FindFirstObjectByType<AccountPanelView>()?.Open();
+                },
                 Quests = () => { Close(); _social.OpenQuests(); },
                 Bag = () => { Close(); _social.OpenBag(); },
                 Expedition = () => { Close(); _map.Close(); _social.OpenExpedition(); },
@@ -343,12 +350,7 @@ namespace Hadal.UI
 
         public void Close() => _sheet.gameObject.SetActive(false);
 
-        private void Toast(string text, Color color)
-        {
-            _toast.text = text;
-            _toast.color = color;
-            _toastUntil = Time.unscaledTime + 3f;
-        }
+        private void Toast(string text, Color color) => Toaster.Show(text, color);
 
         // --- Rendering -----------------------------------------------------------------------
 
@@ -415,14 +417,15 @@ namespace Hadal.UI
             AddCard(
                 Loc.F("base.expand.ring", ring),
                 $"{Loc.F("base.expand.body", _catalog.GetSectorCount(ring))}\n{needs}",
-                $"{Loc.T("base.cost")}: {Cost(unlock.Cost, wallet)}",
+                string.Empty,
                 verdict == RingRejectReason.None ? string.Empty : Loc.Reason(verdict.ToString()),
                 Loc.T("base.expand.open"),
                 verdict == RingRejectReason.None,
-                () => UnlockRing(ring));
+                () => UnlockRing(ring),
+                costs: unlock.Cost, wallet: wallet);
         }
 
-        private static string Check(bool ok) => ok ? "<color=#38D6F2>•</color> " : "<color=#FF7369>•</color> ";
+        private static string Check(bool ok) => ok ? "<color=#5BE37A>●</color> " : "<color=#FF7369>●</color> ";
 
         private void RenderBuildMenu()
         {
@@ -459,11 +462,13 @@ namespace Hadal.UI
                 AddCard(
                     definition.MaxCount > 0 ? $"{Loc.Building(id)}  <size=30>{count}/{modifiers.MaxCount(definition)}</size>" : Loc.Building(id),
                     $"{Loc.T("desc." + id)}\n{Rates(definition, 1)}",
-                    $"{Loc.T("base.cost")}: {Cost(BuildingProgression.Cost(definition, 1, _catalog.Progression), wallet)}   {Loc.T("base.time")}: {Loc.Duration(modifiers.BuildSeconds(BuildingProgression.Seconds(definition, 1, _catalog.Progression)))}",
+                    string.Empty,
                     reason,
                     Loc.T("base.build"),
                     reason.Length == 0,
-                    () => Place(id));
+                    () => Place(id),
+                    costs: BuildingProgression.Cost(definition, 1, _catalog.Progression), wallet: wallet,
+                    seconds: modifiers.BuildSeconds(BuildingProgression.Seconds(definition, 1, _catalog.Progression)));
             }
 
             if (!any)
@@ -485,7 +490,9 @@ namespace Hadal.UI
                     : Loc.F("base.level", building.level) + (building.level >= definition.MaxLevel ? $" · {Loc.T("base.level.max")}" : string.Empty);
 
             var current = building.level > 0 ? Rates(definition, building.level) : string.Empty;
-            UiKit.Label("Desc", _list, $"{Loc.T("desc." + definition.Id)}\n{current}", 34, UiKit.Text).Row(130);
+            UiKit.Label("Desc", _list, Loc.T("desc." + definition.Id), 30, UiKit.Muted).Row(80);
+            if (current.Length > 0)
+                UiKit.Label("Now", _list, current, 30, UiKit.Accent, TextAnchor.MiddleLeft, FontStyle.Bold).Row(60);
 
             // The building's own function (research, boost, overdrive, salvage) once it works.
             if (building.level > 0)
@@ -539,13 +546,15 @@ namespace Hadal.UI
                 body += "\n" + Loc.F("base.needs.reactor", BuildingProgression.ReactorFor(definition, target));
 
             AddCard(
-                $"{Loc.T("base.next")}: {Loc.F("base.level", target)}",
+                $"{Loc.F("base.level", building.level)}  →  <color=#38D6F2>{Loc.F("base.level", target)}</color>",
                 body,
-                $"{Loc.T("base.cost")}: {Cost(BuildingProgression.Cost(definition, target, rules), wallet)}   {Loc.T("base.time")}: {Loc.Duration(modifiers.BuildSeconds(BuildingProgression.Seconds(definition, target, rules)))}",
+                string.Empty,
                 verdict == ConstructionRejectReason.None ? string.Empty : Loc.Reason(verdict.ToString()),
                 Loc.T("base.upgrade"),
                 verdict == ConstructionRejectReason.None,
-                () => Upgrade(instanceKey));
+                () => Upgrade(instanceKey),
+                costs: BuildingProgression.Cost(definition, target, rules), wallet: wallet,
+                seconds: modifiers.BuildSeconds(BuildingProgression.Seconds(definition, target, rules)));
 
             AddRemoveCard(building, definition);
         }
@@ -559,28 +568,52 @@ namespace Hadal.UI
             var refund = BaseRules.Refund(definition, building.level, _catalog.Progression);
             var confirming = _confirmRemove == building.instanceKey;
             var key = building.instanceKey;
-            AddCard(
-                Loc.T(cancel ? "base.cancel.title" : "base.remove.title"),
-                string.Empty,
-                Loc.F("base.refund", string.Join("  ", refund.Select(c => $"{c.Value} {Loc.Resource(c.Key.ToString())}"))),
-                confirming ? Loc.T("base.confirm") : string.Empty,
-                confirming ? Loc.T("base.confirm.yes") : Loc.T(cancel ? "base.cancel" : "base.remove"),
-                true,
-                () => Remove(key),
-                UiKit.Danger);
+
+            // A quiet row at the bottom: removing is rare and must not compete with Upgrade.
+            var row = UiKit.Box("Remove", _list, new Color(0.03f, 0.08f, 0.11f, 0.9f)).Row(confirming ? 150 : 120);
+            var text = confirming
+                ? $"<color=#FF7369>{Loc.T("base.confirm")}</color>"
+                : $"{Loc.T(cancel ? "base.cancel.title" : "base.remove.title")}\n<size=22>{Loc.F("base.refund", string.Join("  ", refund.Select(c => $"{CostChips.Compact(c.Value)} {Loc.Resource(c.Key.ToString())}")))}</size>";
+            UiKit.Label("Text", row.transform, text, 28, UiKit.Muted, TextAnchor.MiddleLeft).rectTransform.Place(0.04f, 0.05f, 0.68f, 0.95f);
+            var button = UiKit.Button("Action", row.transform, confirming ? Loc.T("base.confirm.yes") : Loc.T(cancel ? "base.cancel" : "base.remove"),
+                () => Remove(key), confirming ? UiKit.Danger : UiKit.Field, 30);
+            if (!confirming)
+                button.GetComponentInChildren<Text>().color = UiKit.Danger;
+            ((RectTransform)button.transform).Place(0.71f, 0.18f, 0.97f, 0.82f);
         }
 
-        private void AddCard(string title, string body, string cost, string reason, string action, bool enabled, Action onClick, Color? fill = null)
+        /// <summary>
+        /// One action card: title, a muted body, the blocking reason in red, then the cost as resource chips
+        /// (red when short) and the time; the action button sits on the right (genre layout, docs/26).
+        /// </summary>
+        private void AddCard(string title, string body, string cost, string reason, string action, bool enabled, Action onClick, Color? fill = null,
+            IReadOnlyList<KeyValuePair<ResourceType, long>> costs = null, IReadOnlyDictionary<ResourceType, long> wallet = null, float seconds = -1f)
         {
-            var card = UiKit.Box("Card", _list, UiKit.Field).Row(string.IsNullOrEmpty(body) ? 170 : 260);
-            UiKit.Label("Title", card.transform, title, 40, UiKit.Text, TextAnchor.UpperLeft, FontStyle.Bold).rectTransform.Place(0.03f, 0.62f, 0.68f, 0.95f);
-            if (!string.IsNullOrEmpty(body))
-                UiKit.Label("Body", card.transform, body, 28, UiKit.Muted, TextAnchor.UpperLeft).rectTransform.Place(0.03f, 0.3f, 0.68f, 0.66f);
-            UiKit.Label("Cost", card.transform, string.IsNullOrEmpty(reason) ? cost : $"{cost}\n<color=#FF7369>{reason}</color>", 28, UiKit.Amber,
-                TextAnchor.LowerLeft).rectTransform.Place(0.03f, 0.04f, 0.7f, 0.32f);
+            var hasBody = !string.IsNullOrEmpty(body) || !string.IsNullOrEmpty(reason);
+            var hasCost = costs != null || !string.IsNullOrEmpty(cost);
+            var height = 130f + (hasBody ? 100f : 0f) + (hasCost ? 70f : 0f);
+            var card = UiKit.Box("Card", _list, UiKit.Field).Row(height);
+
+            var top = 1f - 70f / height;
+            UiKit.Label("Title", card.transform, title, 38, UiKit.Text, TextAnchor.MiddleLeft, FontStyle.Bold).rectTransform.Place(0.04f, top, 0.68f, 0.97f);
+            if (hasBody)
+            {
+                var text = string.IsNullOrEmpty(reason) ? body : $"{body}{(string.IsNullOrEmpty(body) ? string.Empty : "\n")}<color=#FF7369>{reason}</color>";
+                UiKit.Label("Body", card.transform, text, 26, UiKit.Muted, TextAnchor.UpperLeft).rectTransform.Place(0.04f, hasCost ? 70f / height + 0.02f : 0.06f, 0.68f, top);
+            }
+
+            if (costs != null)
+                CostChips.Row(card.transform, costs, wallet ?? new Dictionary<ResourceType, long>(), seconds).Place(0.04f, 0.04f, 0.7f, 0.04f + 56f / height);
+            else if (!string.IsNullOrEmpty(cost))
+                UiKit.Label("Cost", card.transform, cost, 26, UiKit.Amber, TextAnchor.MiddleLeft).rectTransform.Place(0.04f, 0.04f, 0.7f, 0.04f + 56f / height);
+
             var button = UiKit.Button("Action", card.transform, action, () => onClick(), enabled ? fill ?? UiKit.Accent : UiKit.Panel, 36);
             button.interactable = enabled;
-            ((RectTransform)button.transform).Place(0.71f, 0.22f, 0.97f, 0.78f);
+            if (!enabled)
+                button.GetComponentInChildren<Text>().color = UiKit.Muted; // a dark label on a dark button would vanish
+            var mid = 0.5f;
+            var half = Mathf.Min(0.3f, 50f / height);
+            ((RectTransform)button.transform).Place(0.71f, mid - half, 0.97f, mid + half);
         }
 
         private void AddProgress(float progress)

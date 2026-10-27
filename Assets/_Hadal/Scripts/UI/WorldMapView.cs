@@ -308,6 +308,9 @@ namespace Hadal.UI
 
             var card = UiKit.Box("Card", dim.transform, UiKit.Panel);
             card.rectTransform.Place(0.08f, 0.36f, 0.92f, 0.64f);
+            card.gameObject.AddComponent<CanvasGroup>();
+            card.gameObject.AddComponent<PopIn>();
+            card.gameObject.AddComponent<Button>(); // taps on the card do not close it
             Hud.HudIcons.Image(card.transform, "left_home", 0.04f, 0.6f, 0.22f, 0.95f);
             var tag = string.IsNullOrEmpty(b.AllianceTag) ? string.Empty : $"[{b.AllianceTag}] ";
             UiKit.Label("Name", card.transform, tag + Escape(b.Name), 44, me ? UiKit.Accent : UiKit.Text, TextAnchor.MiddleLeft, FontStyle.Bold)

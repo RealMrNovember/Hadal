@@ -628,3 +628,4 @@ reason.RankFull = 軍官席位已滿。
 reason.UnknownPlayer = 找不到玩家。
 reason.AlreadyApplied = 你已經申請過了。
 reason.NoApplication = 該申請已不存在。
+hud.queue.free = 空閒

@@ -628,3 +628,4 @@ reason.RankFull = Semua kursi perwira sudah terisi.
 reason.UnknownPlayer = Pemain tidak ditemukan.
 reason.AlreadyApplied = Kamu sudah melamar.
 reason.NoApplication = Lamaran itu sudah tidak ada.
+hud.queue.free = Kosong

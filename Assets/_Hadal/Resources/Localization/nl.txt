@@ -628,3 +628,4 @@ reason.RankFull = Alle officiersplaatsen zijn bezet.
 reason.UnknownPlayer = Speler niet gevonden.
 reason.AlreadyApplied = Je hebt al aangevraagd.
 reason.NoApplication = Die aanvraag bestaat niet meer.
+hud.queue.free = Vrij

@@ -168,12 +168,21 @@ namespace Hadal.UI.Hud
             SideButton(_lower.transform, "War", "event_war", Loc.T("hud.expedition"), 0.835f, 0.62f, 0.985f, 0.695f, () => _actions.Expedition?.Invoke());
         }
 
+        /// <summary>Base-only buttons; the world map hides them (its own controls sit there).</summary>
+        private readonly List<GameObject> _baseOnly = new();
+
         private void BuildLeftColumn()
         {
-            SideButton(_lower.transform, "Expand", "left_expand", Loc.T("hud.expand"), 0.012f, 0.45f, 0.142f, 0.515f, _actions.Expand);
-            SideButton(_lower.transform, "Research", "left_research", Loc.T("hud.research"), 0.012f, 0.37f, 0.142f, 0.435f, _actions.Research);
-            _helpDot = SideButton(_lower.transform, "Help", "left_help", Loc.T("hud.help"), 0.012f, 0.29f, 0.142f, 0.355f, _actions.AllianceHelp).Dot;
-            _questDot = SideButton(_lower.transform, "Quests", "quest", Loc.T("hud.quests"), 0.012f, 0.21f, 0.142f, 0.275f, _actions.Quests).Dot;
+            Side Keep(Side side)
+            {
+                _baseOnly.Add(side.Label.transform.parent.gameObject);
+                return side;
+            }
+
+            Keep(SideButton(_lower.transform, "Expand", "left_expand", Loc.T("hud.expand"), 0.012f, 0.45f, 0.142f, 0.515f, _actions.Expand));
+            Keep(SideButton(_lower.transform, "Research", "left_research", Loc.T("hud.research"), 0.012f, 0.37f, 0.142f, 0.435f, _actions.Research));
+            _helpDot = Keep(SideButton(_lower.transform, "Help", "left_help", Loc.T("hud.help"), 0.012f, 0.29f, 0.142f, 0.355f, _actions.AllianceHelp)).Dot;
+            _questDot = Keep(SideButton(_lower.transform, "Quests", "quest", Loc.T("hud.quests"), 0.012f, 0.21f, 0.142f, 0.275f, _actions.Quests)).Dot;
         }
 
         private void BuildLowerRight()
@@ -247,6 +256,7 @@ namespace Hadal.UI.Hud
             var button = box.gameObject.AddComponent<Button>();
             button.targetGraphic = box;
             button.onClick.AddListener(() => onClick?.Invoke());
+            box.gameObject.AddComponent<PressFeedback>();
             return box.rectTransform;
         }
 
@@ -315,6 +325,8 @@ namespace Hadal.UI.Hud
                 _queue.gameObject.SetActive(!inWorld);
                 _queueTitle.transform.parent.gameObject.SetActive(!inWorld);
                 _task.transform.parent.gameObject.SetActive(!inWorld);
+                foreach (var go in _baseOnly)
+                    go.SetActive(!inWorld);
             }
 
             // Rows are rebuilt on refresh; never under a finger, or the tap is lost.
@@ -376,7 +388,9 @@ namespace Hadal.UI.Hud
 
             var builders = Math.Max(1, _catalog.Progression.builderSlots) + Modifiers().ExtraBuilders;
             var building = Buildings().Count(b => b.IsUnderConstruction);
-            _queueTitle.text = $"{(_queueOpen ? "▼" : "▶")} {Loc.T("hud.queue")}  {building}/{builders}";
+            var idle = rows.Count == 0;
+            _queueTitle.text = $"{(_queueOpen ? "▼" : "▶")} {Loc.T("hud.queue")}  {building}/{builders}" +
+                               (idle ? $"   <color=#FFB347>{Loc.T("hud.queue.free")}</color>" : string.Empty);
 
             for (var i = _queue.childCount - 1; i >= 0; i--)
                 Destroy(_queue.GetChild(i).gameObject);
@@ -402,11 +416,7 @@ namespace Hadal.UI.Hud
                     TextAnchor.MiddleLeft, FontStyle.Bold)).rectTransform.Place(0.19f, 0f, 0.99f, 0.5f);
             }
 
-            if (rows.Count == 0)
-            {
-                var idle = Tap(_queue, "Idle", 0, 1f - rowHeight, 1, 1f, null, new Color(0.03f, 0.10f, 0.14f, 0.6f));
-                Outlined(UiKit.Label("Text", idle, Loc.T("hud.queue.idle"), 22, UiKit.Muted, TextAnchor.MiddleLeft)).rectTransform.Place(0.05f, 0, 0.98f, 1);
-            }
+
         }
 
         /// <summary>The current chapter task (claim it when done); without quests, the next upgrade to make.</summary>

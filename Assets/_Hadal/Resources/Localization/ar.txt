@@ -628,3 +628,4 @@ reason.RankFull = جميع مقاعد الضباط مشغولة.
 reason.UnknownPlayer = لم يتم العثور على اللاعب.
 reason.AlreadyApplied = لقد قدّمت طلبًا بالفعل.
 reason.NoApplication = ذلك الطلب لم يعد موجودًا.
+hud.queue.free = خامل

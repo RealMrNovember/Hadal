@@ -52,7 +52,9 @@ namespace Hadal.EditorTools
                 scenes = scenes,
                 locationPathName = output,
                 target = BuildTarget.Android,
-                options = BuildOptions.Development
+                // Player builds carry no "Development Build" stamp and run faster; HADAL_DEV=1 brings the
+                // profiler/debug build back for investigation.
+                options = Environment.GetEnvironmentVariable("HADAL_DEV") == "1" ? BuildOptions.Development : BuildOptions.None
             });
 
             var summary = report.summary;

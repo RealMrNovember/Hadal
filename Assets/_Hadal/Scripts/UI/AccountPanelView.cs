@@ -84,6 +84,8 @@ namespace Hadal.UI
             _panel = panelImage.gameObject.AddComponent<CanvasGroup>();
             var card = UiKit.Box("Card", panelImage.transform, UiKit.Panel);
             card.rectTransform.Place(0.05f, 0.12f, 0.95f, 0.9f);
+            card.gameObject.AddComponent<CanvasGroup>();
+            card.gameObject.AddComponent<PopIn>();
 
             _header = UiKit.Label("Header", card.transform, Loc.T("settings.title"), 56, UiKit.Accent, TextAnchor.MiddleLeft, FontStyle.Bold);
             _header.rectTransform.Place(0.06f, 0.90f, 0.94f, 0.98f);

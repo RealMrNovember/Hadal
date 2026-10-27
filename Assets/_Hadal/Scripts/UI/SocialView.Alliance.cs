@@ -168,8 +168,17 @@ namespace Hadal.UI
             if (!string.IsNullOrEmpty(alliance.Description))
                 UiKit.Label("Description", _list, alliance.Description, 28, UiKit.Text).Row(90);
 
+            var lastRank = -1;
             foreach (var member in alliance.Members)
             {
+                // Rank groups R5 → R1 with a count, like the genre's member lists.
+                var memberRank = member.Rank > 0 ? member.Rank : member.IsLeader ? 5 : 2;
+                if (memberRank != lastRank)
+                {
+                    lastRank = memberRank;
+                    Header($"R{memberRank} · {RankName(memberRank)}  ({alliance.Members.Count(m => (m.Rank > 0 ? m.Rank : m.IsLeader ? 5 : 2) == memberRank)})");
+                }
+
                 var card = Card(150);
                 var dot = member.Online ? "<color=#38D6F2>●</color>" : "<color=#3A5560>●</color>";
                 var rank = member.Rank > 0 ? member.Rank : member.IsLeader ? 5 : 2;

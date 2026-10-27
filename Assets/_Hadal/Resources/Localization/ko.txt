@@ -628,3 +628,4 @@ reason.RankFull = 장교 자리가 모두 찼습니다.
 reason.UnknownPlayer = 플레이어를 찾을 수 없습니다.
 reason.AlreadyApplied = 이미 신청했습니다.
 reason.NoApplication = 그 신청은 더 이상 없습니다.
+hud.queue.free = 대기

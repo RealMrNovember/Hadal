@@ -628,3 +628,4 @@ reason.RankFull = Tất cả ghế sĩ quan đã đầy.
 reason.UnknownPlayer = Không tìm thấy người chơi.
 reason.AlreadyApplied = Bạn đã gửi đơn rồi.
 reason.NoApplication = Đơn đó không còn nữa.
+hud.queue.free = Rảnh

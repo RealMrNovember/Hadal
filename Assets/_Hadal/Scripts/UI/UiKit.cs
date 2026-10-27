@@ -164,6 +164,7 @@ namespace Hadal.UI
         {
             var image = Box(name, parent, fill ?? Accent);
             var button = image.gameObject.AddComponent<Button>();
+            image.gameObject.AddComponent<PressFeedback>();
             var colors = button.colors;
             colors.highlightedColor = new Color(1f, 1f, 1f, 0.92f);
             colors.pressedColor = new Color(0.75f, 0.75f, 0.75f, 1f);

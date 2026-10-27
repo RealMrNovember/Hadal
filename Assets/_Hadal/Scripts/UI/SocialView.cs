@@ -102,6 +102,8 @@ namespace Hadal.UI
             var sheetImage = UiKit.Box("Sheet", safe, UiKit.Panel);
             sheetImage.rectTransform.Place(0.01f, 0.005f, 0.99f, 0.89f);
             _sheet = sheetImage.gameObject;
+            _sheet.AddComponent<CanvasGroup>();
+            _sheet.AddComponent<PopIn>().From = 0.94f;
 
             _title = UiKit.Label("Title", sheetImage.transform, string.Empty, 52, UiKit.Accent, TextAnchor.MiddleLeft, FontStyle.Bold);
             _title.rectTransform.Place(0.05f, 0.93f, 0.8f, 0.99f);
@@ -307,12 +309,7 @@ namespace Hadal.UI
                 Render(force: false);
         }
 
-        private void Toast(string text, Color color)
-        {
-            _toast.text = text;
-            _toast.color = color;
-            _toastUntil = Time.unscaledTime + 3f;
-        }
+        private void Toast(string text, Color color) => Toaster.Show(text, color);
 
         // --- Shared helpers ------------------------------------------------------------------
 
@@ -344,8 +341,8 @@ namespace Hadal.UI
             var button = UiKit.Button("Action", card, label, () => onClick(), enabled ? fill ?? UiKit.Accent : UiKit.Panel, 34);
             button.interactable = enabled;
             ((RectTransform)button.transform).Place(x0, y0, x1, y1);
-            if (fill == UiKit.Field)
-                button.GetComponentInChildren<Text>().color = UiKit.Text; // light text on dark buttons
+            if (fill == UiKit.Field || !enabled)
+                button.GetComponentInChildren<Text>().color = enabled ? UiKit.Text : UiKit.Muted; // light text on dark buttons
             return button;
         }
 

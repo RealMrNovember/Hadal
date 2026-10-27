@@ -628,3 +628,4 @@ reason.RankFull = Все места офицеров заняты.
 reason.UnknownPlayer = Игрок не найден.
 reason.AlreadyApplied = Вы уже подали заявку.
 reason.NoApplication = Этой заявки больше нет.
+hud.queue.free = Свободно

@@ -628,3 +628,4 @@ reason.RankFull = Bütün Kurmay koltukları dolu.
 reason.UnknownPlayer = Oyuncu bulunamadı.
 reason.AlreadyApplied = Zaten başvurdun.
 reason.NoApplication = Bu başvuru artık yok.
+hud.queue.free = Boşta

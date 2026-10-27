@@ -80,15 +80,38 @@ namespace Hadal.UI
                 if (_chatChannel == ChatChannel.Private && Peer(line).Id != _chatPeer)
                     continue;
                 any = true;
-                var label = UiKit.Label("Line", _list, ChatLine(line, compact: false), 30, line.IsSystem ? UiKit.Amber : UiKit.Text, TextAnchor.UpperLeft);
-                label.horizontalOverflow = HorizontalWrapMode.Wrap;
-                // Rough height: wrap at about 42 characters a line on a phone.
-                var lines = 1 + (line.Text?.Length ?? 0) / 42;
-                label.Row(44 + 36 * lines);
+                Bubble(line);
             }
 
             if (!any)
                 Note(Loc.T("chat.empty"));
+        }
+
+        /// <summary>
+        /// A chat bubble (genre layout): others on the left with name and tag above, mine on the right in the accent
+        /// tint, system notices centred and muted.
+        /// </summary>
+        private void Bubble(ChatMessageDto line)
+        {
+            if (line.IsSystem)
+            {
+                UiKit.Label("System", _list, ChatLine(line, compact: false), 24, UiKit.Muted, TextAnchor.MiddleCenter, FontStyle.Italic).Row(56);
+                return;
+            }
+
+            var mine = line.SenderId == View.PlayerId;
+            // Rough height: about 30 characters a line in a bubble of 72% width.
+            var lines = 1 + (line.Text?.Length ?? 0) / 30;
+            var row = UiKit.Rect("Line", _list).Row(78 + 40 * lines);
+            var tag = string.IsNullOrEmpty(line.AllianceTag) ? string.Empty : $"[{line.AllianceTag}] ";
+            var time = DateTimeOffset.FromUnixTimeMilliseconds(line.SentAtUnixMs).ToLocalTime().ToString("HH:mm");
+            UiKit.Label("Name", row, mine ? time : $"{tag}{line.SenderName}  <color=#55707C>{time}</color>", 22, mine ? UiKit.Muted : UiKit.Amber,
+                mine ? TextAnchor.UpperRight : TextAnchor.UpperLeft, FontStyle.Bold).rectTransform.Place(mine ? 0.28f : 0.02f, 0.7f, mine ? 0.98f : 0.72f, 1f);
+            var bubble = UiKit.Box("Bubble", row, mine ? new Color(0.06f, 0.30f, 0.36f, 0.95f) : UiKit.Field);
+            bubble.rectTransform.Place(mine ? 0.28f : 0.02f, 0f, mine ? 0.98f : 0.72f, 0.72f);
+            var text = UiKit.Label("Text", bubble.transform, line.Text, 28, UiKit.Text, TextAnchor.MiddleLeft);
+            text.supportRichText = false;
+            text.rectTransform.Place(0.05f, 0.05f, 0.95f, 0.95f);
         }
 
         /// <summary>One card per person the player has written with, newest first.</summary>

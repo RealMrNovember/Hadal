@@ -628,3 +628,4 @@ reason.RankFull = Todos los puestos de oficial están ocupados.
 reason.UnknownPlayer = Jugador no encontrado.
 reason.AlreadyApplied = Ya enviaste una solicitud.
 reason.NoApplication = Esa solicitud ya no existe.
+hud.queue.free = Libre

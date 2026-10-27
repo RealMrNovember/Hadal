@@ -628,3 +628,4 @@ reason.RankFull = All officer seats are taken.
 reason.UnknownPlayer = Player not found.
 reason.AlreadyApplied = You already applied.
 reason.NoApplication = That application is gone.
+hud.queue.free = Idle

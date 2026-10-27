@@ -628,3 +628,4 @@ reason.RankFull = ที่นั่งนายทหารเต็มแล�
 reason.UnknownPlayer = ไม่พบผู้เล่น
 reason.AlreadyApplied = คุณสมัครไปแล้ว
 reason.NoApplication = ใบสมัครนั้นไม่มีอยู่แล้ว
+hud.queue.free = ว่าง

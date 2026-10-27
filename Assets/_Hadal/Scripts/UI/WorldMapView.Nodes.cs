@@ -183,6 +183,8 @@ namespace Hadal.UI
             var card = UiKit.Box("Card", dim.transform, UiKit.Panel);
             card.rectTransform.Place(0.06f, 0.3f, 0.94f, 0.7f);
             card.gameObject.AddComponent<Button>(); // taps on the card do not close it
+            card.gameObject.AddComponent<CanvasGroup>();
+            card.gameObject.AddComponent<PopIn>();
             var color = NodeLook.TryGetValue(n.Type, out var look) ? look.Color : Color.white;
             var badge = UiKit.Box("Level", card.transform, color);
             badge.rectTransform.Place(0.05f, 0.8f, 0.17f, 0.95f);

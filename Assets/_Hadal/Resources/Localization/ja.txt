@@ -628,3 +628,4 @@ reason.RankFull = 士官の枠がすべて埋まっています。
 reason.UnknownPlayer = プレイヤーが見つかりません。
 reason.AlreadyApplied = すでに申請済みです。
 reason.NoApplication = その申請は存在しません。
+hud.queue.free = 待機中

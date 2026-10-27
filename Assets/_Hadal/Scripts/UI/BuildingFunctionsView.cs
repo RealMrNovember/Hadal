@@ -60,11 +60,12 @@ namespace Hadal.UI
             AddCard(
                 Loc.T("func.boost.title"),
                 left > 0f ? Loc.F("func.boost.running", Loc.Duration(left)) : Loc.F("func.boost.body", rules.percent, Loc.Duration(rules.seconds)),
-                $"{Loc.T("base.cost")}: {Cost(_catalog.BoostCost, Wallet())}",
+                string.Empty,
                 verdict is FunctionRejectReason.None or FunctionRejectReason.AlreadyRunning ? string.Empty : Loc.Reason(verdict.ToString()),
                 Loc.T("func.boost.button"),
                 verdict == FunctionRejectReason.None,
-                () => Send(new BoostBuildingCommand { BuildingEntityId = key }));
+                () => Send(new BoostBuildingCommand { BuildingEntityId = key }),
+                costs: _catalog.BoostCost, wallet: Wallet());
         }
 
         // --- Core Reactor -------------------------------------------------------------------------
@@ -202,11 +203,13 @@ namespace Hadal.UI
                 AddCard(
                     title,
                     EffectText(node, current, target),
-                    $"{Loc.T("base.cost")}: {Cost(ResearchRules.Cost(node, target, rules), wallet)}   {Loc.T("base.time")}: {Loc.Duration(modifiers.ResearchSeconds(ResearchRules.BaseSeconds(node, target, rules)))}",
+                    string.Empty,
                     reason,
                     Loc.T("research.start"),
                     verdict == ResearchRejectReason.None,
-                    () => Send(new StartResearchCommand { NodeId = id }));
+                    () => Send(new StartResearchCommand { NodeId = id }),
+                    costs: ResearchRules.Cost(node, target, rules), wallet: wallet,
+                    seconds: modifiers.ResearchSeconds(ResearchRules.BaseSeconds(node, target, rules)));
             }
 
             UiKit.Button("Back", _list, Loc.T("account.back"), () => { _researchOpen = false; Render(); }, UiKit.Field).Row(100)
