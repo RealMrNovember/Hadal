@@ -201,6 +201,10 @@ namespace Hadal.Game
                         CancelTraining(cancel!, now);
                         break;
 
+                    case CommandType.UseSpeedup when TryDeserialize(envelope.Payload, out UseSpeedupCommand? speedup):
+                        UseSpeedup(speedup!, now);
+                        break;
+
                     case CommandType.HealTroops when TryDeserialize(envelope.Payload, out HealTroopsCommand? heal):
                         HealTroops(heal!, now);
                         break;
@@ -224,7 +228,7 @@ namespace Hadal.Game
                             or CommandType.LevelUpHero or CommandType.PromoteHero or CommandType.AssignHero
                             or CommandType.ClaimQuest or CommandType.ClaimDailyChest or CommandType.OpenItem or CommandType.RecruitHero
                             or CommandType.DiveStage or CommandType.SetProfile or CommandType.TrainTroops or CommandType.CancelTraining
-                            or CommandType.HealTroops or CommandType.CancelHeal;
+                            or CommandType.HealTroops or CommandType.CancelHeal or CommandType.UseSpeedup;
                         Reject(envelope.CommandId, envelope.ClientSequence, known ? "MalformedCommand" : "NotSupported", now);
                         break;
                 }
@@ -291,19 +295,24 @@ namespace Hadal.Game
         /// (Last Asylum's resource items; opening it may pass the storage cap); otherwise it goes straight to the wallet,
         /// past the cap as well, so nothing given is ever lost. Negative amounts take away (never below zero).
         /// </summary>
-        internal void Grant(IReadOnlyDictionary<ResourceType, long> amounts, DateTimeOffset now, bool asPackages = false)
+        internal void Grant(IReadOnlyDictionary<ResourceType, long> amounts, DateTimeOffset now, bool asPackages = false,
+            IReadOnlyDictionary<string, int>? items = null)
         {
             lock (_gate)
             {
                 AdvanceTo(now);
-                ApplyGrant(_state, amounts, asPackages);
+                ApplyGrant(_state, amounts, asPackages, items);
                 _state.IsDirty = true;
                 SendDelta(now, new List<EntityChangeDto> { WalletChange(), InventoryChange(), ProductionChange(now) });
             }
         }
 
-        internal static void ApplyGrant(PlayerState state, IReadOnlyDictionary<ResourceType, long> amounts, bool asPackages)
+        internal static void ApplyGrant(PlayerState state, IReadOnlyDictionary<ResourceType, long> amounts, bool asPackages,
+            IReadOnlyDictionary<string, int>? items = null)
         {
+            foreach (var pair in items ?? new Dictionary<string, int>())
+                state.Items[pair.Key] = (state.Items.TryGetValue(pair.Key, out var have) ? have : 0) + pair.Value;
+
             foreach (var pair in amounts)
             {
                 if (pair.Value == 0)

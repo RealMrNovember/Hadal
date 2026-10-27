@@ -11,6 +11,37 @@ namespace Hadal.EditorTools
     /// <summary>Batchmode player builds (server/unity/unity.sh android).</summary>
     public static class HadalBuild
     {
+        private const string IconFolder = "Assets/_Hadal/Art/Branding/";
+
+        /// <summary>
+        /// The launcher icon from art/logo/make_icon.py: the full square for legacy and round icons, background and
+        /// foreground layers for Android's adaptive icon (the launcher crops and masks those itself).
+        /// </summary>
+        private static void ApplyIcons()
+        {
+            var full = AssetDatabase.LoadAssetAtPath<Texture2D>(IconFolder + "icon.png");
+            var fg = AssetDatabase.LoadAssetAtPath<Texture2D>(IconFolder + "icon_fg.png");
+            var bg = AssetDatabase.LoadAssetAtPath<Texture2D>(IconFolder + "icon_bg.png");
+            if (full == null)
+            {
+                Debug.LogWarning("[HadalBuild] No icon at " + IconFolder + "icon.png; keeping the default.");
+                return;
+            }
+
+            PlayerSettings.SetIcons(UnityEditor.Build.NamedBuildTarget.Unknown, new[] { full }, IconKind.Application);
+            var android = UnityEditor.Build.NamedBuildTarget.Android;
+            foreach (var kind in PlayerSettings.GetSupportedIconKinds(android))
+            {
+                var icons = PlayerSettings.GetPlatformIcons(android, kind);
+                var adaptive = kind.ToString().IndexOf("Adaptive", StringComparison.OrdinalIgnoreCase) >= 0;
+                foreach (var icon in icons)
+                    icon.SetTextures(adaptive && fg != null && bg != null ? new[] { bg, fg } : new[] { full });
+                PlayerSettings.SetPlatformIcons(android, kind, icons);
+            }
+
+            AssetDatabase.SaveAssets();
+        }
+
         private const string ApplicationId = "com.cicibyte.hadal";
         private const string OutputDirectory = "artifacts/build";
 
@@ -39,6 +70,9 @@ namespace Hadal.EditorTools
                 PlayerSettings.bundleVersion = version;
                 PlayerSettings.Android.bundleVersionCode = parsed.Major * 10000 + parsed.Minor * 100 + Math.Max(0, parsed.Build);
             }
+
+            ApplyIcons();
+            PlayerSettings.productName = "HADAL";
 
             var scenes = EditorBuildSettings.scenes.Where(s => s.enabled).Select(s => s.path).ToArray();
             if (scenes.Length == 0)

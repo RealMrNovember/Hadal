@@ -11220,9 +11220,9 @@
       {"id": "d_chat", "type": "counter", "target": "chat", "count": 1, "rewards": [], "points": 10}
     ],
     "dailyChests": [
-      {"points": 20, "rewards": [{"type": "resource", "id": "Titanium", "amount": 1000}]},
+      {"points": 20, "rewards": [{"type": "resource", "id": "Titanium", "amount": 1000}, {"type": "item", "id": "speed_any_5", "amount": 3}]},
       {"points": 40, "rewards": [{"type": "item", "id": "chest_bronze", "amount": 1}]},
-      {"points": 60, "rewards": [{"type": "item", "id": "card_common", "amount": 1}]},
+      {"points": 60, "rewards": [{"type": "item", "id": "card_common", "amount": 1}, {"type": "item", "id": "speed_march_p25", "amount": 1}]},
       {"points": 80, "rewards": [{"type": "item", "id": "chest_silver", "amount": 1}]},
       {
         "points": 100,
@@ -11245,7 +11245,10 @@
         {"weight": 25, "reward": {"type": "resource", "id": "Biomass", "amount": 600}},
         {"weight": 20, "reward": {"type": "resource", "id": "Food", "amount": 800}},
         {"weight": 15, "reward": {"type": "shards", "id": "", "amount": 5, "rarity": "common"}},
-        {"weight": 5, "reward": {"type": "resource", "id": "Hadalite", "amount": 10}}
+        {"weight": 5, "reward": {"type": "resource", "id": "Hadalite", "amount": 10}},
+        {"weight": 20, "reward": {"type": "item", "id": "speed_any_5", "amount": 2}},
+        {"weight": 12, "reward": {"type": "item", "id": "speed_train_15", "amount": 1}},
+        {"weight": 8, "reward": {"type": "item", "id": "speed_march_p25", "amount": 1}}
       ]
     },
     {
@@ -11259,7 +11262,11 @@
         {"weight": 25, "reward": {"type": "resource", "id": "Biomass", "amount": 1200}},
         {"weight": 15, "reward": {"type": "resource", "id": "Hadalite", "amount": 20}},
         {"weight": 15, "reward": {"type": "shards", "id": "", "amount": 10, "rarity": "common"}},
-        {"weight": 15, "reward": {"type": "shards", "id": "", "amount": 5, "rarity": "rare"}}
+        {"weight": 15, "reward": {"type": "shards", "id": "", "amount": 5, "rarity": "rare"}},
+        {"weight": 18, "reward": {"type": "item", "id": "speed_any_60", "amount": 1}},
+        {"weight": 14, "reward": {"type": "item", "id": "speed_build_60", "amount": 1}},
+        {"weight": 10, "reward": {"type": "item", "id": "speed_heal_60", "amount": 1}},
+        {"weight": 10, "reward": {"type": "item", "id": "speed_march_p50", "amount": 1}}
       ]
     },
     {
@@ -11273,7 +11280,10 @@
         {"weight": 20, "reward": {"type": "resource", "id": "Biomass", "amount": 2000}},
         {"weight": 25, "reward": {"type": "shards", "id": "", "amount": 10, "rarity": "rare"}},
         {"weight": 20, "reward": {"type": "shards", "id": "", "amount": 5, "rarity": "epic"}},
-        {"weight": 10, "reward": {"type": "shards", "id": "", "amount": 3, "rarity": "legendary"}}
+        {"weight": 10, "reward": {"type": "shards", "id": "", "amount": 3, "rarity": "legendary"}},
+        {"weight": 20, "reward": {"type": "item", "id": "speed_any_480", "amount": 1}},
+        {"weight": 15, "reward": {"type": "item", "id": "speed_research_60", "amount": 2}},
+        {"weight": 10, "reward": {"type": "item", "id": "speed_march_p50", "amount": 2}}
       ]
     },
     {

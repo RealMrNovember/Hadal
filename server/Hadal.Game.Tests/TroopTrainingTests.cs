@@ -178,6 +178,45 @@ namespace Hadal.Game.Tests
         }
 
         [Fact]
+        public async Task Speedups_cut_training_and_finish_it_when_the_time_runs_out()
+        {
+            var (session, connection) = await Connect("speed-a");
+            var state = session.StateForTests;
+            Train(session, 1, 40);
+            var before = Army(connection).Training.Single();
+
+            state.Items[Speedups.Id(SpeedupKind.Build, 5)] = 1;
+            Send(session, new UseSpeedupCommand { CommandId = "s0", ItemId = Speedups.Id(SpeedupKind.Build, 5), Target = "train:yard" }, CommandType.UseSpeedup);
+            Assert.Equal(nameof(SpeedupRejectReason.WrongTarget), LastAck(connection).Reason);
+
+            // 40 troops take 80 s: a 5-minute universal speed-up finishes them at once and joins them to the army.
+            state.Items[Speedups.Id(SpeedupKind.Any, 5)] = 2;
+            Send(session, new UseSpeedupCommand { CommandId = "s1", ItemId = Speedups.Id(SpeedupKind.Any, 5), Target = "train:yard" }, CommandType.UseSpeedup);
+            Assert.Equal(CommandResultCode.Accepted, LastAck(connection).Result);
+            Assert.Equal(1, state.Items[Speedups.Id(SpeedupKind.Any, 5)]);
+            Assert.Empty(Army(connection).Training);
+            Assert.Equal(40, state.Troops[TroopRules.Key("armored", 1)]);
+            Assert.True(before.EndsAtMs > _clock.UtcNow.ToUnixTimeMilliseconds());
+
+            Send(session, new UseSpeedupCommand { CommandId = "s2", ItemId = Speedups.Id(SpeedupKind.Any, 5), Target = "train:yard" }, CommandType.UseSpeedup);
+            Assert.Equal(nameof(SpeedupRejectReason.NothingToSpeedUp), LastAck(connection).Reason);
+        }
+
+        [Fact]
+        public void Speedup_ids_parse_and_percent_cuts_compound()
+        {
+            Assert.True(Speedups.TryParse("speed_any_60", out var kind, out var value, out var percent));
+            Assert.Equal((SpeedupKind.Any, 60, false), (kind, value, percent));
+            Assert.True(Speedups.TryParse("speed_march_p50", out kind, out value, out percent));
+            Assert.Equal((SpeedupKind.March, 50, true), (kind, value, percent));
+            Assert.False(Speedups.TryParse("speed_march_60", out _, out _, out _));
+            Assert.False(Speedups.TryParse("speed_any_p50", out _, out _, out _));
+            Assert.Equal(75, Speedups.Cut(50, true, 2, 100), 3);
+            Assert.Equal(100, Speedups.Cut(5, false, 3, 100), 3);
+            Assert.True(Catalog.TryGetItem("chest_silver", out var chest) && chest.table.Any(t => t.reward.id == "speed_march_p50"));
+        }
+
+        [Fact]
         public async Task Troops_and_training_survive_a_save()
         {
             var (session, _) = await Connect("train-e");

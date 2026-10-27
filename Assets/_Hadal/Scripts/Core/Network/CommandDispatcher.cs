@@ -157,6 +157,7 @@ namespace Hadal.Core.Network
                 CancelTrainingCommand => CommandType.CancelTraining,
                 HealTroopsCommand => CommandType.HealTroops,
                 CancelHealCommand => CommandType.CancelHeal,
+                UseSpeedupCommand => CommandType.UseSpeedup,
                 _ => CommandType.Unknown
             };
         }

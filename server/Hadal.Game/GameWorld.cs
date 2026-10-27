@@ -108,15 +108,18 @@ namespace Hadal.Game
         /// players are loaded, changed and saved under the connect gate so a login cannot race it.
         /// False when the player does not exist.
         /// </summary>
+        /// <summary>Items the Overseer may send: catalog items (chests, cards) and speed-ups.</summary>
+        public bool IsGrantableItem(string id) => _catalog.TryGetItem(id, out _) || Speedups.TryParse(id, out _, out _, out _);
+
         public async Task<bool> GrantAsync(string identityKey, IReadOnlyDictionary<ResourceType, long> amounts, CancellationToken cancellationToken,
-            bool asPackages = false)
+            bool asPackages = false, IReadOnlyDictionary<string, int>? items = null)
         {
             await _connectGate.WaitAsync(cancellationToken);
             try
             {
                 if (_sessions.TryGetValue(identityKey, out var session))
                 {
-                    session.Grant(amounts, _clock.UtcNow, asPackages);
+                    session.Grant(amounts, _clock.UtcNow, asPackages, items);
                     return true;
                 }
 
@@ -124,7 +127,7 @@ namespace Hadal.Game
                 if (state == null)
                     return false;
 
-                PlayerSession.ApplyGrant(state, amounts, asPackages);
+                PlayerSession.ApplyGrant(state, amounts, asPackages, items);
                 // Packages live in the extras document: write it again or the bag change is lost on save.
                 state.ExtrasJson = PlayerExtras.Write(state);
                 await _repository.SaveAsync(state, cancellationToken);

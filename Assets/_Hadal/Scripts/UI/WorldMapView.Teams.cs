@@ -185,7 +185,7 @@ namespace Hadal.UI
             var returning = now >= m.GatheredAtMs;
             var items = new List<TargetMenu.Item>
             {
-                new("queue_build", Loc.T("march.speedup"), () => _toast?.Invoke(Loc.T("march.speedup.soon"), UiKit.Amber)),
+                new("queue_build", Loc.T("march.speedup"), () => SpeedUpMarch(marchId), now < m.ArrivesAtMs || returning),
                 new("left_search", Loc.T("base.details"), () => OpenTeamDetails(marchId)),
                 new("left_home", Loc.T("world.recall"), () => { Recall(marchId); StopFollowing(); }, !returning)
             };
@@ -196,6 +196,24 @@ namespace Hadal.UI
                     return (live == null ? TileToWorld(m.X, m.Y) : MarchPosition(live, View.ServerNowMs)) + Vector3.up * 2f;
                 },
                 TeamName(m), info, items, closed: () => { if (_following == marchId) _following = string.Empty; });
+        }
+
+        /// <summary>The speed-up window on a team: the leg it is on (out or home) is the timer.</summary>
+        private void SpeedUpMarch(string marchId)
+        {
+            var m = View.Marches?.Marches?.FirstOrDefault(x => x.Id == marchId);
+            if (m == null)
+                return;
+            SpeedupWindow.Open("march:" + marchId, SpeedupKind.March, TeamName(m), () =>
+            {
+                var live = View.Marches?.Marches?.FirstOrDefault(x => x.Id == marchId);
+                if (live == null)
+                    return null;
+                var now = View.ServerNowMs;
+                if (now < live.ArrivesAtMs)
+                    return (live.StartedAtMs, live.ArrivesAtMs);
+                return now >= live.GatheredAtMs ? (live.GatheredAtMs, live.HomeAtMs) : null;
+            });
         }
 
         private void StopFollowing()

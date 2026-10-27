@@ -34,14 +34,24 @@ namespace Hadal.UI
         public static string Item(string id) =>
             Capsules.TryParse(id, out var resource, out var amount)
                 ? Loc.F("item.capsule", Loc.Resource(resource.ToString()), amount.ToString("N0"))
-                : Loc.T("item." + id);
+                : Speedups.TryParse(id, out var kind, out var value, out var percent)
+                    ? Loc.F("item.speedup", Loc.T("speedup.kind." + kind.ToString().ToLowerInvariant()), SpeedupAmount(value, percent))
+                    : Loc.T("item." + id);
+
+        /// <summary>"%50" or "1 sa" — what one speed-up takes off.</summary>
+        public static string SpeedupAmount(int value, bool percent) => percent ? $"%{value}" : Loc.Duration(value * 60f);
 
         public static string ItemDescription(string id) =>
-            Capsules.TryParse(id, out _, out _) ? Loc.T("item.capsule.desc") : Loc.T("item." + id + ".desc");
+            Capsules.TryParse(id, out _, out _) ? Loc.T("item.capsule.desc")
+            : Speedups.TryParse(id, out var kind, out _, out _) ? Loc.T(kind == SpeedupKind.March ? "item.speedup.march.desc" : "item.speedup.desc")
+            : Loc.T("item." + id + ".desc");
 
         /// <summary>Icon of a bag item: the resource for capsules, a card stack or a gift otherwise.</summary>
         public static string ItemIcon(string id, string kind) =>
-            Capsules.TryParse(id, out var resource, out _) ? Hud.HudIcons.Resource(resource) : kind == "heroCard" ? "nav_heroes" : "event_gift";
+            Capsules.TryParse(id, out var resource, out _) ? Hud.HudIcons.Resource(resource)
+            : Speedups.TryParse(id, out var speed, out _, out _) ? speed == SpeedupKind.March ? "nav_world" : speed == SpeedupKind.Build ? "queue_build"
+                : speed == SpeedupKind.Research ? "left_research" : speed == SpeedupKind.Heal ? "left_help" : "power"
+            : kind == "heroCard" ? "nav_heroes" : "event_gift";
 
         public static string Hero(string id) => Loc.T("hero." + id);
 
@@ -276,8 +286,10 @@ namespace Hadal.UI
             inner.raycastTarget = false;
             _catalog.TryGetItem(id, out var item);
             HudIconImage(frame.transform, QuestText.ItemIcon(id, item?.kind), 0.18f, 0.16f, 0.82f, 0.8f);
-            if (Capsules.TryParse(id, out _, out var amount))
-                Outlined(UiKit.Label("Amount", frame.transform, CostChips.Compact(amount), 26, Color.white, TextAnchor.UpperCenter, FontStyle.Bold))
+            var top = Capsules.TryParse(id, out _, out var amount) ? CostChips.Compact(amount)
+                : Speedups.TryParse(id, out _, out var minutes, out var percent) ? QuestText.SpeedupAmount(minutes, percent) : null;
+            if (top != null)
+                Outlined(UiKit.Label("Amount", frame.transform, top, 26, Color.white, TextAnchor.UpperCenter, FontStyle.Bold))
                     .rectTransform.Place(0, 0.76f, 1, 0.98f);
             Outlined(UiKit.Label("Count", frame.transform, count.ToString("N0"), 26, Color.white, TextAnchor.LowerRight, FontStyle.Bold))
                 .rectTransform.Place(0.05f, 0.03f, 0.94f, 0.3f);
@@ -316,6 +328,12 @@ namespace Hadal.UI
             ((RectTransform)slider.transform).Place(0.16f, 0.33f, 0.66f, 0.53f);
             var plus = UiKit.Button("Plus", panel.transform, "+", () => { _bagCount = Math.Min(max, _bagCount + 1); Render(force: true); }, new Color(0.25f, 0.5f, 0.85f, 1f), 40);
             ((RectTransform)plus.transform).Place(0.67f, 0.33f, 0.77f, 0.53f);
+
+            if (Speedups.TryParse(id, out _, out _, out _))
+            {
+                UiKit.Label("How", panel.transform, Loc.T("bag.speedup.how"), 24, dark, TextAnchor.MiddleCenter).rectTransform.Place(0.04f, 0.05f, 0.96f, 0.3f);
+                return;
+            }
 
             var use = UiKit.Button("UseButton", panel.transform, Loc.T("bag.use"), () =>
             {

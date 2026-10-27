@@ -107,7 +107,17 @@ namespace Hadal.Game.Tests
             Send(other, new MarchGatherCommand { CommandId = "g2", NodeId = node.Id }, CommandType.MarchGather);
             Assert.Equal(nameof(MarchRejectReason.DepositBusy), LastAck(otherConnection).Reason);
 
-            _clock.UtcNow = march.HomeAt.AddSeconds(1);
+            // A 50% march speed-up on the way out halves the time left to arrive, and everything after moves with it.
+            var arrives = march.ArrivesAt;
+            var home = march.HomeAt;
+            session.StateForTests.Items["speed_march_p50"] = 1;
+            Send(session, new UseSpeedupCommand { CommandId = "sp", ItemId = "speed_march_p50", Target = "march:" + march.Id }, CommandType.UseSpeedup);
+            Assert.Equal(CommandResultCode.Accepted, LastAck(connection).Result);
+            var sped = session.MarchesForTests.Single();
+            Assert.Equal((arrives - _clock.UtcNow).TotalSeconds / 2, (sped.ArrivesAt - _clock.UtcNow).TotalSeconds, 3);
+            Assert.Equal(home - (arrives - sped.ArrivesAt), sped.HomeAt);
+
+            _clock.UtcNow = sped.HomeAt.AddSeconds(1);
             _world.Tick();
             Assert.Empty(session.MarchesForTests);
             Assert.True(session.StateForTests.Wallet[ResourceType.Titanium] >= titanium + cargo);

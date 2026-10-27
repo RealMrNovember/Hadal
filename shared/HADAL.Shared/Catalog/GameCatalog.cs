@@ -541,7 +541,7 @@ namespace HADAL.Shared.Catalog
                 var ok = r.type switch
                 {
                     "resource" => TryParseResource(r.id, out _),
-                    "item" => itemIds.Contains(r.id),
+                    "item" => itemIds.Contains(r.id) || Simulation.Speedups.TryParse(r.id, out _, out _, out _),
                     "shards" => string.IsNullOrEmpty(r.id) ? catalog.TryGetRarity(r.rarity, out _) : catalog._heroesById.ContainsKey(r.id),
                     _ => false
                 };

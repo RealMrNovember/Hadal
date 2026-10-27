@@ -256,7 +256,14 @@ namespace Hadal.UI
             var cancel = UiKit.Button("Cancel", card, Loc.T("train.cancel"), () =>
                 _commands.Dispatch(new CancelTrainingCommand { CommandId = Guid.NewGuid().ToString("N"), ClientSequence = ++_sequence, BuildingId = key }),
                 UiKit.Danger, 34);
-            ((RectTransform)cancel.transform).Place(0.25f, 0.04f, 0.75f, 0.13f);
+            ((RectTransform)cancel.transform).Place(0.04f, 0.04f, 0.48f, 0.13f);
+            var speed = UiKit.Button("Speed", card, Loc.T("base.speedup"), () => SpeedupWindow.Open("train:" + key, SpeedupKind.Train,
+                Loc.F("train.running", running.Count, $"T{running.Tier} {Loc.T("troop." + running.Type)}"), () =>
+                {
+                    var t = TrainingAt(key);
+                    return t == null ? null : (t.StartedAtMs, t.EndsAtMs);
+                }), UiKit.Primary, 34);
+            ((RectTransform)speed.transform).Place(0.52f, 0.04f, 0.96f, 0.13f);
             UiKit.Label("Refund", card, Loc.T("train.refund"), 22, UiKit.Muted, TextAnchor.MiddleCenter).rectTransform.Place(0.04f, 0.14f, 0.96f, 0.19f);
         }
 
@@ -333,7 +340,13 @@ namespace Hadal.UI
                     .rectTransform.Place(0.04f, 0.15f, 0.96f, 0.21f);
                 var cancel = UiKit.Button("Cancel", card, Loc.T("train.cancel"), () =>
                     _commands.Dispatch(new CancelHealCommand { CommandId = Guid.NewGuid().ToString("N"), ClientSequence = ++_sequence }), UiKit.Danger, 34);
-                ((RectTransform)cancel.transform).Place(0.25f, 0.03f, 0.75f, 0.13f);
+                ((RectTransform)cancel.transform).Place(0.04f, 0.03f, 0.48f, 0.13f);
+                var speed = UiKit.Button("Speed", card, Loc.T("base.speedup"), () => SpeedupWindow.Open("heal", SpeedupKind.Heal, Loc.T("heal.title"), () =>
+                    {
+                        var h = Army.Healing;
+                        return h == null ? null : (h.StartedAtMs, h.EndsAtMs);
+                    }), UiKit.Primary, 34);
+                ((RectTransform)speed.transform).Place(0.52f, 0.03f, 0.96f, 0.13f);
                 return;
             }
 

@@ -11,7 +11,7 @@ namespace Hadal.Gateway.Admin
 {
     public sealed record LoginRequest(string Username, string Password, string? Code = null);
     /// <param name="Packages">True: each resource goes to the bag as a package; false: straight to the wallet (past the cap).</param>
-    public sealed record GrantRequest(Dictionary<string, long> Amounts, string Note, bool Packages = false);
+    public sealed record GrantRequest(Dictionary<string, long> Amounts, string Note, bool Packages = false, Dictionary<string, int>? Items = null);
     public sealed record BanRequest(int Hours, string Reason);
     public sealed record CouponRequest(string Code, Dictionary<string, long> Rewards, int MaxRedemptions, DateTimeOffset? ExpiresAt, string Note,
         DateTimeOffset? StartsAt = null, string? TargetAccountId = null);
@@ -147,14 +147,17 @@ namespace Hadal.Gateway.Admin
             api.MapPost("/players/{id:guid}/grant", async (AdminPrincipal me, Guid id, GrantRequest request,
                 HttpContext http, GameWorld world, IAdminStore store, CancellationToken ct) =>
             {
-                var amounts = ParseAmounts(request.Amounts);
-                if (amounts == null || amounts.Count == 0)
+                var amounts = ParseAmounts(request.Amounts ?? new Dictionary<string, long>()) ?? new Dictionary<ResourceType, long>();
+                var items = (request.Items ?? new Dictionary<string, int>()).Where(p => p.Value > 0 && world.IsGrantableItem(p.Key))
+                    .ToDictionary(p => p.Key, p => p.Value);
+                if (amounts.Count == 0 && items.Count == 0)
                     return Results.BadRequest(new { error = "InvalidAmounts" });
-                if (!await world.GrantAsync(id.ToString("N"), amounts, ct, request.Packages))
+                if (!await world.GrantAsync(id.ToString("N"), amounts, ct, request.Packages, items))
                     return Results.NotFound(new { error = "PlayerNotStarted" });
 
                 await store.AuditAsync(me.Username, "player.grant", id.ToString("N"),
-                    $"{(request.Packages ? "[paket] " : string.Empty)}{Describe(amounts)} {request.Note}".Trim(), AdminAuth.ClientIp(http), ct);
+                    $"{(request.Packages ? "[paket] " : string.Empty)}{Describe(amounts)} {string.Join(" ", items.Select(p => $"{p.Key}x{p.Value}"))} {request.Note}".Trim(),
+                    AdminAuth.ClientIp(http), ct);
                 return Results.Ok(new { ok = true });
             }).RequireAdmin(AdminRoles.GameMaster);
 

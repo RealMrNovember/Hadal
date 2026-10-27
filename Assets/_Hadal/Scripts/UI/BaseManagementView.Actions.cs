@@ -51,7 +51,7 @@ namespace Hadal.UI
                     if (free)
                         Finish(key);
                     else
-                        OpenBuilding(key);
+                        SpeedUpBuilding(key, definition.Id);
                 }));
             }
             else if (building.level < definition.MaxLevel)
@@ -76,6 +76,20 @@ namespace Hadal.UI
                 : Rates(definition, building.level);
             TargetMenu.Show(() => Camera.main, () => SlotWorld(ring, sector) + Vector3.up * 3f,
                 $"{Loc.F("base.level", building.level)}  {Loc.Building(definition.Id)}", status, items);
+        }
+
+        /// <summary>The speed-up window on a construction (its timer read live from the building).</summary>
+        private void SpeedUpBuilding(string key, string definitionId)
+        {
+            TargetMenu.Hide();
+            SpeedupWindow.Open("build:" + key, SpeedupKind.Build, Loc.Building(definitionId), () =>
+            {
+                var b = Buildings().FirstOrDefault(x => x.instanceKey == key);
+                if (string.IsNullOrEmpty(b.instanceKey) || !b.IsUnderConstruction)
+                    return null;
+                var end = _stateSync.View.ServerNowMs + (long)((b.constructionEndsAt - Time.realtimeSinceStartup) * 1000f);
+                return (end - (long)(b.constructionSeconds * 1000f), end);
+            });
         }
 
         // --- Upgrade window ---------------------------------------------------------------------

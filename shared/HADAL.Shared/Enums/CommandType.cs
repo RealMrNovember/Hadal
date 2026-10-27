@@ -50,5 +50,6 @@ namespace HADAL.Shared.Enums
         [ProtoEnum] CancelTraining = 42,
         [ProtoEnum] HealTroops = 43,
         [ProtoEnum] CancelHeal = 44,
+        [ProtoEnum] UseSpeedup = 45,
     }
 }

@@ -161,6 +161,10 @@ namespace Hadal.UI
                 _map.OpenAt(x, y);
             };
 
+            var speedups = new GameObject("SpeedupWindow");
+            speedups.transform.SetParent(transform, false);
+            speedups.AddComponent<SpeedupWindow>().Initialize(_stateSync, _commands, _localBus);
+
             // Profile cards over every screen: from chat faces, member lists and bases on the map.
             var profile = new GameObject("ProfileCard");
             profile.transform.SetParent(transform, false);

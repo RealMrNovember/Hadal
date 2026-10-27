@@ -245,6 +245,7 @@ async function playerDetail(root, id) {
   const banned = p.bannedUntil && new Date(p.bannedUntil) > new Date();
   const amounts = Object.fromEntries(RESOURCES.map((r) => [r, el("input", { type: "number", step: "1", placeholder: "0" })]));
   const note = el("input", { placeholder: "Not (destek talebi, sebep…)" });
+  const itemInputs = Object.fromEntries(GRANT_ITEMS.map(([id]) => [id, el("input", { type: "number", min: "0", step: "1", placeholder: "0" })]));
   const delivery = el("select", {},
     el("option", { value: "package" }, "Çantaya paket olarak"),
     el("option", { value: "direct" }, "Doğrudan cüzdana"));
@@ -252,8 +253,9 @@ async function playerDetail(root, id) {
   const banReason = el("input", { placeholder: "Sebep" });
 
   async function grant() {
-    const body = { amounts: {}, note: note.value, packages: delivery.value === "package" };
+    const body = { amounts: {}, note: note.value, packages: delivery.value === "package", items: {} };
     for (const r of RESOURCES) if (amounts[r].value) body.amounts[r] = Number(amounts[r].value);
+    for (const [id, input] of Object.entries(itemInputs)) if (Number(input.value) > 0) body.items[id] = Number(input.value);
     await api(`players/${id}/grant`, { method: "POST", body });
     toast(body.packages ? "Paketler oyuncunun çantasına gönderildi." : "Kaynaklar cüzdana eklendi.");
     route();
@@ -263,7 +265,9 @@ async function playerDetail(root, id) {
     el("h2", {}, "Kaynak ver / al (eksi değer düşer)"),
     el("p", { class: "muted" }, "Paket: her kaynak tam miktarında bir paket olarak çantaya düşer, oyuncu dilediğinde açar (depo sınırını aşabilir). " +
       "Doğrudan: hemen cüzdana eklenir, depo sınırını aşabilir. Hadalit ve Süperalaşım her zaman doğrudan eklenir."),
-    el("div", { class: "row" }, RESOURCES.map((r) => el("label", {}, RESOURCE_TR[r], amounts[r])), el("label", {}, "Teslim", delivery), note,
+    el("div", { class: "row" }, RESOURCES.map((r) => el("label", {}, RESOURCE_TR[r], amounts[r])), el("label", {}, "Teslim", delivery), note),
+    el("h2", {}, "Eşya gönder (çantaya)"),
+    el("div", { class: "row" }, GRANT_ITEMS.map(([id, name]) => el("label", {}, name, itemInputs[id])),
       el("button", { class: "primary", onclick: () => grant().catch((e) => toast(e.message, true)) }, "Uygula")),
     el("h2", {}, "Yaptırım"),
     el("div", { class: "row" },
@@ -305,10 +309,20 @@ async function playerDetail(root, id) {
     actions));
 }
 
+/** Items the panel can send: speed-ups and chests. */
+const GRANT_ITEMS = [
+  ["speed_any_5", "Evrensel hızlandırma 5 dk"], ["speed_any_60", "Evrensel hızlandırma 1 sa"], ["speed_any_480", "Evrensel hızlandırma 8 sa"],
+  ["speed_build_60", "İnşa hızlandırma 1 sa"], ["speed_train_60", "Eğitim hızlandırma 1 sa"], ["speed_heal_60", "İyileştirme hızlandırma 1 sa"],
+  ["speed_research_60", "Araştırma hızlandırma 1 sa"], ["speed_march_p25", "Yürüyüş hızlandırma %25"], ["speed_march_p50", "Yürüyüş hızlandırma %50"],
+  ["chest_bronze", "Bronz sandık"], ["chest_silver", "Gümüş sandık"], ["chest_gold", "Altın sandık"],
+];
+
 /** "cap_Titanium_250000" → "Titanyum paketi 250.000"; other items keep their id. */
 function bagName(id) {
   const m = /^cap_([A-Za-z]+)_(\d+)$/.exec(id);
-  return m ? `${RESOURCE_TR[m[1]] || m[1]} paketi ${fmtNum(Number(m[2]))}` : id;
+  if (m) return `${RESOURCE_TR[m[1]] || m[1]} paketi ${fmtNum(Number(m[2]))}`;
+  const known = GRANT_ITEMS.find(([itemId]) => itemId === id);
+  return known ? known[1] : id;
 }
 
 async function coupons(root, targetId) {
