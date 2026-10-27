@@ -13,6 +13,12 @@ namespace HADAL.Shared.Catalog
         public string DisplayName { get; internal set; } = string.Empty;
         public long StartingAmount { get; internal set; }
         public long MaxCapacity { get; internal set; }
+
+        /// <summary>Cap by reactor level (index = level); empty = <see cref="MaxCapacity"/>.</summary>
+        public IReadOnlyList<long> CapacityByReactor { get; internal set; } = Array.Empty<long>();
+
+        public long CapacityAt(int reactorLevel) =>
+            CapacityByReactor.Count == 0 ? MaxCapacity : CapacityByReactor[Math.Max(0, Math.Min(CapacityByReactor.Count - 1, reactorLevel))];
         public bool Critical { get; internal set; }
     }
 
@@ -37,6 +43,33 @@ namespace HADAL.Shared.Catalog
 
         /// <summary>Most one base may own, counting constructions; 0 = unlimited.</summary>
         public int MaxCount { get; internal set; }
+
+        /// <summary>Balance table (index 0 = level 1); empty = formula costs (docs/rehber, Paket A).</summary>
+        public IReadOnlyList<BuildingLevel> Levels { get; internal set; } = Array.Empty<BuildingLevel>();
+
+        /// <summary>Reactor level unlocking each copy; empty = <see cref="MaxCount"/> copies from <see cref="RequiredReactorLevel"/>.</summary>
+        public IReadOnlyList<int> CountUnlocks { get; internal set; } = Array.Empty<int>();
+
+        /// <summary>Copies allowed at this reactor level (0 = unlimited), before research extras.</summary>
+        public int CountAt(int reactorLevel)
+        {
+            if (CountUnlocks.Count == 0)
+                return reactorLevel >= RequiredReactorLevel ? MaxCount : 0;
+            var n = 0;
+            foreach (var unlock in CountUnlocks)
+            {
+                if (unlock <= reactorLevel)
+                    n++;
+            }
+
+            return n;
+        }
+
+        /// <summary>Reactor level that unlocks copy number <paramref name="index"/> (0-based); the last copy's beyond the list.</summary>
+        public int UnlockFor(int index) =>
+            CountUnlocks.Count == 0 ? RequiredReactorLevel : CountUnlocks[Math.Max(0, Math.Min(CountUnlocks.Count - 1, index))];
+
+        public BuildingLevel? Level(int level) => level >= 1 && level <= Levels.Count ? Levels[level - 1] : null;
 
         public bool MatchesSlotType(GridSlotType slotType) =>
             SlotType == GridSlotType.Universal || slotType == GridSlotType.Universal || SlotType == slotType;
@@ -66,6 +99,19 @@ namespace HADAL.Shared.Catalog
         public int HadaliteChancePercent { get; internal set; }
         public int HadaliteMin { get; internal set; }
         public int HadaliteMax { get; internal set; }
+    }
+
+    /// <summary>One level of a building's balance table, ready for the simulation.</summary>
+    public sealed class BuildingLevel
+    {
+        public int Reactor { get; internal set; }
+        public IReadOnlyList<KeyValuePair<ResourceType, long>> Cost { get; internal set; } = Array.Empty<KeyValuePair<ResourceType, long>>();
+        public int Seconds { get; internal set; }
+        public int Power { get; internal set; }
+
+        /// <summary>Hourly rates as thousandths per simulation tick (docs/rehber K-17).</summary>
+        public IReadOnlyDictionary<ResourceType, long> ProductionMilliPerTick { get; internal set; } = new Dictionary<ResourceType, long>();
+        public IReadOnlyDictionary<ResourceType, long> ConsumptionMilliPerTick { get; internal set; } = new Dictionary<ResourceType, long>();
     }
 
     public sealed class HeroDefinition
@@ -151,6 +197,19 @@ namespace HADAL.Shared.Catalog
 
         public ChatCatalogData Chat => Data.chat ?? new ChatCatalogData();
 
+        private readonly Dictionary<int, IReadOnlyList<KeyValuePair<string, int>>> _reactorRequirements = new Dictionary<int, IReadOnlyList<KeyValuePair<string, int>>>();
+
+        /// <summary>Buildings (and levels) raising the Core Reactor to <paramref name="level"/> needs; empty when none.</summary>
+        public IReadOnlyList<KeyValuePair<string, int>> ReactorRequirements(int level) =>
+            _reactorRequirements.TryGetValue(level, out var list) ? list : Array.Empty<KeyValuePair<string, int>>();
+
+        /// <summary>A free player's Titanium per hour at this reactor level (stamps resource capsules); 0 without data.</summary>
+        public long IncomeHour(int reactorLevel)
+        {
+            var table = Data.incomeHour ?? Array.Empty<long>();
+            return table.Length == 0 ? 0 : table[Math.Max(0, Math.Min(table.Length - 1, reactorLevel))];
+        }
+
         public QuestCatalogData Quests => Data.quests ?? new QuestCatalogData();
 
         public WorldCatalogData World => Data.world ?? new WorldCatalogData();
@@ -198,7 +257,8 @@ namespace HADAL.Shared.Catalog
                     DisplayName = resource.displayName ?? string.Empty,
                     StartingAmount = resource.startingAmount,
                     MaxCapacity = resource.maxCapacity,
-                    Critical = resource.critical
+                    Critical = resource.critical,
+                    CapacityByReactor = resource.capacityByReactor ?? Array.Empty<long>()
                 };
             }
 
@@ -231,8 +291,10 @@ namespace HADAL.Shared.Catalog
                     BuildCost = ParseAmounts(building.id, "buildCost", building.buildCost, errors),
                     BuildSeconds = Math.Max(0, building.buildSeconds),
                     MaxLevel = building.maxLevel > 0 ? building.maxLevel : Math.Max(1, (data.progression ?? new ProgressionData()).maxLevel),
-                    RequiredReactorLevel = Math.Max(0, building.requiredReactorLevel),
-                    MaxCount = Math.Max(0, building.maxCount)
+                    RequiredReactorLevel = building.countUnlocks is { Length: > 0 } ? Math.Max(0, building.countUnlocks[0]) : Math.Max(0, building.requiredReactorLevel),
+                    MaxCount = building.countUnlocks is { Length: > 0 } ? building.countUnlocks.Length : Math.Max(0, building.maxCount),
+                    CountUnlocks = building.countUnlocks ?? Array.Empty<int>(),
+                    Levels = ParseLevels(building, errors)
                 };
             }
 
@@ -337,6 +399,22 @@ namespace HADAL.Shared.Catalog
             }
 
             ParseHeroes(catalog, data, errors);
+            foreach (var requirement in data.reactorRequirements ?? Array.Empty<ReactorRequirementData>())
+            {
+                if (requirement == null)
+                    continue;
+                var list = new List<KeyValuePair<string, int>>();
+                foreach (var need in requirement.requires ?? Array.Empty<BuildingLevelRequirementData>())
+                {
+                    if (need == null || !catalog._buildings.ContainsKey(need.building))
+                        errors.Add($"reactorRequirements {requirement.level}: unknown building '{need?.building}'");
+                    else
+                        list.Add(new KeyValuePair<string, int>(need.building, need.level));
+                }
+
+                catalog._reactorRequirements[requirement.level] = list;
+            }
+
             ValidateQuests(catalog, data, errors);
             catalog.AllianceCreateCost = ParseAmounts("alliance", "createCost", (data.alliance ?? new AllianceCatalogData()).createCost, errors);
 
@@ -563,7 +641,18 @@ namespace HADAL.Shared.Catalog
                 rules.AddRange(perResource.Values);
             }
 
-            return new ProductionCatalog(rules);
+            var production = new ProductionCatalog(rules);
+            foreach (var building in _buildings.Values)
+            {
+                if (building.Levels.Count == 0)
+                    continue;
+                var rows = new List<(IReadOnlyDictionary<ResourceType, long>, IReadOnlyDictionary<ResourceType, long>)>(building.Levels.Count);
+                foreach (var level in building.Levels)
+                    rows.Add((level.ProductionMilliPerTick, level.ConsumptionMilliPerTick));
+                production.SetLevelTable(building.Id, rows);
+            }
+
+            return production;
         }
 
         public Dictionary<ResourceType, long> StartingWallet()
@@ -598,6 +687,56 @@ namespace HADAL.Shared.Catalog
                 caps[resource.Type] = resource.MaxCapacity;
 
             return caps;
+        }
+
+        /// <summary>Storage caps at a reactor level (they grow with the reactor where the catalog says so).</summary>
+        public Dictionary<ResourceType, long> Capacities(int reactorLevel)
+        {
+            var caps = new Dictionary<ResourceType, long>();
+            foreach (var resource in _resources.Values)
+                caps[resource.Type] = resource.CapacityAt(reactorLevel);
+
+            return caps;
+        }
+
+        private static IReadOnlyList<BuildingLevel> ParseLevels(BuildingDefinitionData building, List<string> errors)
+        {
+            var levels = new List<BuildingLevel>();
+            foreach (var level in building.levels ?? Array.Empty<BuildingLevelData>())
+            {
+                if (level == null)
+                    continue;
+
+                Dictionary<ResourceType, long> Rates(HourlyAmountData[]? rates)
+                {
+                    var map = new Dictionary<ResourceType, long>();
+                    foreach (var rate in rates ?? Array.Empty<HourlyAmountData>())
+                    {
+                        if (rate == null || !TryParseResource(rate.resource, out var type))
+                        {
+                            errors.Add($"building '{building.id}' level {levels.Count + 1}: unknown resource '{rate?.resource}'");
+                            continue;
+                        }
+
+                        map[type] = (map.TryGetValue(type, out var have) ? have : 0)
+                                    + (long)Math.Round(rate.perHour * ProductionFormulas.Milli * SimulationTick.IntervalSeconds / 3600.0);
+                    }
+
+                    return map;
+                }
+
+                levels.Add(new BuildingLevel
+                {
+                    Reactor = Math.Max(0, level.reactor),
+                    Cost = ParseAmounts(building.id, "levels.cost", level.cost, errors),
+                    Seconds = Math.Max(0, level.seconds),
+                    Power = Math.Max(0, level.power),
+                    ProductionMilliPerTick = Rates(level.production),
+                    ConsumptionMilliPerTick = Rates(level.consumption)
+                });
+            }
+
+            return levels;
         }
 
         public static bool TryParseResource(string? value, out ResourceType type) =>

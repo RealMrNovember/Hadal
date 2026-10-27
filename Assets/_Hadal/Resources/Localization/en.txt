@@ -508,3 +508,10 @@ world.level = Level {0}
 world.online = Online
 world.offline = Offline
 world.you = This is your base.
+
+resource.Alloy = Superalloy
+base.perhour = /h
+base.needs.title = Needs:
+item.capsule = {0} Capsule · {1}
+item.capsule.desc = Opens into your stores and may go past the cap.
+reason.ReactorPrerequisite = Upgrade the buildings the reactor needs first.

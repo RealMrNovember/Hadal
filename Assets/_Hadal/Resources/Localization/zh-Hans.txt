@@ -508,3 +508,10 @@ world.level = 等级 {0}
 world.online = 在线
 world.offline = 离线
 world.you = 这是你的基地。
+
+resource.Alloy = 超合金
+base.perhour = /小时
+base.needs.title = 需要：
+item.capsule = {0}胶囊 · {1}
+item.capsule.desc = 打开后存入仓库，可超出上限。
+reason.ReactorPrerequisite = 请先升级核心反应堆所需的建筑。

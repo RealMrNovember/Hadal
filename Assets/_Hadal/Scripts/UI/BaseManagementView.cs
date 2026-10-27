@@ -445,7 +445,7 @@ namespace Hadal.UI
                 var reason = verdict switch
                 {
                     PlacementRejectReason.None => builderBusy ? Loc.Reason(nameof(ConstructionRejectReason.BuilderBusy)) : string.Empty,
-                    PlacementRejectReason.ReactorLevelTooLow => Loc.F("base.needs.reactor", definition.RequiredReactorLevel),
+                    PlacementRejectReason.ReactorLevelTooLow => Loc.F("base.needs.reactor", definition.UnlockFor(count)),
                     PlacementRejectReason.LimitReached => Loc.F("base.limit", count, modifiers.MaxCount(definition)),
                     _ => Loc.Reason(verdict.ToString())
                 };
@@ -520,11 +520,21 @@ namespace Hadal.UI
             var wallet = Wallet();
             var modifiers = Modifiers();
             var verdict = BuildingProgression.ValidateUpgrade(_catalog, definition.Id, building.level, false,
-                ActiveConstructions(), ReactorLevel(), wallet, modifiers.ExtraBuilders);
+                ActiveConstructions(), ReactorLevel(), wallet, modifiers.ExtraBuilders, HighestLevel);
             var instanceKey = building.instanceKey;
+
+            // The reactor's next level lists the buildings it needs (docs/rehber 02), met ones in cyan.
+            var body = Rates(definition, target);
+            var needs = definition.Id == BuildingProgression.ReactorId ? _catalog.ReactorRequirements(target) : Array.Empty<KeyValuePair<string, int>>();
+            if (needs.Count > 0)
+                body += "\n" + Loc.T("base.needs.title") + " " + string.Join(", ", needs.Select(n =>
+                    $"{Check(HighestLevel(n.Key) >= n.Value)}{Loc.Building(n.Key)} {Loc.F("base.level", n.Value)}"));
+            else if (definition.Id != BuildingProgression.ReactorId && BuildingProgression.ReactorFor(definition, target) > ReactorLevel())
+                body += "\n" + Loc.F("base.needs.reactor", BuildingProgression.ReactorFor(definition, target));
+
             AddCard(
                 $"{Loc.T("base.next")}: {Loc.F("base.level", target)}",
-                Rates(definition, target),
+                body,
                 $"{Loc.T("base.cost")}: {Cost(BuildingProgression.Cost(definition, target, rules), wallet)}   {Loc.T("base.time")}: {Loc.Duration(modifiers.BuildSeconds(BuildingProgression.Seconds(definition, target, rules)))}",
                 verdict == ConstructionRejectReason.None ? string.Empty : Loc.Reason(verdict.ToString()),
                 Loc.T("base.upgrade"),
@@ -694,6 +704,10 @@ namespace Hadal.UI
         private Dictionary<string, int> OwnedCounts() =>
             Buildings().GroupBy(b => b.definitionId).ToDictionary(g => g.Key, g => g.Count());
 
+        /// <summary>The highest level among the player's buildings of one kind.</summary>
+        private int HighestLevel(string definitionId) =>
+            Buildings().Where(b => b.definitionId == definitionId).Select(b => b.level).DefaultIfEmpty(0).Max();
+
         private int ReactorLevel() =>
             Buildings().Where(b => b.definitionId == BuildingProgression.ReactorId).Select(b => b.level).DefaultIfEmpty(0).Max();
 
@@ -707,6 +721,25 @@ namespace Hadal.UI
 
         private static string Rates(BuildingDefinition definition, int level)
         {
+            // Balance-table buildings show the guide's hourly rates (docs/rehber K-17).
+            var row = definition.Level(level);
+            if (row != null)
+            {
+                var hourly = new StringBuilder();
+                void Hourly(string label, IReadOnlyDictionary<ResourceType, long> milli, string sign)
+                {
+                    if (milli.Count == 0)
+                        return;
+                    hourly.Append(hourly.Length > 0 ? "   " : string.Empty).Append(label).Append(": ");
+                    hourly.Append(string.Join(", ", milli.Select(a =>
+                        $"{sign}{a.Value * SimulationTick.TicksPerHour / ProductionFormulas.Milli:N0} {Loc.T("resource." + a.Key)}{Loc.T("base.perhour")}")));
+                }
+
+                Hourly(Loc.T("base.produces"), row.ProductionMilliPerTick, "+");
+                Hourly(Loc.T("base.consumes"), row.ConsumptionMilliPerTick, "-");
+                return hourly.ToString();
+            }
+
             var text = new StringBuilder();
             void Append(string label, IReadOnlyList<KeyValuePair<ResourceType, long>> amounts, string sign)
             {

@@ -180,7 +180,8 @@ namespace Hadal.Game
         /// <summary>Base power: building levels plus every owned hero's power.</summary>
         private long ComputePower()
         {
-            long power = _state.Buildings.Sum(b => (long)b.Level) * 10;
+            // Each building level's table power (docs/rehber K-14), then every hero.
+            long power = _state.Buildings.Sum(b => _catalog.TryGetBuilding(b.DefinitionId, out var d) ? BuildingProgression.Power(d, b.Level) : b.Level * 10L);
             foreach (var owned in _state.Heroes)
             {
                 if (_catalog.TryGetHero(owned.HeroId, out var hero))

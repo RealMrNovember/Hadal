@@ -42,6 +42,7 @@ ICON_MATS = {
     "Card1":   ((0.85, 0.30, 0.15), 0.0, 0.45, None, 0.0),
     "Card2":   ((0.20, 0.45, 0.90), 0.0, 0.45, None, 0.0),
     "Card3":   ((0.95, 0.70, 0.15), 0.0, 0.45, None, 0.0),
+    "Alloy":   ((0.55, 0.32, 0.78), 1.0, 0.22, (0.30, 0.10, 0.50), 0.2),
 }
 
 _mats = {}
@@ -148,6 +149,14 @@ def res_biomass():
 def res_titanium():
     for i, (x, z) in enumerate(((-0.42, 0), (0.42, 0), (0, 0.42))):
         prism("ingot%d" % i, [(-0.38, 0), (0.38, 0), (0.28, 0.4), (-0.28, 0.4)], 1.1, (x, 0, z), "Steel", 0.03)
+
+
+def res_alloy():
+    # Superalloy: violet-sheened ingots cast from nickel and cobalt nodules, with a nodule beside them.
+    for i, (x, z) in enumerate(((-0.42, 0), (0.42, 0), (0, 0.42))):
+        prism("bar%d" % i, [(-0.38, 0), (0.38, 0), (0.28, 0.4), (-0.28, 0.4)], 1.1, (x, 0, z), "Alloy", 0.03)
+    nodule = ball("nodule", 0.28, (0.75, -0.45, 0.25), "Dark")
+    nodule.scale = (1.0, 0.85, 0.75)
 
 
 def res_hadalite():
@@ -307,7 +316,7 @@ def avatar():
 
 
 ICONS = {f.__name__: f for f in (
-    res_oxygen, res_energy, res_food, res_biomass, res_titanium, res_hadalite, power,
+    res_oxygen, res_energy, res_food, res_biomass, res_titanium, res_hadalite, res_alloy, power,
     nav_heroes, nav_world, side_alliance, side_mail, side_bag,
     left_research, left_expand, left_help, left_search, left_home,
     event_pod, event_gift, event_war, shop, quest, queue_build, queue_drone, chat, avatar,

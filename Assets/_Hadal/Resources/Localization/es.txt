@@ -508,3 +508,10 @@ world.level = Nivel {0}
 world.online = En línea
 world.offline = Desconectado
 world.you = Esta es tu base.
+
+resource.Alloy = Superaleación
+base.perhour = /h
+base.needs.title = Requiere:
+item.capsule = Cápsula de {0} · {1}
+item.capsule.desc = Se abre en tu almacén y puede superar el límite.
+reason.ReactorPrerequisite = Mejora primero los edificios que necesita el Reactor central.

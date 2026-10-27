@@ -46,9 +46,17 @@ namespace HADAL.Shared.Simulation
         public int ExtraBuilders { get; internal set; }
         public int ExtraResearchSlots { get; internal set; }
 
-        /// <summary>Never below 1 second, never below 10% of the original.</summary>
-        public static int ApplyPercent(int seconds, int percent) =>
-            seconds <= 0 ? seconds : Math.Max(1, (int)Math.Round(seconds * Math.Max(10, 100 + percent) / 100.0));
+        /// <summary>
+        /// Time bonuses divide (docs/rehber K-13): time = raw / (1 + speed% / 100), where a negative
+        /// percent is a speed-up. Stacking bonuses never reach zero; a positive percent slows down.
+        /// </summary>
+        public static int ApplyPercent(int seconds, int percent)
+        {
+            if (seconds <= 0)
+                return seconds;
+            var scaled = percent < 0 ? seconds / (1.0 - percent / 100.0) : seconds * (1.0 + percent / 100.0);
+            return Math.Max(1, (int)Math.Round(scaled));
+        }
 
         public int BuildSeconds(int seconds) => ApplyPercent(seconds, BuildTimePercent);
 

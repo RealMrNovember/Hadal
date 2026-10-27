@@ -34,6 +34,14 @@ namespace HADAL.Shared.Catalog
         public ItemData[] items = System.Array.Empty<ItemData>();
 
         public WorldCatalogData world = new WorldCatalogData();
+
+        // Balance infrastructure (docs/rehber, Paket A).
+        public ReactorRequirementData[] reactorRequirements = Array.Empty<ReactorRequirementData>();
+
+        /// <summary>A free player's Titanium per hour by reactor level ("Gelir Saati"; stamps resource capsules).</summary>
+        public long[] incomeHour = Array.Empty<long>();
+
+        public double incomeBiomassRatio = 0.4;
     }
 
     /// <summary>What opening one outer ring takes (docs/23_Base_Management.md, rule 12).</summary>
@@ -60,6 +68,9 @@ namespace HADAL.Shared.Catalog
         /// <summary>Storage cap; zero or negative means uncapped.</summary>
         public long maxCapacity;
 
+        /// <summary>Cap by Core Reactor level (index = level); empty = <see cref="maxCapacity"/> at every level.</summary>
+        public long[] capacityByReactor = Array.Empty<long>();
+
         public bool critical;
     }
 
@@ -84,6 +95,12 @@ namespace HADAL.Shared.Catalog
 
         /// <summary>Construction time of level 1; higher levels scale by <see cref="ProgressionData.timeGrowth"/>.</summary>
         public int buildSeconds;
+
+        /// <summary>Balance table per level (index 0 = level 1); empty = the formula fields above.</summary>
+        public BuildingLevelData[] levels = Array.Empty<BuildingLevelData>();
+
+        /// <summary>Reactor level that unlocks each copy; empty = <see cref="maxCount"/> copies from <see cref="requiredReactorLevel"/>.</summary>
+        public int[] countUnlocks = Array.Empty<int>();
 
         /// <summary>0 = <see cref="ProgressionData.maxLevel"/>.</summary>
         public int maxLevel;

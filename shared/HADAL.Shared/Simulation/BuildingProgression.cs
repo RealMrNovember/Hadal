@@ -17,6 +17,9 @@ namespace HADAL.Shared.Simulation
         UnderConstruction = 6,
         NotUnderConstruction = 7,
         NotYetFree = 8,
+
+        /// <summary>The reactor's prerequisite buildings are not at the required level yet (docs/rehber 02).</summary>
+        ReactorPrerequisite = 9,
     }
 
     /// <summary>
@@ -27,9 +30,13 @@ namespace HADAL.Shared.Simulation
     {
         public const string ReactorId = "core_reactor";
 
-        /// <summary>Cost to reach <paramref name="targetLevel"/> (1 = new building).</summary>
+        /// <summary>Cost to reach <paramref name="targetLevel"/> (1 = new building): the balance table, else the formula.</summary>
         public static List<KeyValuePair<ResourceType, long>> Cost(BuildingDefinition building, int targetLevel, ProgressionData rules)
         {
+            var row = building.Level(targetLevel);
+            if (row != null)
+                return new List<KeyValuePair<ResourceType, long>>(row.Cost);
+
             var factor = Math.Pow(rules.costGrowth, Math.Max(0, targetLevel - 1));
             var cost = new List<KeyValuePair<ResourceType, long>>(building.BuildCost.Count);
             foreach (var pair in building.BuildCost)
@@ -39,7 +46,40 @@ namespace HADAL.Shared.Simulation
 
         /// <summary>Construction seconds to reach <paramref name="targetLevel"/>.</summary>
         public static int Seconds(BuildingDefinition building, int targetLevel, ProgressionData rules) =>
-            (int)Math.Round(building.BuildSeconds * Math.Pow(rules.timeGrowth, Math.Max(0, targetLevel - 1)));
+            building.Level(targetLevel)?.Seconds
+            ?? (int)Math.Round(building.BuildSeconds * Math.Pow(rules.timeGrowth, Math.Max(0, targetLevel - 1)));
+
+        /// <summary>Reactor level a building needs to reach <paramref name="targetLevel"/> (the reactor itself: none).</summary>
+        public static int ReactorFor(BuildingDefinition building, int targetLevel)
+        {
+            if (building.Id == ReactorId)
+                return 0;
+            return building.Level(targetLevel)?.Reactor ?? targetLevel;
+        }
+
+        /// <summary>Power of one building at <paramref name="level"/>: every level's table power added up (docs/rehber K-14).</summary>
+        public static long Power(BuildingDefinition building, int level)
+        {
+            if (building.Levels.Count == 0)
+                return level * 10L; // catalogs without a table: the old "levels x 10"
+            long power = 0;
+            for (var l = 1; l <= Math.Min(level, building.Levels.Count); l++)
+                power += building.Levels[l - 1].Power;
+            return power;
+        }
+
+        /// <summary>Prerequisites of raising the reactor to <paramref name="targetLevel"/> that are not met yet.</summary>
+        public static List<KeyValuePair<string, int>> MissingReactorPrerequisites(GameCatalog catalog, int targetLevel, Func<string, int> buildingLevel)
+        {
+            var missing = new List<KeyValuePair<string, int>>();
+            foreach (var need in catalog.ReactorRequirements(targetLevel))
+            {
+                if (buildingLevel(need.Key) < need.Value)
+                    missing.Add(need);
+            }
+
+            return missing;
+        }
 
         public static bool CanAfford(IReadOnlyList<KeyValuePair<ResourceType, long>> cost, IReadOnlyDictionary<ResourceType, long> wallet)
         {
@@ -70,7 +110,8 @@ namespace HADAL.Shared.Simulation
             int activeConstructions,
             int reactorLevel,
             IReadOnlyDictionary<ResourceType, long> wallet,
-            int extraBuilders = 0)
+            int extraBuilders = 0,
+            Func<string, int>? buildingLevel = null)
         {
             if (!catalog.TryGetBuilding(definitionId, out var building))
                 return ConstructionRejectReason.UnknownBuilding;
@@ -85,8 +126,12 @@ namespace HADAL.Shared.Simulation
             if (currentLevel >= building.MaxLevel)
                 return ConstructionRejectReason.MaxLevel;
 
-            if (definitionId != ReactorId && currentLevel + 1 > reactorLevel)
+            if (definitionId != ReactorId && ReactorFor(building, currentLevel + 1) > reactorLevel)
                 return ConstructionRejectReason.ReactorLevelTooLow;
+
+            if (definitionId == ReactorId && buildingLevel != null
+                && MissingReactorPrerequisites(catalog, currentLevel + 1, buildingLevel).Count > 0)
+                return ConstructionRejectReason.ReactorPrerequisite;
 
             return CanAfford(Cost(building, currentLevel + 1, rules), wallet)
                 ? ConstructionRejectReason.None

@@ -508,3 +508,10 @@ world.level = Nível {0}
 world.online = Online
 world.offline = Offline
 world.you = Esta é a sua base.
+
+resource.Alloy = Superliga
+base.perhour = /h
+base.needs.title = Requer:
+item.capsule = Cápsula de {0} · {1}
+item.capsule.desc = Abre no seu armazém e pode passar do limite.
+reason.ReactorPrerequisite = Melhore primeiro os edifícios que o Reator Central exige.

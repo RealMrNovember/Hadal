@@ -48,32 +48,13 @@ namespace HADAL.Shared.Simulation
             IReadOnlyList<BuildingProductionInput> buildings,
             ProductionCatalog catalog)
         {
+            // Whole units per tick, truncated from the exact thousandths (one formula for both).
             var net = new Dictionary<ResourceType, long>();
-
-            if (buildings == null || catalog == null)
-                return net;
-
-            for (var i = 0; i < buildings.Count; i++)
+            foreach (var pair in ComputeNetMilliPerTick(buildings, catalog))
             {
-                var building = buildings[i];
-                var rules = catalog.GetRules(building.DefinitionId);
-
-                for (var r = 0; r < rules.Count; r++)
-                {
-                    var rule = rules[r];
-                    if (rule == null || rule.Resource == ResourceType.Unknown)
-                        continue;
-
-                    var produced = ProductionFormulas.ScaleByLevel(rule.ProductionPerTick, building.Level);
-                    var consumed = ProductionFormulas.ScaleByLevel(rule.ConsumptionPerTick, building.Level);
-                    var delta = produced - consumed;
-
-                    if (delta == 0L)
-                        continue;
-
-                    net.TryGetValue(rule.Resource, out var current);
-                    net[rule.Resource] = current + delta;
-                }
+                var whole = pair.Value / ProductionFormulas.Milli;
+                if (whole != 0L)
+                    net[pair.Key] = whole;
             }
 
             return net;
@@ -95,6 +76,28 @@ namespace HADAL.Shared.Simulation
             for (var i = 0; i < buildings.Count; i++)
             {
                 var building = buildings[i];
+
+                // Balance-table buildings: hourly rates per level, bonuses on production only.
+                if (catalog.TryGetLevel(building.DefinitionId, building.Level, out var produce, out var consume))
+                {
+                    foreach (var pair in produce)
+                    {
+                        var bonus = building.BonusPercent;
+                        if (resourceBonusPercent != null && resourceBonusPercent.TryGetValue(pair.Key, out var researched))
+                            bonus += researched;
+                        net.TryGetValue(pair.Key, out var current);
+                        net[pair.Key] = current + pair.Value * (100L + bonus) / 100L;
+                    }
+
+                    foreach (var pair in consume)
+                    {
+                        net.TryGetValue(pair.Key, out var current);
+                        net[pair.Key] = current - pair.Value;
+                    }
+
+                    continue;
+                }
+
                 var rules = catalog.GetRules(building.DefinitionId);
                 for (var r = 0; r < rules.Count; r++)
                 {

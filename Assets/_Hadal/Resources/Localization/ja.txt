@@ -508,3 +508,10 @@ world.level = Lv.{0}
 world.online = オンライン
 world.offline = オフライン
 world.you = あなたの基地です。
+
+resource.Alloy = 超合金
+base.perhour = /時
+base.needs.title = 必要:
+item.capsule = {0}カプセル · {1}
+item.capsule.desc = 開封すると倉庫に入り、上限を超えることがあります。
+reason.ReactorPrerequisite = 先にコアリアクターに必要な施設をレベルアップしてください。

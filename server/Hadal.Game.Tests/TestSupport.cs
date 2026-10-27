@@ -32,8 +32,32 @@ namespace Hadal.Game.Tests
     {
         public static readonly ProtobufNetNetworkSerializer Serializer = new();
 
-        public static GameCatalog Catalog { get; } =
-            CatalogLoader.Load(Path.Combine(AppContext.BaseDirectory, "catalog", "catalog.json"));
+        private static string CatalogPath => Path.Combine(AppContext.BaseDirectory, "catalog", "catalog.json");
+
+        /// <summary>
+        /// The shipped catalog without its balance tables (catalog v9 levels, copy unlocks, reactor
+        /// prerequisites, reactor caps): the engine's mechanics tests run on the formula balance, so they do
+        /// not change every time the design guide retunes a number. <see cref="BalanceCatalog"/> is the real one.
+        /// </summary>
+        public static GameCatalog Catalog { get; } = CatalogLoader.Parse(FormulaCatalogJson());
+
+        /// <summary>The shipped catalog as it is, balance tables included (BalanceTableTests).</summary>
+        public static GameCatalog BalanceCatalog { get; } = CatalogLoader.Load(CatalogPath);
+
+        private static string FormulaCatalogJson()
+        {
+            var root = System.Text.Json.Nodes.JsonNode.Parse(File.ReadAllText(CatalogPath))!.AsObject();
+            root.Remove("reactorRequirements");
+            foreach (var building in root["buildings"]!.AsArray())
+            {
+                building!.AsObject().Remove("levels");
+                building.AsObject().Remove("countUnlocks");
+            }
+
+            foreach (var resource in root["resources"]!.AsArray())
+                resource!.AsObject().Remove("capacityByReactor");
+            return root.ToJsonString();
+        }
 
         public static GameWorld World(FakeClock clock, IPlayerRepository? repository = null) =>
             new(Catalog, repository ?? new InMemoryPlayerRepository(), clock, Serializer, NullLogger<GameWorld>.Instance);

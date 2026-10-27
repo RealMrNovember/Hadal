@@ -508,3 +508,10 @@ world.level = Cấp {0}
 world.online = Trực tuyến
 world.offline = Ngoại tuyến
 world.you = Đây là căn cứ của bạn.
+
+resource.Alloy = Siêu hợp kim
+base.perhour = /giờ
+base.needs.title = Cần:
+item.capsule = Viên nang {0} · {1}
+item.capsule.desc = Mở ra sẽ vào kho và có thể vượt giới hạn.
+reason.ReactorPrerequisite = Hãy nâng cấp trước các công trình mà Lò Phản Ứng Lõi yêu cầu.

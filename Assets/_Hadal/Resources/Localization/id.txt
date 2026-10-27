@@ -508,3 +508,10 @@ world.level = Level {0}
 world.online = Online
 world.offline = Offline
 world.you = Ini markasmu.
+
+resource.Alloy = Superaloi
+base.perhour = /jam
+base.needs.title = Butuh:
+item.capsule = Kapsul {0} · {1}
+item.capsule.desc = Dibuka ke gudangmu dan bisa melebihi batas.
+reason.ReactorPrerequisite = Tingkatkan dulu bangunan yang dibutuhkan Reaktor Inti.

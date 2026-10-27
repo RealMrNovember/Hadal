@@ -41,7 +41,8 @@ namespace Hadal.Game
         private ProductionCatalog _production => _runtime.Current.Production;
 
         /// <summary>This player's storage caps: the catalog's, raised by research.</summary>
-        private Dictionary<ResourceType, long> Capacities() => _modifiers.Capacities(_runtime.Current.Capacities);
+        /// <summary>This player's storage caps: the catalog's at the current reactor level, raised by research.</summary>
+        private Dictionary<ResourceType, long> Capacities() => _modifiers.Capacities(_catalog.Capacities(ReactorLevel()));
 
         public Guid PlayerId => _state.PlayerId;
 
@@ -379,7 +380,7 @@ namespace Hadal.Game
             }
 
             var verdict = BuildingProgression.ValidateUpgrade(_catalog, building.DefinitionId, building.Level,
-                building.IsUnderConstruction, ActiveConstructions(), ReactorLevel(), _state.Wallet, _modifiers.ExtraBuilders);
+                building.IsUnderConstruction, ActiveConstructions(), ReactorLevel(), _state.Wallet, _modifiers.ExtraBuilders, HighestLevel);
             if (verdict != ConstructionRejectReason.None)
             {
                 Reject(command.CommandId, command.ClientSequence, verdict.ToString(), now);
@@ -861,6 +862,10 @@ namespace Hadal.Game
 
         private Dictionary<string, int> OwnedCounts() =>
             _state.Buildings.GroupBy(b => b.DefinitionId).ToDictionary(g => g.Key, g => g.Count());
+
+        /// <summary>The highest level among this player's buildings of one kind (reactor prerequisites).</summary>
+        private int HighestLevel(string definitionId) =>
+            _state.Buildings.Where(b => b.DefinitionId == definitionId).Select(b => b.Level).DefaultIfEmpty(0).Max();
 
         private int ReactorLevel() =>
             _state.Buildings.Where(b => b.DefinitionId == BuildingProgression.ReactorId).Select(b => b.Level).DefaultIfEmpty(0).Max();

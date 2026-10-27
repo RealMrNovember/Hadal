@@ -508,3 +508,10 @@ world.level = เลเวล {0}
 world.online = ออนไลน์
 world.offline = ออฟไลน์
 world.you = นี่คือฐานของคุณ
+
+resource.Alloy = ซูเปอร์อัลลอย
+base.perhour = /ชม.
+base.needs.title = ต้องการ:
+item.capsule = แคปซูล{0} · {1}
+item.capsule.desc = เปิดแล้วเข้าคลัง และอาจเกินขีดจำกัดได้
+reason.ReactorPrerequisite = อัปเกรดอาคารที่เตาปฏิกรณ์หลักต้องการก่อน

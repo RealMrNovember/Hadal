@@ -508,3 +508,10 @@ world.level = Level {0}
 world.online = Online
 world.offline = Offline
 world.you = Dit is jouw basis.
+
+resource.Alloy = Superlegering
+base.perhour = /u
+base.needs.title = Vereist:
+item.capsule = {0}-capsule · {1}
+item.capsule.desc = Gaat open in je opslag en kan de limiet overschrijden.
+reason.ReactorPrerequisite = Upgrade eerst de gebouwen die de Kernreactor nodig heeft.

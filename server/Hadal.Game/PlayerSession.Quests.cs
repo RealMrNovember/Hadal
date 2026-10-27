@@ -135,6 +135,24 @@ namespace Hadal.Game
         private void OpenItem(OpenItemCommand command, DateTimeOffset now)
         {
             var count = Math.Clamp(command.Count, 1, 50);
+
+            // A resource capsule goes straight to the wallet and may pass the cap (docs/rehber 15 §2.2).
+            if (Capsules.TryParse(command.ItemId, out var capsuleResource, out var capsuleAmount))
+            {
+                if ((_state.Items.TryGetValue(command.ItemId, out var held) ? held : 0) < count)
+                {
+                    Reject(command.CommandId, command.ClientSequence, QuestRejectReason.NotEnoughItems.ToString(), now);
+                    return;
+                }
+
+                TakeItem(command.ItemId, count);
+                _state.Wallet[capsuleResource] = (_state.Wallet.TryGetValue(capsuleResource, out var w) ? w : 0) + capsuleAmount * count;
+                _walletDirty = true;
+                GrantAndReport(command.CommandId, command.ClientSequence,
+                    new List<ResolvedReward> { new("resource", capsuleResource.ToString(), capsuleAmount * count) }, now, grant: false);
+                return;
+            }
+
             var verdict = !_catalog.TryGetItem(command.ItemId, out var item) ? QuestRejectReason.UnknownItem
                 : (_state.Items.TryGetValue(command.ItemId, out var have) ? have : 0) < count ? QuestRejectReason.NotEnoughItems
                 : QuestRejectReason.None;
@@ -187,6 +205,10 @@ namespace Hadal.Game
         {
             if (grant)
             {
+                // Quest and chest resources arrive as capsules in the bag: nothing is lost at the cap.
+                rewards = rewards.Select(r => r.Type == "resource" && GameCatalog.TryParseResource(r.Id, out var res) && Capsules.Holds(res)
+                    ? new ResolvedReward("item", Capsules.Id(res, r.Amount), 1)
+                    : r).ToList();
                 foreach (var r in rewards)
                     Grant(r);
             }

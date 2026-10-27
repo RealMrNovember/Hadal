@@ -508,3 +508,10 @@ world.level = المستوى {0}
 world.online = متصل
 world.offline = غير متصل
 world.you = هذه قاعدتك.
+
+resource.Alloy = سبيكة فائقة
+base.perhour = /ساعة
+base.needs.title = يتطلب:
+item.capsule = كبسولة {0} · {1}
+item.capsule.desc = تُفتح في مخازنك وقد تتجاوز الحد.
+reason.ReactorPrerequisite = رقِّ أولًا المباني التي يتطلبها المفاعل المركزي.

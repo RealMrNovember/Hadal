@@ -27,9 +27,11 @@ namespace Hadal.Tests.EditMode
         {
             var catalog = ClientCatalog.Catalog;
             Assert.IsTrue(catalog.TryGetBuilding(BuildingProgression.ReactorId, out var reactor));
+            // Catalog v9 reads each level from the guide's balance table (docs/rehber 02).
             var level2 = BuildingProgression.Cost(reactor, 2, catalog.Progression);
-            Assert.AreEqual(109, level2.Find(c => c.Key == HADAL.Shared.Enums.ResourceType.Titanium).Value);
-            Assert.AreEqual(34, BuildingProgression.Seconds(reactor, 2, catalog.Progression));
+            CollectionAssert.AreEqual(reactor.Levels[1].Cost, level2);
+            Assert.AreEqual(100, level2.Find(c => c.Key == HADAL.Shared.Enums.ResourceType.Titanium).Value);
+            Assert.AreEqual(5, BuildingProgression.Seconds(reactor, 2, catalog.Progression));
         }
 
         [Test]
@@ -37,8 +39,10 @@ namespace Hadal.Tests.EditMode
         {
             try
             {
-                var json = File.ReadAllText(Path.Combine(Directory.GetCurrentDirectory(), "shared/catalog/catalog.json"))
-                    .Replace("\"buildSeconds\": 30", "\"buildSeconds\": 99");
+                // The reactor's level-2 row is the first "seconds": 5 in the file.
+                var json = File.ReadAllText(Path.Combine(Directory.GetCurrentDirectory(), "shared/catalog/catalog.json"));
+                var at = json.IndexOf("\"seconds\": 5,", System.StringComparison.Ordinal);
+                json = json.Substring(0, at) + "\"seconds\": 99," + json.Substring(at + "\"seconds\": 5,".Length);
                 var changed = 0;
                 ClientCatalog.Changed += Count;
                 Assert.IsTrue(ClientCatalog.Apply(json, 7));
@@ -47,7 +51,7 @@ namespace Hadal.Tests.EditMode
                 Assert.AreEqual(1, changed);
                 Assert.AreEqual(7, ClientCatalog.Version);
                 Assert.IsTrue(ClientCatalog.Catalog.TryGetBuilding(BuildingProgression.ReactorId, out var reactor));
-                Assert.AreEqual(99, BuildingProgression.Seconds(reactor, 1, ClientCatalog.Catalog.Progression));
+                Assert.AreEqual(99, BuildingProgression.Seconds(reactor, 2, ClientCatalog.Catalog.Progression));
 
                 // A broken download never replaces a working catalog.
                 LogAssert.Expect(LogType.Warning, new System.Text.RegularExpressions.Regex("rejected"));

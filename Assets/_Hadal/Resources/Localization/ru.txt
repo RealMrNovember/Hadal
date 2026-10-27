@@ -508,3 +508,10 @@ world.level = Уровень {0}
 world.online = В сети
 world.offline = Не в сети
 world.you = Это ваша база.
+
+resource.Alloy = Суперсплав
+base.perhour = /ч
+base.needs.title = Требуется:
+item.capsule = Капсула: {0} · {1}
+item.capsule.desc = Открывается на склад и может превысить лимит.
+reason.ReactorPrerequisite = Сначала улучшите здания, нужные Центральному реактору.

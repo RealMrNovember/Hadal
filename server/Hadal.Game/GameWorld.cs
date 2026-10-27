@@ -121,7 +121,8 @@ namespace Hadal.Game
                 if (state == null)
                     return false;
 
-                WalletOps.Add(state.Wallet, amounts, _runtime.Current.Capacities);
+                var reactor = state.Buildings.Where(b => b.DefinitionId == BuildingProgression.ReactorId).Select(b => b.Level).DefaultIfEmpty(0).Max();
+                WalletOps.Add(state.Wallet, amounts, _catalog.Capacities(reactor));
                 await _repository.SaveAsync(state, cancellationToken);
                 return true;
             }

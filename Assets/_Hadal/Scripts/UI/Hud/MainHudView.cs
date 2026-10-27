@@ -44,7 +44,7 @@ namespace Hadal.UI.Hud
         private const float TicksPerMinute = 60f / SimulationTick.IntervalSeconds;
 
         private static readonly ResourceType[] RowOne = { ResourceType.Titanium, ResourceType.Biomass, ResourceType.Food };
-        private static readonly ResourceType[] RowTwo = { ResourceType.Oxygen, ResourceType.Energy };
+        private static readonly ResourceType[] RowTwo = { ResourceType.Oxygen, ResourceType.Energy, ResourceType.Alloy };
 
         private IStateSyncService _stateSync;
         private Actions _actions;
@@ -133,13 +133,14 @@ namespace Hadal.UI.Hud
             for (var i = 0; i < RowTwo.Length; i++)
                 Chip(header, RowTwo[i], 0.175f + i * 0.19f, 0.1f, 0.175f + (i + 1) * 0.19f - 0.01f, 0.5f);
 
-            var power = Tap(header, "Power", 0.555f, 0.1f, 0.745f, 0.5f, () => ShowPowerInfo(), new Color(0.02f, 0.05f, 0.08f, 0.85f));
+            // Power sits under the shop; the second resource row carries Superalloy (docs/rehber K-01).
+            var power = Tap(header, "Power", 0.76f, 0.1f, 0.988f, 0.5f, () => ShowPowerInfo(), new Color(0.02f, 0.05f, 0.08f, 0.85f));
             HudIcons.Image(power, "power", 0.01f, 0.05f, 0.27f, 0.95f);
             _power = Outlined(UiKit.Label("Value", power, string.Empty, 28, UiKit.Amber, TextAnchor.MiddleLeft, FontStyle.Bold));
             _power.rectTransform.Place(0.29f, 0, 1, 1);
 
             // Shop: Hadalite balance; opens the Cryo-Pod until the shop exists.
-            var shop = Tap(header, "Shop", 0.76f, 0.3f, 0.988f, 0.95f, _actions.Pod, new Color(0.85f, 0.42f, 0.08f, 0.95f));
+            var shop = Tap(header, "Shop", 0.76f, 0.54f, 0.988f, 0.95f, _actions.Pod, new Color(0.85f, 0.42f, 0.08f, 0.95f));
             HudIcons.Image(shop, "shop", 0.02f, 0.05f, 0.42f, 0.95f);
             _hadalite = Outlined(UiKit.Label("Value", shop, string.Empty, 30, Color.white, TextAnchor.MiddleCenter, FontStyle.Bold));
             _hadalite.rectTransform.Place(0.4f, 0, 1, 1);
@@ -524,9 +525,9 @@ namespace Hadal.UI.Hud
             return modifiers;
         }
 
-        /// <summary>Same formula as the server: building levels x 10 plus every hero's power.</summary>
+        /// <summary>Same formula as the server: each building level's table power (docs/rehber K-14) plus every hero's power.</summary>
         private long Power() =>
-            Buildings().Sum(b => (long)b.level) * 10
+            Buildings().Sum(b => _catalog.TryGetBuilding(b.definitionId, out var d) ? BuildingProgression.Power(d, b.level) : b.level * 10L)
             + View.Heroes.Sum(h => _catalog.TryGetHero(h.HeroId, out var d) ? HeroRules.Power(d, h.Level, h.Stars) : 0);
 
         private Dictionary<ResourceType, long> Wallet()

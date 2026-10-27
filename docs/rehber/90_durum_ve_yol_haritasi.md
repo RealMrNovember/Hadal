@@ -12,13 +12,13 @@
 | Sistem | Durum | Bugün kodda | Kılavuzdaki hedef | Bölüm | ROADMAP |
 |---|---|---|---|---|---|
 | Halkalı üs, yerleştirme, kaldırma | ✅ | 12 halka, 124 yuva, %50 iade | Aynı; halka takvimi değişir | [03](03_binalar.md) | 3 |
-| Bina seviyeleri ve maliyet | 🟡 | 50 seviye, ×1,09 maliyet, ×1,12 süre; Reaktör 1→50 ~20 saat | Çapalı eğriler; F2P için ~1 yıl | [02](02_tempo_ve_denge.md) | 3 → v9 |
+| Bina seviyeleri ve maliyet | ✅ | catalog v9: kılavuzun seviye tabloları (maliyet, süre, güç, saatlik üretim), örnek açılışları; `tools/rehber/katalog.py` | Çapalı eğriler; F2P için ~1 yıl | [02](02_tempo_ve_denge.md) | 3 → v9 |
 | Bina türleri | 🟡 | 15 tür; 5'inin işlevi yok | 34 tür, hepsi işlevli | [03](03_binalar.md) | 4–12 |
-| Reaktör önkoşul zinciri | ⬜ | Yalnızca "reaktörü geçemez" kuralı | Kalkan + dönüşümlü bina + kubbe taşları | [02](02_tempo_ve_denge.md) | 3 → v9 |
+| Reaktör önkoşul zinciri | 🟡 | Kodda; tasarımdaki binalar (Tatbikat Havuzu, Revir, Bilim/Savaş Kubbesi) gelene kadar zincirden düşürüldü | Kalkan + dönüşümlü bina + kubbe taşları | [02](02_tempo_ve_denge.md) | 3 → v9 |
 | Bina görsel evrimi | ⬜ | Bina başına tek model | 6 katman + 5 seviyede ek modül | [04](04_bina_evrimi.md) | 5 |
-| Kaynaklar | 🟡 | 6 kaynak, sabit tavan, tavanı aşan ödül kaybolur | +Süperalaşım, reaktörle büyüyen tavan, Kaynak Kapsülü | [02](02_tempo_ve_denge.md), [15](15_ekonomi_akisi.md) | 4 |
-| Hız formülü | 🟡 | Yüzde çıkarma, %10 taban | Bölen formülü (K-13) | [02](02_tempo_ve_denge.md) | v9 |
-| Araştırma | 🟡 | 2 dal, 11 düğüm | 13 dal, iki laboratuvar | [06](06_arastirma.md) | 3.6 → 8–9 |
+| Kaynaklar | 🟡 | Süperalaşım cüzdanda ve HUD'da, tavan reaktörle büyür, görev/sandık kaynakları Kaynak Kapsülü olur; GS damgası ve Taşma Kapsülü yok | +Süperalaşım, reaktörle büyüyen tavan, Kaynak Kapsülü | [02](02_tempo_ve_denge.md), [15](15_ekonomi_akisi.md) | 4 |
+| Hız formülü | ✅ | Bölen formülü (`PlayerModifiers.ApplyPercent`) | Bölen formülü (K-13) | [02](02_tempo_ve_denge.md) | v9 |
+| Araştırma | 🟡 | 2 dal, 11 düğüm | 13 dal, iki laboratuvar, üç tezgâh | [06](06_arastirma.md) | 3.6 → 8–9 |
 | Kahramanlar | 🟡 | 8 kahraman, yalnızca ekonomi becerisi, Kriyo-Kapsül | 30 kahraman, savaş yetenekleri, yetenek ağaçları | [05](05_kahramanlar.md) | 8 |
 | Teçhizat | ⬜ | Yok | 4 malzeme, 5 nadirlik, setler | [17](17_techizat.md) | 8–9 |
 | Askerler ve savaş | ⬜ | Yok | 4 tür × 10 kademe, sunucu hakemli savaş | [07](07_birlikler_ve_savas.md) | 9 |
@@ -31,7 +31,7 @@
 | Etkinlikler ve sezonlar | ⬜ | Yok | Haftalık/iki haftalık/aylık takvim, Akıntı Savaşı | [13](13_etkinlikler_ve_sezonlar.md) | 14, 18 |
 | Kronik, köken, profil | ⬜ | Yok | Derinlik Kroniği, 5 köken | [16](16_kronik_kokenler_profil.md) | 10, 18 |
 | Son oyun | ⬜ | Yok | Çekirdek kuşağı, Hadal Titanı, açığa çıkış | [14](14_son_oyun.md) | 15–16 |
-| Güç | 🟡 | Σ seviye × 10 + kahraman gücü | Bina/araştırma/asker/kahraman tablosu | [02](02_tempo_ve_denge.md) | v9 |
+| Güç | 🟡 | Bina tablosu + kahraman gücü; araştırma ve asker gücü yok | Bina/araştırma/asker/kahraman tablosu | [02](02_tempo_ve_denge.md) | v9 |
 | Overseer paneli | ✅ | Kupon, bakım, canlı denge, ban | Seviye dizisi düzenleme, etkinlik takvimi | [13](13_etkinlikler_ve_sezonlar.md) | 3.5, 14 |
 
 ---
@@ -41,6 +41,8 @@
 Her paket kendi testleriyle kapanır (ROADMAP'in değişmez kuralı: "kod yazıldı" bir aşamayı kapatmaz).
 
 ### Paket A — Denge altyapısı (catalog v9)
+
+**Durum (2026-10-27):** 1–6 kodda. Ekonomi kılavuzun tablolarıyla çalışır ama F2P gelirinin ~%55'i (toplama, sefer, haritadaki yataklar) henüz yok; canlıya alma kararı ayrı verilir.
 1. `GameCatalogData`'ya seviye dizileri (`levels[]`: maliyet, süre, güç, üretim) eklenir; formül
    alanları geriye uyum için kalır.
 2. `BuildingProgression` dizilerden okur; reaktör önkoşul doğrulaması eklenir.

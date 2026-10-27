@@ -508,3 +508,10 @@ world.level = Seviye {0}
 world.online = Çevrimiçi
 world.offline = Çevrimdışı
 world.you = Bu senin üssün.
+
+resource.Alloy = Süperalaşım
+base.perhour = /sa
+base.needs.title = Gerekli:
+item.capsule = {0} Kapsülü · {1}
+item.capsule.desc = Açınca deponuza eklenir, tavanı aşabilir.
+reason.ReactorPrerequisite = Önce reaktörün istediği binaları yükselt.

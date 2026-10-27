@@ -508,3 +508,10 @@ world.level = Tahap {0}
 world.online = Dalam talian
 world.offline = Luar talian
 world.you = Ini pangkalan anda.
+
+resource.Alloy = Superaloi
+base.perhour = /jam
+base.needs.title = Perlu:
+item.capsule = Kapsul {0} · {1}
+item.capsule.desc = Dibuka ke dalam stor anda dan boleh melebihi had.
+reason.ReactorPrerequisite = Naik taraf dahulu bangunan yang diperlukan Reaktor Teras.

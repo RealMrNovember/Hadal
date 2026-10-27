@@ -29,7 +29,18 @@ namespace Hadal.UI
             };
         }
 
-        public static string Item(string id) => Loc.T("item." + id);
+        /// <summary>Bag item name; resource capsules read "Titanium Capsule · 1,500".</summary>
+        public static string Item(string id) =>
+            Capsules.TryParse(id, out var resource, out var amount)
+                ? Loc.F("item.capsule", Loc.Resource(resource.ToString()), amount.ToString("N0"))
+                : Loc.T("item." + id);
+
+        public static string ItemDescription(string id) =>
+            Capsules.TryParse(id, out _, out _) ? Loc.T("item.capsule.desc") : Loc.T("item." + id + ".desc");
+
+        /// <summary>Icon of a bag item: the resource for capsules, a card stack or a gift otherwise.</summary>
+        public static string ItemIcon(string id, string kind) =>
+            Capsules.TryParse(id, out var resource, out _) ? Hud.HudIcons.Resource(resource) : kind == "heroCard" ? "nav_heroes" : "event_gift";
 
         public static string Hero(string id) => Loc.T("hero." + id);
 
@@ -180,10 +191,10 @@ namespace Hadal.UI
                 {
                     _catalog.TryGetItem(id, out var item);
                     var card = Card(190);
-                    HudIconImage(card.transform, item?.kind == "heroCard" ? "nav_heroes" : "event_gift", 0.02f, 0.1f, 0.2f, 0.9f);
+                    HudIconImage(card.transform, QuestText.ItemIcon(id, item?.kind), 0.02f, 0.1f, 0.2f, 0.9f);
                     CardText(card.transform, $"<color={RarityColor(item?.rarity ?? "common")}>{QuestText.Item(id)}</color>  ×{count}", 32, UiKit.Text,
                         0.23f, 0.55f, 0.7f, 0.95f, TextAnchor.UpperLeft, FontStyle.Bold);
-                    CardText(card.transform, Loc.T("item." + id + ".desc"), 22, UiKit.Muted, 0.23f, 0.05f, 0.7f, 0.55f);
+                    CardText(card.transform, QuestText.ItemDescription(id), 22, UiKit.Muted, 0.23f, 0.05f, 0.7f, 0.55f);
                     var itemId = id;
                     CardButton(card.transform, Loc.T("bag.open"), true, () => OpenItems(itemId, 1), null, 0.72f, 0.55f, 0.97f, 0.92f);
                     if (count > 1)
@@ -246,7 +257,7 @@ namespace Hadal.UI
                     Portrait(card.transform, hero, true, 0.01f, 0.04f, 0.17f, 0.96f);
                 else
                     HudIconImage(card.transform, type == "resource" && GameCatalog.TryParseResource(id, out var resource) ? Hud.HudIcons.Resource(resource)
-                        : type == "item" ? "event_gift" : "nav_heroes", 0.02f, 0.1f, 0.16f, 0.9f);
+                        : type == "item" ? QuestText.ItemIcon(id, string.Empty) : "nav_heroes", 0.02f, 0.1f, 0.16f, 0.9f);
                 CardText(card.transform, QuestText.Reward(type, id, total), 32, type == "hero" ? UiKit.Amber : UiKit.Text, 0.2f, 0.1f, 0.97f, 0.9f,
                     TextAnchor.MiddleLeft, FontStyle.Bold);
             }

@@ -63,15 +63,18 @@ namespace HADAL.Shared.Simulation
             if (!catalog.SectorAllowsBuilding(ring, sector, building.Id))
                 return PlacementRejectReason.SectorRestricted;
 
-            if (reactorLevel < building.RequiredReactorLevel)
-                return PlacementRejectReason.ReactorLevelTooLow;
-
+            // Copies open with the reactor (docs/rehber 03): the next copy needs its reactor level.
+            var owned = ownedCounts != null && ownedCounts.TryGetValue(building.Id, out var have) ? have : 0;
             var maxCount = (modifiers ?? PlayerModifiers.None).MaxCount(building);
-            if (maxCount > 0 && ownedCounts != null
-                && ownedCounts.TryGetValue(building.Id, out var owned) && owned >= maxCount)
+            if (maxCount > 0 && owned >= maxCount)
                 return PlacementRejectReason.LimitReached;
 
-            if (!CanAfford(building, wallet))
+            var extra = maxCount > 0 ? maxCount - building.MaxCount : 0;
+            if (reactorLevel < building.RequiredReactorLevel
+                || (maxCount > 0 && owned >= building.CountAt(reactorLevel) + extra))
+                return PlacementRejectReason.ReactorLevelTooLow;
+
+            if (!BuildingProgression.CanAfford(BuildingProgression.Cost(building, 1, catalog.Progression), wallet))
                 return PlacementRejectReason.InsufficientResources;
 
             return PlacementRejectReason.None;
