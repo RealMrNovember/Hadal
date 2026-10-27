@@ -297,6 +297,8 @@ ON CONFLICT (id) DO UPDATE SET type = EXCLUDED.type, level = EXCLUDED.level, x =
             lock (_gate)
             {
                 var (nodeId, giveBack, reason) = session.Recall(command.MarchId, command.CommandId, command.ClientSequence, now);
+                if (reason == MarchRejectReason.None)
+                    ReleaseMonster(nodeId, session.PublicId);
                 if (reason != MarchRejectReason.None || !_nodes.TryGetValue(nodeId, out var node) || node.BusyBy != session.PublicId)
                     return;
 

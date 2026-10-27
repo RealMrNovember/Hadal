@@ -71,6 +71,9 @@ namespace HADAL.Shared.Protocol
         /// <summary>Prefix of one dive result (<c>DiveReportDto</c>), followed by the command id.</summary>
         public const string DiveReport = Base + "dive:";
 
+        /// <summary>Prefix of one battle report (<c>BattleReportDto</c>), followed by the march id.</summary>
+        public const string BattleReport = Base + "battle:";
+
         public const string Alliance = "alliance:";
 
         /// <summary>The player's alliance (<c>AllianceDto</c>); Delete when the player has none.</summary>

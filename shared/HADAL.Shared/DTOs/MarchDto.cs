@@ -19,6 +19,10 @@ namespace HADAL.Shared.DTOs
 
         /// <summary>Server clock when this was sent, Unix ms (the client lines its timers up with it).</summary>
         [ProtoMember(5)] public long ServerNowMs { get; set; }
+
+        /// <summary>Sonar Energy for map attacks (docs/rehber 09 §5.1).</summary>
+        [ProtoMember(6)] public int SonarEnergy { get; set; }
+        [ProtoMember(7)] public int SonarCapacity { get; set; }
     }
 
     public enum MarchPhase
@@ -62,5 +66,8 @@ namespace HADAL.Shared.DTOs
 
         /// <summary>The troops aboard by type and tier.</summary>
         [ProtoMember(19)] public TroopStackDto[] Troops { get; set; } = System.Array.Empty<TroopStackDto>();
+
+        /// <summary>"gather" or "attack" (then NodeType/NodeLevel name the monster).</summary>
+        [ProtoMember(20)] public string Kind { get; set; } = "gather";
     }
 }

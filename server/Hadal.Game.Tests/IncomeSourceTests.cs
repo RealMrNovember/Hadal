@@ -282,5 +282,74 @@ namespace Hadal.Game.Tests
             Assert.Equal(session.MarchesForTests[0].HeroIds, march.HeroIds);
             Assert.Equal(4, restored.ExpeditionCleared);
         }
+
+        [Fact]
+        public async Task An_attack_spends_sonar_fights_on_arrival_wounds_the_lost_and_brings_the_spoils_home()
+        {
+            var (session, connection) = await Connect("hunt-a", 10);
+            var state = session.StateForTests;
+            state.Troops.Clear();
+            state.Troops[TroopRules.Key("harpoon", 3)] = 2000;
+            var (x, y) = _world.Map.PositionOf(session.PublicId)!.Value;
+            var target = _world.Map.MonstersForTests().Where(m => m.Type == "abyss_crawler" && m.Level <= 3)
+                .OrderBy(m => GatherRules.Tiles(x, y, m.X, m.Y)).First();
+            var sonarBefore = MonsterRules.SonarNow(state.SonarStored, state.SonarAt, _clock.UtcNow);
+
+            Send(session, new MarchAttackCommand { CommandId = "h1", MonsterId = target.Id }, CommandType.MarchAttack);
+            Assert.Equal(CommandResultCode.Accepted, LastAck(connection).Result);
+            var march = Assert.Single(session.MarchesForTests);
+            Assert.Equal("attack", march.Kind);
+            Assert.True(march.Battle!.Won);
+            Assert.Equal(sonarBefore - 40, MonsterRules.SonarNow(state.SonarStored, state.SonarAt, _clock.UtcNow), 3);
+            Assert.Equal(march.ArrivesAt, target.EngagedUntil);
+
+            // Nobody else may attack it on the way.
+            var (other, otherConnection) = await Connect("hunt-b", 10);
+            other.StateForTests.Troops[TroopRules.Key("armored", 1)] = 100;
+            Send(other, new MarchAttackCommand { CommandId = "h2", MonsterId = target.Id }, CommandType.MarchAttack);
+            Assert.Equal(nameof(AttackRejectReason.MonsterBusy), LastAck(otherConnection).Reason);
+
+            _clock.UtcNow = march.ArrivesAt.AddSeconds(1);
+            _world.Tick();
+            var report = Latest<BattleReportDto>(connection, EntityIds.BattleReport + march.Id);
+            Assert.True(report.Won);
+            Assert.Equal("abyss_crawler", report.MonsterType);
+            var lost = report.Attacker.Sum(a => a.Lost);
+            Assert.Equal(lost, state.Wounded.Values.Sum());
+            Assert.Contains(report.Rewards, r => Capsules.TryParse(r.Id, out _, out _));
+
+            _clock.UtcNow = march.HomeAt.AddSeconds(1);
+            _world.Tick();
+            Assert.Empty(session.MarchesForTests);
+            Assert.Equal(2000 - lost, state.Troops[TroopRules.Key("harpoon", 3)]);
+            Assert.Contains(state.Items.Keys, k => Capsules.TryParse(k, out _, out _));
+            Assert.Contains(target.Level, state.MonsterWins);
+        }
+
+        [Fact]
+        public async Task A_recalled_attack_fights_nothing_and_gets_its_sonar_back()
+        {
+            var (session, connection) = await Connect("hunt-c", 10);
+            var state = session.StateForTests;
+            var target = _world.Map.MonstersForTests().First(m => m.Type == "abyss_crawler");
+            var before = MonsterRules.SonarNow(state.SonarStored, state.SonarAt, _clock.UtcNow);
+            Send(session, new MarchAttackCommand { CommandId = "r0", MonsterId = target.Id }, CommandType.MarchAttack);
+            var march = Assert.Single(session.MarchesForTests);
+
+            Send(session, new RecallMarchCommand { CommandId = "r1", MarchId = march.Id }, CommandType.RecallMarch);
+            Assert.Equal(CommandResultCode.Accepted, LastAck(connection).Result);
+            Assert.Null(session.MarchesForTests.Single().Battle);
+            Assert.Equal(before, MonsterRules.SonarNow(state.SonarStored, state.SonarAt, _clock.UtcNow), 3);
+            Assert.Null(target.EngagedUntil);
+            Assert.Null(target.DefeatedAt);
+
+            state.SonarStored = 10;
+            state.SonarAt = _clock.UtcNow;
+            _clock.UtcNow = session.MarchesForTests.Single().HomeAt.AddSeconds(1);
+            _world.Tick();
+            state.SonarAt = _clock.UtcNow;
+            Send(session, new MarchAttackCommand { CommandId = "r2", MonsterId = target.Id }, CommandType.MarchAttack);
+            Assert.Equal(nameof(AttackRejectReason.NotEnoughSonar), LastAck(connection).Reason);
+        }
     }
 }

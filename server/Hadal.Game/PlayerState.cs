@@ -1,4 +1,5 @@
 using HADAL.Shared.Enums;
+using HADAL.Shared.Simulation;
 
 namespace Hadal.Game
 {
@@ -135,6 +136,13 @@ namespace Hadal.Game
 
         /// <summary>Running training batches, one per training yard.</summary>
         public List<TrainingState> Training { get; } = new();
+
+        /// <summary>Sonar Energy for map attacks, as stored at <see cref="SonarAt"/> (fills over time).</summary>
+        public double SonarStored { get; set; } = MonsterRules.SonarCapacity;
+        public DateTimeOffset SonarAt { get; set; }
+
+        /// <summary>Monster levels already beaten once (the first win pays more).</summary>
+        public HashSet<int> MonsterWins { get; } = new();
 
         /// <summary>Wounded troops in the Med Bays by "type:tier".</summary>
         public Dictionary<string, long> Wounded { get; } = new(StringComparer.Ordinal);

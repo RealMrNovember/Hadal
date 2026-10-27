@@ -6,9 +6,29 @@ using HADAL.Shared.Simulation;
 
 namespace Hadal.Game
 {
-    /// <summary>A gathering march (docs/rehber 09 §4); persisted in PlayerExtras.</summary>
+    /// <summary>A battle resolved when the team set out, revealed when it arrives (docs/rehber 07 §4).</summary>
+    public sealed class BattleState
+    {
+        public bool Won { get; set; }
+        public int Rounds { get; set; }
+        public Dictionary<string, long> Lost { get; set; } = new(StringComparer.Ordinal);
+        public Dictionary<string, long> EnemyStart { get; set; } = new(StringComparer.Ordinal);
+        public Dictionary<string, long> EnemyLost { get; set; } = new(StringComparer.Ordinal);
+
+        /// <summary>Bag items won, handed over when the team is home.</summary>
+        public Dictionary<string, int> Rewards { get; set; } = new(StringComparer.Ordinal);
+        public bool FirstWin { get; set; }
+        public bool Reported { get; set; }
+    }
+
+    /// <summary>A march on the map, gathering or attacking (docs/rehber 09 §4–5); persisted in PlayerExtras.</summary>
     public sealed class MarchState
     {
+        /// <summary>"gather" or "attack" (NodeId/NodeType/NodeLevel then name the monster).</summary>
+        public string Kind { get; init; } = "gather";
+
+        public BattleState? Battle { get; set; }
+
         public string Id { get; init; } = string.Empty;
         public string NodeId { get; init; } = string.Empty;
         public string NodeType { get; init; } = string.Empty;
@@ -63,6 +83,7 @@ namespace Hadal.Game
         TooManyHeroes = 11
     }
 
+
     public sealed partial class PlayerSession
     {
         private bool _marchesDirty;
@@ -85,53 +106,11 @@ namespace Hadal.Game
                 if (_state.Marches.Count >= GatherRules.Queues(_catalog.Gather, reactor))
                     reason = MarchRejectReason.NoFreeQueue;
 
-                // The team: the heroes asked for, or the strongest who are not out already (Last Asylum's auto-fill).
                 var troops = _catalog.Troops;
-                var marching = _state.Marches.SelectMany(m => m.HeroIds.Count > 0 ? m.HeroIds : new List<string> { m.HeroId })
-                    .ToHashSet(StringComparer.Ordinal);
-                var asked = (heroIds ?? Array.Empty<string>()).Where(id => !string.IsNullOrEmpty(id)).Distinct(StringComparer.Ordinal).ToList();
-                if (asked.Count == 0 && !string.IsNullOrEmpty(heroId))
-                    asked.Add(heroId);
-                var maxHeroes = Math.Max(1, troops.command.maxHeroes);
-                List<OwnedHeroState> team;
-                if (asked.Count > 0)
-                {
-                    team = asked.Select(id => _state.Heroes.FirstOrDefault(h => h.HeroId == id)).Where(h => h != null).Select(h => h!).ToList();
-                    if (reason == MarchRejectReason.None && asked.Count > maxHeroes)
-                        reason = MarchRejectReason.TooManyHeroes;
-                    else if (reason == MarchRejectReason.None && team.Count < asked.Count)
-                        reason = MarchRejectReason.UnknownHero;
-                    else if (reason == MarchRejectReason.None && team.Any(h => marching.Contains(h.HeroId)))
-                        reason = MarchRejectReason.HeroBusy;
-                }
-                else
-                {
-                    team = _state.Heroes.Where(h => !marching.Contains(h.HeroId))
-                        .OrderByDescending(h => _catalog.TryGetHero(h.HeroId, out var d) ? HeroRules.Power(d, h.Level, h.Stars) : 0)
-                        .Take(troops.types.Length > 0 ? maxHeroes : 1).ToList();
-                }
-
-                // Each hero takes their command of troops from home; the army decides load and speed.
                 var armed = troops.types.Length > 0;
-                var shares = armed ? TroopRules.FillTeam(troops, _state.Troops, team.Select(h => (Affinity(h.HeroId), CommandOf(h))).ToList())
-                    : team.Select(_ => new Dictionary<string, long>()).ToList();
-                // An automatic team keeps only heroes who get troops (a hero with nobody to lead stays home).
-                if (asked.Count == 0 && armed)
-                {
-                    var keep = shares.Select((share, i) => (share, i)).Where(x => x.share.Values.Sum() > 0).Select(x => x.i).ToList();
-                    if (keep.Count > 0)
-                    {
-                        team = keep.Select(i => team[i]).ToList();
-                        shares = keep.Select(i => shares[i]).ToList();
-                    }
-                }
-
-                var aboard = new Dictionary<string, long>(StringComparer.Ordinal);
-                foreach (var share in shares)
-                    foreach (var pair in share)
-                        aboard[pair.Key] = (aboard.TryGetValue(pair.Key, out var n) ? n : 0) + pair.Value;
-                if (reason == MarchRejectReason.None && armed && aboard.Values.Sum() <= 0)
-                    reason = MarchRejectReason.NoTroops;
+                var (team, shares, aboard, teamReason) = PickTeam(heroId, heroIds);
+                if (reason == MarchRejectReason.None)
+                    reason = teamReason;
 
                 var world = _catalog.World;
                 var rates = GatherRules.Rates(world, _catalog.Gather, node.Type, node.Level, reactor);
@@ -176,17 +155,81 @@ namespace Hadal.Game
                     Cargo = cargo
                 };
                 _state.Marches.Add(march);
-                foreach (var pair in aboard)
-                {
-                    _state.Troops[pair.Key] -= pair.Value;
-                    if (_state.Troops[pair.Key] <= 0)
-                        _state.Troops.Remove(pair.Key);
-                }
+                TakeTroops(aboard);
 
                 _state.IsDirty = true;
                 Record("gather");
                 SendDelta(now, new List<EntityChangeDto> { MarchesChange(now), ArmyChange(now), Accepted(commandId, sequence) });
                 return (march, MarchRejectReason.None);
+            }
+        }
+
+        /// <summary>
+        /// The team for a march: the heroes asked for, or the strongest free ones (Last Asylum's auto-fill), each taking
+        /// their command of troops from home. Nothing changes until <see cref="TakeTroops"/>. Caller holds the lock.
+        /// </summary>
+        private (List<OwnedHeroState> Team, List<Dictionary<string, long>> Shares, Dictionary<string, long> Aboard, MarchRejectReason Reason)
+            PickTeam(string heroId, IReadOnlyList<string>? heroIds)
+        {
+            var reason = MarchRejectReason.None;
+            // The team: the heroes asked for, or the strongest who are not out already (Last Asylum's auto-fill).
+            var troops = _catalog.Troops;
+            var marching = _state.Marches.SelectMany(m => m.HeroIds.Count > 0 ? m.HeroIds : new List<string> { m.HeroId })
+                .ToHashSet(StringComparer.Ordinal);
+            var asked = (heroIds ?? Array.Empty<string>()).Where(id => !string.IsNullOrEmpty(id)).Distinct(StringComparer.Ordinal).ToList();
+            if (asked.Count == 0 && !string.IsNullOrEmpty(heroId))
+                asked.Add(heroId);
+            var maxHeroes = Math.Max(1, troops.command.maxHeroes);
+            List<OwnedHeroState> team;
+            if (asked.Count > 0)
+            {
+                team = asked.Select(id => _state.Heroes.FirstOrDefault(h => h.HeroId == id)).Where(h => h != null).Select(h => h!).ToList();
+                if (reason == MarchRejectReason.None && asked.Count > maxHeroes)
+                    reason = MarchRejectReason.TooManyHeroes;
+                else if (reason == MarchRejectReason.None && team.Count < asked.Count)
+                    reason = MarchRejectReason.UnknownHero;
+                else if (reason == MarchRejectReason.None && team.Any(h => marching.Contains(h.HeroId)))
+                    reason = MarchRejectReason.HeroBusy;
+            }
+            else
+            {
+                team = _state.Heroes.Where(h => !marching.Contains(h.HeroId))
+                    .OrderByDescending(h => _catalog.TryGetHero(h.HeroId, out var d) ? HeroRules.Power(d, h.Level, h.Stars) : 0)
+                    .Take(troops.types.Length > 0 ? maxHeroes : 1).ToList();
+            }
+
+            // Each hero takes their command of troops from home; the army decides load and speed.
+            var armed = troops.types.Length > 0;
+            var shares = armed ? TroopRules.FillTeam(troops, _state.Troops, team.Select(h => (Affinity(h.HeroId), CommandOf(h))).ToList())
+                : team.Select(_ => new Dictionary<string, long>()).ToList();
+            // An automatic team keeps only heroes who get troops (a hero with nobody to lead stays home).
+            if (asked.Count == 0 && armed)
+            {
+                var keep = shares.Select((share, i) => (share, i)).Where(x => x.share.Values.Sum() > 0).Select(x => x.i).ToList();
+                if (keep.Count > 0)
+                {
+                    team = keep.Select(i => team[i]).ToList();
+                    shares = keep.Select(i => shares[i]).ToList();
+                }
+            }
+
+            var aboard = new Dictionary<string, long>(StringComparer.Ordinal);
+            foreach (var share in shares)
+                foreach (var pair in share)
+                    aboard[pair.Key] = (aboard.TryGetValue(pair.Key, out var n) ? n : 0) + pair.Value;
+            if (reason == MarchRejectReason.None && armed && aboard.Values.Sum() <= 0)
+                reason = MarchRejectReason.NoTroops;
+            return (team, shares, aboard, reason);
+        }
+
+        /// <summary>Troops leave home with a march. Caller holds the lock.</summary>
+        private void TakeTroops(Dictionary<string, long> aboard)
+        {
+            foreach (var pair in aboard)
+            {
+                _state.Troops[pair.Key] -= pair.Value;
+                if (_state.Troops[pair.Key] <= 0)
+                    _state.Troops.Remove(pair.Key);
             }
         }
 
@@ -213,6 +256,7 @@ namespace Hadal.Game
                 }
 
                 var world = _catalog.World;
+                CancelBattle(march!, now);
                 if (march!.PhaseAt(now) == MarchPhase.Outbound)
                 {
                     march.Cargo = new Dictionary<ResourceType, long>();
@@ -238,6 +282,8 @@ namespace Hadal.Game
         private void CompleteMarch(MarchState march)
         {
             _state.Marches.Remove(march);
+            foreach (var pair in march.Battle?.Rewards ?? new Dictionary<string, int>())
+                _state.Items[pair.Key] = (_state.Items.TryGetValue(pair.Key, out var held) ? held : 0) + pair.Value;
             foreach (var pair in march.Troops)
                 _state.Troops[pair.Key] = (_state.Troops.TryGetValue(pair.Key, out var home) ? home : 0) + pair.Value;
             if (march.Troops.Count > 0)
@@ -284,6 +330,8 @@ namespace Hadal.Game
                 Load = GatherRules.Load(gather, reactor),
                 NextQueueReactor = gather.queueReactors.Where(r => r > reactor).DefaultIfEmpty(0).Min(),
                 ServerNowMs = now.ToUnixTimeMilliseconds(),
+                SonarEnergy = (int)Math.Floor(Sonar(now)),
+                SonarCapacity = MonsterRules.SonarCapacity,
                 Marches = _state.Marches.Select(m => new MarchDto
                 {
                     Id = m.Id,
@@ -302,6 +350,7 @@ namespace Hadal.Game
                     Crew = m.Crew,
                     FromX = m.FromX,
                     FromY = m.FromY,
+                    Kind = m.Kind,
                     HeroIds = m.HeroIds.ToArray(),
                     HeroTroops = m.HeroTroops.ToArray(),
                     Troops = m.Troops.Select(p => TroopRules.TryParseKey(p.Key, out var type, out var tier)

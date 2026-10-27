@@ -178,7 +178,7 @@ ON CONFLICT (player_id) DO UPDATE SET x = EXCLUDED.x, y = EXCLUDED.y, name = EXC
         }
 
         public static bool Handles(CommandType type) => type is CommandType.ViewWorld or CommandType.MarchGather or CommandType.RecallMarch
-            or CommandType.ViewProfile;
+            or CommandType.ViewProfile or CommandType.MarchAttack;
 
         public async Task InitializeAsync(CancellationToken cancellationToken)
         {
@@ -237,7 +237,10 @@ ON CONFLICT (player_id) DO UPDATE SET x = EXCLUDED.x, y = EXCLUDED.y, name = EXC
 
             await InitializeNodesAsync(cancellationToken, _clock.UtcNow);
             lock (_gate)
+            {
+                SeedMonsters();
                 _nodesReady = true;
+            }
 
             _logger.LogInformation("World map: {Bases} bases.", bases.Count);
         }
@@ -340,6 +343,7 @@ ON CONFLICT (player_id) DO UPDATE SET x = EXCLUDED.x, y = EXCLUDED.y, name = EXC
                 if (!_nodesReady)
                 {
                     SeedNodes(now);
+                    SeedMonsters();
                     _nodesReady = true;
                 }
             }
@@ -352,10 +356,13 @@ ON CONFLICT (player_id) DO UPDATE SET x = EXCLUDED.x, y = EXCLUDED.y, name = EXC
                 case CommandType.RecallMarch when _serializer.TryDeserialize(envelope.Payload, out RecallMarchCommand? recall) && recall != null:
                     HandleRecall(session, recall, now);
                     return;
+                case CommandType.MarchAttack when _serializer.TryDeserialize(envelope.Payload, out MarchAttackCommand? attack) && attack != null:
+                    HandleAttack(session, attack, now);
+                    return;
                 case CommandType.ViewProfile when _serializer.TryDeserialize(envelope.Payload, out ViewProfileCommand? profile) && profile != null:
                     HandleProfile(session, profile, now);
                     return;
-                case CommandType.MarchGather or CommandType.RecallMarch or CommandType.ViewProfile:
+                case CommandType.MarchGather or CommandType.RecallMarch or CommandType.ViewProfile or CommandType.MarchAttack:
                     session.Acknowledge(envelope.CommandId, envelope.ClientSequence, "MalformedCommand", now);
                     return;
             }
@@ -371,6 +378,7 @@ ON CONFLICT (player_id) DO UPDATE SET x = EXCLUDED.x, y = EXCLUDED.y, name = EXC
             lock (_gate)
             {
                 MaintainNodes(now);
+                MaintainMonsters(now);
                 var me = Upsert(session);
                 var rules = _runtime.Current.Catalog.World;
                 var radius = Math.Max(4, rules.viewRadius);
@@ -402,7 +410,8 @@ ON CONFLICT (player_id) DO UPDATE SET x = EXCLUDED.x, y = EXCLUDED.y, name = EXC
                             AvatarId = online ? live!.AvatarId : b.Avatar
                         };
                     }).ToArray(),
-                    Nodes = NodesInView(cx, cy, radius, mine, now)
+                    Nodes = NodesInView(cx, cy, radius, mine, now),
+                    Monsters = MonstersInView(cx, cy, radius, now)
                 };
             }
 

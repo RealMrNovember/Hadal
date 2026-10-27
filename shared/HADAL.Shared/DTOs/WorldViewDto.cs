@@ -19,6 +19,23 @@ namespace HADAL.Shared.DTOs
 
         /// <summary>Resource nodes in view (docs/rehber 09 §4).</summary>
         [ProtoMember(8)] public WorldNodeDto[] Nodes { get; set; } = System.Array.Empty<WorldNodeDto>();
+
+        /// <summary>Monsters in view (docs/rehber 09 §5.2).</summary>
+        [ProtoMember(9)] public WorldMonsterDto[] Monsters { get; set; } = System.Array.Empty<WorldMonsterDto>();
+    }
+
+    [ProtoContract]
+    public sealed class WorldMonsterDto
+    {
+        [ProtoMember(1)] public string Id { get; set; } = string.Empty;
+        [ProtoMember(2)] public string Type { get; set; } = string.Empty;
+        [ProtoMember(3)] public int Level { get; set; }
+        [ProtoMember(4)] public int X { get; set; }
+        [ProtoMember(5)] public int Y { get; set; }
+
+        /// <summary>A team is on its way to it.</summary>
+        [ProtoMember(6)] public bool Busy { get; set; }
+        [ProtoMember(7)] public long Power { get; set; }
     }
 
     /// <summary>A resource node on the map.</summary>

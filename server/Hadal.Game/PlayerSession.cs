@@ -756,6 +756,9 @@ namespace Hadal.Game
                         changedBuildings.Add(building);
                 }
 
+                foreach (var march in _state.Marches.Where(m => m.Battle is { Reported: false } && m.ArrivesAt <= at).ToList())
+                    reports.Add(Fight(march));
+
                 foreach (var march in _state.Marches.Where(m => m.HomeAt <= at).ToList())
                     CompleteMarch(march);
 
@@ -817,7 +820,11 @@ namespace Hadal.Game
             foreach (var research in _state.ActiveResearch)
                 Consider(research.EndsAt);
             foreach (var march in _state.Marches)
+            {
                 Consider(march.HomeAt);
+                if (march.Battle is { Reported: false })
+                    Consider(march.ArrivesAt);
+            }
             foreach (var training in _state.Training)
                 Consider(training.EndsAt);
             Consider(_state.Healing?.EndsAt);
