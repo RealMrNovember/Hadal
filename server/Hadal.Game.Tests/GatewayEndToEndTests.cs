@@ -54,6 +54,7 @@ namespace Hadal.Game.Tests
             Assert.Equal(ServerMessageKind.StateSnapshot, snapshot.Kind);
             Assert.Equal(600, snapshot.Snapshot().Resources.Amount(ResourceType.Oxygen));
             Assert.Contains((await ReceiveAsync(socket)).Delta().Changes, c => c.EntityId == EntityIds.ChatHistory); // social state
+            Assert.Contains((await ReceiveAsync(socket)).Delta().Changes, c => c.EntityId == EntityIds.Events); // events
 
             await SendAsync(socket, TestSupport.Place("oxygen_plant", 1, 0, "e2e-cmd"));
 
@@ -158,6 +159,7 @@ namespace Hadal.Game.Tests
             await ReceiveAsync(socket); // ack
             await ReceiveAsync(socket); // snapshot
             await ReceiveAsync(socket); // chat, alliance, help
+            await ReceiveAsync(socket); // events
             await SendAsync(socket, TestSupport.Place("oxygen_plant", 1, 0));
             Assert.Equal(CommandResultCode.Accepted, (await ReceiveAsync(socket)).Delta().Ack()!.Result);
             await socket.CloseAsync(WebSocketCloseStatus.NormalClosure, "done", CancellationToken.None);

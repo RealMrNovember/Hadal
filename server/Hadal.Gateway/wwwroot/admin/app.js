@@ -121,7 +121,7 @@ async function start() {
 }
 
 // ---------------------------------------------------------------- Router
-const PAGES = { overview, players, coupons, liveops, balance, chat, audit, admins };
+const PAGES = { overview, players, coupons, events, liveops, balance, chat, audit, admins };
 
 function route() {
   if (!state.user) return;
@@ -297,15 +297,20 @@ async function playerDetail(root, id) {
       `Kayıt ${fmtDate(p.createdAt)} · Son giriş ${fmtDate(p.lastLoginAt)} · ${p.online ? "Çevrimiçi" : "Çevrimdışı"}`,
       banned ? el("span", { class: "bad" }, ` · Banlı: ${fmtDate(p.bannedUntil)} (${p.banReason})`) : ""),
     el("div", { class: "grid2" },
-      el("div", {}, el("h2", {}, "Kaynaklar"), el("table", {}, el("tbody", {},
-        RESOURCES.map((r) => el("tr", {}, el("td", {}, RESOURCE_TR[r]), el("td", { class: "mono" }, fmtNum(d.wallet[r]))))),
-        el("h2", {}, "Çanta"), el("table", {}, el("tbody", {},
+      el("div", {},
+        el("h2", {}, "Kaynaklar"),
+        el("table", {}, el("tbody", {},
+          RESOURCES.map((r) => el("tr", {}, el("td", {}, RESOURCE_TR[r]), el("td", { class: "mono" }, fmtNum(d.wallet[r])))))),
+        el("h2", {}, "Çanta"),
+        el("table", {}, el("tbody", {},
           Object.keys(d.bag || {}).length === 0
             ? el("tr", {}, el("td", { class: "muted" }, "Çanta boş."))
             : Object.entries(d.bag).map(([id, n]) => el("tr", {}, el("td", {}, bagName(id)), el("td", { class: "mono" }, "× " + fmtNum(n))))))),
-      el("div", {}, el("h2", {}, "Binalar"), el("table", {}, el("tbody", {},
-        d.buildings.map((b) => el("tr", {}, el("td", {}, b.definitionId), el("td", {}, `Halka ${b.ring} · Yuva ${b.sector}`),
-          el("td", {}, `Sv. ${b.level}`, b.constructionEndsAt ? el("span", { class: "warn" }, " · inşaatta") : ""))))))),
+      el("div", {},
+        el("h2", {}, "Binalar"),
+        el("table", {}, el("tbody", {},
+          d.buildings.map((b) => el("tr", {}, el("td", {}, b.definitionId), el("td", {}, `Halka ${b.ring} · Yuva ${b.sector}`),
+            el("td", {}, `Sv. ${b.level}`, b.constructionEndsAt ? el("span", { class: "warn" }, " · inşaatta") : ""))))))),
     actions));
 }
 

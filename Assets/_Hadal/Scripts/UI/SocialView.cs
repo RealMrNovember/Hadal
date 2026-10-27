@@ -34,7 +34,9 @@ namespace Hadal.UI
             Bag,
             Reward,
             Expedition,
-            DiveResult
+            DiveResult,
+            Events,
+            EventRanking
         }
 
         private static readonly CommandType[] OwnCommands =
@@ -44,7 +46,7 @@ namespace Hadal.UI
             CommandType.KickMember, CommandType.RequestHelp, CommandType.HelpAll,
             CommandType.ClaimQuest, CommandType.ClaimDailyChest, CommandType.OpenItem, CommandType.RecruitHero,
             CommandType.DiveStage, CommandType.SetMemberRank, CommandType.TransferLeadership, CommandType.SetAllianceSettings,
-            CommandType.AnswerInvite, CommandType.AnswerApplication
+            CommandType.AnswerInvite, CommandType.AnswerApplication, CommandType.ClaimEventStage, CommandType.ClaimEventRank
         };
 
         private IStateSyncService _stateSync;
@@ -209,9 +211,14 @@ namespace Hadal.UI
 
             while (View.TryTakeRewardReport(out var report))
             {
+                // Event rewards return to the event page when the player taps Done.
+                if (_page is Page.Events or Page.EventRanking)
+                    _afterReward = Page.Events;
                 _reward = report;
                 Open(Page.Reward);
             }
+
+            TickEvents();
 
             if (!IsOpen)
                 return;
@@ -234,6 +241,7 @@ namespace Hadal.UI
             Page.Chat => $"{_page}|{View.ChatVersion}|{_chatChannel}|{_chatPeer}|{View.ProfileVersion}",
             Page.Quests or Page.Bag => $"{_page}|{QuestKey()}",
             Page.Expedition => $"{_page}|{ExpeditionKey()}",
+            Page.Events or Page.EventRanking => $"{_page}|{EventsKey()}",
             _ => _page.ToString()
         };
 
@@ -270,7 +278,7 @@ namespace Hadal.UI
                 Destroy(_list.GetChild(i).gameObject);
 
             // Chat is a full page (Last Asylum): it covers the HUD header and leaves room for the input bar.
-            ((RectTransform)_sheet.transform).Place(0.01f, 0.005f, 0.99f, _page == Page.Chat ? 0.995f : 0.89f);
+            ((RectTransform)_sheet.transform).Place(0.01f, 0.005f, 0.99f, _page == Page.Chat ? 0.995f : 0.905f);
             var listRect = (RectTransform)_list.parent;
             listRect.Place(0.03f, _page == Page.Chat ? 0.1f : 0.02f, 0.97f, _page == Page.Chat ? 0.865f : 0.875f);
             if (_page != Page.Chat && _chatTabs != null)
@@ -292,6 +300,8 @@ namespace Hadal.UI
                 case Page.Reward: RenderReward(); break;
                 case Page.Expedition: RenderExpedition(); break;
                 case Page.DiveResult: RenderDiveResult(); break;
+                case Page.Events: RenderEvents(); break;
+                case Page.EventRanking: RenderEventRanking(); break;
             }
 
             if (_page == Page.Chat && atBottom)

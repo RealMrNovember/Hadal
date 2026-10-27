@@ -30,6 +30,8 @@ namespace Hadal.Game
             lock (_gate)
             {
                 Record(counter, amount);
+                if (counter == "help")
+                    Score(EventActions.Help, amount);
                 SendDelta(now, new List<EntityChangeDto>());
             }
         }
@@ -105,6 +107,7 @@ namespace Hadal.Game
             {
                 _state.ClaimedDaily.Add(quest.id);
                 _state.DailyPoints += Math.Max(0, quest.points);
+                Score(EventActions.DailyPoints, quest.points);
             }
             else
             {
@@ -185,6 +188,7 @@ namespace Hadal.Game
             var spare = _state.HeroCards[hero.Id] - QuestRules.RecruitShards(hero);
             _state.HeroCards.Remove(hero.Id);
             _state.Heroes.Add(new OwnedHeroState { HeroId = hero.Id, Level = 1, Stars = 1, Shards = spare, Slot = -1 });
+            Score(EventActions.HeroRecruit, 1);
             _state.IsDirty = true;
             _questsDirty = true;
             GrantAndReport(command.CommandId, command.ClientSequence, new List<ResolvedReward> { new("hero", hero.Id, 1) }, now, grant: false);

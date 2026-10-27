@@ -30,6 +30,7 @@ namespace Hadal.Game
             await _repository.InitializeAsync(cancellationToken);
             await _world.Social.InitializeAsync(cancellationToken);
             await _world.Map.InitializeAsync(cancellationToken);
+            await _world.Events.InitializeAsync(DateTimeOffset.UtcNow, cancellationToken);
             await base.StartAsync(cancellationToken);
         }
 
@@ -61,6 +62,7 @@ namespace Hadal.Game
             await base.StopAsync(cancellationToken);
             _logger.LogInformation("Saving {Count} sessions before shutdown.", _world.SessionCount);
             await _world.SaveAllAsync(cancellationToken);
+            await _world.Events.DrainAsync();
         }
     }
 }

@@ -158,6 +158,9 @@ namespace Hadal.Core.Network
                 HealTroopsCommand => CommandType.HealTroops,
                 CancelHealCommand => CommandType.CancelHeal,
                 UseSpeedupCommand => CommandType.UseSpeedup,
+                ClaimEventStageCommand => CommandType.ClaimEventStage,
+                ClaimEventRankCommand => CommandType.ClaimEventRank,
+                ViewEventRankingCommand => CommandType.ViewEventRanking,
                 MarchAttackCommand => CommandType.MarchAttack,
                 _ => CommandType.Unknown
             };

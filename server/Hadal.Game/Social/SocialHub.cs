@@ -998,6 +998,20 @@ namespace Hadal.Game.Social
             return avatar;
         }
 
+        /// <summary>The id of a player's alliance (events score for it); empty without one.</summary>
+        public string AllianceIdOf(string playerId)
+        {
+            lock (_gate)
+                return AllianceOf(playerId)?.Record.Id ?? string.Empty;
+        }
+
+        /// <summary>Tag, name and emblem of an alliance (event rankings); null when it no longer exists.</summary>
+        public (string Tag, string Name, string Emblem)? AllianceInfo(string allianceId)
+        {
+            lock (_gate)
+                return _alliances.TryGetValue(allianceId, out var a) ? (a.Record.Tag, a.Record.Name, a.Record.Emblem) : null;
+        }
+
         /// <summary>The alliance tag and name of a player (profile cards); empty without one.</summary>
         public (string Tag, string Name) AllianceOfPlayer(string playerId)
         {

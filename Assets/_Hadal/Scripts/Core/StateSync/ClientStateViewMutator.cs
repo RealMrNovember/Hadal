@@ -220,6 +220,19 @@ namespace Hadal.Core.StateSync
                 return true;
             }
 
+            if (id == EntityIds.Events)
+            {
+                view.ApplyEvents(TryDeserializePayload(change.Payload, serialization, out EventListDto events) ? events : new EventListDto());
+                return true;
+            }
+
+            if (id.StartsWith(EntityIds.EventRanking, StringComparison.Ordinal))
+            {
+                if (TryDeserializePayload(change.Payload, serialization, out EventRankingDto ranking))
+                    view.ApplyEventRanking(ranking);
+                return true;
+            }
+
             if (id.StartsWith(EntityIds.RewardReport, StringComparison.Ordinal))
             {
                 if (TryDeserializePayload(change.Payload, serialization, out RewardReportDto report))

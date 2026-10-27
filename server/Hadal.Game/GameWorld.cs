@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using Hadal.Game.Events;
 using Hadal.Game.Persistence;
 using Hadal.Game.Social;
 using Hadal.Game.World;
@@ -53,7 +54,8 @@ namespace Hadal.Game
             IWorldStore worldStore,
             IClock clock,
             INetworkSerializer serializer,
-            ILogger<GameWorld> logger)
+            ILogger<GameWorld> logger,
+            IEventStore? eventStore = null)
         {
             _runtime = runtime;
             _repository = repository;
@@ -64,7 +66,18 @@ namespace Hadal.Game
             Map = new WorldService(worldStore, runtime, serializer, Social, logger, clock);
             Social.NameLookup = Map.NameOf;
             Social.AvatarLookup = Map.AvatarOf;
+            Events = new EventService(eventStore ?? new InMemoryEventStore(), runtime, serializer, logger)
+            {
+                NameLookup = Map.NameOf,
+                AvatarLookup = Map.AvatarOf,
+                AllianceIdOf = Social.AllianceIdOf,
+                TagOf = Social.TagOf,
+                AllianceInfo = Social.AllianceInfo
+            };
         }
+
+        /// <summary>Overseer-run events: contests, sign-in rewards, rankings (docs/29).</summary>
+        public EventService Events { get; }
 
         /// <summary>The outer world map (docs/28).</summary>
         public WorldService Map { get; }
@@ -217,6 +230,7 @@ namespace Hadal.Game
 
                 Social.OnConnected(session, now);
                 Map.OnConnected(session);
+                Events.OnConnected(session, now);
 
                 return session;
             }
@@ -232,6 +246,8 @@ namespace Hadal.Game
                 Social.Handle(session, envelope, _clock.UtcNow);
             else if (WorldService.Handles(envelope.Type))
                 Map.Handle(session, envelope, _clock.UtcNow);
+            else if (EventService.Handles(envelope.Type))
+                Events.Handle(session, envelope, _clock.UtcNow);
             else
                 session.HandleCommand(envelope, _clock.UtcNow);
         }
@@ -244,6 +260,7 @@ namespace Hadal.Game
 
             Social.OnDisconnected(session, _clock.UtcNow);
             Map.OnDisconnected(session);
+            Events.OnDisconnected(session);
 
             await SaveAsync(session, cancellationToken);
 
@@ -260,11 +277,22 @@ namespace Hadal.Game
                 try
                 {
                     session.Tick(now);
+                    // Event points for what the player did since the last tick (commands and timers alike).
+                    Events.Record(session, session.TakeEventScores(), now);
                 }
                 catch (Exception exception)
                 {
                     _logger.LogError(exception, "Tick failed for player {PlayerId}.", session.PlayerId);
                 }
+            }
+
+            try
+            {
+                Events.Tick(now);
+            }
+            catch (Exception exception)
+            {
+                _logger.LogError(exception, "Event housekeeping failed.");
             }
         }
 

@@ -452,7 +452,15 @@ namespace Hadal.UI
             }
 
             var done = Card(110);
-            CardButton(done.transform, Loc.T("hero.pod.done"), true, Close, null, 0.25f, 0.1f, 0.75f, 0.9f);
+            CardButton(done.transform, Loc.T("hero.pod.done"), true, () =>
+            {
+                var back = _afterReward;
+                _afterReward = Page.None;
+                if (back != Page.None)
+                    Open(back);
+                else
+                    Close();
+            }, null, 0.25f, 0.1f, 0.75f, 0.9f);
         }
 
         private static Image HudIconImage(Transform parent, string id, float x0, float y0, float x1, float y1) =>
@@ -460,14 +468,9 @@ namespace Hadal.UI
 
         private static void ProgressBar(Transform parent, long value, long max, float x0, float y0, float x1, float y1)
         {
-            var back = UiKit.Box("Bar", parent, new Color(0, 0, 0, 0.45f));
-            back.rectTransform.Place(x0, y0, x1, y1);
-            back.raycastTarget = false;
-            var fill = UiKit.Box("Fill", back.transform, UiKit.Accent);
-            fill.rectTransform.Place(0, 0, Mathf.Clamp01(max > 0 ? (float)value / max : 0f), 1);
-            fill.raycastTarget = false;
-            var label = UiKit.Label("Value", back.transform, $"{value}/{max}", 20, Color.white, TextAnchor.MiddleCenter, FontStyle.Bold);
-            label.rectTransform.Place(0, 0, 1, 1);
+            var bar = Skin.Bar(parent, max > 0 ? (float)value / max : 0f, value >= max && max > 0 ? "gold" : "green");
+            bar.Place(x0, y0, x1, y1);
+            UiKit.Stroked(UiKit.Label("Value", bar, $"{value:N0}/{max:N0}", 20, Color.white, TextAnchor.MiddleCenter, FontStyle.Bold)).rectTransform.Place(0, 0, 1, 1);
         }
     }
 }

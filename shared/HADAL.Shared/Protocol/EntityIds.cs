@@ -87,5 +87,13 @@ namespace HADAL.Shared.Protocol
 
         /// <summary>Invitations and applications of a player without an alliance (<c>AllianceInviteListDto</c>).</summary>
         public const string AllianceInvites = Alliance + "invites";
+
+        public const string Event = "event:";
+
+        /// <summary>Every event the player can see with their progress (<c>EventListDto</c>).</summary>
+        public const string Events = Event + "list";
+
+        /// <summary>Prefix of an event ranking (<c>EventRankingDto</c>), followed by the event id.</summary>
+        public const string EventRanking = Event + "ranking:";
     }
 }

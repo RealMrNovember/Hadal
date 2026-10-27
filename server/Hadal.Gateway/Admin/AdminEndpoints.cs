@@ -246,6 +246,10 @@ namespace Hadal.Gateway.Admin
                 return deleted ? Results.Ok(new { ok = true }) : Results.NotFound();
             }).RequireAdmin(AdminRoles.GameMaster);
 
+            // --- Events (docs/29) -------------------------------------------------------------
+
+            api.MapEventEndpoints();
+
             // --- Coupons --------------------------------------------------------------------
 
             api.MapGet("/coupons", async (AdminPrincipal _, IAdminStore store, CancellationToken ct) =>
@@ -388,7 +392,7 @@ namespace Hadal.Gateway.Admin
         }
 
         /// <summary>Requires a signed-in admin with at least <paramref name="minimumRole"/>; the handler gets them as <see cref="AdminPrincipal"/>.</summary>
-        private static RouteHandlerBuilder RequireAdmin(this RouteHandlerBuilder builder, string minimumRole) =>
+        internal static RouteHandlerBuilder RequireAdmin(this RouteHandlerBuilder builder, string minimumRole) =>
             builder.AddEndpointFilter(async (context, next) =>
             {
                 var me = await AdminPrincipal.BindAsync(context.HttpContext) ?? AdminPrincipal.Anonymous;

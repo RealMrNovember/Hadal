@@ -151,6 +151,7 @@ namespace Hadal.Game
             _state.Healing = null;
             foreach (var pair in healing.Troops)
                 _state.Troops[pair.Key] = (_state.Troops.TryGetValue(pair.Key, out var n) ? n : 0) + pair.Value;
+            Score(EventActions.Heal, healing.Troops.Values.Sum());
             _armyDirty = true;
         }
 
@@ -180,6 +181,7 @@ namespace Hadal.Game
             _state.Training.Remove(training);
             var key = TroopRules.Key(training.Type, training.Tier);
             _state.Troops[key] = (_state.Troops.TryGetValue(key, out var have) ? have : 0) + training.Count;
+            Score(EventActions.Train(training.Tier), training.Count);
             _armyDirty = true;
         }
 

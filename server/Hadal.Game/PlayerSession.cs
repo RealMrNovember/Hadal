@@ -118,7 +118,16 @@ namespace Hadal.Game
                 var changes = AdvanceTo(now);
                 if (changes.Count > 0)
                     SendDelta(now, changes);
+                var hadaliteBefore = _state.Wallet.TryGetValue(ResourceType.Hadalite, out var h0) ? h0 : 0;
+                Dispatch(envelope, now);
+                var hadaliteAfter = _state.Wallet.TryGetValue(ResourceType.Hadalite, out var h1) ? h1 : 0;
+                Score(EventActions.HadaliteSpent, hadaliteBefore - hadaliteAfter);
+            }
+        }
 
+        private void Dispatch(CommandEnvelope envelope, DateTimeOffset now)
+        {
+            {
                 switch (envelope.Type)
                 {
                     case CommandType.PlaceBuilding when TryDeserialize(envelope.Payload, out PlaceBuildingCommand? place):
@@ -678,6 +687,7 @@ namespace Hadal.Game
             building.MissionEndsAt = now.AddSeconds(mission.Seconds);
             building.MissionSeed = Random.Shared.Next();
             Record("salvage");
+            Score(EventActions.Salvage, 1);
             _state.IsDirty = true;
             SendFunctionAccepted(command.CommandId, command.ClientSequence, building, now);
         }
@@ -840,11 +850,15 @@ namespace Hadal.Game
             building.ConstructionEndsAt = null;
             building.ConstructionSeconds = 0;
             MarkChanged(building);
+            if (_catalog.TryGetBuilding(building.DefinitionId, out var definition))
+                Score(EventActions.BuildPower, BuildingProgression.Power(definition, building.Level) - BuildingProgression.Power(definition, building.Level - 1));
         }
 
         private void CompleteResearch(string nodeId, int level)
         {
-            _state.ResearchLevels[nodeId] = Math.Max(level, _state.ResearchLevels.TryGetValue(nodeId, out var have) ? have : 0);
+            var before = _state.ResearchLevels.TryGetValue(nodeId, out var have) ? have : 0;
+            _state.ResearchLevels[nodeId] = Math.Max(level, before);
+            Score(EventActions.Research, Math.Max(0, level - before));
             RefreshModifiers();
         }
 

@@ -139,6 +139,30 @@ namespace Hadal.Core.StateSync
 
         public bool TryTakeRewardReport(out RewardReportDto report) => _rewardReports.TryDequeue(out report);
 
+        /// <summary>Events the player can see, with their progress (docs/29).</summary>
+        public EventListDto Events { get; private set; } = new EventListDto();
+        public int EventsVersion { get; private set; }
+        private readonly Dictionary<string, EventRankingDto> _eventRankings = new Dictionary<string, EventRankingDto>();
+        public int EventRankingVersion { get; private set; }
+
+        public void ApplyEvents(EventListDto events)
+        {
+            Events = events ?? new EventListDto();
+            if (Events.ServerNowMs > 0)
+                ServerClockOffsetMs = Events.ServerNowMs - System.DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+            EventsVersion++;
+        }
+
+        public void ApplyEventRanking(EventRankingDto ranking)
+        {
+            if (ranking == null || string.IsNullOrEmpty(ranking.EventId))
+                return;
+            _eventRankings[ranking.EventId] = ranking;
+            EventRankingVersion++;
+        }
+
+        public EventRankingDto EventRanking(string eventId) => _eventRankings.TryGetValue(eventId ?? string.Empty, out var r) ? r : null;
+
         private readonly Queue<BattleReportDto> _battleReports = new();
 
         public bool TryTakeBattleReport(out BattleReportDto report) => _battleReports.TryDequeue(out report);

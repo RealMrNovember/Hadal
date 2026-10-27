@@ -1,0 +1,442 @@
+// HADAL Overseer — Events (docs/29 §6). Uses the helpers of app.js (el, render, api, toast, can, fmtDate, fmtNum).
+"use strict";
+
+const EVENT_TEMPLATES = {
+  points: "Puan yarışması (bireysel)",
+  alliance: "İttifak yarışması",
+  login: "Giriş ödülü (günlük)",
+};
+
+const EVENT_ACTIONS = {
+  gather: "Kaynak toplama (birim)",
+  build_power: "İnşaatla kazanılan güç",
+  research: "Araştırma seviyesi",
+  train_t1: "T1 asker eğitimi", train_t2: "T2 asker eğitimi", train_t3: "T3 asker eğitimi", train_t4: "T4 asker eğitimi", train_t5: "T5 asker eğitimi",
+  heal: "Asker iyileştirme",
+  monster_kill: "Yaratık yenme",
+  monster_levels: "Yenilen yaratık seviyeleri",
+  hero_pull: "Kriyo-Kapsül çekimi",
+  hero_level: "Kahraman seviye atlatma",
+  hero_recruit: "Kahraman işe alma",
+  speedup_minutes: "Hızlandırma kullanımı (dakika)",
+  hadalite_spent: "Harcanan Hadalit",
+  dive: "Derinlik Haritası aşaması",
+  help: "İttifak yardımı",
+  salvage: "Kurtarma seferi",
+  daily_points: "Günlük görev puanı",
+};
+
+const EVENT_BANNERS = {
+  abyss: ["Uçurum", "#123a6b"], vent: ["Termal Baca", "#c2541b"], bloom: ["Biyolüminesans", "#1aa59a"],
+  leviathan: ["Leviathan", "#9c1f2e"], trench: ["Hendek", "#1f6b52"], wreck: ["Batık", "#a07a1c"],
+};
+
+const EVENT_PHASES = {
+  draft: ["Taslak", ""], upcoming: ["Yaklaşan", ""], live: ["Canlı", "on"], ended: ["Ödül dönemi", ""], closed: ["Bitti", "off"], cancelled: ["İptal", "off"],
+};
+
+const EVENT_LANGS = [
+  ["tr", "Türkçe"], ["en", "English"], ["de", "Deutsch"], ["fr", "Français"], ["es", "Español"], ["it", "Italiano"], ["pt", "Português"],
+  ["nl", "Nederlands"], ["ru", "Русский"], ["ar", "العربية"], ["ja", "日本語"], ["ko", "한국어"], ["zh-Hans", "简体中文"], ["zh-Hant", "繁體中文"],
+  ["th", "ไทย"], ["vi", "Tiếng Việt"], ["id", "Bahasa Indonesia"], ["ms", "Bahasa Melayu"],
+];
+
+const RARITY_TR = { common: "Sıradan", rare: "Nadir", epic: "Destansı", legendary: "Efsanevi" };
+
+/** Error texts of the event API, added to app.js's table on first use (this file loads before app.js). */
+const EVENT_ERRORS = {
+  UnknownTemplate: "Etkinlik türü geçersiz.",
+  InvalidTitle: "En az bir dilde başlık gir (en fazla 80 karakter).",
+  InvalidDescription: "Açıklama en fazla 2000 karakter olabilir.",
+  InvalidRange: "Seviye aralığı, ödül süresi (0–14 gün) ya da en düşük puan geçersiz.",
+  InvalidBanner: "Bir afiş seç.",
+  InvalidDays: "Giriş etkinliğinde 1–31 gün olmalı ve her günün ödülü olmalı.",
+  TooManyDays: "Gün sayısı etkinlik süresinden uzun.",
+  NoActions: "En az bir puan kazanma yolu ekle.",
+  InvalidAction: "Puan kazanma yollarından biri geçersiz (puan > 0, birim ≥ 1).",
+  InvalidPhase: "Temalı dönemlerden biri geçersiz (başlık, süre ve en az bir puan yolu gerekir).",
+  InvalidStages: "Aşamalar geçersiz: puanlar farklı ve > 0 olmalı, her aşamanın ödülü olmalı.",
+  InvalidBands: "Sıralama ödülleri geçersiz: 1'den başlayan sıra aralıkları ve ödüller gerekir.",
+  OverlappingBands: "Sıralama aralıkları çakışıyor.",
+  InvalidReward: "Ödüllerden biri geçersiz.",
+  UnknownEvent: "Etkinlik bulunamadı.",
+  AlreadyPublished: "Etkinlik zaten yayında.",
+  AlreadyOver: "Etkinliğin süresi geçmiş.",
+  NotLive: "Etkinlik şu an canlı değil.",
+  CancelFirst: "Yayındaki etkinliği silmeden önce iptal et.",
+};
+
+// ---------------------------------------------------------------- Ready-made deep-sea scenarios
+const HOUR = 3600 * 1000;
+
+function nextStart() {
+  const d = new Date(Date.now() + HOUR);
+  d.setMinutes(0, 0, 0);
+  return d;
+}
+
+const presetRes = (id, amount) => ({ type: "resource", id, amount });
+const presetItem = (id, amount) => ({ type: "item", id, amount });
+
+const EVENT_PRESETS = [
+  {
+    name: "Derinlik Yarışı — 7 gün, 4 saatlik temalar",
+    build: (start) => ({
+      template: "points", banner: "abyss",
+      title: { tr: "Derinlik Yarışı", en: "Depth Race" },
+      description: {
+        tr: "Uçurumun her katmanı yeni bir sınav. Her 4 saatte tema değişir: kaynak topla, üssünü büyüt, asker eğit, yaratık avla. En derine inen kaşif kazanır.",
+        en: "Every layer of the abyss is a new trial. The theme changes every 4 hours: gather, build, train, hunt. The diver who goes deepest wins.",
+      },
+      startsAt: start, endsAt: new Date(start.getTime() + 7 * 24 * HOUR), claimDays: 3, cyclePhases: true,
+      phases: [
+        { title: { tr: "Kaynak Akını", en: "Resource Rush" }, startHour: 0, hours: 4, actions: [{ action: "gather", points: 1, per: 1000 }] },
+        { title: { tr: "Üs Genişlemesi", en: "Base Expansion" }, startHour: 4, hours: 4, actions: [{ action: "build_power", points: 2, per: 1 }, { action: "speedup_minutes", points: 1, per: 1 }] },
+        { title: { tr: "Ordu Kur", en: "Raise the Army" }, startHour: 8, hours: 4, actions: [{ action: "train_t1", points: 1, per: 1 }, { action: "train_t2", points: 2, per: 1 }, { action: "train_t3", points: 4, per: 1 }, { action: "train_t4", points: 8, per: 1 }, { action: "train_t5", points: 16, per: 1 }] },
+        { title: { tr: "Yaratık Avı", en: "Creature Hunt" }, startHour: 12, hours: 4, actions: [{ action: "monster_kill", points: 100, per: 1 }, { action: "monster_levels", points: 20, per: 1 }] },
+        { title: { tr: "Bilim Dalışı", en: "Science Dive" }, startHour: 16, hours: 4, actions: [{ action: "research", points: 300, per: 1 }, { action: "speedup_minutes", points: 1, per: 1 }] },
+        { title: { tr: "Kaşifleri Güçlendir", en: "Empower the Divers" }, startHour: 20, hours: 4, actions: [{ action: "hero_level", points: 50, per: 1 }, { action: "hero_pull", points: 200, per: 1 }] },
+      ],
+      stages: [
+        { points: 2000, rewards: [presetRes("Titanium", 20000), presetItem("speed_any_60", 1)] },
+        { points: 8000, rewards: [presetRes("Titanium", 60000), presetItem("chest_silver", 1)] },
+        { points: 20000, rewards: [presetRes("Hadalite", 100), presetItem("chest_gold", 1)] },
+      ],
+      rankBands: [
+        { from: 1, to: 1, rewards: [presetRes("Hadalite", 1000), presetItem("chest_gold", 3)] },
+        { from: 2, to: 3, rewards: [presetRes("Hadalite", 500), presetItem("chest_gold", 2)] },
+        { from: 4, to: 10, rewards: [presetRes("Hadalite", 200), presetItem("chest_silver", 2)] },
+        { from: 11, to: 50, rewards: [presetRes("Hadalite", 50), presetItem("chest_bronze", 2)] },
+      ],
+    }),
+  },
+  {
+    name: "Biyolüminesans Gecesi — hafta sonu yaratık avı",
+    build: (start) => ({
+      template: "points", banner: "bloom",
+      title: { tr: "Biyolüminesans Gecesi", en: "Bioluminescent Night" },
+      description: {
+        tr: "Derinlik ışıklarla doldu: yaratıklar yüzeye yaklaşıyor. Yenilen her yaratık puan getirir, yüksek seviyeliler daha fazla.",
+        en: "The deep is full of light: creatures rise. Every creature defeated scores, higher levels score more.",
+      },
+      startsAt: start, endsAt: new Date(start.getTime() + 48 * HOUR), claimDays: 2,
+      actions: [{ action: "monster_kill", points: 100, per: 1 }, { action: "monster_levels", points: 50, per: 1 }],
+      stages: [
+        { points: 1000, rewards: [presetItem("speed_heal_60", 2)] },
+        { points: 5000, rewards: [presetItem("chest_silver", 1), presetItem("speed_march_p50", 2)] },
+        { points: 15000, rewards: [presetItem("chest_gold", 1)] },
+      ],
+      rankBands: [
+        { from: 1, to: 1, rewards: [presetRes("Hadalite", 500)] },
+        { from: 2, to: 10, rewards: [presetRes("Hadalite", 150)] },
+      ],
+    }),
+  },
+  {
+    name: "Termal Baca Seferberliği — ittifak, 3 gün",
+    build: (start) => ({
+      template: "alliance", banner: "vent",
+      title: { tr: "Termal Baca Seferberliği", en: "Hydrothermal Mobilisation" },
+      description: {
+        tr: "Bacalar uyandı, kaynaklar fışkırıyor. İttifakça topla, eğit, yardımlaş: üyelerin puanı ittifakın puanına eklenir. En güçlü ittifaklar ödüllendirilir.",
+        en: "The vents are awake. Gather, train and help as one: members' points add up for the alliance.",
+      },
+      startsAt: start, endsAt: new Date(start.getTime() + 72 * HOUR), claimDays: 3,
+      actions: [{ action: "gather", points: 1, per: 1000 }, { action: "help", points: 20, per: 1 }, { action: "train_t1", points: 1, per: 1 }, { action: "monster_kill", points: 100, per: 1 }],
+      stages: [
+        { points: 1000, rewards: [presetRes("Titanium", 30000)] },
+        { points: 5000, rewards: [presetItem("chest_silver", 1)] },
+      ],
+      rankBands: [
+        { from: 1, to: 1, rewards: [presetRes("Hadalite", 600), presetItem("chest_gold", 1)] },
+        { from: 2, to: 3, rewards: [presetRes("Hadalite", 300)] },
+        { from: 4, to: 10, rewards: [presetRes("Hadalite", 100)] },
+      ],
+    }),
+  },
+  {
+    name: "Dalış Günlüğü — 7 günlük giriş ödülü",
+    build: (start) => ({
+      template: "login", banner: "wreck",
+      title: { tr: "Dalış Günlüğü", en: "Dive Log" },
+      description: { tr: "Her gün üsse uğra, günlüğe bir satır daha ekle. 7. gün büyük ödül seni bekliyor.", en: "Check in every day. A big reward waits on day 7." },
+      startsAt: start, endsAt: new Date(start.getTime() + 7 * 24 * HOUR), claimDays: 0,
+      stages: [
+        { points: 1, rewards: [presetRes("Titanium", 10000)] }, { points: 2, rewards: [presetItem("speed_any_60", 1)] },
+        { points: 3, rewards: [presetRes("Food", 20000)] }, { points: 4, rewards: [presetItem("chest_bronze", 2)] },
+        { points: 5, rewards: [presetItem("speed_any_480", 1)] }, { points: 6, rewards: [presetItem("chest_silver", 1)] },
+        { points: 7, rewards: [presetRes("Hadalite", 300), presetItem("chest_gold", 1)] },
+      ],
+    }),
+  },
+];
+
+// ---------------------------------------------------------------- Helpers
+let eventMeta = null;
+const loadMeta = async () => (eventMeta = eventMeta || (await api("events/meta")));
+
+const textOf = (map) => (map && (map.tr || map.en || Object.values(map)[0])) || "—";
+const phasePill = (phase) => {
+  const [label, cls] = EVENT_PHASES[phase] || [phase, ""];
+  return el("span", { class: "pill " + cls }, label);
+};
+const toLocalInput = (iso) => {
+  if (!iso) return "";
+  const d = new Date(iso);
+  const pad = (n) => String(n).padStart(2, "0");
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+};
+
+function rewardName(r) {
+  if (r.type === "resource") return `${fmtNum(r.amount)} ${RESOURCE_TR[r.id] || r.id}`;
+  if (r.type === "shards") return `${fmtNum(r.amount)} kahraman kartı (${r.id ? r.id : RARITY_TR[r.rarity] || r.rarity})`;
+  return `${bagName(r.id)} × ${fmtNum(r.amount)}`;
+}
+const rewardsText = (list) => (list || []).map(rewardName).join(", ") || "—";
+
+// ---------------------------------------------------------------- List and detail
+async function events(root, arg) {
+  Object.assign(ERRORS, EVENT_ERRORS);
+  if (arg === "new") return eventEditor(root, null);
+  if (arg && arg.startsWith("edit-")) return eventEditor(root, arg.slice(5));
+  if (arg) return eventDetail(root, arg);
+
+  const rows = await api("events");
+  render(root,
+    el("div", { class: "row spread" }, el("h1", {}, "Etkinlikler"),
+      can("gm") ? el("button", { class: "primary", onclick: () => (location.hash = "#/events/new") }, "+ Yeni etkinlik") : null),
+    el("p", { class: "muted" }, "Puan yarışmaları, ittifak yarışmaları ve giriş ödülleri. Yayınlanan etkinlik oyunculara anında görünür; başlangıçtan 7 gün önce \"yaklaşan\" olarak listelenir."),
+    rows.length === 0 ? el("div", { class: "card muted" }, "Henüz etkinlik yok. Sağ üstten yeni bir etkinlik oluştur ya da hazır şablonlardan birini kullan.") :
+    el("table", {},
+      el("thead", {}, el("tr", {}, ["", "Etkinlik", "Tür", "Durum", "Zaman", "Katılımcı", "En yüksek", ""].map((h) => el("th", {}, h)))),
+      el("tbody", {}, rows.map((r) => {
+        const d = r.definition;
+        return el("tr", { class: "click", onclick: () => (location.hash = "#/events/" + d.id) },
+          el("td", {}, el("span", { class: "swatch", style: `background:${(EVENT_BANNERS[d.banner] || ["", "#333"])[1]}` })),
+          el("td", {}, el("b", {}, textOf(d.title)), d.testAccounts && d.testAccounts.length ? el("span", { class: "pill" }, " test") : null),
+          el("td", {}, EVENT_TEMPLATES[d.template] || d.template),
+          el("td", {}, phasePill(r.phase)),
+          el("td", { class: "mono" }, `${fmtDate(d.startsAt)} → ${fmtDate(d.endsAt)}`),
+          el("td", {}, fmtNum(r.participants)),
+          el("td", {}, fmtNum(r.topPoints)),
+          el("td", {}, "›"));
+      }))));
+}
+
+async function eventDetail(root, id) {
+  const data = await api("events/" + id);
+  const r = data.event;
+  const d = r.definition;
+  const act = (path, body, done) => api(`events/${id}/${path}`, { method: "POST", body }).then(() => { toast(done); route(); }, (e) => toast(e.message, true));
+  const hours = el("input", { type: "number", min: "1", value: "24", style: "width:80px" });
+
+  const buttons = can("gm") ? el("div", { class: "row" },
+    d.status === "draft" ? el("button", { class: "primary", onclick: () => confirm("Etkinlik yayınlansın mı? Oyuncular hemen görecek.") && act("publish", null, "Yayınlandı.") }, "Yayınla") : null,
+    r.phase !== "closed" && r.phase !== "cancelled" ? el("button", { onclick: () => (location.hash = "#/events/edit-" + id) }, "Düzenle") : null,
+    el("button", { onclick: () => api(`events/${id}/duplicate`, { method: "POST" }).then((c) => { toast("Kopyalandı (taslak)."); location.hash = "#/events/" + c.id; }, (e) => toast(e.message, true)) }, "Kopyala"),
+    r.phase === "live" ? el("button", { onclick: () => confirm("Etkinlik şimdi bitirilsin mi? Sıralama ödülleri açılır.") && act("end", null, "Etkinlik bitirildi.") }, "Şimdi bitir") : null,
+    r.phase === "live" || r.phase === "upcoming" || r.phase === "ended" ? el("span", { class: "inline" }, hours, el("button", { onclick: () => act("extend", { hours: Number(hours.value) }, "Süre uzatıldı.") }, "saat uzat")) : null,
+    d.status === "published" ? el("button", { class: "danger", onclick: () => confirm("Etkinlik iptal edilsin mi? Oyunculardan gizlenir, ödül alınamaz.") && act("cancel", null, "İptal edildi.") }, "İptal et") : null,
+    d.status !== "published" ? el("button", { class: "danger", onclick: () => confirm("Etkinlik ve tüm puanları silinsin mi?") &&
+      api("events/" + id, { method: "DELETE" }).then(() => { toast("Silindi."); location.hash = "#/events"; }, (e) => toast(e.message, true)) }, "Sil") : null) : null;
+
+  const actionsTable = (list) => el("table", { class: "compact" }, el("tbody", {}, (list || []).map((a) =>
+    el("tr", {}, el("td", {}, EVENT_ACTIONS[a.action] || a.action), el("td", { class: "mono" }, `${fmtNum(a.points)} puan / ${fmtNum(a.per)}`)))));
+
+  render(root,
+    el("p", {}, el("a", { href: "#/events" }, "‹ Etkinlikler")),
+    el("div", { class: "card banner", style: `border-left:6px solid ${(EVENT_BANNERS[d.banner] || ["", "#333"])[1]}` },
+      el("div", { class: "row spread" }, el("h1", {}, textOf(d.title), " ", phasePill(r.phase)), el("span", { class: "muted mono" }, d.id)),
+      el("p", { class: "muted" }, `${EVENT_TEMPLATES[d.template]} · ${fmtDate(d.startsAt)} → ${fmtDate(d.endsAt)}` +
+        (d.template !== "login" ? ` · ödül dönemi ${d.claimDays} gün` : "") +
+        (d.minLevel || d.maxLevel ? ` · Reaktör ${d.minLevel || 1}–${d.maxLevel || "∞"}` : "") +
+        (d.testAccounts && d.testAccounts.length ? ` · yalnızca ${d.testAccounts.length} test hesabı` : "")),
+      el("p", {}, (d.description && (d.description.tr || d.description.en)) || ""),
+      el("div", { class: "tiles" },
+        el("div", { class: "tile" }, el("div", { class: "k" }, "Katılımcı"), el("div", { class: "v" }, fmtNum(r.participants))),
+        el("div", { class: "tile" }, el("div", { class: "k" }, data.alliance ? "Lider ittifak puanı" : "En yüksek puan"), el("div", { class: "v" }, fmtNum(r.topPoints)))),
+      buttons),
+    d.template !== "login" ? [
+      el("h2", {}, "Puan kazanma"),
+      d.phases && d.phases.length
+        ? el("div", { class: "grid2" }, d.phases.map((p) => el("div", { class: "card" },
+            el("b", {}, textOf(p.title)), el("span", { class: "muted" }, ` · ${p.startHour}. saatten ${p.hours} saat` + (d.cyclePhases ? " (döngü)" : "")), actionsTable(p.actions))))
+        : actionsTable(d.actions)] : null,
+    el("h2", {}, d.template === "login" ? "Günlük ödüller" : "Aşama ödülleri"),
+    el("table", {}, el("tbody", {}, (d.stages || []).map((s, i) =>
+      el("tr", {}, el("td", {}, d.template === "login" ? `${i + 1}. gün` : `${fmtNum(s.points)} puan`), el("td", {}, rewardsText(s.rewards)))))),
+    d.template !== "login" ? [
+      el("h2", {}, "Sıralama ödülleri"),
+      el("table", {}, el("tbody", {}, (d.rankBands || []).length === 0 ? el("tr", {}, el("td", { class: "muted" }, "Sıralama ödülü yok.")) :
+        d.rankBands.map((b) => el("tr", {}, el("td", {}, b.from === b.to ? `${b.from}.` : `${b.from}–${b.to}.`), el("td", {}, rewardsText(b.rewards)))))),
+      el("h2", {}, data.alliance ? "İttifak sıralaması" : "Sıralama"),
+      el("table", {},
+        el("thead", {}, el("tr", {}, ["Sıra", data.alliance ? "İttifak" : "Oyuncu", "Etiket", "Puan"].map((h) => el("th", {}, h)))),
+        el("tbody", {}, data.ranking.length === 0 ? el("tr", {}, el("td", { class: "muted", colspan: "4" }, "Henüz puan yok.")) :
+          data.ranking.map((e) => el("tr", {}, el("td", {}, e.rank), el("td", {}, e.name), el("td", { class: "mono" }, e.tag), el("td", { class: "mono" }, fmtNum(e.points))))))] : null);
+}
+
+// ---------------------------------------------------------------- Editor
+async function eventEditor(root, id) {
+  const meta = await loadMeta();
+  let model;
+  if (id) {
+    model = (await api("events/" + id)).event.definition;
+  } else {
+    const start = nextStart();
+    model = { template: "points", banner: "abyss", title: {}, description: {}, startsAt: start, endsAt: new Date(start.getTime() + 3 * 24 * HOUR),
+      claimDays: 3, minLevel: 0, maxLevel: 0, minRankPoints: 0, testAccounts: [], actions: [{ action: "gather", points: 1, per: 1000 }], phases: [],
+      cyclePhases: false, stages: [], rankBands: [], note: "" };
+  }
+
+  const draw = () => render(root, form());
+
+  // A select of reward ids for a reward type.
+  function rewardIdSelect(r) {
+    const apply = () => { if (r.type === "shards" && s.value.startsWith("rarity:")) { r.id = ""; r.rarity = s.value.slice(7); } else { r.id = s.value; r.rarity = ""; } };
+    const s = el("select", { onchange: apply });
+    let options = [];
+    if (r.type === "resource") options = RESOURCES.map((x) => [x, RESOURCE_TR[x]]);
+    else if (r.type === "item") {
+      const known = new Set();
+      options = GRANT_ITEMS.map(([x, n]) => (known.add(x), [x, n]));
+      for (const i of meta.items) if (!known.has(i.id)) options.push([i.id, `${i.id} (${RARITY_TR[i.rarity] || i.rarity})`]);
+    } else {
+      options = meta.rarities.map((x) => ["rarity:" + x, `Rastgele ${RARITY_TR[x] || x}`]).concat(meta.heroes.map((h) => [h.id, `${h.id} (${RARITY_TR[h.rarity] || h.rarity})`]));
+    }
+    for (const [value, label] of options) s.append(el("option", { value }, label));
+    const current = r.type === "shards" && !r.id ? "rarity:" + (r.rarity || meta.rarities[0]) : r.id;
+    s.value = options.some(([v]) => v === current) ? current : options[0][0];
+    apply(); // the model always holds what the select shows
+    return s;
+  }
+
+  function rewardsEditor(list) {
+    return el("div", { class: "rewards" },
+      list.map((r, i) => el("div", { class: "reward" },
+        el("select", { onchange: (e) => { r.type = e.target.value; r.id = ""; r.rarity = ""; r.amount = { resource: 10000, item: 1, shards: 10 }[r.type]; draw(); } },
+          ["resource", "item", "shards"].map((t) => el("option", { value: t, selected: r.type === t }, { resource: "Kaynak", item: "Eşya", shards: "Kahraman kartı" }[t]))),
+        rewardIdSelect(r),
+        el("input", { type: "number", min: "1", value: r.amount, onchange: (e) => (r.amount = Number(e.target.value)) }),
+        el("button", { class: "ghost", title: "Kaldır", onclick: () => { list.splice(i, 1); draw(); } }, "×"))),
+      el("button", { class: "ghost small", onclick: () => { list.push({ type: "resource", id: "Titanium", amount: 10000 }); draw(); } }, "+ ödül"));
+  }
+
+  function actionsEditor(list) {
+    return el("div", {},
+      el("table", { class: "compact" }, el("tbody", {}, list.map((a, i) => el("tr", {},
+        el("td", {}, el("select", { onchange: (e) => (a.action = e.target.value) },
+          meta.actions.map((x) => el("option", { value: x, selected: a.action === x }, EVENT_ACTIONS[x] || x)))),
+        el("td", {}, el("input", { type: "number", min: "1", value: a.points, onchange: (e) => (a.points = Number(e.target.value)) }), " puan"),
+        el("td", {}, "her ", el("input", { type: "number", min: "1", value: a.per, onchange: (e) => (a.per = Number(e.target.value)) }), " birim için"),
+        el("td", {}, el("button", { class: "ghost", onclick: () => { list.splice(i, 1); draw(); } }, "×")))))),
+      el("button", { class: "ghost small", onclick: () => { list.push({ action: "monster_kill", points: 10, per: 1 }); draw(); } }, "+ puan yolu"));
+  }
+
+  function textInputs(map, multiline, placeholder) {
+    const field = (code) => multiline
+      ? el("textarea", { class: "short", placeholder, onchange: (e) => (map[code] = e.target.value) }, map[code] || "")
+      : el("input", { value: map[code] || "", placeholder, onchange: (e) => (map[code] = e.target.value) });
+    return el("div", {},
+      el("div", { class: "row" }, el("label", {}, "Türkçe", field("tr")), el("label", {}, "English", field("en"))),
+      el("details", {}, el("summary", { class: "muted" }, "Diğer diller (boş bırakılırsa İngilizce gösterilir)"),
+        el("div", { class: "row" }, EVENT_LANGS.slice(2).map(([code, name]) => el("label", {}, name, field(code))))));
+  }
+
+  async function save() {
+    const body = Object.assign({}, model, {
+      startsAt: new Date(model.startsAt).toISOString(), endsAt: new Date(model.endsAt).toISOString(),
+      phases: model.template === "login" ? [] : model.phases, actions: model.template === "login" ? [] : model.actions,
+      rankBands: model.template === "login" ? [] : model.rankBands,
+    });
+    if (model.template === "login") body.stages = model.stages.map((s, i) => Object.assign({}, s, { points: i + 1 }));
+    const saved = await api("events", { method: "POST", body });
+    toast(id ? "Kaydedildi." : "Taslak oluşturuldu. Kontrol edip yayınla.");
+    location.hash = "#/events/" + saved.id;
+  }
+
+  function form() {
+    const login = model.template === "login";
+    const banner = el("select", { onchange: (e) => { model.banner = e.target.value; draw(); } },
+      meta.banners.map((b) => el("option", { value: b, selected: model.banner === b }, (EVENT_BANNERS[b] || [b])[0])));
+    return [
+      el("p", {}, el("a", { href: id ? "#/events/" + id : "#/events" }, "‹ Geri")),
+      el("h1", {}, id ? "Etkinliği düzenle" : "Yeni etkinlik"),
+      id ? null : el("div", { class: "card" }, el("b", {}, "Hazır derin deniz senaryoları"),
+        el("p", { class: "muted" }, "Birini seç, formu doldursun; sonra istediğin gibi değiştir."),
+        el("div", { class: "row" }, EVENT_PRESETS.map((p) => el("button", { onclick: () => { model = Object.assign(model, p.build(nextStart())); draw(); } }, p.name)))),
+
+      el("div", { class: "card" },
+        el("h2", {}, "Temel"),
+        el("div", { class: "row" },
+          el("label", {}, "Tür", el("select", { onchange: (e) => { model.template = e.target.value; draw(); } },
+            Object.entries(EVENT_TEMPLATES).map(([k, v]) => el("option", { value: k, selected: model.template === k }, v)))),
+          el("label", {}, "Afiş", banner),
+          el("span", { class: "swatch big", style: `background:${(EVENT_BANNERS[model.banner] || ["", "#333"])[1]}` })),
+        el("div", { class: "row" },
+          el("label", {}, "Başlangıç", el("input", { type: "datetime-local", value: toLocalInput(model.startsAt), onchange: (e) => (model.startsAt = new Date(e.target.value)) })),
+          el("label", {}, "Bitiş", el("input", { type: "datetime-local", value: toLocalInput(model.endsAt), onchange: (e) => (model.endsAt = new Date(e.target.value)) })),
+          login ? null : el("label", {}, "Ödül dönemi (gün)", el("input", { type: "number", min: "0", max: "14", value: model.claimDays, onchange: (e) => (model.claimDays = Number(e.target.value)) }))),
+        el("div", { class: "row" },
+          el("label", {}, "En düşük reaktör (0 = yok)", el("input", { type: "number", min: "0", value: model.minLevel, onchange: (e) => (model.minLevel = Number(e.target.value)) })),
+          el("label", {}, "En yüksek reaktör (0 = yok)", el("input", { type: "number", min: "0", value: model.maxLevel, onchange: (e) => (model.maxLevel = Number(e.target.value)) })),
+          login ? null : el("label", {}, "Sıralama ödülü için en az puan", el("input", { type: "number", min: "0", value: model.minRankPoints, onchange: (e) => (model.minRankPoints = Number(e.target.value)) }))),
+        el("label", {}, "Test hesapları (her satıra bir hesap no; boş = herkes)",
+          el("textarea", { class: "short", onchange: (e) => (model.testAccounts = e.target.value.split(/\s+/).filter(Boolean)) }, (model.testAccounts || []).join("\n"))),
+        el("label", {}, "İç not (oyuncular görmez)", el("input", { value: model.note || "", onchange: (e) => (model.note = e.target.value) }))),
+
+      el("div", { class: "card" }, el("h2", {}, "Başlık"), textInputs(model.title, false, "Etkinlik adı"),
+        el("h2", {}, "Açıklama"), textInputs(model.description, true, "Oyuncunun göreceği hikâye ve kurallar")),
+
+      login ? null : el("div", { class: "card" },
+        el("h2", {}, "Puan kazanma yolları"),
+        el("label", { class: "check" }, el("input", { type: "checkbox", checked: model.phases.length > 0, onchange: (e) => {
+          model.phases = e.target.checked ? [{ title: { tr: "1. tema", en: "Theme 1" }, startHour: 0, hours: 4, actions: model.actions.length ? model.actions : [{ action: "gather", points: 1, per: 1000 }] }] : [];
+          draw(); } }), " Temalı dönemler (her dönem kendi puan yollarıyla)"),
+        model.phases.length === 0 ? actionsEditor(model.actions) : [
+          el("label", { class: "check" }, el("input", { type: "checkbox", checked: model.cyclePhases, onchange: (e) => (model.cyclePhases = e.target.checked) }), " Dönemler etkinlik bitene kadar döngüyle tekrar etsin"),
+          model.phases.map((p, i) => el("div", { class: "card inner" },
+            el("div", { class: "row" },
+              el("label", {}, "Dönem adı (TR)", el("input", { value: p.title.tr || "", onchange: (e) => (p.title.tr = e.target.value) })),
+              el("label", {}, "Name (EN)", el("input", { value: p.title.en || "", onchange: (e) => (p.title.en = e.target.value) })),
+              el("label", {}, "Başlangıç (saat)", el("input", { type: "number", min: "0", step: "0.5", value: p.startHour, onchange: (e) => (p.startHour = Number(e.target.value)) })),
+              el("label", {}, "Süre (saat)", el("input", { type: "number", min: "0.5", step: "0.5", value: p.hours, onchange: (e) => (p.hours = Number(e.target.value)) })),
+              el("button", { class: "danger", onclick: () => { model.phases.splice(i, 1); draw(); } }, "Dönemi sil")),
+            actionsEditor(p.actions))),
+          el("button", { onclick: () => {
+            const last = model.phases[model.phases.length - 1];
+            model.phases.push({ title: { tr: `${model.phases.length + 1}. tema`, en: `Theme ${model.phases.length + 1}` }, startHour: last ? last.startHour + last.hours : 0, hours: last ? last.hours : 4, actions: [{ action: "gather", points: 1, per: 1000 }] });
+            draw(); } }, "+ dönem")]),
+
+      el("div", { class: "card" },
+        el("h2", {}, login ? "Günlük ödüller" : "Aşama ödülleri (puan eşikleri)"),
+        el("table", {}, el("tbody", {}, model.stages.map((s, i) => el("tr", {},
+          el("td", {}, login ? `${i + 1}. gün` : el("span", {}, el("input", { type: "number", min: "1", value: s.points, onchange: (e) => (s.points = Number(e.target.value)) }), " puan")),
+          el("td", {}, rewardsEditor(s.rewards)),
+          el("td", {}, el("button", { class: "ghost", onclick: () => { model.stages.splice(i, 1); draw(); } }, "×")))))),
+        el("button", { onclick: () => {
+          const last = model.stages[model.stages.length - 1];
+          model.stages.push({ points: login ? model.stages.length + 1 : (last ? last.points * 2 : 1000), rewards: [{ type: "resource", id: "Titanium", amount: 10000 }] });
+          draw(); } }, login ? "+ gün" : "+ aşama")),
+
+      login ? null : el("div", { class: "card" },
+        el("h2", {}, model.template === "alliance" ? "Sıralama ödülleri (ittifak sırası; ödülü puan kazanan her üye alır)" : "Sıralama ödülleri"),
+        el("table", {}, el("tbody", {}, model.rankBands.map((b, i) => el("tr", {},
+          el("td", {}, el("input", { type: "number", min: "1", value: b.from, onchange: (e) => (b.from = Number(e.target.value)) }), " – ",
+            el("input", { type: "number", min: "1", value: b.to, onchange: (e) => (b.to = Number(e.target.value)) }), ". sıra"),
+          el("td", {}, rewardsEditor(b.rewards)),
+          el("td", {}, el("button", { class: "ghost", onclick: () => { model.rankBands.splice(i, 1); draw(); } }, "×")))))),
+        el("button", { onclick: () => {
+          const last = model.rankBands[model.rankBands.length - 1];
+          const from = last ? last.to + 1 : 1;
+          model.rankBands.push({ from, to: from, rewards: [{ type: "resource", id: "Hadalite", amount: 100 }] });
+          draw(); } }, "+ sıra aralığı")),
+
+      el("div", { class: "row" },
+        el("button", { class: "primary", onclick: () => save().catch((e) => toast(e.message, true)) }, id ? "Kaydet" : "Taslak olarak kaydet"),
+        el("span", { class: "muted" }, id ? "Canlı bir etkinlikte tür ve başlangıç değişmez; kazanılmış puanlar korunur." : "Taslaklar oyunculara görünmez; ayrıntı sayfasından yayınlarsın.")),
+    ];
+  }
+
+  draw();
+}

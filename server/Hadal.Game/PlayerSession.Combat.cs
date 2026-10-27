@@ -134,7 +134,11 @@ namespace Hadal.Game
             }
 
             if (battle.Won)
+            {
                 _state.MonsterWins.Add(march.NodeLevel);
+                Score(EventActions.MonsterKill, 1);
+                Score(EventActions.MonsterLevels, march.NodeLevel);
+            }
             _armyDirty = true;
             _marchesDirty = true;
             _state.IsDirty = true;

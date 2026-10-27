@@ -42,6 +42,9 @@ namespace Hadal.UI.Hud
             public Func<bool> SheetOpen;
             public Action Territory;
 
+            /// <summary>The event centre (docs/29).</summary>
+            public Action Events;
+
             /// <summary>The Depth Map campaign (docs/rehber 08 §5).</summary>
             public Action Expedition;
             public Func<bool> InWorld;
@@ -76,6 +79,7 @@ namespace Hadal.UI.Hud
         private Text _territoryLabel;
         private bool _shownInWorld;
         private GameObject _bagDot;
+        private GameObject _eventsDot;
         private string _taskQuest = string.Empty;
         private bool _taskDone;
         private Text _chatPreview;
@@ -174,7 +178,7 @@ namespace Hadal.UI.Hud
             var pod = SideButton(_lower.transform, "Pod", "event_pod", Loc.T("hud.pod"), 0.835f, 0.83f, 0.985f, 0.905f, _actions.Pod);
             _podLabel = pod.Label;
             _podDot = pod.Dot;
-            SideButton(_lower.transform, "Events", "event_gift", Loc.T("hud.events"), 0.835f, 0.74f, 0.985f, 0.815f, () => Soon("hud.events"));
+            _eventsDot = SideButton(_lower.transform, "Events", "event_gift", Loc.T("hud.events"), 0.835f, 0.74f, 0.985f, 0.815f, () => _actions.Events?.Invoke()).Dot;
             SideButton(_lower.transform, "War", "event_war", Loc.T("hud.expedition"), 0.835f, 0.65f, 0.985f, 0.725f, () => _actions.Expedition?.Invoke());
         }
 
@@ -528,6 +532,8 @@ namespace Hadal.UI.Hud
                 || View.HeroCards.Any(p => _catalog.TryGetHero(p.Key, out var h) && p.Value >= QuestRules.RecruitShards(h)));
             _allianceDot.SetActive(View.MyAlliance != null && View.HelpRequests.Any(r => !r.HelpedByMe));
             _helpDot.SetActive(_allianceDot.activeSelf);
+            var nowMs = View.ServerNowMs;
+            _eventsDot.SetActive(View.Events.Events.Any(e => EventRules.HasClaim(e, nowMs)));
             _chatDot.SetActive(View.UnreadChat > 0);
 
             if (_chatVersion == View.ChatVersion)

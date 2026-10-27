@@ -139,6 +139,40 @@ namespace Hadal.Game.Tests
         }
 
         [Fact]
+        public async Task Events_AreCreatedPublishedAndListed()
+        {
+            var gm = await LoginAsync(AdminRoles.GameMaster);
+            var viewer = await LoginAsync(AdminRoles.Viewer);
+            var start = DateTimeOffset.UtcNow.AddMinutes(-5);
+            var body = new
+            {
+                template = "points",
+                title = new Dictionary<string, string> { ["tr"] = "Derinlik Yarışı" },
+                banner = "abyss",
+                startsAt = start,
+                endsAt = start.AddDays(3),
+                actions = new[] { new { action = "monster_kill", points = 10, per = 1 } },
+                stages = new[] { new { points = 100, rewards = new[] { new { type = "resource", id = "Titanium", amount = 1000 } } } }
+            };
+
+            Assert.Equal(HttpStatusCode.Forbidden, (await Proxied(viewer).PostAsJsonAsync("/admin/api/events", body)).StatusCode);
+            var bad = await Proxied(gm).PostAsJsonAsync("/admin/api/events", new { template = "points", title = new Dictionary<string, string>(), startsAt = start, endsAt = start.AddDays(1) });
+            Assert.Equal(HttpStatusCode.BadRequest, bad.StatusCode);
+
+            var created = await Proxied(gm).PostAsJsonAsync("/admin/api/events", body);
+            created.EnsureSuccessStatusCode();
+            var id = (await created.Content.ReadFromJsonAsync<System.Text.Json.JsonElement>()).GetProperty("id").GetString()!;
+            (await Proxied(gm).PostAsync($"/admin/api/events/{id}/publish", null)).EnsureSuccessStatusCode();
+
+            var list = await Proxied(viewer).GetFromJsonAsync<System.Text.Json.JsonElement>("/admin/api/events");
+            var row = list.EnumerateArray().Single(e => e.GetProperty("definition").GetProperty("id").GetString() == id);
+            Assert.Equal("live", row.GetProperty("phase").GetString());
+            Assert.Equal(HttpStatusCode.OK, (await Proxied(viewer).GetAsync($"/admin/api/events/{id}")).StatusCode);
+            Assert.Equal(HttpStatusCode.OK, (await Proxied(viewer).GetAsync("/admin/api/events/meta")).StatusCode);
+            Assert.Equal(HttpStatusCode.BadRequest, (await Proxied(gm).DeleteAsync($"/admin/api/events/{id}")).StatusCode);
+        }
+
+        [Fact]
         public async Task Roles_AreEnforced()
         {
             var viewer = await LoginAsync(AdminRoles.Viewer);

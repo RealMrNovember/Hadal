@@ -52,5 +52,8 @@ namespace HADAL.Shared.Enums
         [ProtoEnum] CancelHeal = 44,
         [ProtoEnum] UseSpeedup = 45,
         [ProtoEnum] MarchAttack = 46,
+        [ProtoEnum] ClaimEventStage = 47,
+        [ProtoEnum] ClaimEventRank = 48,
+        [ProtoEnum] ViewEventRanking = 49,
     }
 }

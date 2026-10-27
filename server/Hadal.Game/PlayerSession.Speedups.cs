@@ -46,6 +46,8 @@ namespace Hadal.Game
             }
 
             TakeItem(command.ItemId, count);
+            if (!percent)
+                Score(EventActions.SpeedupMinutes, (long)value * count);
             _state.IsDirty = true;
 
             // Timers that reached zero complete now, with everything that follows from them.

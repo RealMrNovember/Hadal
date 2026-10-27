@@ -45,6 +45,7 @@ namespace Hadal.Game
             if (won)
             {
                 Record("dive");
+                Score(EventActions.Dive, 1);
                 var index = ExpeditionRules.Index(expedition, command.Chapter, command.Stage);
                 report.FirstClear = index == _state.ExpeditionCleared;
                 if (report.FirstClear)
