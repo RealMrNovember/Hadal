@@ -12,5 +12,10 @@ namespace Hadal.Core.State
         public static event Action<Vector3, float?> Requested;
 
         public static void Request(Vector3 world, float? distance = null) => Requested?.Invoke(world, distance);
+
+        /// <summary>The base comes into view (title lifted, back from the world): the camera settles in from higher up.</summary>
+        public static event Action SettleRequested;
+
+        public static void Settle() => SettleRequested?.Invoke();
     }
 }

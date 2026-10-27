@@ -74,7 +74,34 @@ namespace Hadal.UI
 
         // --- Enter and leave -----------------------------------------------------------------
 
-        public void Open()
+        /// <summary>Out to the world behind the curtain (dark, logo, the world appears); <paramref name="then"/> runs once it is open.</summary>
+        public void Open(Action then = null)
+        {
+            if (IsOpen)
+            {
+                then?.Invoke();
+                return;
+            }
+
+            SceneCurtain.ToWorld(() =>
+            {
+                OpenNow();
+                then?.Invoke();
+            });
+        }
+
+        /// <summary>Back to the base with the curtain (Territory button, "Enter base").</summary>
+        public void CloseToBase()
+        {
+            if (IsOpen)
+                SceneCurtain.ToBase(() =>
+                {
+                    Close();
+                    Hadal.Core.State.CameraFocus.Settle();
+                });
+        }
+
+        private void OpenNow()
         {
             if (IsOpen)
                 return;
@@ -116,9 +143,11 @@ namespace Hadal.UI
         /// <summary>Opens the map over a shared location (chat pins, profile cards).</summary>
         public void OpenAt(int x, int y)
         {
-            Open();
-            _focus = TileToWorld(x, y);
-            Request(x, y);
+            Open(() =>
+            {
+                _focus = TileToWorld(x, y);
+                Request(x, y);
+            });
         }
 
         public void GoHome()
@@ -321,7 +350,7 @@ namespace Hadal.UI
             var target = b;
             if (me)
             {
-                items.Add(new TargetMenu.Item("left_home", Loc.T("world.enter"), Close));
+                items.Add(new TargetMenu.Item("left_home", Loc.T("world.enter"), CloseToBase));
                 items.Add(new TargetMenu.Item("avatar", Loc.T("profile.title"), () => ProfileCard.Instance?.ShowMine()));
                 items.Add(new TargetMenu.Item("chat", Loc.T("share.title"), () => ShareLocation?.Invoke(target.X, target.Y, "me", target.Name)));
             }

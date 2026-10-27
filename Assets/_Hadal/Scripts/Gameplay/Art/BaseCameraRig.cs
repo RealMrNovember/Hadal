@@ -30,9 +30,26 @@ namespace Hadal.Gameplay.Art
         private Vector3? _glideTo;
         private float _glideDistance;
 
-        private void OnEnable() => Hadal.Core.State.CameraFocus.Requested += OnFocus;
+        private void OnEnable()
+        {
+            Hadal.Core.State.CameraFocus.Requested += OnFocus;
+            Hadal.Core.State.CameraFocus.SettleRequested += OnSettle;
+        }
 
-        private void OnDisable() => Hadal.Core.State.CameraFocus.Requested -= OnFocus;
+        private void OnDisable()
+        {
+            Hadal.Core.State.CameraFocus.Requested -= OnFocus;
+            Hadal.Core.State.CameraFocus.SettleRequested -= OnSettle;
+        }
+
+        /// <summary>Starts higher and glides down to the current view (the genre's soft arrival on the city).</summary>
+        private void OnSettle()
+        {
+            var keep = _distance;
+            _distance = Mathf.Min(_maxDistance, keep * 1.45f);
+            _glideTo = transform.position;
+            _glideDistance = keep;
+        }
 
         private void OnFocus(Vector3 world, float? distance)
         {

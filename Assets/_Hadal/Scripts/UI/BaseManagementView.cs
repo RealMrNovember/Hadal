@@ -213,7 +213,7 @@ namespace Hadal.UI
                     Close();
                     _social.Close();
                     if (_map.IsOpen)
-                        _map.Close();
+                        _map.CloseToBase();
                     else
                         _map.Open();
                 },
