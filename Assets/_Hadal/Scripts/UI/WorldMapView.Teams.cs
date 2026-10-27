@@ -30,8 +30,8 @@ namespace Hadal.UI
         private readonly Dictionary<string, TeamView> _teams = new();
         private string _following = string.Empty;
 
-        private const float HeroScale = 3f;
-        private const float TroopScale = 2f;
+        private const float HeroScale = 5f;
+        private const float TroopScale = 3.5f;
 
         /// <summary>Draws every march as a moving team; called each frame with the march list.</summary>
         private void UpdateTeams(MarchDto[] marches, long now)
@@ -105,7 +105,7 @@ namespace Hadal.UI
 
             // The ground ring and the plate are UI so they stay crisp at any zoom.
             var ring = UiKit.Rect("Ring", _labels);
-            ring.sizeDelta = new Vector2(150f, 90f);
+            ring.sizeDelta = new Vector2(220f, 130f);
             var ringImage = ring.gameObject.AddComponent<Image>();
             ringImage.sprite = UiKit.CircleRing;
             ringImage.color = new Color(0.36f, 0.86f, 0.46f, 0.85f);
@@ -146,7 +146,7 @@ namespace Hadal.UI
             for (var i = 0; i < heroes.Count; i++)
             {
                 var model = catalog.TryGetHero(heroes[i], out var hero) ? library.Model(hero.Model) : null;
-                Place(model ?? library.Model("crew_engineer"), new Vector3((i - (heroes.Count - 1) / 2f) * 2.4f, 0f, 1.5f), HeroScale);
+                Place(model ?? library.Model("crew_engineer"), new Vector3((i - (heroes.Count - 1) / 2f) * 3.6f, 0f, 2.4f), HeroScale);
             }
 
             // Troops: one figure per stack type, a few rows deep; armored divers wear the heavy suit.
@@ -158,7 +158,7 @@ namespace Hadal.UI
                 var model = library.Model(type == "armored" ? "mech_guard" : type == "driller" ? "mech_worker" : "crew_scientist");
                 var row = i / 4;
                 var col = i % 4;
-                Place(model, new Vector3((col - 1.5f) * 1.8f, 0f, -1.2f - row * 1.8f), TroopScale);
+                Place(model, new Vector3((col - 1.5f) * 2.8f, 0f, -2f - row * 2.8f), TroopScale);
             }
 
             void Place(GameObject prefab, Vector3 offset, float scale)
@@ -238,7 +238,8 @@ namespace Hadal.UI
                 seat.rectTransform.Place(x0, 0.55f, x0 + 0.18f, 0.85f);
                 if (catalog.TryGetHero(heroes[i], out var def))
                     SocialView.Portrait(seat.transform, def, true, 0.04f, 0.22f, 0.96f, 0.97f);
-                var count = m.HeroTroops != null && i < m.HeroTroops.Length ? m.HeroTroops[i] : 0;
+                // Marches sent before teams carried only a crew count under their one hero.
+                var count = m.HeroTroops != null && i < m.HeroTroops.Length ? m.HeroTroops[i] : heroes.Length == 1 ? m.Crew : 0;
                 var chip = UiKit.Box("Troops", seat.transform, new Color(0.17f, 0.6f, 0.3f, 1f));
                 chip.rectTransform.Place(0.04f, 0.02f, 0.96f, 0.2f);
                 UiKit.Label("Count", chip.transform, CostChips.Compact(count), 20, Color.white, TextAnchor.MiddleCenter, FontStyle.Bold).rectTransform.Place(0, 0, 1, 1);

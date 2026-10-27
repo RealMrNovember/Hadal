@@ -33,6 +33,18 @@ namespace Hadal.UI
         /// <summary>The same shape as an outline (thin frame).</summary>
         public static Sprite Ring => _ring != null ? _ring : _ring = MakeRounded(true);
 
+        private static Sprite _gloss;
+        private static Sprite _soft;
+
+        /// <summary>
+        /// Rounded and shaded for buttons (Last Asylum's look): darker at the bottom, a bright band at the top. Tinting
+        /// multiplies, so every button colour gets the same gloss.
+        /// </summary>
+        public static Sprite Gloss => _gloss != null ? _gloss : _gloss = MakeShaded("HadalGloss", 0.62f, 0.9f, 0.16f);
+
+        /// <summary>Rounded with a gentle top-to-bottom shade for panels and cards.</summary>
+        public static Sprite Soft => _soft != null ? _soft : _soft = MakeShaded("HadalSoft", 0.84f, 1f, 0.04f);
+
         private static Sprite _circle;
         private static Sprite _circleRing;
 
@@ -70,6 +82,39 @@ namespace Hadal.UI
             return Sprite.Create(texture, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), 100f);
         }
 
+        /// <summary>A rounded rectangle whose brightness runs from <paramref name="bottom"/> to <paramref name="top"/>, plus a highlight band near the top.</summary>
+        private static Sprite MakeShaded(string name, float bottom, float top, float highlight)
+        {
+            const int size = 64;
+            var texture = new Texture2D(size, size, TextureFormat.RGBA32, false)
+            {
+                wrapMode = TextureWrapMode.Clamp,
+                filterMode = FilterMode.Bilinear,
+                name = name
+            };
+            var pixels = new Color32[size * size];
+            for (var y = 0; y < size; y++)
+            {
+                var t = (y + 0.5f) / size;
+                var shade = Mathf.Lerp(bottom, top, t);
+                // The glossy band: brightest just under the top edge, fading out by the middle.
+                shade += highlight * Mathf.Clamp01((t - 0.55f) / 0.3f) * Mathf.Clamp01((0.97f - t) / 0.06f);
+                var value = (byte)(Mathf.Clamp01(shade) * 255);
+                for (var x = 0; x < size; x++)
+                {
+                    var cx = Mathf.Clamp(x + 0.5f, Radius, size - Radius);
+                    var cy = Mathf.Clamp(y + 0.5f, Radius, size - Radius);
+                    var d = Vector2.Distance(new Vector2(x + 0.5f, y + 0.5f), new Vector2(cx, cy)) - Radius;
+                    pixels[y * size + x] = new Color32(value, value, value, (byte)(Mathf.Clamp01(0.5f - d) * 255));
+                }
+            }
+
+            texture.SetPixels32(pixels);
+            texture.Apply(false, true);
+            return Sprite.Create(texture, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), 100f, 0, SpriteMeshType.FullRect,
+                new Vector4(Radius, Radius, Radius, Radius));
+        }
+
         private static Sprite MakeRounded(bool ring)
         {
             const int size = 64;
@@ -101,6 +146,14 @@ namespace Hadal.UI
                 new Vector4(Radius, Radius, Radius, Radius));
         }
         public static readonly Color Accent = new(0.22f, 0.84f, 0.95f, 1f);
+
+        /// <summary>Tabs: the chosen one pale, the rest deep blue.</summary>
+        public static readonly Color TabOn = new(0.88f, 0.93f, 0.97f, 1f);
+        public static readonly Color TabOff = new(0.1f, 0.2f, 0.3f, 1f);
+
+        /// <summary>Primary action (Last Asylum's blue) and the gold of purchases and claims.</summary>
+        public static readonly Color Primary = new(0.24f, 0.52f, 0.9f, 1f);
+        public static readonly Color Gold = new(0.98f, 0.74f, 0.25f, 1f);
         public static readonly Color Amber = new(1f, 0.64f, 0.22f, 1f);
         public static readonly Color Text = new(0.86f, 0.94f, 0.97f, 1f);
         public static readonly Color Muted = new(0.55f, 0.68f, 0.74f, 1f);
@@ -166,18 +219,25 @@ namespace Hadal.UI
         {
             var rect = Rect(name, parent);
             var image = rect.gameObject.AddComponent<Image>();
-            image.sprite = Rounded;
+            image.sprite = color.a > 0.05f ? Soft : Rounded;
             image.type = UnityEngine.UI.Image.Type.Sliced;
             image.color = color;
 
             if (color == Panel || color == Field)
             {
-                var frame = Rect("Frame", rect).gameObject.AddComponent<Image>();
-                frame.sprite = Ring;
-                frame.type = UnityEngine.UI.Image.Type.Sliced;
-                frame.color = new Color(Accent.r, Accent.g, Accent.b, color == Panel ? 0.35f : 0.18f);
-                frame.raycastTarget = false;
-                ((RectTransform)frame.transform).Place(0, 0, 1, 1);
+                var outer = Rect("Frame", rect).gameObject.AddComponent<Image>();
+                outer.sprite = Ring;
+                outer.type = UnityEngine.UI.Image.Type.Sliced;
+                outer.color = new Color(0f, 0f, 0f, 0.55f);
+                outer.raycastTarget = false;
+                ((RectTransform)outer.transform).Place(0, 0, 1, 1);
+
+                var inner = Rect("Edge", rect).gameObject.AddComponent<Image>();
+                inner.sprite = Ring;
+                inner.type = UnityEngine.UI.Image.Type.Sliced;
+                inner.color = new Color(0.55f, 0.85f, 1f, color == Panel ? 0.32f : 0.16f);
+                inner.raycastTarget = false;
+                ((RectTransform)inner.transform).Place(0, 0, 1, 1, 3);
             }
 
             return image;
@@ -202,7 +262,9 @@ namespace Hadal.UI
 
         public static Button Button(string name, Transform parent, string text, UnityAction onClick, Color? fill = null, int fontSize = 38)
         {
-            var image = Box(name, parent, fill ?? Accent);
+            var face = fill ?? Accent;
+            var image = Box(name, parent, face);
+            image.sprite = Gloss;
             var button = image.gameObject.AddComponent<Button>();
             image.gameObject.AddComponent<PressFeedback>();
             var colors = button.colors;
@@ -213,15 +275,27 @@ namespace Hadal.UI
             if (onClick != null)
                 button.onClick.AddListener(onClick);
 
-            var label = Label("Label", image.transform, text, fontSize, new Color(0.02f, 0.07f, 0.1f), TextAnchor.MiddleCenter, FontStyle.Bold);
+            // Light fills take dark text; dark and coloured fills take white text with an outline (Last Asylum's buttons).
+            var light = 0.299f * face.r + 0.587f * face.g + 0.114f * face.b > 0.62f;
+            var label = Label("Label", image.transform, text, fontSize, light ? new Color(0.06f, 0.1f, 0.14f) : Color.white, TextAnchor.MiddleCenter, FontStyle.Bold);
+            if (!light)
+            {
+                var stroke = label.gameObject.AddComponent<Outline>();
+                stroke.effectColor = new Color(0f, 0f, 0f, 0.55f);
+                stroke.effectDistance = new Vector2(1.5f, -1.5f);
+            }
             label.rectTransform.Place(0, 0, 1, 1, 8);
             // Long translations shrink to fit instead of spilling out of the button.
             label.resizeTextForBestFit = true;
             label.resizeTextMinSize = Mathf.Min(16, label.fontSize);
             label.resizeTextMaxSize = label.fontSize;
+            // The lip: a darker copy of the face just below it reads as a pressable slab.
+            var lip = image.gameObject.AddComponent<Shadow>();
+            lip.effectColor = new Color(face.r * 0.4f, face.g * 0.4f, face.b * 0.4f, Mathf.Max(0.6f, face.a));
+            lip.effectDistance = new Vector2(0, -6);
             var shadow = image.gameObject.AddComponent<Shadow>();
-            shadow.effectColor = new Color(0, 0, 0, 0.45f);
-            shadow.effectDistance = new Vector2(0, -4);
+            shadow.effectColor = new Color(0, 0, 0, 0.35f);
+            shadow.effectDistance = new Vector2(0, -10);
             label.verticalOverflow = VerticalWrapMode.Truncate;
             return button;
         }
@@ -333,8 +407,12 @@ namespace Hadal.UI
                 var selected = get();
                 for (var i = 0; i < buttons.Length; i++)
                 {
-                    buttons[i].image.color = i == selected ? Accent : Field;
-                    buttons[i].GetComponentInChildren<UnityEngine.UI.Text>().color = i == selected ? Abyss : Text;
+                    buttons[i].image.color = i == selected ? TabOn : TabOff;
+                    var caption = buttons[i].GetComponentInChildren<UnityEngine.UI.Text>();
+                    caption.color = i == selected ? new Color(0.08f, 0.13f, 0.2f) : Text;
+                    var stroke = caption.GetComponent<Outline>();
+                    if (stroke != null)
+                        stroke.enabled = i != selected;
                 }
             }
 
@@ -345,8 +423,8 @@ namespace Hadal.UI
                 {
                     set(index);
                     Render();
-                }, Field, 34);
-                ((RectTransform)buttons[i].transform).Place((float)i / labels.Length, 0, (float)(i + 1) / labels.Length, 1, 6);
+                }, TabOff, 34);
+                ((RectTransform)buttons[i].transform).Place((float)i / labels.Length, 0, (float)(i + 1) / labels.Length, 1, 4);
             }
 
             Render();
