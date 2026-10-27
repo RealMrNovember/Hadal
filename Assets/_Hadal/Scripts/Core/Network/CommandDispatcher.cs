@@ -155,6 +155,8 @@ namespace Hadal.Core.Network
                 ViewProfileCommand => CommandType.ViewProfile,
                 TrainTroopsCommand => CommandType.TrainTroops,
                 CancelTrainingCommand => CommandType.CancelTraining,
+                HealTroopsCommand => CommandType.HealTroops,
+                CancelHealCommand => CommandType.CancelHeal,
                 _ => CommandType.Unknown
             };
         }

@@ -209,15 +209,19 @@ namespace Hadal.UI
                 n.Capacity > 0 ? n.Remaining / (float)n.Capacity : -1f, $"{CostChips.Compact(n.Remaining)} / {CostChips.Compact(n.Capacity)}");
         }
 
-        private void Gather(string nodeId, string heroId) =>
-            _commands.Dispatch(new MarchGatherCommand { CommandId = Guid.NewGuid().ToString("N"), ClientSequence = ++_sequence, NodeId = nodeId, HeroId = heroId ?? string.Empty });
+        private void Gather(string nodeId, string[] heroIds) =>
+            _commands.Dispatch(new MarchGatherCommand
+            {
+                CommandId = Guid.NewGuid().ToString("N"), ClientSequence = ++_sequence, NodeId = nodeId,
+                HeroId = heroIds.FirstOrDefault() ?? string.Empty, HeroIds = heroIds
+            });
 
         private void Recall(string marchId) =>
             _commands.Dispatch(new RecallMarchCommand { CommandId = Guid.NewGuid().ToString("N"), ClientSequence = ++_sequence, MarchId = marchId });
 
         // --- Marches: setup, the queue at the top left, submarines on the map -------------------
 
-        private string _setupHero = string.Empty;
+        private List<string> _setupTeam = new();
 
         private void BuildMarches(Transform safe)
         {
@@ -226,23 +230,53 @@ namespace Hadal.UI
         }
 
         private HashSet<string> MarchingHeroes() =>
-            new((View.Marches?.Marches ?? Array.Empty<MarchDto>()).Select(m => m.HeroId).Where(h => !string.IsNullOrEmpty(h)));
+            new((View.Marches?.Marches ?? Array.Empty<MarchDto>())
+                .SelectMany(m => m.HeroIds != null && m.HeroIds.Length > 0 ? m.HeroIds : new[] { m.HeroId })
+                .Where(h => !string.IsNullOrEmpty(h)));
 
-        /// <summary>The genre's march setup: pick who leads, see the crew, the load and the trip, then send.</summary>
-        private void OpenMarchSetup(WorldNodeDto n, string heroId = null)
+        /// <summary>"Sable +2" for a team of three.</summary>
+        private static string TeamName(MarchDto m)
         {
+            var hero = ClientCatalog.Catalog.TryGetHero(m.HeroId, out var def) ? Loc.T("hero." + def.Id) : Loc.T("march.divers");
+            var more = (m.HeroIds?.Length ?? 0) - 1;
+            return more > 0 ? $"{hero} +{more}" : hero;
+        }
+
+        /// <summary>
+        /// The genre's march setup (Last Asylum): up to five heroes, each leading their command of troops from home; the
+        /// troop count under every portrait, the team's load, trip and gathering time, then send.
+        /// </summary>
+        private void OpenMarchSetup(WorldNodeDto n, List<string> team = null)
+        {
+            var fresh = team == null;
             ClosePopup();
             var catalog = ClientCatalog.Catalog;
+            var troops = catalog.Troops;
             var world = catalog.World;
             var reactor = ReactorLevel();
             var view = View.WorldView;
             var marching = MarchingHeroes();
+            var army = View.Army ?? new ArmyDto();
+            var command = (army.Command ?? Array.Empty<HeroCommandDto>()).ToDictionary(c => c.HeroId, c => c.Capacity);
             var heroes = View.Heroes
                 .Select(h => (View: h, Ok: catalog.TryGetHero(h.HeroId, out var d), Def: d))
                 .Where(h => h.Ok)
-                .Select(h => (h.View, h.Def, Power: HeroRules.Power(h.Def, h.View.Level, h.View.Stars), Busy: marching.Contains(h.View.HeroId)))
+                .Select(h => (h.View, h.Def, Power: HeroRules.Power(h.Def, h.View.Level, h.View.Stars), Busy: marching.Contains(h.View.HeroId),
+                    Command: command.TryGetValue(h.View.HeroId, out var c) ? c : TroopRules.CommandCapacity(troops, h.View.Level, h.View.Stars, 0)))
                 .OrderBy(h => h.Busy).ThenByDescending(h => h.Power).ToList();
-            _setupHero = heroId ?? heroes.Where(h => !h.Busy).Select(h => h.View.HeroId).FirstOrDefault() ?? string.Empty;
+            var maxHeroes = Math.Max(1, troops.command.maxHeroes);
+            _setupTeam = team ?? heroes.Where(h => !h.Busy).Take(maxHeroes).Select(h => h.View.HeroId).ToList();
+
+            // Auto-fill exactly as the server does: each hero's own troop type first, highest tier first.
+            var home = (army.Troops ?? Array.Empty<TroopStackDto>()).ToDictionary(t => TroopRules.Key(t.Type, t.Tier), t => t.Count);
+            var members = _setupTeam.Select(id => heroes.First(h => h.View.HeroId == id)).ToList();
+            var shares = TroopRules.FillTeam(troops, home, members.Select(m => (TroopRules.Affinity(troops, m.Def.HeroClass), m.Command)).ToList());
+            var aboard = new Dictionary<string, long>();
+            foreach (var share in shares)
+                foreach (var pair in share)
+                    aboard[pair.Key] = (aboard.TryGetValue(pair.Key, out var c) ? c : 0) + pair.Value;
+            var troopCount = aboard.Values.Sum();
+            var capacity = members.Sum(m => (long)m.Command);
 
             var dim = UiKit.Box("Popup", _popupCanvas.transform, new Color(0, 0, 0, 0.6f));
             dim.rectTransform.Place(0, 0, 1, 1);
@@ -250,16 +284,16 @@ namespace Hadal.UI
             _popup = dim.gameObject;
 
             var card = UiKit.Box("Card", dim.transform, UiKit.Panel);
-            card.rectTransform.Place(0.04f, 0.2f, 0.96f, 0.8f);
+            card.rectTransform.Place(0.03f, 0.12f, 0.97f, 0.88f);
             card.gameObject.AddComponent<Button>();
-            if (heroId == null)
+            if (fresh)
             {
                 card.gameObject.AddComponent<CanvasGroup>();
                 card.gameObject.AddComponent<PopIn>();
             }
 
             var header = UiKit.Box("Header", card.transform, new Color(0.05f, 0.16f, 0.22f, 1f));
-            header.rectTransform.Place(0, 0.89f, 1, 1);
+            header.rectTransform.Place(0, 0.91f, 1, 1);
             UiKit.Label("Title", header.transform, Loc.T("march.setup"), 42, UiKit.Text, TextAnchor.MiddleLeft, FontStyle.Bold).rectTransform.Place(0.05f, 0.45f, 0.8f, 1f);
             UiKit.Label("Target", header.transform, $"{Loc.F("base.level", n.Level)}  {NodeName(n.Type)}", 28, UiKit.Accent, TextAnchor.MiddleLeft, FontStyle.Bold)
                 .rectTransform.Place(0.05f, 0.02f, 0.8f, 0.5f);
@@ -267,55 +301,94 @@ namespace Hadal.UI
             close.GetComponentInChildren<Text>().color = UiKit.Text;
             ((RectTransform)close.transform).Place(0.84f, 0.18f, 0.96f, 0.82f);
 
-            UiKit.Label("Pick", card.transform, Loc.T("march.commander"), 30, UiKit.Muted, TextAnchor.MiddleLeft, FontStyle.Bold).rectTransform.Place(0.05f, 0.82f, 0.95f, 0.88f);
+            // The team: five seats, each with the troops that hero leads (Last Asylum's 320 · 320 · 293 …).
+            UiKit.Label("Team", card.transform, Loc.T("march.team"), 28, UiKit.Muted, TextAnchor.MiddleLeft, FontStyle.Bold).rectTransform.Place(0.04f, 0.86f, 0.96f, 0.905f);
+            for (var i = 0; i < maxHeroes; i++)
+            {
+                var x0 = 0.03f + i * 0.19f;
+                var seat = UiKit.Box("Seat", card.transform, new Color(0, 0, 0, 0.35f));
+                seat.rectTransform.Place(x0, 0.7f, x0 + 0.18f, 0.86f);
+                if (i >= members.Count)
+                {
+                    UiKit.Label("Plus", seat.transform, "+", 64, UiKit.Muted, TextAnchor.MiddleCenter, FontStyle.Bold).rectTransform.Place(0, 0, 1, 1);
+                    continue;
+                }
 
-            // Commander grid: four portraits a row; heroes already out are dimmed.
-            const int columns = 4;
-            const float top = 0.81f, rowHeight = 0.2f;
-            for (var i = 0; i < Math.Min(heroes.Count, 8); i++)
+                var m = members[i];
+                SocialView.Portrait(seat.transform, m.Def, true, 0.04f, 0.22f, 0.96f, 0.97f);
+                var chip = UiKit.Box("Troops", seat.transform, new Color(0.17f, 0.6f, 0.3f, 1f));
+                chip.rectTransform.Place(0.04f, 0.02f, 0.96f, 0.2f);
+                UiKit.Label("Count", chip.transform, CostChips.Compact(shares[i].Values.Sum()), 22, Color.white, TextAnchor.MiddleCenter, FontStyle.Bold)
+                    .rectTransform.Place(0, 0, 1, 1);
+                var drop = m.View.HeroId;
+                seat.gameObject.AddComponent<Button>().onClick.AddListener(() =>
+                {
+                    var next = _setupTeam.Where(id => id != drop).ToList();
+                    OpenMarchSetup(n, next);
+                });
+            }
+
+            // Troops aboard against the team's command.
+            var bar = UiKit.Box("Bar", card.transform, UiKit.Field);
+            bar.rectTransform.Place(0.04f, 0.655f, 0.96f, 0.69f);
+            UiKit.Box("Fill", bar.transform, troopCount >= capacity && capacity > 0 ? UiKit.Ok : UiKit.Amber).rectTransform
+                .Place(0, 0, capacity > 0 ? Mathf.Clamp01(troopCount / (float)capacity) : 0f, 1);
+            UiKit.Label("Text", bar.transform, Loc.F("march.troops", troopCount.ToString("N0"), capacity.ToString("N0")), 22, Color.white, TextAnchor.MiddleCenter, FontStyle.Bold)
+                .rectTransform.Place(0, 0, 1, 1);
+
+            // Load, trip and gathering time for this team.
+            var rates = GatherRules.Rates(world, catalog.Gather, n.Type, n.Level, reactor);
+            var load = Math.Min(TroopRules.MarchLoad(troops, aboard), n.Remaining);
+            var speed = TroopRules.MarchSpeed(troops, aboard.Keys);
+            var trip = view == null ? 0 : (int)Math.Ceiling(GatherRules.TravelSeconds(world, view.MyX, view.MyY, n.X, n.Y) * 100.0 / speed);
+            var info = UiKit.Box("Info", card.transform, new Color(0.04f, 0.11f, 0.15f, 1f));
+            info.rectTransform.Place(0.04f, 0.53f, 0.96f, 0.645f);
+            var text = troopCount <= 0
+                ? $"<color=#FF8A80>{Loc.T("march.notroops")}</color>"
+                : $"{Loc.F("march.load", CostChips.Compact(load))}\n{Loc.F("march.trip", Loc.Duration(trip), Loc.Duration(GatherRules.GatherSeconds(world, rates, load)))}";
+            UiKit.Label("Text", info.transform, text, 28, UiKit.Text, TextAnchor.MiddleLeft).rectTransform.Place(0.04f, 0.05f, 0.96f, 0.95f);
+
+            // Every hero: tap to put in or take out (at most five); heroes already out are dimmed.
+            UiKit.Label("Pick", card.transform, Loc.F("march.pick", maxHeroes), 24, UiKit.Muted, TextAnchor.MiddleLeft).rectTransform.Place(0.04f, 0.485f, 0.96f, 0.525f);
+            const int columns = 5;
+            const float top = 0.48f, rowHeight = 0.15f;
+            for (var i = 0; i < Math.Min(heroes.Count, 10); i++)
             {
                 var h = heroes[i];
                 var col = i % columns;
                 var row = i / columns;
-                var x0 = 0.04f + col * 0.23f;
+                var x0 = 0.03f + col * 0.19f;
                 var y1 = top - row * (rowHeight + 0.01f);
-                var slot = UiKit.Box("Hero", card.transform, h.View.HeroId == _setupHero ? UiKit.Accent : new Color(0, 0, 0, 0.35f));
-                slot.rectTransform.Place(x0, y1 - rowHeight, x0 + 0.22f, y1);
+                var picked = _setupTeam.Contains(h.View.HeroId);
+                var slot = UiKit.Box("Hero", card.transform, picked ? UiKit.Accent : new Color(0, 0, 0, 0.35f));
+                slot.rectTransform.Place(x0, y1 - rowHeight, x0 + 0.18f, y1);
+                SocialView.Portrait(slot.transform, h.Def, !h.Busy, 0.05f, 0.24f, 0.95f, 0.96f);
+                UiKit.Label("Cmd", slot.transform, h.Busy ? Loc.T("march.busy") : $"⚔ {h.Command}", 20, h.Busy ? UiKit.Amber : UiKit.Text,
+                    TextAnchor.MiddleCenter, FontStyle.Bold).rectTransform.Place(0, 0.02f, 1, 0.22f);
                 var pick = h.View.HeroId;
                 if (!h.Busy)
                     slot.gameObject.AddComponent<Button>().onClick.AddListener(() =>
                     {
-                        Destroy(_popup);
-                        _popup = null;
-                        OpenMarchSetup(n, pick);
+                        var next = _setupTeam.ToList();
+                        if (next.Contains(pick))
+                            next.Remove(pick);
+                        else if (next.Count < maxHeroes)
+                            next.Add(pick);
+                        OpenMarchSetup(n, next);
                     });
-                SocialView.Portrait(slot.transform, h.Def, !h.Busy, 0.04f, 0.26f, 0.96f, 0.97f);
-                UiKit.Label("Name", slot.transform, h.Busy ? Loc.T("march.busy") : Loc.T("hero." + h.View.HeroId), 22,
-                    h.Busy ? UiKit.Amber : UiKit.Text, TextAnchor.MiddleCenter, FontStyle.Bold).rectTransform.Place(0, 0.12f, 1, 0.27f);
-                UiKit.Label("Power", slot.transform, CostChips.Compact(h.Power), 20, UiKit.Muted, TextAnchor.MiddleCenter).rectTransform.Place(0, 0, 1, 0.13f);
             }
 
             if (heroes.Count == 0)
-                UiKit.Label("None", card.transform, Loc.T("march.noheroes"), 28, UiKit.Muted, TextAnchor.MiddleCenter).rectTransform.Place(0.05f, 0.5f, 0.95f, 0.8f);
+                UiKit.Label("None", card.transform, Loc.T("march.noheroes"), 28, UiKit.Muted, TextAnchor.MiddleCenter).rectTransform.Place(0.05f, 0.2f, 0.95f, 0.45f);
 
-            // Crew, load, trip and gathering time for the chosen commander.
-            var rates = GatherRules.Rates(world, catalog.Gather, n.Type, n.Level, reactor);
-            var load = Math.Min(GatherRules.Load(catalog.Gather, reactor), n.Remaining);
-            var trip = view == null ? 0 : GatherRules.TravelSeconds(world, view.MyX, view.MyY, n.X, n.Y);
-            var lines = $"{Loc.F("march.crew", GatherRules.Crew(reactor))}\n{Loc.F("march.load", CostChips.Compact(load))}\n" +
-                        $"{Loc.F("march.trip", Loc.Duration(trip), Loc.Duration(GatherRules.GatherSeconds(world, rates, load)))}";
-            var info = UiKit.Box("Info", card.transform, new Color(0.04f, 0.11f, 0.15f, 1f));
-            info.rectTransform.Place(0.04f, 0.17f, 0.96f, 0.38f);
-            UiKit.Label("Text", info.transform, lines, 30, UiKit.Text, TextAnchor.MiddleLeft).rectTransform.Place(0.05f, 0.05f, 0.95f, 0.95f);
-
-            var can = !string.IsNullOrEmpty(_setupHero);
+            var can = _setupTeam.Count > 0 && troopCount > 0;
             var go = UiKit.Button("Go", card.transform, Loc.T("march.go"), () =>
             {
-                Gather(n.Id, _setupHero);
+                Gather(n.Id, _setupTeam.ToArray());
                 ClosePopup();
             }, can ? UiKit.Ok : UiKit.Panel, 40);
             go.interactable = can;
-            ((RectTransform)go.transform).Place(0.2f, 0.03f, 0.8f, 0.14f);
+            ((RectTransform)go.transform).Place(0.2f, 0.02f, 0.8f, 0.12f);
         }
 
         /// <summary>Where a march is now, in tiles (outbound, at the node, or on the way back).</summary>
@@ -373,7 +446,7 @@ namespace Hadal.UI
                     _subs[m.Id] = sub;
                 }
 
-                var hero = catalog.TryGetHero(m.HeroId, out var def) ? Loc.T("hero." + def.Id) : Loc.T("march.divers");
+                var hero = TeamName(m);
                 var phase = now < m.ArrivesAtMs ? "world.march.outbound" : now < m.GatheredAtMs ? "world.march.gathering" : "world.march.returning";
                 var until = now < m.ArrivesAtMs ? m.ArrivesAtMs : now < m.GatheredAtMs ? m.GatheredAtMs : m.HomeAtMs;
                 sub.Label.text = $"{hero} · {Loc.F("march.crew.short", m.Crew)}\n<size=18>{Loc.F(phase, Loc.Duration(Math.Max(0, (until - now) / 1000f)))}</size>";
@@ -456,8 +529,7 @@ namespace Hadal.UI
 
                 var phase = now < m.ArrivesAtMs ? "world.march.outbound" : now < m.GatheredAtMs ? "world.march.gathering" : "world.march.returning";
                 var until = now < m.ArrivesAtMs ? m.ArrivesAtMs : now < m.GatheredAtMs ? m.GatheredAtMs : m.HomeAtMs;
-                var hero = def != null ? Loc.T("hero." + def.Id) : Loc.T("march.divers");
-                UiKit.Label("Who", row.transform, $"{hero} · {Loc.F("march.crew.short", m.Crew)}", 22, UiKit.Text, TextAnchor.UpperLeft, FontStyle.Bold)
+                UiKit.Label("Who", row.transform, $"{TeamName(m)} · {Loc.F("march.crew.short", m.Crew)}", 22, UiKit.Text, TextAnchor.UpperLeft, FontStyle.Bold)
                     .rectTransform.Place(0.23f, 0.52f, 0.98f, 0.95f);
                 UiKit.Label("Where", row.transform, $"{NodeName(m.NodeType)} {m.NodeLevel} · <color=#FFB347>{Loc.F(phase, Loc.Duration(Math.Max(0, (until - now) / 1000f)))}</color>",
                     20, UiKit.Muted, TextAnchor.LowerLeft).rectTransform.Place(0.23f, 0.06f, 0.72f, 0.5f);

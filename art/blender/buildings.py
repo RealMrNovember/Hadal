@@ -279,6 +279,24 @@ def driller_yard():
     return s, [drill]
 
 
+def med_bay():
+    """Med Bay: a pressurised ward with a glowing cross, beds under glass and a cryo cylinder."""
+    s = pad(accent="GlowGreen")
+    s += [box("ward", (2.4, 1.6, 0.9), (0, 0.4, 0.29), "HullMid", 0.08),
+          box("roof", (2.5, 1.7, 0.18), (0, 0.4, 1.19), "HullDark", 0.04),
+          dome("skylight", 0.6, (0.6, 0.4, 1.37), "Glass", seg=16, rings=6, squash=0.5),
+          box("cross_v", (0.18, 0.06, 0.62), (-0.6, -0.42, 0.75), "GlowGreen", 0.0),
+          box("cross_h", (0.62, 0.06, 0.18), (-0.6, -0.42, 0.75), "GlowGreen", 0.0),
+          box("door", (0.5, 0.05, 0.6), (0.55, -0.41, 0.6), "Glass", 0.0),
+          cyl("cryo", 0.35, 1.2, (-1.4, -1.0, 0.29), "Steel", verts=14, bevel=0.03),
+          cyl("cryo_glow", 0.36, 0.08, (-1.4, -1.0, 0.95), "GlowCyan", verts=14, bevel=0.0)]
+    for i, x in enumerate((0.2, 0.9)):
+        s += [box(f"bed{i}", (0.5, 0.9, 0.2), (x, -1.2, 0.29), "Steel", 0.03),
+              box(f"sheet{i}", (0.46, 0.6, 0.06), (x, -1.3, 0.49), "Hazard", 0.0)]
+    beacon = anim(sphere("beacon", 0.13, (-0.6, 0.4, 1.4), "GlowGreen", seg=10, rings=5), "pulse", speed=0.8)
+    return s, [beacon]
+
+
 BUILDINGS = {
     "core_reactor": core_reactor,
     "oxygen_plant": oxygen_plant,
@@ -292,6 +310,7 @@ BUILDINGS = {
     "harpoon_yard": harpoon_yard,
     "arc_yard": arc_yard,
     "driller_yard": driller_yard,
+    "med_bay": med_bay,
     "shield_generator": shield_generator,
     "radar_center": radar_center,
     "mega_dome": mega_dome,

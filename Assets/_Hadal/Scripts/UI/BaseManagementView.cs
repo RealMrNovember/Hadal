@@ -345,7 +345,7 @@ namespace Hadal.UI
             if (result.Type is not (CommandType.PlaceBuilding or CommandType.UpgradeBuilding or CommandType.FinishConstruction
                 or CommandType.RemoveBuilding or CommandType.UnlockRing or CommandType.StartResearch or CommandType.FinishResearch
                 or CommandType.BoostBuilding or CommandType.Overdrive or CommandType.StartSalvage
-                or CommandType.TrainTroops or CommandType.CancelTraining))
+                or CommandType.TrainTroops or CommandType.CancelTraining or CommandType.HealTroops or CommandType.CancelHeal))
                 return;
 
             if (result.Result == CommandResultCode.Rejected)
@@ -361,6 +361,8 @@ namespace Hadal.UI
                 CommandType.UnlockRing => Loc.T("base.expand.done"),
                 CommandType.TrainTroops => Loc.T("train.started"),
                 CommandType.CancelTraining => Loc.T("train.cancelled"),
+                CommandType.HealTroops => Loc.T("heal.started"),
+                CommandType.CancelHeal => Loc.T("train.cancelled"),
                 CommandType.StartResearch or CommandType.FinishResearch or CommandType.BoostBuilding
                     or CommandType.Overdrive or CommandType.StartSalvage => FunctionToast(result.Type),
                 _ => Loc.T("base.started")

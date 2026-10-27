@@ -266,7 +266,11 @@ namespace Hadal.UI
             var stats = Card(200);
             CardText(stats.transform, $"{Loc.F("base.level", state.Level)} / {cap}    {Stars(state.Stars, rules.maxStars)}", 34, UiKit.Text,
                 0.04f, 0.6f, 0.96f, 0.95f, TextAnchor.UpperLeft, FontStyle.Bold);
-            CardText(stats.transform, Loc.F("hero.power", HeroRules.Power(hero, state.Level, state.Stars)), 28, UiKit.Amber, 0.04f, 0.38f, 0.96f, 0.6f);
+            // Command capacity: how many troops this hero takes on a march (docs/rehber 19 §1.2).
+            var command = View.Army?.Command?.FirstOrDefault(c => c.HeroId == state.HeroId)?.Capacity
+                          ?? TroopRules.CommandCapacity(_catalog.Troops, state.Level, state.Stars, 0);
+            CardText(stats.transform, $"{Loc.F("hero.power", HeroRules.Power(hero, state.Level, state.Stars))}    {Loc.F("hero.command", command)}", 28, UiKit.Amber,
+                0.04f, 0.38f, 0.96f, 0.6f);
             CardText(stats.transform, Loc.T("hero.skill") + ": " + Effect(hero, state.Level, state.Stars), 28, UiKit.Accent, 0.04f, 0.05f, 0.96f, 0.38f);
 
             // Training.

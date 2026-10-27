@@ -23,6 +23,7 @@ namespace Hadal.UI
         private int _trainingCount;
         private float _trainingRefresh;
         private bool _armyOpen;
+        private bool _healOpen;
 
         private TroopCatalogData Troops => _catalog.Troops;
 
@@ -40,12 +41,15 @@ namespace Hadal.UI
                 items.Add(new TargetMenu.Item("nav_heroes", Loc.T("train.action"), () => OpenTraining(key)));
             if (definition.Id == Troops.capacityBuilding)
                 items.Add(new TargetMenu.Item("side_alliance", Loc.T("army.action"), () => OpenTraining(key, army: true)));
+            if (definition.Id == Troops.infirmary.building)
+                items.Add(new TargetMenu.Item("left_help", Loc.T("heal.action"), () => OpenTraining(key, heal: true)));
         }
 
-        private void OpenTraining(string instanceKey, bool army = false)
+        private void OpenTraining(string instanceKey, bool army = false, bool heal = false)
         {
             _trainingKey = instanceKey;
             _armyOpen = army;
+            _healOpen = heal;
             _trainingTier = 0;
             _trainingCount = 0;
             Close();
@@ -100,7 +104,7 @@ namespace Hadal.UI
 
             var header = UiKit.Box("Header", card.transform, new Color(0.05f, 0.16f, 0.22f, 1f));
             header.rectTransform.Place(0, 0.91f, 1, 1);
-            UiKit.Label("Title", header.transform, _armyOpen ? Loc.T("army.title") : Loc.Building(definition.Id), 42, UiKit.Text, TextAnchor.MiddleLeft, FontStyle.Bold)
+            UiKit.Label("Title", header.transform, _armyOpen ? Loc.T("army.title") : _healOpen ? Loc.T("heal.title") : Loc.Building(definition.Id), 42, UiKit.Text, TextAnchor.MiddleLeft, FontStyle.Bold)
                 .rectTransform.Place(0.05f, 0.4f, 0.8f, 1f);
             UiKit.Label("Level", header.transform, Loc.F("base.level", building.level), 28, UiKit.Accent, TextAnchor.MiddleLeft, FontStyle.Bold)
                 .rectTransform.Place(0.05f, 0.02f, 0.8f, 0.45f);
@@ -110,6 +114,8 @@ namespace Hadal.UI
 
             if (_armyOpen)
                 RenderArmy(card.transform);
+            else if (_healOpen)
+                RenderInfirmary(card.transform);
             else
                 RenderYard(card.transform, definition, building);
         }
@@ -258,7 +264,7 @@ namespace Hadal.UI
         private void RenderArmy(Transform card)
         {
             var army = Army;
-            var total = army.Troops.Sum(t => t.Count);
+            var total = army.Troops.Sum(t => t.Count) + army.Marching + (army.Wounded ?? Array.Empty<TroopStackDto>()).Sum(t => t.Count);
             var training = army.Training.Sum(t => (long)t.Count);
             var list = UiKit.ScrollList("List", card, 10f);
             ((RectTransform)list.parent).Place(0.04f, 0.03f, 0.96f, 0.89f);
@@ -267,6 +273,11 @@ namespace Hadal.UI
             Row(list, Loc.T("army.home"), $"{total:N0} / {army.Capacity:N0}", total + training >= army.Capacity ? UiKit.Danger : UiKit.Ok);
             if (training > 0)
                 Row(list, Loc.T("army.training"), training.ToString("N0"), UiKit.Amber);
+            if (army.Marching > 0)
+                Row(list, Loc.T("army.marching"), army.Marching.ToString("N0"), UiKit.Accent);
+            var wounded = (army.Wounded ?? Array.Empty<TroopStackDto>()).Sum(t => t.Count) + (army.Healing?.Troops ?? Array.Empty<TroopStackDto>()).Sum(t => t.Count);
+            if (wounded > 0)
+                Row(list, Loc.T("army.wounded"), wounded.ToString("N0"), UiKit.Danger);
             Row(list, Loc.T("army.power"), TroopRules.Power(Troops, army.Troops.ToDictionary(t => TroopRules.Key(t.Type, t.Tier), t => t.Count)).ToString("N0"), UiKit.Text);
             Row(list, Loc.T("army.upkeep"), Loc.F("army.upkeep.value", Math.Round(army.UpkeepFood, 1), Math.Round(army.UpkeepOxygen, 1)), UiKit.Muted);
 
@@ -282,6 +293,78 @@ namespace Hadal.UI
                     Row(list, $"T{t.Tier} · {Loc.T("army.training")}",
                         $"{t.Count:N0}  <color=#FFB74D>{Loc.Duration(Math.Max(0, (t.EndsAtMs - _stateSync.View.ServerNowMs) / 1000f))}</color>", UiKit.Text);
             }
+        }
+
+        /// <summary>
+        /// The Med Bay (Last Asylum's hospital): wounded against the beds, each stack by type and tier, the price and time
+        /// to heal them all, then Heal; while healing, the bar and Cancel.
+        /// </summary>
+        private void RenderInfirmary(Transform card)
+        {
+            var army = Army;
+            var wounded = army.Wounded ?? Array.Empty<TroopStackDto>();
+            var healing = army.Healing;
+            var beds = wounded.Sum(t => t.Count) + (healing?.Troops ?? Array.Empty<TroopStackDto>()).Sum(t => t.Count);
+
+            var bar = UiKit.Box("Beds", card, UiKit.Field);
+            bar.rectTransform.Place(0.06f, 0.82f, 0.94f, 0.87f);
+            UiKit.Box("Fill", bar.transform, beds >= army.InfirmaryCapacity && beds > 0 ? UiKit.Danger : UiKit.Ok).rectTransform
+                .Place(0, 0, army.InfirmaryCapacity > 0 ? Mathf.Clamp01(beds / (float)army.InfirmaryCapacity) : 0f, 1);
+            UiKit.Label("Text", bar.transform, Loc.F("heal.capacity", beds.ToString("N0"), army.InfirmaryCapacity.ToString("N0")), 24, Color.white,
+                TextAnchor.MiddleCenter, FontStyle.Bold).rectTransform.Place(0, 0, 1, 1);
+
+            var list = UiKit.ScrollList("List", card, 8f);
+            ((RectTransform)list.parent).Place(0.04f, 0.36f, 0.96f, 0.8f);
+            if (wounded.Length == 0 && healing == null)
+                Row(list, Loc.T("heal.none"), string.Empty, UiKit.Muted);
+            foreach (var t in wounded)
+                Row(list, $"T{t.Tier} {Loc.T("troop." + t.Type)}", t.Count.ToString("N0"), UiKit.Text);
+
+            if (healing != null)
+            {
+                var now = _stateSync.View.ServerNowMs;
+                var span = Math.Max(1, healing.EndsAtMs - healing.StartedAtMs);
+                UiKit.Label("Running", card, Loc.F("heal.running", healing.Troops.Sum(t => t.Count).ToString("N0")), 30, UiKit.Text, TextAnchor.MiddleCenter,
+                    FontStyle.Bold).rectTransform.Place(0.04f, 0.27f, 0.96f, 0.33f);
+                var progress = UiKit.Box("Bar", card, UiKit.Field);
+                progress.rectTransform.Place(0.08f, 0.22f, 0.92f, 0.26f);
+                UiKit.Box("Fill", progress.transform, UiKit.Ok).rectTransform.Place(0, 0, Mathf.Max(0.02f, Mathf.Clamp01((now - healing.StartedAtMs) / (float)span)), 1);
+                UiKit.Label("Left", card, Loc.Duration(Math.Max(0, (healing.EndsAtMs - now) / 1000f)), 30, UiKit.Ok, TextAnchor.MiddleCenter, FontStyle.Bold)
+                    .rectTransform.Place(0.04f, 0.15f, 0.96f, 0.21f);
+                var cancel = UiKit.Button("Cancel", card, Loc.T("train.cancel"), () =>
+                    _commands.Dispatch(new CancelHealCommand { CommandId = Guid.NewGuid().ToString("N"), ClientSequence = ++_sequence }), UiKit.Danger, 34);
+                ((RectTransform)cancel.transform).Place(0.25f, 0.03f, 0.75f, 0.13f);
+                return;
+            }
+
+            if (wounded.Length == 0)
+                return;
+
+            // Heal everyone: the price (a share of training) and the time, have / need.
+            var request = wounded.ToDictionary(t => TroopRules.Key(t.Type, t.Tier), t => t.Count);
+            var wallet = Wallet();
+            var cost = TroopRules.HealCost(Troops, request);
+            for (var i = 0; i < cost.Count; i++)
+            {
+                var c = cost[i];
+                wallet.TryGetValue(c.Key, out var have);
+                var chip = UiKit.Box("Cost", card, new Color(0.04f, 0.11f, 0.15f, 1f));
+                var x0 = 0.04f + i * 0.31f;
+                chip.rectTransform.Place(x0, 0.25f, x0 + 0.3f, 0.32f);
+                Hud.HudIcons.Image(chip.transform, Hud.HudIcons.Resource(c.Key), 0.03f, 0.12f, 0.28f, 0.88f);
+                UiKit.Label("Amount", chip.transform, $"<color={(have >= c.Value ? "#E6F2F7" : "#FF5A5A")}>{CostChips.Compact(c.Value)}</color>", 26, UiKit.Text,
+                    TextAnchor.MiddleLeft, FontStyle.Bold).rectTransform.Place(0.32f, 0, 0.98f, 1);
+            }
+
+            var best = TroopRules.BestInfirmary(Troops, Buildings().Select(b => (b.definitionId, b.level)));
+            var verdict = TroopRules.ValidateHeal(Troops, best, false, request, request, wallet);
+            if (verdict != TroopRejectReason.None)
+                UiKit.Label("Reason", card, Loc.Reason(verdict.ToString()), 26, UiKit.Danger, TextAnchor.MiddleCenter).rectTransform.Place(0.04f, 0.15f, 0.96f, 0.21f);
+            var go = UiKit.Button("Heal", card, $"{Loc.T("heal.all")}\n<size=26>{Loc.Duration(TroopRules.HealSeconds(Troops, request, best))}</size>", () =>
+                _commands.Dispatch(new HealTroopsCommand { CommandId = Guid.NewGuid().ToString("N"), ClientSequence = ++_sequence }),
+                verdict == TroopRejectReason.None ? UiKit.Ok : UiKit.Panel, 40);
+            go.interactable = verdict == TroopRejectReason.None;
+            ((RectTransform)go.transform).Place(0.2f, 0.03f, 0.8f, 0.14f);
         }
 
         private static string TroopIcon(string type) => type switch
