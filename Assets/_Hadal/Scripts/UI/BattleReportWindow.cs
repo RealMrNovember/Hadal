@@ -68,7 +68,7 @@ namespace Hadal.UI
 
             // Our side and theirs, face to face.
             Side(card.transform, 0.02f, 0.49f, Loc.T("battle.us"), r.AttackerPower, r.Attacker, r.HeroIds, true);
-            Side(card.transform, 0.51f, 0.98f, WorldMapView.MonsterName(r.MonsterType), r.DefenderPower, r.Defender, null, false);
+            Side(card.transform, 0.51f, 0.98f, WorldMapView.MonsterName(r.MonsterType), r.DefenderPower, r.Defender, null, false, WorldMapView.MonsterName(r.MonsterType));
 
             // Spoils.
             UiKit.Label("SpoilsTitle", card.transform, Loc.T("battle.spoils"), 28, UiKit.Amber, TextAnchor.MiddleLeft, FontStyle.Bold).rectTransform.Place(0.05f, 0.21f, 0.95f, 0.26f);
@@ -87,7 +87,9 @@ namespace Hadal.UI
             UiKit.Label("Home", card.transform, Loc.T("battle.home"), 20, UiKit.Muted, TextAnchor.MiddleCenter).rectTransform.Place(0.04f, 0.01f, 0.96f, 0.08f);
         }
 
-        private static void Side(Transform card, float x0, float x1, string title, long power, BattleStackDto[] stacks, string[] heroes, bool ours)
+        /// <param name="unitName">The swarm's own name for its stacks (they fight as a troop type but are not troops).</param>
+        private static void Side(Transform card, float x0, float x1, string title, long power, BattleStackDto[] stacks, string[] heroes, bool ours,
+            string unitName = null)
         {
             var panel = UiKit.Box("Side", card, ours ? new Color(0.05f, 0.18f, 0.26f, 1f) : new Color(0.24f, 0.07f, 0.08f, 1f));
             panel.rectTransform.Place(x0, 0.28f, x1, 0.85f);
@@ -110,7 +112,7 @@ namespace Hadal.UI
             }
 
             var lines = string.Join("\n", (stacks ?? Array.Empty<BattleStackDto>()).Select(s =>
-                $"T{s.Tier} {Loc.T("troop." + s.Type)}\n<size=20>{s.Start:N0}  <color={(ours ? "#FFB347" : "#FF8A80")}>-{s.Lost:N0}</color>{(ours ? " " + Loc.T("battle.wounded") : string.Empty)}</size>"));
+                $"{unitName ?? $"T{s.Tier} {Loc.T("troop." + s.Type)}"}\n<size=20>{s.Start:N0}  <color={(ours ? "#FFB347" : "#FF8A80")}>-{s.Lost:N0}</color>{(ours ? " " + Loc.T("battle.wounded") : string.Empty)}</size>"));
             UiKit.Label("Stacks", panel.transform, lines, 24, UiKit.Text, TextAnchor.UpperCenter).rectTransform.Place(0.04f, 0.04f, 0.96f, top);
         }
     }
