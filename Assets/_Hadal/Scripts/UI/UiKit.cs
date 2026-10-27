@@ -33,6 +33,43 @@ namespace Hadal.UI
         /// <summary>The same shape as an outline (thin frame).</summary>
         public static Sprite Ring => _ring != null ? _ring : _ring = MakeRounded(true);
 
+        private static Sprite _circle;
+        private static Sprite _circleRing;
+
+        /// <summary>A filled disc (round action buttons, badges).</summary>
+        public static Sprite Circle => _circle != null ? _circle : _circle = MakeCircle(false);
+
+        /// <summary>A soft ring (selection marker under a tapped target).</summary>
+        public static Sprite CircleRing => _circleRing != null ? _circleRing : _circleRing = MakeCircle(true);
+
+        private static Sprite MakeCircle(bool ring)
+        {
+            const int size = 128;
+            var texture = new Texture2D(size, size, TextureFormat.RGBA32, false)
+            {
+                wrapMode = TextureWrapMode.Clamp,
+                filterMode = FilterMode.Bilinear,
+                name = ring ? "HadalCircleRing" : "HadalCircle"
+            };
+            var pixels = new Color32[size * size];
+            const float r = size / 2f;
+            for (var y = 0; y < size; y++)
+            {
+                for (var x = 0; x < size; x++)
+                {
+                    var d = Vector2.Distance(new Vector2(x + 0.5f, y + 0.5f), new Vector2(r, r));
+                    var inside = Mathf.Clamp01(r - 1f - d);
+                    // The ring is thick and fades inwards, like a shadowed selection disc.
+                    var alpha = ring ? inside * Mathf.Clamp01((d - r * 0.62f) / (r * 0.3f)) : inside;
+                    pixels[y * size + x] = new Color32(255, 255, 255, (byte)(alpha * 255));
+                }
+            }
+
+            texture.SetPixels32(pixels);
+            texture.Apply(false, true);
+            return Sprite.Create(texture, new Rect(0, 0, size, size), new Vector2(0.5f, 0.5f), 100f);
+        }
+
         private static Sprite MakeRounded(bool ring)
         {
             const int size = 64;
@@ -68,6 +105,9 @@ namespace Hadal.UI
         public static readonly Color Text = new(0.86f, 0.94f, 0.97f, 1f);
         public static readonly Color Muted = new(0.55f, 0.68f, 0.74f, 1f);
         public static readonly Color Danger = new(1f, 0.45f, 0.42f, 1f);
+
+        /// <summary>Met / go (requirements met, the main build button).</summary>
+        public static readonly Color Ok = new(0.36f, 0.86f, 0.46f, 1f);
 
         private static Font _builtin;
         private static Font _world;

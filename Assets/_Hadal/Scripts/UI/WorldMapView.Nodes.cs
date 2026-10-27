@@ -167,50 +167,25 @@ namespace Hadal.UI
             (View.Data.buildings ?? Array.Empty<BuildingSaveEntry>()).Where(b => b.definitionId == BuildingProgression.ReactorId)
                 .Select(b => b.level).DefaultIfEmpty(0).Max();
 
+        /// <summary>A resource node: the round menu with level, what is left, the trip and a Gather button.</summary>
         private void ShowNode(WorldNodeDto n)
         {
-            ClosePopup();
             var catalog = ClientCatalog.Catalog;
             var world = catalog.World;
             var reactor = ReactorLevel();
             var view = View.WorldView;
 
-            var dim = UiKit.Box("Popup", _popupCanvas.transform, new Color(0, 0, 0, 0.5f));
-            dim.rectTransform.Place(0, 0, 1, 1);
-            dim.gameObject.AddComponent<Button>().onClick.AddListener(ClosePopup);
-            _popup = dim.gameObject;
-
-            var card = UiKit.Box("Card", dim.transform, UiKit.Panel);
-            card.rectTransform.Place(0.06f, 0.3f, 0.94f, 0.7f);
-            card.gameObject.AddComponent<Button>(); // taps on the card do not close it
-            card.gameObject.AddComponent<CanvasGroup>();
-            card.gameObject.AddComponent<PopIn>();
-            var color = NodeLook.TryGetValue(n.Type, out var look) ? look.Color : Color.white;
-            var badge = UiKit.Box("Level", card.transform, color);
-            badge.rectTransform.Place(0.05f, 0.8f, 0.17f, 0.95f);
-            UiKit.Label("Text", badge.transform, n.Level.ToString(), 40, UiKit.Abyss, TextAnchor.MiddleCenter, FontStyle.Bold).rectTransform.Place(0, 0, 1, 1);
-            UiKit.Label("Name", card.transform, NodeName(n.Type), 42, UiKit.Text, TextAnchor.MiddleLeft, FontStyle.Bold)
-                .rectTransform.Place(0.21f, 0.8f, 0.96f, 0.95f);
-
             var rates = GatherRules.Rates(world, catalog.Gather, n.Type, n.Level, reactor);
             var lines = new List<string>
             {
-                string.Join("   ", rates.Select(r => $"+{r.Value:N0} {Loc.Resource(r.Key.ToString())}{Loc.T("base.perhour")}")),
-                Loc.F("world.node.left", n.Remaining.ToString("N0"), n.Capacity.ToString("N0"))
+                string.Join("   ", rates.Select(r => $"+{CostChips.Compact((long)r.Value)} {Loc.Resource(r.Key.ToString())}{Loc.T("base.perhour")}"))
             };
             if (view != null)
             {
                 var trip = GatherRules.TravelSeconds(world, view.MyX, view.MyY, n.X, n.Y);
                 var load = Math.Min(GatherRules.Load(catalog.Gather, reactor), n.Remaining);
-                var gather = GatherRules.GatherSeconds(world, rates, load);
-                lines.Add(Loc.F("world.node.trip", Loc.Duration(trip), Loc.Duration(gather), load.ToString("N0")));
+                lines.Add(Loc.F("world.node.trip", Loc.Duration(trip), Loc.Duration(GatherRules.GatherSeconds(world, rates, load)), CostChips.Compact(load)));
             }
-
-            if (n.FadesAtMs > 0)
-                lines.Add(Loc.F("world.node.fades", Loc.Duration(Math.Max(0, (n.FadesAtMs - View.ServerNowMs) / 1000f))));
-            lines.Add(Loc.F("world.coords", n.X, n.Y));
-            UiKit.Label("Info", card.transform, string.Join("\n", lines), 28, UiKit.Muted, TextAnchor.UpperLeft)
-                .rectTransform.Place(0.06f, 0.26f, 0.96f, 0.76f);
 
             var marches = View.Marches;
             var queues = marches?.Queues ?? GatherRules.Queues(catalog.Gather, reactor);
@@ -221,14 +196,18 @@ namespace Hadal.UI
                 : busy >= queues ? Loc.T("reason.NoFreeQueue")
                 : null;
             if (blocked != null)
-                UiKit.Label("Blocked", card.transform, blocked, 26, UiKit.Amber, TextAnchor.MiddleCenter).rectTransform.Place(0.05f, 0.17f, 0.95f, 0.26f);
+                lines.Add($"<color=#FFB347>{blocked}</color>");
+            else if (n.FadesAtMs > 0)
+                lines.Add(Loc.F("world.node.fades", Loc.Duration(Math.Max(0, (n.FadesAtMs - View.ServerNowMs) / 1000f))));
 
-            var gatherButton = UiKit.Button("Gather", card.transform, Loc.T("world.gather"), () => Gather(n.Id), blocked == null ? UiKit.Accent : UiKit.Field, 32);
-            gatherButton.interactable = blocked == null;
-            ((RectTransform)gatherButton.transform).Place(0.06f, 0.04f, 0.5f, 0.16f);
-            var close = UiKit.Button("Close", card.transform, Loc.T("hero.pod.done"), ClosePopup, UiKit.Field, 32);
-            close.GetComponentInChildren<Text>().color = UiKit.Text;
-            ((RectTransform)close.transform).Place(0.54f, 0.04f, 0.94f, 0.16f);
+            var id = n.Id;
+            var items = new List<TargetMenu.Item> { new("queue_drone", Loc.T("world.gather"), () => Gather(id), blocked == null) };
+            GlideTo(n.X, n.Y);
+            var x = n.X;
+            var y = n.Y;
+            TargetMenu.Show(() => IsOpen ? _camera : null, () => TileToWorld(x, y) + Vector3.up * 2f,
+                $"{Loc.F("base.level", n.Level)}  {NodeName(n.Type)}", string.Join("\n", lines), items,
+                n.Capacity > 0 ? n.Remaining / (float)n.Capacity : -1f, $"{CostChips.Compact(n.Remaining)} / {CostChips.Compact(n.Capacity)}");
         }
 
         private void Gather(string nodeId) =>

@@ -179,7 +179,7 @@ namespace Hadal.UI
                 ClaimQuest = id => _social.ClaimQuest(id),
                 Building = key => { _social.Close(); _map.Close(); OpenBuilding(key); },
                 Toast = Toast,
-                SheetOpen = () => IsOpen || _social.IsOpen,
+                SheetOpen = () => IsOpen || _social.IsOpen || ModalOpen,
                 Territory = () =>
                 {
                     Close();
@@ -221,7 +221,11 @@ namespace Hadal.UI
             if (!Input.GetKeyDown(KeyCode.Escape))
                 return;
             var account = FindFirstObjectByType<AccountPanelView>();
-            if (account != null && account.IsOpen)
+            if (_upgrade != null)
+                CloseUpgrade();
+            else if (TargetMenu.IsOpen)
+                TargetMenu.Hide();
+            else if (account != null && account.IsOpen)
                 account.Close();
             else if (_social.IsOpen)
                 _social.Close();
@@ -265,6 +269,17 @@ namespace Hadal.UI
 
         private void OnSlotTapped(BaseSlotTappedEvent tap)
         {
+            // A building gets the round action menu (Last Asylum pattern); a free slot the build list.
+            var tapped = Buildings().FirstOrDefault(b => !string.IsNullOrEmpty(tap.BuildingInstanceKey) && b.instanceKey == tap.BuildingInstanceKey);
+            if (!string.IsNullOrEmpty(tapped.instanceKey))
+            {
+                Close();
+                _social.Close();
+                ShowBuildingActions(tapped);
+                return;
+            }
+
+            TargetMenu.Hide();
             _ring = tap.Ring;
             _sector = tap.Sector;
             _buildingKey = tap.BuildingInstanceKey ?? string.Empty;
@@ -333,6 +348,7 @@ namespace Hadal.UI
                 return;
 
             UpdateTimers();
+            TickUpgrade();
             ShowSalvageReports();
             HideGearWhenReady();
             HandleBack();
@@ -665,7 +681,49 @@ namespace Hadal.UI
                 Destroy(_timers[key].Root.gameObject);
                 _timers.Remove(key);
             }
+
+            UpdateLevelBadges(camera);
         }
+
+        private readonly Dictionary<string, (RectTransform Root, Text Label)> _badges = new();
+
+        /// <summary>A small level plate at the foot of every building (Last Asylum shows one on each).</summary>
+        private void UpdateLevelBadges(Camera camera)
+        {
+            var show = camera != null && !GameModeInWorld && !ModalOpen;
+            var live = new HashSet<string>();
+            foreach (var building in Buildings())
+            {
+                if (!show || building.level <= 0)
+                    continue;
+                live.Add(building.instanceKey);
+                if (!_badges.TryGetValue(building.instanceKey, out var badge))
+                {
+                    var plate = UiKit.Box("Level", _overlay, new Color(0.02f, 0.06f, 0.09f, 0.82f));
+                    plate.raycastTarget = false;
+                    plate.rectTransform.sizeDelta = new Vector2(64f, 40f);
+                    var label = UiKit.Label("Text", plate.transform, string.Empty, 30, UiKit.Text, TextAnchor.MiddleCenter, FontStyle.Bold);
+                    label.rectTransform.Place(0, 0, 1, 1);
+                    badge = (plate.rectTransform, label);
+                    _badges[building.instanceKey] = badge;
+                }
+
+                var world = _grid.GetWorldPosition(new PolarGridSlotId(building.cellRing, building.cellSector)) + new Vector3(0f, 0.2f, -2.2f);
+                var screen = camera.WorldToScreenPoint(world);
+                badge.Root.gameObject.SetActive(screen.z > 0f && !_timers.ContainsKey(building.instanceKey));
+                RectTransformUtility.ScreenPointToLocalPointInRectangle(_overlay, screen, null, out var local);
+                badge.Root.anchoredPosition = local;
+                badge.Label.text = building.level.ToString();
+            }
+
+            foreach (var key in _badges.Keys.Where(k => !live.Contains(k)).ToList())
+            {
+                Destroy(_badges[key].Root.gameObject);
+                _badges.Remove(key);
+            }
+        }
+
+        private static bool GameModeInWorld => Hadal.Core.State.GameMode.InWorld;
 
         // --- Commands ------------------------------------------------------------------------
 

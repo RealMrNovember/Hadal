@@ -46,8 +46,9 @@ namespace Hadal.UI.Hud
 
         private const float TicksPerMinute = 60f / SimulationTick.IntervalSeconds;
 
-        private static readonly ResourceType[] RowOne = { ResourceType.Titanium, ResourceType.Biomass, ResourceType.Food };
-        private static readonly ResourceType[] RowTwo = { ResourceType.Oxygen, ResourceType.Energy, ResourceType.Alloy };
+        // Last Asylum-style header: four floating resource pills on top, power and the rest under them.
+        private static readonly ResourceType[] RowOne = { ResourceType.Titanium, ResourceType.Biomass, ResourceType.Food, ResourceType.Energy };
+        private static readonly ResourceType[] RowTwo = { ResourceType.Oxygen, ResourceType.Alloy };
 
         private IStateSyncService _stateSync;
         private Actions _actions;
@@ -116,34 +117,36 @@ namespace Hadal.UI.Hud
         private void BuildHeader()
         {
             var header = UiKit.Rect("Header", _safe).Place(0, 0.895f, 1, 1);
-            var shade = UiKit.Box("Shade", header, new Color(0f, 0.02f, 0.04f, 0.55f));
+            // A faint shade only: the pills float over the scene instead of sitting in a heavy box.
+            var shade = UiKit.Box("Shade", header, new Color(0f, 0.02f, 0.04f, 0.22f));
             shade.rectTransform.Place(0, 0, 1, 1);
             shade.raycastTarget = false;
 
             // Avatar with the base level under it; opens settings and the profile.
-            var avatar = Tap(header, "Avatar", 0.012f, 0.22f, 0.16f, 0.98f, _actions.Settings, new Color(0.05f, 0.12f, 0.16f, 0.95f));
+            var avatar = Tap(header, "Avatar", 0.012f, 0.26f, 0.135f, 0.98f, _actions.Settings, new Color(0.05f, 0.12f, 0.16f, 0.95f));
             Frame(avatar, UiKit.Accent);
             HudIcons.Image(avatar, "avatar", 0.06f, 0.06f, 0.94f, 0.94f);
-            var levelBox = UiKit.Box("Level", header, new Color(0.02f, 0.05f, 0.08f, 0.95f));
-            levelBox.rectTransform.Place(0.012f, 0.02f, 0.16f, 0.22f);
+            var levelBox = UiKit.Box("Level", header, new Color(0.05f, 0.3f, 0.12f, 0.95f));
+            levelBox.rectTransform.Place(0.022f, 0.04f, 0.125f, 0.26f);
             levelBox.raycastTarget = false;
             _level = Outlined(UiKit.Label("Text", levelBox.transform, string.Empty, 26, UiKit.Amber, TextAnchor.MiddleCenter, FontStyle.Bold));
             _level.rectTransform.Place(0, 0, 1, 1);
 
             // Resource chips: three on the first row, two plus power on the second.
+            const float left = 0.15f, step = 0.155f;
             for (var i = 0; i < RowOne.Length; i++)
-                Chip(header, RowOne[i], 0.175f + i * 0.19f, 0.54f, 0.175f + (i + 1) * 0.19f - 0.01f, 0.95f);
-            for (var i = 0; i < RowTwo.Length; i++)
-                Chip(header, RowTwo[i], 0.175f + i * 0.19f, 0.1f, 0.175f + (i + 1) * 0.19f - 0.01f, 0.5f);
+                Chip(header, RowOne[i], left + i * step, 0.56f, left + (i + 1) * step - 0.008f, 0.94f);
 
-            // Power sits under the shop; the second resource row carries Superalloy (docs/rehber K-01).
-            var power = Tap(header, "Power", 0.76f, 0.1f, 0.988f, 0.5f, () => ShowPowerInfo(), new Color(0.02f, 0.05f, 0.08f, 0.85f));
-            HudIcons.Image(power, "power", 0.01f, 0.05f, 0.27f, 0.95f);
-            _power = Outlined(UiKit.Label("Value", power, string.Empty, 28, UiKit.Amber, TextAnchor.MiddleLeft, FontStyle.Bold));
-            _power.rectTransform.Place(0.29f, 0, 1, 1);
+            // Power under the resources (the number players compare), then oxygen and Superalloy (docs/rehber K-01).
+            var power = Tap(header, "Power", left, 0.1f, left + 0.25f, 0.48f, () => ShowPowerInfo(), new Color(0.02f, 0.05f, 0.08f, 0.6f));
+            HudIcons.Image(power, "power", -0.04f, -0.08f, 0.24f, 1.08f);
+            _power = Outlined(UiKit.Label("Value", power, string.Empty, 30, UiKit.Amber, TextAnchor.MiddleLeft, FontStyle.Bold));
+            _power.rectTransform.Place(0.27f, 0, 1, 1);
+            for (var i = 0; i < RowTwo.Length; i++)
+                Chip(header, RowTwo[i], left + 0.258f + i * step, 0.1f, left + 0.258f + (i + 1) * step - 0.008f, 0.48f);
 
             // Shop: Hadalite balance; opens the Cryo-Pod until the shop exists.
-            var shop = Tap(header, "Shop", 0.76f, 0.54f, 0.988f, 0.95f, _actions.Pod, new Color(0.85f, 0.42f, 0.08f, 0.95f));
+            var shop = Tap(header, "Shop", 0.78f, 0.5f, 0.988f, 0.95f, _actions.Pod, new Color(0.85f, 0.42f, 0.08f, 0.95f));
             HudIcons.Image(shop, "shop", 0.02f, 0.05f, 0.42f, 0.95f);
             _hadalite = Outlined(UiKit.Label("Value", shop, string.Empty, 30, Color.white, TextAnchor.MiddleCenter, FontStyle.Bold));
             _hadalite.rectTransform.Place(0.4f, 0, 1, 1);
@@ -151,10 +154,11 @@ namespace Hadal.UI.Hud
 
         private void Chip(RectTransform parent, ResourceType type, float x0, float y0, float x1, float y1)
         {
-            var chip = Tap(parent, "Chip_" + type, x0, y0, x1, y1, () => ShowResource(type), new Color(0.02f, 0.05f, 0.08f, 0.85f));
-            HudIcons.Image(chip, HudIcons.Resource(type), 0.01f, 0.05f, 0.33f, 0.95f);
-            var value = Outlined(UiKit.Label("Value", chip, string.Empty, 28, UiKit.Text, TextAnchor.MiddleLeft, FontStyle.Bold));
-            value.rectTransform.Place(0.35f, 0, 1, 1);
+            // A dark pill with the icon spilling over its left end, the value in bold white (Last Asylum).
+            var chip = Tap(parent, "Chip_" + type, x0, y0, x1, y1, () => ShowResource(type), new Color(0.02f, 0.05f, 0.08f, 0.6f));
+            HudIcons.Image(chip, HudIcons.Resource(type), -0.06f, -0.12f, 0.34f, 1.12f);
+            var value = Outlined(UiKit.Label("Value", chip, string.Empty, 30, UiKit.Text, TextAnchor.MiddleCenter, FontStyle.Bold));
+            value.rectTransform.Place(0.3f, 0, 1, 1);
             _chips[type] = value;
         }
 

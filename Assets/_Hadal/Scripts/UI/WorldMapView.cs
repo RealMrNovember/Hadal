@@ -107,6 +107,7 @@ namespace Hadal.UI
             _root.gameObject.SetActive(false);
             _canvas.gameObject.SetActive(false);
             ClosePopup();
+            TargetMenu.Hide();
         }
 
         public void GoHome()
@@ -171,6 +172,7 @@ namespace Hadal.UI
             ((RectTransform)home.transform).Place(0.54f, 0.19f, 0.8f, 0.23f);
 
             BuildMarches(safe);
+            BuildHomeArrow();
 
             // Base details open above the HUD.
             _popupCanvas = UiKit.Canvas("WorldPopup", 46);
@@ -298,55 +300,38 @@ namespace Hadal.UI
             button.onClick.AddListener(() => ShowBase(info, me));
         }
 
+        /// <summary>A base on the map: the round menu with name, level and power; message or invite others (Last Asylum pattern).</summary>
         private void ShowBase(WorldBaseDto b, bool me)
         {
-            ClosePopup();
-            var dim = UiKit.Box("Popup", _popupCanvas.transform, new Color(0, 0, 0, 0.5f));
-            dim.rectTransform.Place(0, 0, 1, 1);
-            dim.gameObject.AddComponent<Button>().onClick.AddListener(ClosePopup);
-            _popup = dim.gameObject;
-
-            var card = UiKit.Box("Card", dim.transform, UiKit.Panel);
-            card.rectTransform.Place(0.08f, 0.36f, 0.92f, 0.64f);
-            card.gameObject.AddComponent<CanvasGroup>();
-            card.gameObject.AddComponent<PopIn>();
-            card.gameObject.AddComponent<Button>(); // taps on the card do not close it
-            Hud.HudIcons.Image(card.transform, "left_home", 0.04f, 0.6f, 0.22f, 0.95f);
             var tag = string.IsNullOrEmpty(b.AllianceTag) ? string.Empty : $"[{b.AllianceTag}] ";
-            UiKit.Label("Name", card.transform, tag + Escape(b.Name), 44, me ? UiKit.Accent : UiKit.Text, TextAnchor.MiddleLeft, FontStyle.Bold)
-                .rectTransform.Place(0.25f, 0.72f, 0.96f, 0.95f);
-            var lines = $"{Loc.F("world.level", b.Level)}    {Loc.F("hero.power", b.Power.ToString("N0"))}\n" +
-                        $"{Loc.F("world.coords", b.X, b.Y)}    {(b.Online ? Loc.T("world.online") : Loc.T("world.offline"))}" +
-                        (me ? "\n" + Loc.T("world.you") : string.Empty);
-            UiKit.Label("Info", card.transform, lines, 30, UiKit.Muted, TextAnchor.UpperLeft).rectTransform.Place(0.06f, 0.3f, 0.96f, 0.68f);
+            var info = $"{Loc.F("world.level", b.Level)}   {Loc.F("hero.power", b.Power.ToString("N0"))}\n" +
+                       $"{Loc.F("world.coords", b.X, b.Y)}   {(b.Online ? Loc.T("world.online") : Loc.T("world.offline"))}";
+            var items = new List<TargetMenu.Item>();
             if (me)
             {
-                var done = UiKit.Button("Close", card.transform, Loc.T("hero.pod.done"), ClosePopup, UiKit.Accent, 30);
-                ((RectTransform)done.transform).Place(0.3f, 0.06f, 0.7f, 0.26f);
-                return;
+                items.Add(new TargetMenu.Item("left_home", Loc.T("world.enter"), Close));
+            }
+            else
+            {
+                var target = b;
+                items.Add(new TargetMenu.Item("chat", Loc.T("alliance.message"), () => MessagePlayer?.Invoke(target.PlayerId, target.Name)));
+                var canInvite = HADAL.Shared.Simulation.AlliancePermissions.CanInvite(View.MyRank()) && string.IsNullOrEmpty(b.AllianceTag);
+                items.Add(new TargetMenu.Item("side_alliance", Loc.T("alliance.invite"), () => _commands.Dispatch(new InviteToAllianceCommand
+                {
+                    CommandId = Guid.NewGuid().ToString("N"), ClientSequence = ++_sequence, PlayerId = target.PlayerId
+                }), canInvite));
             }
 
-            // Write to them, or bring them into the alliance (R3+ may invite players without one).
-            var info = b;
-            var message = UiKit.Button("Message", card.transform, Loc.T("alliance.message"), () =>
-            {
-                ClosePopup();
-                MessagePlayer?.Invoke(info.PlayerId, info.Name);
-            }, UiKit.Accent, 28);
-            ((RectTransform)message.transform).Place(0.04f, 0.06f, 0.34f, 0.26f);
-
-            var canInvite = HADAL.Shared.Simulation.AlliancePermissions.CanInvite(View.MyRank()) && string.IsNullOrEmpty(b.AllianceTag);
-            var invite = UiKit.Button("Invite", card.transform, Loc.T("alliance.invite"), () => _commands.Dispatch(new InviteToAllianceCommand
-            {
-                CommandId = Guid.NewGuid().ToString("N"), ClientSequence = ++_sequence, PlayerId = info.PlayerId
-            }), canInvite ? UiKit.Accent : UiKit.Field, 28);
-            invite.interactable = canInvite;
-            ((RectTransform)invite.transform).Place(0.36f, 0.06f, 0.66f, 0.26f);
-
-            var close = UiKit.Button("Close", card.transform, Loc.T("hero.pod.done"), ClosePopup, UiKit.Field, 28);
-            close.GetComponentInChildren<Text>().color = UiKit.Text;
-            ((RectTransform)close.transform).Place(0.68f, 0.06f, 0.96f, 0.26f);
+            GlideTo(b.X, b.Y);
+            var x = b.X;
+            var y = b.Y;
+            TargetMenu.Show(() => IsOpen ? _camera : null, () => TileToWorld(x, y) + Vector3.up * 3f, tag + Escape(b.Name), info, items);
         }
+
+        private Vector3? _glide;
+
+        /// <summary>The camera slides to a tapped tile.</summary>
+        private void GlideTo(int x, int y) => _glide = TileToWorld(x, y);
 
         private void ClosePopup()
         {
@@ -366,6 +351,14 @@ namespace Hadal.UI
 
             ApplyView();
             HandleInput();
+            if (_glide is { } glide)
+            {
+                _focus = Vector3.Lerp(_focus, glide, 1f - Mathf.Exp(-8f * Time.unscaledDeltaTime));
+                if ((_focus - glide).sqrMagnitude < 0.01f || _dragging)
+                    _glide = null;
+            }
+
+            UpdateHomeArrow();
 
             var pitch = Quaternion.Euler(55f, 20f, 0f);
             _camera.transform.SetPositionAndRotation(_focus - pitch * Vector3.forward * _distance, pitch);
@@ -516,6 +509,67 @@ namespace Hadal.UI
             if (events == null)
                 return false;
             return Input.touchCount > 0 ? events.IsPointerOverGameObject(Input.GetTouch(0).fingerId) : events.IsPointerOverGameObject();
+        }
+
+        // --- Home arrow (Last Asylum): always points at the player's base while it is off screen -----
+
+        private RectTransform _homeArrow;
+        private RectTransform _homePointer;
+        private Text _homeDistance;
+
+        private void BuildHomeArrow()
+        {
+            _homeArrow = UiKit.Rect("HomeArrow", _labels);
+            _homeArrow.sizeDelta = new Vector2(130f, 130f);
+            var disc = _homeArrow.gameObject.AddComponent<Image>();
+            disc.sprite = UiKit.Circle;
+            disc.color = new Color(0.13f, 0.52f, 0.86f, 0.95f);
+            _homeArrow.gameObject.AddComponent<Button>().onClick.AddListener(GoHome);
+            _homeArrow.gameObject.AddComponent<PressFeedback>();
+            Hud.HudIcons.Image(_homeArrow, "left_home", 0.2f, 0.32f, 0.8f, 0.92f).raycastTarget = false;
+            _homeDistance = UiKit.Label("Distance", _homeArrow, string.Empty, 24, Color.white, TextAnchor.MiddleCenter, FontStyle.Bold);
+            _homeDistance.rectTransform.Place(0f, 0.02f, 1f, 0.34f);
+
+            // A small triangle on the rim of the disc turns towards the base.
+            _homePointer = UiKit.Rect("Pointer", _homeArrow);
+            _homePointer.sizeDelta = new Vector2(44f, 44f);
+            var tip = UiKit.Label("Tip", _homePointer, "▲", 40, new Color(0.13f, 0.52f, 0.86f, 1f), TextAnchor.MiddleCenter, FontStyle.Bold);
+            tip.rectTransform.Place(0, 0, 1, 1);
+            _homeArrow.gameObject.SetActive(false);
+        }
+
+        private void UpdateHomeArrow()
+        {
+            var view = View.WorldView;
+            if (_homeArrow == null || view == null)
+                return;
+
+            var home = TileToWorld(view.MyX, view.MyY);
+            var screen = _camera.WorldToScreenPoint(home);
+            var onScreen = screen.z > 0f && screen.x > 0f && screen.y > 0f && screen.x < Screen.width && screen.y < Screen.height;
+            _homeArrow.gameObject.SetActive(!onScreen && _popup == null && !TargetMenu.IsOpen);
+            if (onScreen)
+                return;
+
+            // Direction from the screen centre to the base, clamped to an inner frame clear of the HUD.
+            var centre = new Vector2(Screen.width / 2f, Screen.height / 2f);
+            var dir = (Vector2)screen - centre;
+            if (screen.z < 0f)
+                dir = -dir;
+            if (dir.sqrMagnitude < 1f)
+                dir = Vector2.up;
+            dir.Normalize();
+            var half = _labels.rect.size / 2f;
+            var frame = new Vector2(half.x - 110f, half.y - 330f);
+            var scale = Mathf.Min(frame.x / Mathf.Max(0.001f, Mathf.Abs(dir.x)), frame.y / Mathf.Max(0.001f, Mathf.Abs(dir.y)));
+            _homeArrow.anchorMin = _homeArrow.anchorMax = new Vector2(0.5f, 0.5f);
+            _homeArrow.anchoredPosition = dir * scale;
+            _homePointer.anchorMin = _homePointer.anchorMax = new Vector2(0.5f, 0.5f);
+            _homePointer.anchoredPosition = dir * 82f;
+            _homePointer.localRotation = Quaternion.Euler(0f, 0f, Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg - 90f);
+
+            var tile = WorldToTile(_focus);
+            _homeDistance.text = Loc.F("world.tiles", Mathf.Max(Mathf.Abs(tile.x - view.MyX), Mathf.Abs(tile.y - view.MyY)));
         }
 
         private static Vector3 TileToWorld(int x, int y) => Origin + new Vector3(x * Tile, 0f, y * Tile);

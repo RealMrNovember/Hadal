@@ -110,11 +110,13 @@ namespace Hadal.EditorTools
             RenderSettings.fog = true;
             RenderSettings.fogMode = FogMode.ExponentialSquared;
             RenderSettings.fogColor = AbyssColor;
-            RenderSettings.fogDensity = 0.013f;
+            // Brighter than the first pass: on a phone the base read as a dark smudge next to the genre's lit
+            // cities (Last Asylum review). Still blue and deep, but buildings and their colours carry.
+            RenderSettings.fogDensity = 0.0085f;
             RenderSettings.ambientMode = AmbientMode.Trilight;
-            RenderSettings.ambientSkyColor = new Color(0.045f, 0.11f, 0.16f);
-            RenderSettings.ambientEquatorColor = new Color(0.02f, 0.05f, 0.07f);
-            RenderSettings.ambientGroundColor = new Color(0.01f, 0.015f, 0.02f);
+            RenderSettings.ambientSkyColor = new Color(0.16f, 0.29f, 0.37f);
+            RenderSettings.ambientEquatorColor = new Color(0.09f, 0.16f, 0.2f);
+            RenderSettings.ambientGroundColor = new Color(0.05f, 0.07f, 0.08f);
         }
 
         private static void CreateSunlight(Transform parent)
@@ -125,8 +127,8 @@ namespace Hadal.EditorTools
             go.transform.rotation = Quaternion.Euler(62f, -25f, 0f);
             var light = go.AddComponent<Light>();
             light.type = LightType.Directional;
-            light.color = new Color(0.55f, 0.82f, 1f);
-            light.intensity = 0.8f;
+            light.color = new Color(0.78f, 0.92f, 1f);
+            light.intensity = 1.25f;
             light.shadows = LightShadows.Soft;
             light.shadowStrength = 0.75f;
         }

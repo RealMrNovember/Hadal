@@ -26,6 +26,20 @@ namespace Hadal.Gameplay.Art
 
         public Camera Camera => _camera;
 
+        // A glide requested by the UI (tapped building); any finger on the world cancels it.
+        private Vector3? _glideTo;
+        private float _glideDistance;
+
+        private void OnEnable() => Hadal.Core.State.CameraFocus.Requested += OnFocus;
+
+        private void OnDisable() => Hadal.Core.State.CameraFocus.Requested -= OnFocus;
+
+        private void OnFocus(Vector3 world, float? distance)
+        {
+            _glideTo = Vector3.ClampMagnitude(new Vector3(world.x, 0f, world.z), _panLimit);
+            _glideDistance = distance ?? _distance;
+        }
+
         public void Configure(Camera camera, float distance)
         {
             _camera = camera;
@@ -48,9 +62,12 @@ namespace Hadal.Gameplay.Art
             if (_gestureOnUi)
             {
                 _dragging = false;
+                Glide();
                 Apply();
                 return;
             }
+
+            Glide();
 
             if (Input.touchCount == 2)
             {
@@ -63,13 +80,21 @@ namespace Hadal.Gameplay.Art
                 _distance *= _lastPinch / Mathf.Max(1f, pinch);
                 _lastPinch = pinch;
                 _dragging = false;
+                _glideTo = null; // the player takes the camera back
             }
             else if (Input.GetMouseButton(0))
             {
                 // Touch 0 is reported as mouse button 0 on mobile.
                 var pointer = Input.mousePosition;
                 if (_dragging)
-                    Pan(pointer - _lastPointer);
+                {
+                    var delta = pointer - _lastPointer;
+                    // A real drag (not the lift of the tap that asked for the glide) takes the camera back.
+                    if (delta.sqrMagnitude > 16f)
+                        _glideTo = null;
+                    if (_glideTo == null)
+                        Pan(delta);
+                }
 
                 _lastPointer = pointer;
                 _dragging = true;
@@ -84,6 +109,17 @@ namespace Hadal.Gameplay.Art
                 _distance *= 1f - wheel * 0.1f;
 
             Apply();
+        }
+
+        private void Glide()
+        {
+            if (_glideTo is not { } target)
+                return;
+            var k = 1f - Mathf.Exp(-9f * Time.unscaledDeltaTime);
+            transform.position = Vector3.Lerp(transform.position, target, k);
+            _distance = Mathf.Lerp(_distance, _glideDistance, k);
+            if ((transform.position - target).sqrMagnitude < 0.0004f && Mathf.Abs(_distance - _glideDistance) < 0.02f)
+                _glideTo = null;
         }
 
         private static bool PointerOverUi()
