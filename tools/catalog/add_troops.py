@@ -52,6 +52,16 @@ def scaled(amounts, factor):
 
 
 def yard_building(dome, yard_id, name, reactor):
+    """A yard shaped like the catalog's Military Dome: its level table when it has one (v9), else the formula fields (v8)."""
+    building = {
+        "id": yard_id, "displayName": name, "category": "Military", "slotType": "Military",
+        "minRing": dome.get("minRing", 3), "maxRing": dome.get("maxRing", 12),
+        "buildSeconds": max(1, int(round(dome.get("buildSeconds", 60) * YARD_TIME))), "requiredReactorLevel": reactor, "maxCount": 1,
+        "consumption": [], "buildCost": scaled(dome["buildCost"], YARD_COST),
+    }
+    if "levels" not in dome:
+        building["production"] = []
+        return building
     levels = []
     for level in dome["levels"]:
         levels.append({
@@ -62,12 +72,9 @@ def yard_building(dome, yard_id, name, reactor):
             "production": [],
             "consumption": [],
         })
-    return {
-        "id": yard_id, "displayName": name, "category": "Military", "slotType": "Military",
-        "minRing": dome.get("minRing", 3), "maxRing": dome.get("maxRing", 12),
-        "buildSeconds": dome.get("buildSeconds", 60), "requiredReactorLevel": reactor, "maxCount": 1,
-        "consumption": [], "buildCost": scaled(dome["buildCost"], YARD_COST), "levels": levels, "countUnlocks": [reactor],
-    }
+    building["levels"] = levels
+    building["countUnlocks"] = [reactor]
+    return building
 
 
 def apply(catalog):
@@ -117,7 +124,11 @@ def main():
     out = Path(sys.argv[sys.argv.index("--out") + 1]) if "--out" in sys.argv else source
     raw = source.read_bytes().decode("utf-8")
     catalog = json.loads(raw)
-    text = splice(raw, catalog)
+    if "\n    }," in raw.replace("\r\n", "\n"):
+        text = splice(raw, catalog)
+    else:
+        # A one-line catalog (a live version from the database): layout does not matter.
+        text = json.dumps(apply(catalog), ensure_ascii=False)
     json.loads(text)
     out.write_bytes(text.encode("utf-8"))
     if out.resolve() == (ROOT / "shared/catalog/catalog.json").resolve():
