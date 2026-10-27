@@ -154,6 +154,20 @@ namespace HADAL.Shared.Simulation
             return true;
         }
 
+        /// <summary>Alliance banner icons (HUD icon ids) and colours; a banner is "icon:colour" indices.</summary>
+        public static readonly string[] EmblemIcons = { "side_alliance", "event_war", "power", "nav_world", "quest", "event_gift", "left_research", "res_hadalite" };
+
+        public static readonly string[] EmblemColors = { "2E9BD6", "2BB673", "D64545", "E0A21B", "8E5BD8", "D6589E", "3FBFBF", "6C7A89" };
+
+        public const string DefaultEmblem = "0:0";
+
+        public static bool IsValidEmblem(string? emblem)
+        {
+            var parts = (emblem ?? string.Empty).Split(':');
+            return parts.Length == 2 && int.TryParse(parts[0], out var i) && int.TryParse(parts[1], out var c)
+                   && i >= 0 && i < EmblemIcons.Length && c >= 0 && c < EmblemColors.Length;
+        }
+
         /// <summary>Seconds one help takes off a construction of <paramref name="totalSeconds"/>.</summary>
         public static int HelpSeconds(AllianceCatalogData rules, int totalSeconds) =>
             Math.Max(Math.Max(1, rules.helpMinSeconds), totalSeconds * Math.Max(0, rules.helpPercent) / 100);

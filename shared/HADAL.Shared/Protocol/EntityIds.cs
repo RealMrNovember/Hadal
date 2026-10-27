@@ -53,6 +53,12 @@ namespace HADAL.Shared.Protocol
         /// <summary>Bases around the tile the player looks at on the world map (<c>WorldViewDto</c>).</summary>
         public const string WorldView = "world:view";
 
+        /// <summary>A profile card the player asked for (<c>PlayerProfileDto</c>).</summary>
+        public const string Profile = "world:profile";
+
+        /// <summary>The player's own profile (<c>PlayerProfileDto</c>; avatar choice).</summary>
+        public const string MyProfile = Base + "profile";
+
         /// <summary>The player's gathering marches and queues (<c>MarchListDto</c>).</summary>
         public const string Marches = Base + "marches";
 

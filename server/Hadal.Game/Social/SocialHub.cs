@@ -61,6 +61,10 @@ namespace Hadal.Game.Social
         private readonly Dictionary<string, List<Invite>> _invites = new(StringComparer.Ordinal);
         private readonly Dictionary<string, List<Applicant>> _applications = new(StringComparer.Ordinal);
         private readonly Dictionary<string, string> _names = new(StringComparer.Ordinal);
+        private readonly Dictionary<string, string> _avatars = new(StringComparer.Ordinal);
+
+        /// <summary>Avatars of players who are not online (the world map remembers every base's).</summary>
+        public Func<string, string?>? AvatarLookup { get; set; }
 
         /// <summary>Names of players who are not online and not in an alliance (the world map knows every base).</summary>
         public Func<string, string?>? NameLookup { get; set; }
@@ -137,6 +141,7 @@ namespace Hadal.Game.Social
             {
                 _online[session.PublicId] = session;
                 _names[session.PublicId] = session.DisplayName;
+                _avatars[session.PublicId] = session.AvatarId;
                 var alliance = AllianceOf(session.PublicId);
                 session.SetInAlliance(alliance != null, now);
                 if (alliance != null)
@@ -166,6 +171,7 @@ namespace Hadal.Game.Social
                     return;
 
                 _online.Remove(session.PublicId);
+                _avatars[session.PublicId] = session.AvatarId;
                 var alliance = AllianceOf(session.PublicId);
                 if (alliance != null)
                 {
@@ -290,9 +296,10 @@ namespace Hadal.Game.Social
                 return SocialRejectReason.InsufficientResources;
 
             var description = SocialRules.CleanMessage(command.Description, new HADAL.Shared.Catalog.ChatCatalogData { maxLength = 200 });
+            var emblem = SocialRules.IsValidEmblem(command.Emblem) ? command.Emblem : SocialRules.DefaultEmblem;
             var alliance = new Alliance
             {
-                Record = new AllianceRecord("a" + Guid.NewGuid().ToString("N"), name, tag, description, session.PublicId, now)
+                Record = new AllianceRecord("a" + Guid.NewGuid().ToString("N"), name, tag, description, session.PublicId, now, 0, emblem)
             };
             _alliances[alliance.Record.Id] = alliance;
             Write(ct => _store.SaveAllianceAsync(alliance.Record, ct));
@@ -441,7 +448,24 @@ namespace Hadal.Game.Social
                 return SocialRejectReason.NotAllowed;
 
             var description = SocialRules.CleanMessage(command.Description, new HADAL.Shared.Catalog.ChatCatalogData { maxLength = 200 });
-            alliance.Record = alliance.Record with { JoinMode = command.JoinMode, Description = description };
+
+            // Name, tag and banner change only when given, with the same checks as founding.
+            var rules = Catalog.Alliance;
+            var name = string.IsNullOrWhiteSpace(command.Name) ? alliance.Record.Name : command.Name.Trim();
+            var tag = string.IsNullOrWhiteSpace(command.Tag) ? alliance.Record.Tag : SocialRules.NormalizeTag(command.Tag);
+            if (!SocialRules.IsValidName(name, rules))
+                return SocialRejectReason.InvalidName;
+            if (!SocialRules.IsValidTag(tag, rules))
+                return SocialRejectReason.InvalidTag;
+            if (_alliances.Values.Any(a => a != alliance && string.Equals(a.Record.Name, name, StringComparison.OrdinalIgnoreCase)))
+                return SocialRejectReason.NameTaken;
+            if (_alliances.Values.Any(a => a != alliance && string.Equals(a.Record.Tag, tag, StringComparison.OrdinalIgnoreCase)))
+                return SocialRejectReason.TagTaken;
+            var emblem = string.IsNullOrEmpty(command.Emblem) ? alliance.Record.Emblem : command.Emblem;
+            if (!string.IsNullOrEmpty(emblem) && !SocialRules.IsValidEmblem(emblem))
+                return SocialRejectReason.NotAllowed;
+
+            alliance.Record = alliance.Record with { JoinMode = command.JoinMode, Description = description, Name = name, Tag = tag, Emblem = emblem ?? string.Empty };
             var record = alliance.Record;
             Write(ct => _store.SaveAllianceAsync(record, ct));
 
@@ -870,6 +894,7 @@ namespace Hadal.Game.Social
                 LeaderId = alliance.Record.LeaderId,
                 MaxMembers = Catalog.Alliance.maxMembers,
                 JoinMode = alliance.Record.JoinMode,
+                Emblem = EmblemOf(alliance),
                 Applicants = AlliancePermissions.CanApprove(RankOf(alliance, playerId)) && _applications.TryGetValue(alliance.Record.Id, out var waiting)
                     ? waiting.Select(a => new AllianceApplicantDto { PlayerId = a.PlayerId, Name = NameOf(a.PlayerId) is { Length: > 0 } n ? n : a.Name, Power = a.Power }).ToArray()
                     : Array.Empty<AllianceApplicantDto>(),
@@ -884,7 +909,8 @@ namespace Hadal.Game.Social
                         Power = online ? s!.Power : m.Power,
                         Online = online,
                         Rank = m.Rank,
-                        Role = m.Role
+                        Role = m.Role,
+                        AvatarId = AvatarOf(m.PlayerId)
                     };
                 }).OrderByDescending(m => m.Rank).ThenByDescending(m => m.Power).ToArray()
             };
@@ -906,7 +932,8 @@ namespace Hadal.Game.Social
                     MaxMembers = Catalog.Alliance.maxMembers,
                     LeaderName = a.Members.FirstOrDefault(m => m.PlayerId == a.Record.LeaderId)?.Name ?? string.Empty,
                     Power = a.Members.Sum(m => _online.TryGetValue(m.PlayerId, out var s) ? s.Power : m.Power),
-                    JoinMode = a.Record.JoinMode
+                    JoinMode = a.Record.JoinMode,
+                    Emblem = EmblemOf(a)
                 })
                 .OrderByDescending(a => a.Power)
                 .Take(30)
@@ -948,7 +975,8 @@ namespace Hadal.Game.Social
                         Tag = a.Record.Tag,
                         InviterName = i.InviterName,
                         Members = a.Members.Count,
-                        MaxMembers = Catalog.Alliance.maxMembers
+                        MaxMembers = Catalog.Alliance.maxMembers,
+                        Emblem = EmblemOf(a)
                     };
                 }).ToArray(),
                 Applied = _applications.Where(p => p.Value.Any(a => a.PlayerId == playerId)).Select(p => p.Key).ToArray()
@@ -956,9 +984,35 @@ namespace Hadal.Game.Social
             return new EntityChangeDto { EntityId = EntityIds.AllianceInvites, Kind = EntityChangeKind.Update, Payload = _serializer.Serialize(dto) };
         }
 
+        private static string EmblemOf(Alliance alliance) =>
+            string.IsNullOrEmpty(alliance.Record.Emblem) ? SocialRules.DefaultEmblem : alliance.Record.Emblem;
+
+        private string AvatarOf(string playerId)
+        {
+            if (_online.TryGetValue(playerId, out var session))
+                return session.AvatarId;
+            if (_avatars.TryGetValue(playerId, out var avatar))
+                return avatar;
+            avatar = AvatarLookup?.Invoke(playerId) ?? string.Empty;
+            _avatars[playerId] = avatar;
+            return avatar;
+        }
+
+        /// <summary>The alliance tag and name of a player (profile cards); empty without one.</summary>
+        public (string Tag, string Name) AllianceOfPlayer(string playerId)
+        {
+            lock (_gate)
+            {
+                var alliance = AllianceOf(playerId);
+                return alliance == null ? (string.Empty, string.Empty) : (alliance.Record.Tag, alliance.Record.Name);
+            }
+        }
+
         private ChatMessageDto ToDto(ChatRecord line)
         {
             var dto = ToDtoBase(line);
+            if (!line.IsSystem && line.SenderId.Length > 0)
+                dto.SenderAvatar = AvatarOf(line.SenderId);
             if (line.Channel.StartsWith(PrivatePrefix, StringComparison.Ordinal))
             {
                 var (a, b) = PrivatePair(line.Channel);

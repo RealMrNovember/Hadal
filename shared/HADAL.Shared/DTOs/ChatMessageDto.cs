@@ -22,6 +22,9 @@ namespace HADAL.Shared.DTOs
         /// <summary>Private lines: the recipient.</summary>
         [ProtoMember(9)] public string TargetId { get; set; } = string.Empty;
         [ProtoMember(10)] public string TargetName { get; set; } = string.Empty;
+
+        /// <summary>The sender's avatar (hero portrait id; empty = initial).</summary>
+        [ProtoMember(11)] public string SenderAvatar { get; set; } = string.Empty;
     }
 
     /// <summary>Recent lines of every readable channel, oldest first (entity <c>EntityIds.ChatHistory</c>).</summary>

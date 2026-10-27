@@ -19,6 +19,9 @@ namespace HADAL.Shared.DTOs
 
         /// <summary>Waiting applications; filled only for R3 and above.</summary>
         [ProtoMember(9)] public AllianceApplicantDto[] Applicants { get; set; } = System.Array.Empty<AllianceApplicantDto>();
+
+        /// <summary>Banner: "icon:colour" indices into <c>SocialRules.EmblemIcons</c> / <c>EmblemColors</c>.</summary>
+        [ProtoMember(10)] public string Emblem { get; set; } = string.Empty;
     }
 
     [ProtoContract]
@@ -43,6 +46,7 @@ namespace HADAL.Shared.DTOs
 
         /// <summary>Officer duty tag ("war", "logistics", "diplomacy", "scout") or empty.</summary>
         [ProtoMember(7)] public string Role { get; set; } = string.Empty;
+        [ProtoMember(8)] public string AvatarId { get; set; } = string.Empty;
     }
 
     /// <summary>Alliance invitations for a player without an alliance, and where they applied (entity <c>EntityIds.AllianceInvites</c>).</summary>
@@ -62,6 +66,7 @@ namespace HADAL.Shared.DTOs
         [ProtoMember(4)] public string InviterName { get; set; } = string.Empty;
         [ProtoMember(5)] public int Members { get; set; }
         [ProtoMember(6)] public int MaxMembers { get; set; }
+        [ProtoMember(7)] public string Emblem { get; set; } = string.Empty;
     }
 
     /// <summary>Alliances to join (entity <c>EntityIds.AllianceList</c>).</summary>
@@ -85,6 +90,7 @@ namespace HADAL.Shared.DTOs
 
         /// <summary><c>AllianceJoinMode</c> value.</summary>
         [ProtoMember(9)] public int JoinMode { get; set; }
+        [ProtoMember(10)] public string Emblem { get; set; } = string.Empty;
     }
 
     /// <summary>Alliance mates' constructions waiting for help (entity <c>EntityIds.AllianceHelp</c>).</summary>

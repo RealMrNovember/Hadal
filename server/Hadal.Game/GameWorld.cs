@@ -63,6 +63,7 @@ namespace Hadal.Game
             Social = new SocialHub(socialStore, runtime, serializer, logger);
             Map = new WorldService(worldStore, runtime, serializer, Social, logger, clock);
             Social.NameLookup = Map.NameOf;
+            Social.AvatarLookup = Map.AvatarOf;
         }
 
         /// <summary>The outer world map (docs/28).</summary>

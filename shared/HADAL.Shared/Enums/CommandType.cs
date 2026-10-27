@@ -44,5 +44,7 @@ namespace HADAL.Shared.Enums
         [ProtoEnum] InviteToAlliance = 36,
         [ProtoEnum] AnswerInvite = 37,
         [ProtoEnum] AnswerApplication = 38,
+        [ProtoEnum] SetProfile = 39,
+        [ProtoEnum] ViewProfile = 40,
     }
 }

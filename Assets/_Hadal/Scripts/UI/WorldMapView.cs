@@ -59,6 +59,9 @@ namespace Hadal.UI
         /// <summary>Opens a private conversation with a base's owner (id, name); set by BaseManagementView.</summary>
         public Action<string, string> MessagePlayer;
 
+        /// <summary>Shares a tile in chat: x, y, kind ("base", "enemy", "node", "me") and a label.</summary>
+        public Action<int, int, string, string> ShareLocation;
+
         private ClientStateView View => _stateSync.View;
 
         public void Initialize(IStateSyncService stateSync, ICommandDispatcher commands, Action<string, Color> toast, Hadal.Core.Events.ILocalEventBus localBus = null)
@@ -108,6 +111,14 @@ namespace Hadal.UI
             _canvas.gameObject.SetActive(false);
             ClosePopup();
             TargetMenu.Hide();
+        }
+
+        /// <summary>Opens the map over a shared location (chat pins, profile cards).</summary>
+        public void OpenAt(int x, int y)
+        {
+            Open();
+            _focus = TileToWorld(x, y);
+            Request(x, y);
         }
 
         public void GoHome()
@@ -307,14 +318,20 @@ namespace Hadal.UI
             var info = $"{Loc.F("world.level", b.Level)}   {Loc.F("hero.power", b.Power.ToString("N0"))}\n" +
                        $"{Loc.F("world.coords", b.X, b.Y)}   {(b.Online ? Loc.T("world.online") : Loc.T("world.offline"))}";
             var items = new List<TargetMenu.Item>();
+            var target = b;
             if (me)
             {
                 items.Add(new TargetMenu.Item("left_home", Loc.T("world.enter"), Close));
+                items.Add(new TargetMenu.Item("avatar", Loc.T("profile.title"), () => ProfileCard.Instance?.ShowMine()));
+                items.Add(new TargetMenu.Item("chat", Loc.T("share.title"), () => ShareLocation?.Invoke(target.X, target.Y, "me", target.Name)));
             }
             else
             {
-                var target = b;
+                var ally = !string.IsNullOrEmpty(b.AllianceTag) && b.AllianceTag == View.MyAlliance?.Tag;
+                items.Add(new TargetMenu.Item("avatar", Loc.T("profile.title"), () => ProfileCard.Instance?.Show(target.PlayerId, target.Name, target.AvatarId)));
                 items.Add(new TargetMenu.Item("chat", Loc.T("alliance.message"), () => MessagePlayer?.Invoke(target.PlayerId, target.Name)));
+                items.Add(new TargetMenu.Item("nav_world", Loc.T("share.title"), () => ShareLocation?.Invoke(target.X, target.Y, ally ? "base" : "enemy",
+                    (string.IsNullOrEmpty(target.AllianceTag) ? string.Empty : $"[{target.AllianceTag}] ") + target.Name)));
                 var canInvite = HADAL.Shared.Simulation.AlliancePermissions.CanInvite(View.MyRank()) && string.IsNullOrEmpty(b.AllianceTag);
                 items.Add(new TargetMenu.Item("side_alliance", Loc.T("alliance.invite"), () => _commands.Dispatch(new InviteToAllianceCommand
                 {

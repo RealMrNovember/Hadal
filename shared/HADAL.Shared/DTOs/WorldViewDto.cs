@@ -60,5 +60,6 @@ namespace HADAL.Shared.DTOs
         [ProtoMember(6)] public int Level { get; set; }
         [ProtoMember(7)] public long Power { get; set; }
         [ProtoMember(8)] public bool Online { get; set; }
+        [ProtoMember(9)] public string AvatarId { get; set; } = string.Empty;
     }
 }

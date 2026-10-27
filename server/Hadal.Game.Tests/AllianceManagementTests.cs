@@ -175,5 +175,54 @@ namespace Hadal.Game.Tests
             Send(alice, new SendChatCommand { CommandId = Id(), Channel = (int)ChatChannel.Private, TargetId = "nobody", Text = "?" }, CommandType.SendChat);
             Assert.Equal(nameof(SocialRejectReason.UnknownPlayer), LastAck(aliceConnection).Reason);
         }
+        [Fact]
+        public async Task The_leader_renames_retags_and_rebanners_the_alliance()
+        {
+            var (leader, connection, _) = await Found("edit-a", "EDTA");
+            await Found("edit-b", "EDTB");
+
+            Send(leader, new SetAllianceSettingsCommand { CommandId = Id(), Name = "Trench Guard", Tag = "trg", Emblem = "3:5" }, CommandType.SetAllianceSettings);
+            Assert.Equal(CommandResultCode.Accepted, LastAck(connection).Result);
+            var alliance = Latest<AllianceDto>(connection, EntityIds.MyAlliance);
+            Assert.Equal(("Trench Guard", "TRG", "3:5"), (alliance.Name, alliance.Tag, alliance.Emblem));
+
+            Send(leader, new SetAllianceSettingsCommand { CommandId = Id(), Tag = "EDTB" }, CommandType.SetAllianceSettings);
+            Assert.Equal(nameof(SocialRejectReason.TagTaken), LastAck(connection).Reason);
+            Send(leader, new SetAllianceSettingsCommand { CommandId = Id(), Emblem = "99:0" }, CommandType.SetAllianceSettings);
+            Assert.Equal(nameof(SocialRejectReason.NotAllowed), LastAck(connection).Reason);
+
+        }
+
+        [Fact]
+        public async Task A_chosen_avatar_shows_in_chat_and_on_the_profile_card()
+        {
+            var portrait = TestSupport.Catalog.Heroes.Select(h => h.Portrait).FirstOrDefault(p => p.Length > 0) ?? "";
+            var (alice, aliceConnection) = await Connect("face-a");
+            var (bob, bobConnection) = await Connect("face-b");
+
+            Send(alice, new SetProfileCommand { CommandId = Id(), AvatarId = "no-such-face" }, CommandType.SetProfile);
+            Assert.Equal("UnknownAvatar", LastAck(aliceConnection).Reason);
+
+            if (portrait.Length > 0)
+            {
+                Send(alice, new SetProfileCommand { CommandId = Id(), AvatarId = portrait }, CommandType.SetProfile);
+                Assert.Equal(CommandResultCode.Accepted, LastAck(aliceConnection).Result);
+                Assert.Equal(portrait, Latest<PlayerProfileDto>(aliceConnection, EntityIds.MyProfile).AvatarId);
+            }
+
+            Send(alice, new SendChatCommand { CommandId = Id(), Channel = (int)ChatChannel.World, Text = "hello" }, CommandType.SendChat);
+            var line = bobConnection.Messages.Where(m => m.Delta != null).Select(m => m.Delta()).SelectMany(d => d.Changes)
+                .Where(ch => ch.EntityId.StartsWith(EntityIds.ChatMessage, StringComparison.Ordinal))
+                .Select(ch => TestSupport.Serializer.Deserialize<ChatMessageDto>(ch.Payload)).Last();
+            Assert.Equal(portrait, line.SenderAvatar);
+
+            Send(bob, new ViewProfileCommand { CommandId = Id(), PlayerId = alice.PublicId }, CommandType.ViewProfile);
+            Assert.Equal(CommandResultCode.Accepted, LastAck(bobConnection).Result);
+            var card = Latest<PlayerProfileDto>(bobConnection, EntityIds.Profile);
+            Assert.Equal((alice.PublicId, "face-a", portrait, true), (card.PlayerId, card.Name, card.AvatarId, card.Online));
+
+            Send(bob, new ViewProfileCommand { CommandId = Id(), PlayerId = "nobody" }, CommandType.ViewProfile);
+            Assert.Equal("UnknownPlayer", LastAck(bobConnection).Reason);
+        }
     }
 }

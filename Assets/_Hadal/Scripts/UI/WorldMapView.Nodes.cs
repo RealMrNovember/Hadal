@@ -194,7 +194,13 @@ namespace Hadal.UI
                 lines.Add(Loc.F("world.node.fades", Loc.Duration(Math.Max(0, (n.FadesAtMs - View.ServerNowMs) / 1000f))));
 
             var id = n.Id;
-            var items = new List<TargetMenu.Item> { new("queue_drone", Loc.T("world.gather"), () => OpenMarchSetup(n), blocked == null) };
+            var level = n.Level;
+            var type = n.Type;
+            var items = new List<TargetMenu.Item>
+            {
+                new("queue_drone", Loc.T("world.gather"), () => OpenMarchSetup(n), blocked == null),
+                new("nav_world", Loc.T("share.title"), () => ShareLocation?.Invoke(n.X, n.Y, "node", $"{level}:{type}"))
+            };
             GlideTo(n.X, n.Y);
             var x = n.X;
             var y = n.Y;

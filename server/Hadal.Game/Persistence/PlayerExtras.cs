@@ -20,7 +20,7 @@ namespace Hadal.Game.Persistence
         private sealed record Doc(
             Dictionary<string, int>? Research, List<ActiveDoc>? Active, Dictionary<string, BuildingDoc>? Buildings,
             List<HeroDoc>? Heroes = null, int SincePity = 0, DateTimeOffset? FreePullAt = null, QuestDoc? Quests = null,
-            List<MarchDoc>? Marches = null, int ExpeditionCleared = 0);
+            List<MarchDoc>? Marches = null, int ExpeditionCleared = 0, string? Avatar = null);
 
         private sealed record MarchDoc(
             string Id, string NodeId, string NodeType, int NodeLevel, int X, int Y, DateTimeOffset StartedAt, DateTimeOffset ArrivesAt,
@@ -56,7 +56,8 @@ namespace Hadal.Game.Persistence
                     m.GatheredAt, m.HomeAt, m.Reserved,
                     m.Rates.ToDictionary(p => p.Key.ToString(), p => p.Value), m.Cargo.ToDictionary(p => p.Key.ToString(), p => p.Value),
                     m.HeroId, m.Crew, m.FromX, m.FromY)).ToList(),
-                state.ExpeditionCleared));
+                state.ExpeditionCleared,
+                state.AvatarId));
         }
 
         private static Dictionary<ResourceType, T> Resources<T>(Dictionary<string, T>? map)
@@ -126,6 +127,7 @@ namespace Hadal.Game.Persistence
             }
 
             state.ExpeditionCleared = doc.ExpeditionCleared;
+            state.AvatarId = doc.Avatar ?? string.Empty;
 
             foreach (var b in state.Buildings)
             {

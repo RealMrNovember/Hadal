@@ -40,6 +40,9 @@ namespace HADAL.Shared.DTOs
         /// <summary>Depth Map progress (docs/rehber 08); null from older servers.</summary>
         [ProtoMember(12)] public ExpeditionStateDto? Expedition { get; set; }
 
+        /// <summary>The player's own profile (avatar); null from older servers.</summary>
+        [ProtoMember(13)] public PlayerProfileDto? Profile { get; set; }
+
         [ProtoBeforeSerialization]
         private void BeforeSerialize() => BuildingsWire = Buildings?.ToArray() ?? System.Array.Empty<BuildingStateDto>();
 

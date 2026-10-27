@@ -10,5 +10,10 @@ namespace HADAL.Shared.Commands
         [ProtoMember(2)] public ulong ClientSequence { get; set; }
         [ProtoMember(3)] public int JoinMode { get; set; }
         [ProtoMember(4)] public string Description { get; set; } = string.Empty;
+
+        /// <summary>New name, tag and banner; empty keeps the current one.</summary>
+        [ProtoMember(5)] public string Name { get; set; } = string.Empty;
+        [ProtoMember(6)] public string Tag { get; set; } = string.Empty;
+        [ProtoMember(7)] public string Emblem { get; set; } = string.Empty;
     }
 }

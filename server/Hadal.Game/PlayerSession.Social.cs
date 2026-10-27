@@ -23,6 +23,12 @@ namespace Hadal.Game
             internal set { lock (_gate) _displayName = value; }
         }
 
+        /// <summary>The player's chosen avatar (hero portrait id; empty = initial).</summary>
+        public string AvatarId
+        {
+            get { lock (_gate) return _state.AvatarId; }
+        }
+
         public long Power
         {
             get { lock (_gate) return ComputePower(); }

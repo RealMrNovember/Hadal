@@ -26,6 +26,10 @@ namespace Hadal.UI
         private string _newDescription = string.Empty;
         private int _editMode = -1;
         private string _editDescription;
+        private string _newEmblem = SocialRules.DefaultEmblem;
+        private string _editName;
+        private string _editTag;
+        private string _editEmblem;
 
         private static string RankName(int rank) => Loc.T("alliance.rank." + Mathf.Clamp(rank, 1, 5));
 
@@ -48,9 +52,10 @@ namespace Hadal.UI
             {
                 var card = Card(170);
                 card.color = new Color(0.05f, 0.22f, 0.3f, 1f);
-                CardText(card.transform, $"[{invite.Tag}] {invite.Name}", 34, UiKit.Accent, 0.04f, 0.55f, 0.6f, 0.95f, TextAnchor.UpperLeft, FontStyle.Bold);
+                AvatarDisc.Emblem(UiKit.Rect("Banner", card.transform).Place(0.02f, 0.12f, 0.15f, 0.88f), invite.Emblem);
+                CardText(card.transform, $"[{invite.Tag}] {invite.Name}", 34, UiKit.Accent, 0.17f, 0.55f, 0.6f, 0.95f, TextAnchor.UpperLeft, FontStyle.Bold);
                 CardText(card.transform, $"{Loc.F("alliance.invite.from", invite.InviterName)}\n{Loc.F("alliance.members", invite.Members, invite.MaxMembers)}", 24,
-                    UiKit.Muted, 0.04f, 0.05f, 0.6f, 0.55f);
+                    UiKit.Muted, 0.17f, 0.05f, 0.6f, 0.55f);
                 var id = invite.AllianceId;
                 CardButton(card.transform, Loc.T("alliance.invite.accept"), true, () => AnswerInvite(id, true), null, 0.62f, 0.52f, 0.97f, 0.92f);
                 CardButton(card.transform, Loc.T("alliance.invite.decline"), true, () => AnswerInvite(id, false), UiKit.Field, 0.62f, 0.08f, 0.97f, 0.48f);
@@ -83,10 +88,11 @@ namespace Hadal.UI
             foreach (var entry in View.AllianceBrowse)
             {
                 var card = Card(220);
-                CardText(card.transform, $"[{entry.Tag}] {entry.Name}", 36, UiKit.Text, 0.04f, 0.68f, 0.7f, 0.96f, TextAnchor.UpperLeft, FontStyle.Bold);
+                AvatarDisc.Emblem(UiKit.Rect("Banner", card.transform).Place(0.02f, 0.5f, 0.15f, 0.94f), entry.Emblem);
+                CardText(card.transform, $"[{entry.Tag}] {entry.Name}", 36, UiKit.Text, 0.17f, 0.68f, 0.7f, 0.96f, TextAnchor.UpperLeft, FontStyle.Bold);
                 CardText(card.transform, $"{Loc.F("alliance.members", entry.Members, entry.MaxMembers)}   {Loc.F("hero.power", entry.Power)}\n" +
                                          $"{Loc.F("alliance.leader", entry.LeaderName)}   {Loc.T("alliance.mode." + entry.JoinMode)}",
-                    26, UiKit.Muted, 0.04f, 0.32f, 0.7f, 0.68f);
+                    26, UiKit.Muted, 0.17f, 0.32f, 0.7f, 0.68f);
                 if (!string.IsNullOrEmpty(entry.Description))
                     CardText(card.transform, entry.Description, 24, UiKit.Text, 0.04f, 0.03f, 0.7f, 0.32f);
                 var id = entry.Id;
@@ -123,13 +129,34 @@ namespace Hadal.UI
             description.text = _newDescription;
             description.onValueChanged.AddListener(v => _newDescription = v);
 
+            UiKit.Label("EmblemLabel", _list, Loc.T("alliance.emblem"), 28, UiKit.Muted).Row(50);
+            EmblemPicker(() => _newEmblem, e => _newEmblem = e);
+
+            // The price and, before the tap, what is wrong: short name or tag, or resources missing.
             var wallet = Wallet();
-            var card = Card(170);
-            CardText(card.transform, $"{Loc.T("base.cost")}: {Cost(_catalog.AllianceCreateCost, wallet)}", 30, UiKit.Amber, 0.04f, 0.1f, 0.68f, 0.9f, TextAnchor.MiddleLeft);
-            CardButton(card.transform, Loc.T("alliance.found"), true, () => _commands.Dispatch(new CreateAllianceCommand
+            var missing = _catalog.AllianceCreateCost.FirstOrDefault(c => (wallet.TryGetValue(c.Key, out var have) ? have : 0) < c.Value);
+            var problem = !SocialRules.IsValidName(_newName.Trim(), rules) ? Loc.F("alliance.name.hint", rules.nameMin, rules.nameMax)
+                : !SocialRules.IsValidTag(SocialRules.NormalizeTag(_newTag), rules) ? Loc.F("alliance.tag.hint", rules.tagMin, rules.tagMax)
+                : missing.Value > 0 ? Loc.F("alliance.found.short", Loc.Resource(missing.Key.ToString()))
+                : string.Empty;
+            var card = Card(200);
+            CardText(card.transform, $"{Loc.T("base.cost")}: {Cost(_catalog.AllianceCreateCost, wallet)}", 30, UiKit.Amber, 0.04f, 0.5f, 0.68f, 0.95f, TextAnchor.MiddleLeft);
+            CardText(card.transform, problem.Length > 0 ? problem : Loc.T("alliance.found.ready"), 22, problem.Length > 0 ? UiKit.Danger : UiKit.Ok,
+                0.04f, 0.05f, 0.68f, 0.5f, TextAnchor.MiddleLeft);
+            CardButton(card.transform, Loc.T("alliance.found"), true, () =>
             {
-                CommandId = NewId(), ClientSequence = NextSequence(), Name = _newName.Trim(), Tag = _newTag.Trim(), Description = _newDescription.Trim()
-            }));
+                if (problem.Length > 0)
+                {
+                    Toast(problem, UiKit.Danger);
+                    return;
+                }
+
+                _commands.Dispatch(new CreateAllianceCommand
+                {
+                    CommandId = NewId(), ClientSequence = NextSequence(), Name = _newName.Trim(), Tag = _newTag.Trim(), Description = _newDescription.Trim(),
+                    Emblem = _newEmblem
+                });
+            });
         }
 
         private void RenderMyAlliance(AllianceDto alliance)
@@ -165,8 +192,11 @@ namespace Hadal.UI
                 return;
             }
 
-            if (!string.IsNullOrEmpty(alliance.Description))
-                UiKit.Label("Description", _list, alliance.Description, 28, UiKit.Text).Row(90);
+            var banner = Card(150);
+            AvatarDisc.Emblem(UiKit.Rect("Banner", banner.transform).Place(0.02f, 0.08f, 0.18f, 0.92f), alliance.Emblem);
+            CardText(banner.transform, $"[{alliance.Tag}] {alliance.Name}", 36, UiKit.Text, 0.21f, 0.5f, 0.97f, 0.95f, TextAnchor.MiddleLeft, FontStyle.Bold);
+            CardText(banner.transform, string.IsNullOrEmpty(alliance.Description) ? Loc.F("alliance.leader", alliance.Members.FirstOrDefault(m => m.IsLeader)?.Name ?? "-")
+                : alliance.Description, 24, UiKit.Muted, 0.21f, 0.05f, 0.97f, 0.5f, TextAnchor.UpperLeft);
 
             var lastRank = -1;
             foreach (var member in alliance.Members)
@@ -183,10 +213,17 @@ namespace Hadal.UI
                 var dot = member.Online ? "<color=#38D6F2>●</color>" : "<color=#3A5560>●</color>";
                 var rank = member.Rank > 0 ? member.Rank : member.IsLeader ? 5 : 2;
                 var role = string.IsNullOrEmpty(member.Role) ? string.Empty : " · " + Loc.T("alliance.duty." + member.Role);
+                var face = UiKit.Rect("Face", card.transform).Place(0.015f, 0.1f, 0.15f, 0.9f);
+                AvatarDisc.Draw(face, member.AvatarId, member.Name, member.PlayerId);
+                face.gameObject.AddComponent<Image>().color = new Color(0, 0, 0, 0);
+                var faceId = member.PlayerId;
+                var faceName = member.Name;
+                var faceAvatar = member.AvatarId;
+                face.gameObject.AddComponent<Button>().onClick.AddListener(() => ProfileCard.Instance?.Show(faceId, faceName, faceAvatar));
                 CardText(card.transform, $"{dot} {member.Name}", 34, member.PlayerId == me ? UiKit.Accent : UiKit.Text,
-                    0.04f, 0.5f, 0.7f, 0.95f, TextAnchor.UpperLeft, FontStyle.Bold);
+                    0.17f, 0.5f, 0.78f, 0.95f, TextAnchor.UpperLeft, FontStyle.Bold);
                 CardText(card.transform, $"<color=#FFB74D>R{rank} {RankName(rank)}{role}</color>   {Loc.F("hero.power", member.Power)}", 24, UiKit.Muted,
-                    0.04f, 0.08f, 0.75f, 0.5f);
+                    0.17f, 0.08f, 0.78f, 0.5f);
 
                 if (member.PlayerId == me)
                     continue;
@@ -325,16 +362,74 @@ namespace Hadal.UI
             var description = UiKit.Input("Description", _list, Loc.T("alliance.description.hint"), characterLimit: 200).Row(100);
             description.text = _editDescription;
             description.onValueChanged.AddListener(v => _editDescription = v);
+
+            // Name, tag and banner: the leader only (the server checks the same and that both stay unique).
+            var leader = alliance.LeaderId == View.PlayerId;
+            if (leader)
+            {
+                var rules = _catalog.Alliance;
+                _editName ??= alliance.Name;
+                _editTag ??= alliance.Tag;
+                _editEmblem ??= string.IsNullOrEmpty(alliance.Emblem) ? SocialRules.DefaultEmblem : alliance.Emblem;
+                UiKit.Label("NameLabel", _list, Loc.F("alliance.name.hint", rules.nameMin, rules.nameMax), 24, UiKit.Muted).Row(44);
+                var name = UiKit.Input("Name", _list, Loc.T("alliance.name"), characterLimit: rules.nameMax).Row(100);
+                name.text = _editName;
+                name.onValueChanged.AddListener(v => _editName = v);
+                UiKit.Label("TagLabel", _list, Loc.F("alliance.tag.hint", rules.tagMin, rules.tagMax), 24, UiKit.Muted).Row(44);
+                var tag = UiKit.Input("Tag", _list, Loc.T("alliance.tag"), characterLimit: rules.tagMax).Row(100);
+                tag.text = _editTag;
+                tag.onValueChanged.AddListener(v => _editTag = v);
+                UiKit.Label("EmblemLabel", _list, Loc.T("alliance.emblem"), 24, UiKit.Muted).Row(44);
+                EmblemPicker(() => _editEmblem, e => _editEmblem = e);
+            }
+
             var save = Card(110);
             CardButton(save.transform, Loc.T("alliance.save"), true, () =>
             {
                 _commands.Dispatch(new SetAllianceSettingsCommand
                 {
-                    CommandId = NewId(), ClientSequence = NextSequence(), JoinMode = _editMode, Description = (_editDescription ?? string.Empty).Trim()
+                    CommandId = NewId(), ClientSequence = NextSequence(), JoinMode = _editMode, Description = (_editDescription ?? string.Empty).Trim(),
+                    Name = leader && _editName != alliance.Name ? (_editName ?? string.Empty).Trim() : string.Empty,
+                    Tag = leader && _editTag != alliance.Tag ? (_editTag ?? string.Empty).Trim() : string.Empty,
+                    Emblem = leader ? _editEmblem ?? string.Empty : string.Empty
                 });
                 _editMode = -1;
-                _editDescription = null;
+                _editDescription = _editName = _editTag = _editEmblem = null;
             }, null, 0.25f, 0.1f, 0.75f, 0.9f);
+        }
+
+        /// <summary>Banner picker: the icons in a row, the colours in a row, a preview on the left.</summary>
+        private void EmblemPicker(Func<string> current, Action<string> set)
+        {
+            var (icon, color) = AvatarDisc.EmblemParts(current());
+            var card = Card(230);
+            AvatarDisc.Emblem(UiKit.Rect("Preview", card.transform).Place(0.02f, 0.15f, 0.2f, 0.85f), $"{icon}:{color}");
+            var icons = SocialRules.EmblemIcons.Length;
+            for (var i = 0; i < icons; i++)
+            {
+                var pick = i;
+                var cell = UiKit.Box("Icon", card.transform, i == icon ? UiKit.Accent : UiKit.Field);
+                cell.rectTransform.Place(0.23f + i * (0.76f / icons), 0.53f, 0.23f + (i + 1) * (0.76f / icons) - 0.008f, 0.95f);
+                Hud.HudIcons.Image(cell.transform, SocialRules.EmblemIcons[i], 0.15f, 0.15f, 0.85f, 0.85f).raycastTarget = false;
+                cell.gameObject.AddComponent<Button>().onClick.AddListener(() => { set($"{pick}:{AvatarDisc.EmblemParts(current()).Color}"); Render(force: true); });
+            }
+
+            var colors = SocialRules.EmblemColors.Length;
+            for (var i = 0; i < colors; i++)
+            {
+                var pick = i;
+                ColorUtility.TryParseHtmlString("#" + SocialRules.EmblemColors[i], out var tint);
+                var cell = UiKit.Box("Colour", card.transform, tint);
+                cell.rectTransform.Place(0.23f + i * (0.76f / colors), 0.05f, 0.23f + (i + 1) * (0.76f / colors) - 0.008f, 0.45f);
+                if (i == color)
+                {
+                    var outline = cell.gameObject.AddComponent<Outline>();
+                    outline.effectColor = Color.white;
+                    outline.effectDistance = new Vector2(4, -4);
+                }
+
+                cell.gameObject.AddComponent<Button>().onClick.AddListener(() => { set($"{AvatarDisc.EmblemParts(current()).Icon}:{pick}"); Render(force: true); });
+            }
         }
 
         private void RenderHelp()

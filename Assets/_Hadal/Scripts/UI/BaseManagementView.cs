@@ -153,6 +153,33 @@ namespace Hadal.UI
                 _map.Close();
                 _social.OpenPrivateChat(id, name);
             };
+            _map.ShareLocation = (x, y, kind, label) => _social.ShareLocation(x, y, kind, label);
+            _social.ShowOnMap = (x, y) =>
+            {
+                Close();
+                _social.Close();
+                _map.OpenAt(x, y);
+            };
+
+            // Profile cards over every screen: from chat faces, member lists and bases on the map.
+            var profile = new GameObject("ProfileCard");
+            profile.transform.SetParent(transform, false);
+            profile.AddComponent<ProfileCard>().Initialize(_stateSync, _commands, _localBus, new ProfileCard.Actions
+            {
+                Message = (id, name) =>
+                {
+                    Close();
+                    _map.Close();
+                    _social.OpenPrivateChat(id, name);
+                },
+                ShowOnMap = (x, y) => _social.ShowOnMap(x, y),
+                Settings = () =>
+                {
+                    Close();
+                    _social.Close();
+                    FindFirstObjectByType<AccountPanelView>()?.Open();
+                }
+            });
 
             // The main screen frame: header, side columns, bottom bar (docs/26_HUD.md).
             var hud = new GameObject("MainHud");
@@ -173,6 +200,7 @@ namespace Hadal.UI
                     _social.Close();
                     FindFirstObjectByType<AccountPanelView>()?.Open();
                 },
+                Profile = () => ProfileCard.Instance?.ShowMine(),
                 Quests = () => { Close(); _social.OpenQuests(); },
                 Bag = () => { Close(); _social.OpenBag(); },
                 Expedition = () => { Close(); _map.Close(); _social.OpenExpedition(); },

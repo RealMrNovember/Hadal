@@ -171,6 +171,7 @@ namespace Hadal.UI
 
             if (_toast.text.Length > 0 && Time.unscaledTime > _toastUntil)
                 _toast.text = string.Empty;
+            SendPendingPin();
 
             // The page rises above the on-screen keyboard while the chat input is focused.
             if (_sheet.activeSelf)
@@ -179,8 +180,14 @@ namespace Hadal.UI
                 var lift = KeyboardLift();
                 sheet.offsetMin = new Vector2(sheet.offsetMin.x, Mathf.Lerp(sheet.offsetMin.y, lift, 0.4f));
                 // When the keyboard opens, show the newest lines right above the input.
+                // On forms (founding, settings) the field being typed in moves to the top instead.
                 if (lift > 0f && !_keyboardUp)
-                    _list.anchoredPosition = new Vector2(0, 100000);
+                {
+                    var field = UnityEngine.EventSystems.EventSystem.current?.currentSelectedGameObject;
+                    _list.anchoredPosition = _page != Page.Chat && field != null && field.transform.IsChildOf(_list)
+                        ? new Vector2(0, Mathf.Max(0f, -((RectTransform)field.transform).anchoredPosition.y - 120f))
+                        : new Vector2(0, 100000);
+                }
                 _keyboardUp = lift > 0f;
             }
 

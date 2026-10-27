@@ -107,6 +107,9 @@ namespace Hadal.Game
         /// <summary>Gathering marches out on the map (docs/rehber 09 §4).</summary>
         public List<MarchState> Marches { get; } = new();
 
+        /// <summary>Chosen avatar (a hero portrait id); empty shows the initial.</summary>
+        public string AvatarId { get; set; } = string.Empty;
+
         /// <summary>Depth Map stages cleared in order (docs/rehber 08 §5).</summary>
         public int ExpeditionCleared { get; set; }
 

@@ -31,6 +31,9 @@ namespace Hadal.UI.Hud
             public Action Research;
             public Action Expand;
             public Action Settings;
+
+            /// <summary>The header avatar: the player's own profile (avatar, settings).</summary>
+            public Action Profile;
             public Action Quests;
             public Action Bag;
             public Action<string> ClaimQuest;
@@ -58,6 +61,8 @@ namespace Hadal.UI.Hud
         private RectTransform _safe;
         private GameObject _lower; // everything below the header; hidden while a panel covers it
         private Text _level;
+        private RectTransform _avatarSlot;
+        private int _avatarVersion = -1;
         private Text _power;
         private Text _hadalite;
         private readonly Dictionary<ResourceType, Text> _chips = new();
@@ -123,9 +128,9 @@ namespace Hadal.UI.Hud
             shade.raycastTarget = false;
 
             // Avatar with the base level under it; opens settings and the profile.
-            var avatar = Tap(header, "Avatar", 0.012f, 0.26f, 0.135f, 0.98f, _actions.Settings, new Color(0.05f, 0.12f, 0.16f, 0.95f));
+            var avatar = Tap(header, "Avatar", 0.012f, 0.26f, 0.135f, 0.98f, _actions.Profile ?? _actions.Settings, new Color(0.05f, 0.12f, 0.16f, 0.95f));
             Frame(avatar, UiKit.Accent);
-            HudIcons.Image(avatar, "avatar", 0.06f, 0.06f, 0.94f, 0.94f);
+            _avatarSlot = UiKit.Rect("Face", avatar).Place(0.06f, 0.06f, 0.94f, 0.94f);
             var levelBox = UiKit.Box("Level", header, new Color(0.05f, 0.3f, 0.12f, 0.95f));
             levelBox.rectTransform.Place(0.022f, 0.04f, 0.125f, 0.26f);
             levelBox.raycastTarget = false;
@@ -253,6 +258,21 @@ namespace Hadal.UI.Hud
 
         // --- Widgets -------------------------------------------------------------------------
 
+        /// <summary>The chosen portrait in the header (the diver icon until one is picked).</summary>
+        private void RefreshAvatar()
+        {
+            if (_avatarSlot == null || _avatarVersion == View.ProfileVersion)
+                return;
+            _avatarVersion = View.ProfileVersion;
+            foreach (Transform child in _avatarSlot)
+                Destroy(child.gameObject);
+            var avatar = View.MyProfile?.AvatarId;
+            if (string.IsNullOrEmpty(avatar) || Hadal.Core.Catalog.CharacterLibrary.Instance?.Portrait(avatar) == null)
+                HudIcons.Image(_avatarSlot, "avatar", 0, 0, 1, 1).raycastTarget = false;
+            else
+                AvatarDisc.Draw(_avatarSlot, avatar, View.MyProfile.Name, View.PlayerId);
+        }
+
         private static RectTransform Tap(Transform parent, string name, float x0, float y0, float x1, float y1, Action onClick, Color fill)
         {
             var box = UiKit.Box(name, parent, fill);
@@ -354,6 +374,7 @@ namespace Hadal.UI.Hud
 
             _hadalite.text = Compact(wallet.TryGetValue(ResourceType.Hadalite, out var h) ? h : 0);
             _level.text = Loc.F("hud.level", ReactorLevel());
+            RefreshAvatar();
             _power.text = Power().ToString("N0");
 
             RefreshPod();

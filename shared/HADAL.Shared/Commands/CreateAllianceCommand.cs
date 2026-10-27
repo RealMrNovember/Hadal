@@ -14,5 +14,8 @@ namespace HADAL.Shared.Commands
         [ProtoMember(4)] public string Tag { get; set; } = string.Empty;
 
         [ProtoMember(5)] public string Description { get; set; } = string.Empty;
+
+        /// <summary>Banner "icon:colour" (see <c>SocialRules.IsValidEmblem</c>).</summary>
+        [ProtoMember(6)] public string Emblem { get; set; } = string.Empty;
     }
 }

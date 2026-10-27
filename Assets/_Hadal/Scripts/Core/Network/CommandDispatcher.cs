@@ -151,6 +151,8 @@ namespace Hadal.Core.Network
                 InviteToAllianceCommand => CommandType.InviteToAlliance,
                 AnswerInviteCommand => CommandType.AnswerInvite,
                 AnswerApplicationCommand => CommandType.AnswerApplication,
+                SetProfileCommand => CommandType.SetProfile,
+                ViewProfileCommand => CommandType.ViewProfile,
                 _ => CommandType.Unknown
             };
         }

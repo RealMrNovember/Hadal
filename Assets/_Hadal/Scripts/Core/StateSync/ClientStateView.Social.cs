@@ -108,6 +108,29 @@ namespace Hadal.Core.StateSync
 
         public int WorldVersion { get; private set; }
 
+        /// <summary>The player's own profile (avatar choice).</summary>
+        public PlayerProfileDto MyProfile { get; private set; } = new();
+
+        /// <summary>The last profile card the player asked for (tapping an avatar or a base).</summary>
+        public PlayerProfileDto ProfileCard { get; private set; }
+
+        /// <summary>Bumps when either profile changes.</summary>
+        public int ProfileVersion { get; private set; }
+
+        public void ApplyMyProfile(PlayerProfileDto profile)
+        {
+            if (profile == null)
+                return;
+            MyProfile = profile;
+            ProfileVersion++;
+        }
+
+        public void ApplyProfileCard(PlayerProfileDto profile)
+        {
+            ProfileCard = profile;
+            ProfileVersion++;
+        }
+
         public void ApplyWorldView(WorldViewDto view)
         {
             WorldView = view;

@@ -193,6 +193,10 @@ namespace Hadal.Game
                         RecruitHero(recruit!, now);
                         break;
 
+                    case CommandType.SetProfile when TryDeserialize(envelope.Payload, out SetProfileCommand? profile):
+                        SetProfile(profile!, now);
+                        break;
+
                     case CommandType.DiveStage when TryDeserialize(envelope.Payload, out DiveStageCommand? dive):
                         DiveStage(dive!, now);
                         break;
@@ -203,7 +207,7 @@ namespace Hadal.Game
                             or CommandType.BoostBuilding or CommandType.Overdrive or CommandType.StartSalvage or CommandType.ExecuteGacha
                             or CommandType.LevelUpHero or CommandType.PromoteHero or CommandType.AssignHero
                             or CommandType.ClaimQuest or CommandType.ClaimDailyChest or CommandType.OpenItem or CommandType.RecruitHero
-                            or CommandType.DiveStage;
+                            or CommandType.DiveStage or CommandType.SetProfile;
                         Reject(envelope.CommandId, envelope.ClientSequence, known ? "MalformedCommand" : "NotSupported", now);
                         break;
                 }
@@ -944,7 +948,8 @@ namespace Hadal.Game
                 Quests = QuestDto(now),
                 Inventory = InventoryDto(),
                 Marches = MarchListDto(now),
-                Expedition = ExpeditionDto()
+                Expedition = ExpeditionDto(),
+                Profile = new PlayerProfileDto { PlayerId = PublicId, Name = _displayName, AvatarId = _state.AvatarId }
             };
             _questsDirty = false;
 

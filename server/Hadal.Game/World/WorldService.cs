@@ -14,7 +14,7 @@ using Npgsql;
 namespace Hadal.Game.World
 {
     /// <summary>A base on the world map, as last seen (live sessions override name, level and power).</summary>
-    public sealed record WorldBaseRecord(string PlayerId, int X, int Y, string Name, int Level, long Power);
+    public sealed record WorldBaseRecord(string PlayerId, int X, int Y, string Name, int Level, long Power, string Avatar = "");
 
     public partial interface IWorldStore
     {
@@ -65,7 +65,8 @@ CREATE TABLE IF NOT EXISTS hadal.world_bases (
     level      integer NOT NULL DEFAULT 1,
     power      bigint  NOT NULL DEFAULT 0,
     UNIQUE (x, y)
-);";
+);
+ALTER TABLE hadal.world_bases ADD COLUMN IF NOT EXISTS avatar text NOT NULL DEFAULT '';";
 
         private readonly NpgsqlDataSource _dataSource;
 
@@ -84,10 +85,11 @@ CREATE TABLE IF NOT EXISTS hadal.world_bases (
         {
             var result = new List<WorldBaseRecord>();
             await using var connection = await _dataSource.OpenConnectionAsync(cancellationToken);
-            await using var command = new NpgsqlCommand("SELECT player_id, x, y, name, level, power FROM hadal.world_bases", connection);
+            await using var command = new NpgsqlCommand("SELECT player_id, x, y, name, level, power, avatar FROM hadal.world_bases", connection);
             await using var reader = await command.ExecuteReaderAsync(cancellationToken);
             while (await reader.ReadAsync(cancellationToken))
-                result.Add(new WorldBaseRecord(reader.GetString(0), reader.GetInt32(1), reader.GetInt32(2), reader.GetString(3), reader.GetInt32(4), reader.GetInt64(5)));
+                result.Add(new WorldBaseRecord(reader.GetString(0), reader.GetInt32(1), reader.GetInt32(2), reader.GetString(3), reader.GetInt32(4), reader.GetInt64(5),
+                    reader.GetString(6)));
             return result;
         }
 
@@ -128,14 +130,16 @@ GROUP BY p.player_id, a.account_id, a.display_name", connection);
         {
             await using var connection = await _dataSource.OpenConnectionAsync(cancellationToken);
             await using var command = new NpgsqlCommand(@"
-INSERT INTO hadal.world_bases (player_id, x, y, name, level, power) VALUES (@p, @x, @y, @n, @l, @w)
-ON CONFLICT (player_id) DO UPDATE SET x = EXCLUDED.x, y = EXCLUDED.y, name = EXCLUDED.name, level = EXCLUDED.level, power = EXCLUDED.power", connection);
+INSERT INTO hadal.world_bases (player_id, x, y, name, level, power, avatar) VALUES (@p, @x, @y, @n, @l, @w, @a)
+ON CONFLICT (player_id) DO UPDATE SET x = EXCLUDED.x, y = EXCLUDED.y, name = EXCLUDED.name, level = EXCLUDED.level, power = EXCLUDED.power,
+    avatar = EXCLUDED.avatar", connection);
             command.Parameters.AddWithValue("p", r.PlayerId);
             command.Parameters.AddWithValue("x", r.X);
             command.Parameters.AddWithValue("y", r.Y);
             command.Parameters.AddWithValue("n", r.Name);
             command.Parameters.AddWithValue("l", r.Level);
             command.Parameters.AddWithValue("w", r.Power);
+            command.Parameters.AddWithValue("a", r.Avatar ?? string.Empty);
             await command.ExecuteNonQueryAsync(cancellationToken);
         }
     }
@@ -157,6 +161,7 @@ ON CONFLICT (player_id) DO UPDATE SET x = EXCLUDED.x, y = EXCLUDED.y, name = EXC
         private readonly Dictionary<string, WorldBaseRecord> _bases = new(StringComparer.Ordinal);
         private readonly HashSet<(int, int)> _taken = new();
         private readonly ConcurrentDictionary<string, string> _baseNames = new(StringComparer.Ordinal);
+        private readonly ConcurrentDictionary<string, string> _baseAvatars = new(StringComparer.Ordinal);
         private readonly Dictionary<string, PlayerSession> _online = new(StringComparer.Ordinal);
         private readonly Channel<WorldBaseRecord> _writes = Channel.CreateUnbounded<WorldBaseRecord>(new UnboundedChannelOptions { SingleReader = true });
 
@@ -172,7 +177,8 @@ ON CONFLICT (player_id) DO UPDATE SET x = EXCLUDED.x, y = EXCLUDED.y, name = EXC
             _ = Task.Run(NodeWriteLoopAsync);
         }
 
-        public static bool Handles(CommandType type) => type is CommandType.ViewWorld or CommandType.MarchGather or CommandType.RecallMarch;
+        public static bool Handles(CommandType type) => type is CommandType.ViewWorld or CommandType.MarchGather or CommandType.RecallMarch
+            or CommandType.ViewProfile;
 
         public async Task InitializeAsync(CancellationToken cancellationToken)
         {
@@ -184,6 +190,7 @@ ON CONFLICT (player_id) DO UPDATE SET x = EXCLUDED.x, y = EXCLUDED.y, name = EXC
                 {
                     _bases[b.PlayerId] = b;
                     _baseNames[b.PlayerId] = b.Name;
+                    _baseAvatars[b.PlayerId] = b.Avatar;
                     _taken.Add((b.X, b.Y));
                 }
             }
@@ -275,6 +282,47 @@ ON CONFLICT (player_id) DO UPDATE SET x = EXCLUDED.x, y = EXCLUDED.y, name = EXC
         }
 
         /// <summary>The name a base was last seen with; null when the player has no base.</summary>
+        /// <summary>A base's avatar, lock-free like <see cref="NameOf"/>.</summary>
+        public string? AvatarOf(string playerId) => _baseAvatars.TryGetValue(playerId, out var a) ? a : null;
+
+        /// <summary>A profile card: what the map knows of the base plus the alliance (lock order world, then hub).</summary>
+        private void HandleProfile(PlayerSession session, ViewProfileCommand command, DateTimeOffset now)
+        {
+            PlayerProfileDto? card = null;
+            lock (_gate)
+            {
+                if (_bases.TryGetValue(command.PlayerId ?? string.Empty, out var b))
+                {
+                    var online = _online.TryGetValue(b.PlayerId, out var live);
+                    var (tag, name) = _social.AllianceOfPlayer(b.PlayerId);
+                    card = new PlayerProfileDto
+                    {
+                        PlayerId = b.PlayerId,
+                        Name = online ? live!.DisplayName : b.Name,
+                        AvatarId = online ? live!.AvatarId : b.Avatar,
+                        Level = online ? live!.BaseLevel : b.Level,
+                        Power = online ? live!.Power : b.Power,
+                        AllianceTag = tag,
+                        AllianceName = name,
+                        X = b.X,
+                        Y = b.Y,
+                        Online = online
+                    };
+                }
+            }
+
+            if (card == null)
+            {
+                session.Acknowledge(command.CommandId, command.ClientSequence, "UnknownPlayer", now);
+                return;
+            }
+
+            session.Acknowledge(command.CommandId, command.ClientSequence, null, now, new List<EntityChangeDto>
+            {
+                new() { EntityId = EntityIds.Profile, Kind = EntityChangeKind.Update, Payload = _serializer.Serialize(card) }
+            });
+        }
+
         /// <remarks>Lock-free (the social hub asks while holding its own lock).</remarks>
         public string? NameOf(string playerId) => _baseNames.TryGetValue(playerId, out var name) ? name : null;
 
@@ -304,7 +352,10 @@ ON CONFLICT (player_id) DO UPDATE SET x = EXCLUDED.x, y = EXCLUDED.y, name = EXC
                 case CommandType.RecallMarch when _serializer.TryDeserialize(envelope.Payload, out RecallMarchCommand? recall) && recall != null:
                     HandleRecall(session, recall, now);
                     return;
-                case CommandType.MarchGather or CommandType.RecallMarch:
+                case CommandType.ViewProfile when _serializer.TryDeserialize(envelope.Payload, out ViewProfileCommand? profile) && profile != null:
+                    HandleProfile(session, profile, now);
+                    return;
+                case CommandType.MarchGather or CommandType.RecallMarch or CommandType.ViewProfile:
                     session.Acknowledge(envelope.CommandId, envelope.ClientSequence, "MalformedCommand", now);
                     return;
             }
@@ -347,7 +398,8 @@ ON CONFLICT (player_id) DO UPDATE SET x = EXCLUDED.x, y = EXCLUDED.y, name = EXC
                             Y = b.Y,
                             Level = online ? live!.BaseLevel : b.Level,
                             Power = online ? live!.Power : b.Power,
-                            Online = online
+                            Online = online,
+                            AvatarId = online ? live!.AvatarId : b.Avatar
                         };
                     }).ToArray(),
                     Nodes = NodesInView(cx, cy, radius, mine, now)
@@ -367,13 +419,14 @@ ON CONFLICT (player_id) DO UPDATE SET x = EXCLUDED.x, y = EXCLUDED.y, name = EXC
             var (x, y) = _bases.TryGetValue(id, out var existing)
                 ? (existing.X, existing.Y)
                 : PlaceBase();
-            var record = new WorldBaseRecord(id, x, y, session.DisplayName, session.BaseLevel, session.Power);
+            var record = new WorldBaseRecord(id, x, y, session.DisplayName, session.BaseLevel, session.Power, session.AvatarId);
             if (existing == null)
                 _taken.Add((x, y));
             if (existing != record)
             {
                 _bases[id] = record;
                 _baseNames[id] = record.Name;
+                _baseAvatars[id] = record.Avatar;
                 _writes.Writer.TryWrite(record);
             }
 
