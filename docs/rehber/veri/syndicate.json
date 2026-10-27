@@ -1,0 +1,1403 @@
+{
+  "surum": "rehber-1",
+  "_not": "The Syndicate ürünleri. Fiyatlar ABD doları mağaza kademesidir; yerel fiyat mağazadan gelir. 'hd_degeri' içeriğin deger_olcegi ile Hadalit karşılığıdır (kahraman kartı, Anı Kristali, hızlandırma, GS kaynak kapsülü, Süperalaşım günü sayılır; 3. inşaatçı, hız yüzdesi, İzin puanı ve kozmetik sayılmaz). 'kat' = HD değeri / $ ÷ 50 (0,99 $ kademesinin oranı). Oyuncuya değer ya da 'kat' gösterilmez. GS (Gelir Saati) oduller.json / 15 · Ekonomi Akışı birimidir: alıcının reaktör seviyesindeki F2P saatlik Titanyum geliri + 0,4 katı Biyokütle; 'Süperalaşım günü' alıcının Dökümhane haftasındaki F2P günlük Süperalaşım gelirine göre. Ücretli ürünlerde Efsanevi kart ve rastgele kahraman kartı yoktur (05).",
+  "kriyo": {"tekli": 200, "onluk": 1800, "ucretsiz_aralik_sa": 24, "kanon": "K-12"},
+  "deger_olcegi": [
+    {"id": "hd", "birim": "1 Hadalit", "hd": 1, "gerekce": "Tanım"},
+    {
+      "id": "genel_sa",
+      "birim": "1 saat genel hızlandırma",
+      "hd": 120,
+      "gerekce": "Şimdi bitir fiyatı: 2 HD / dk"
+    },
+    {
+      "id": "tipli_sa",
+      "birim": "1 saat tipli hızlandırma (inşaat, araştırma, eğitim, iyileştirme)",
+      "hd": 90,
+      "gerekce": "Tek kuyrukta geçer; genelin %75'i"
+    },
+    {
+      "id": "gelir_sa",
+      "birim": "1 GS kaynak kapsülü (Titanyum + 0,4 × Biyokütle)",
+      "hd": 60,
+      "gerekce": "Varsayım: 1 dakikalık gelir = 1 HD, 1 dakikalık inşaatın yarısı"
+    },
+    {"id": "bilet", "birim": "1 Kriyo-Kapsül bileti", "hd": 180, "gerekce": "Onluk çekimin çekim başı fiyatı"},
+    {"id": "nadir", "birim": "1 Nadir kahraman kartı", "hd": 400, "gerekce": "Varsayım"},
+    {
+      "id": "destansi",
+      "birim": "1 Destansı kahraman kartı (seçmeli)",
+      "hd": 1500,
+      "gerekce": "İzin dükkânı fiyatı"
+    },
+    {
+      "id": "alasim_gun",
+      "birim": "1 Süperalaşım günü",
+      "hd": 600,
+      "gerekce": "Varsayım; The Syndicate'te Süperalaşım Hadalit'le satılmaz"
+    },
+    {
+      "id": "kristal",
+      "birim": "1 Anı Kristali",
+      "hd": 20,
+      "gerekce": "Varsayım; her Kriyo çekimi 1 kristal verir"
+    }
+  ],
+  "deger_olcegi_sutunlar": [["birim", "Birim"], ["hd", "HD değeri"], ["gerekce", "Gerekçe"]],
+  "hadalit": [
+    {
+      "id": "hd_099",
+      "fiyat": 0.99,
+      "hd": 50,
+      "ilk_alim_ek": 50,
+      "hd_dolar": 50.5,
+      "cekim_onlu": 3.56,
+      "cekim_tekli": 3.96,
+      "vip": 100
+    },
+    {
+      "id": "hd_499",
+      "fiyat": 4.99,
+      "hd": 270,
+      "ilk_alim_ek": 270,
+      "hd_dolar": 54.1,
+      "cekim_onlu": 3.33,
+      "cekim_tekli": 3.7,
+      "vip": 500
+    },
+    {
+      "id": "hd_999",
+      "fiyat": 9.99,
+      "hd": 560,
+      "ilk_alim_ek": 560,
+      "hd_dolar": 56.1,
+      "cekim_onlu": 3.21,
+      "cekim_tekli": 3.57,
+      "vip": 1000
+    },
+    {
+      "id": "hd_1999",
+      "fiyat": 19.99,
+      "hd": 1200,
+      "ilk_alim_ek": 1200,
+      "hd_dolar": 60.0,
+      "cekim_onlu": 3.0,
+      "cekim_tekli": 3.33,
+      "vip": 2000
+    },
+    {
+      "id": "hd_4999",
+      "fiyat": 49.99,
+      "hd": 3200,
+      "ilk_alim_ek": 3200,
+      "hd_dolar": 64.0,
+      "cekim_onlu": 2.81,
+      "cekim_tekli": 3.12,
+      "vip": 5000
+    },
+    {
+      "id": "hd_9999",
+      "fiyat": 99.99,
+      "hd": 7000,
+      "ilk_alim_ek": 7000,
+      "hd_dolar": 70.0,
+      "cekim_onlu": 2.57,
+      "cekim_tekli": 2.86,
+      "vip": 10000
+    }
+  ],
+  "hadalit_sutunlar": [
+    ["fiyat", "Fiyat", "para"],
+    ["hd", "Hadalit"],
+    ["ilk_alim_ek", "İlk alımda ek"],
+    ["hd_dolar", "HD / $"],
+    ["cekim_onlu", "Çekim başına $ (onluk)"],
+    ["cekim_tekli", "Çekim başına $ (tekli)"],
+    ["vip", "İzin puanı"]
+  ],
+  "kurulus": [
+    {"kalem": "Destansı kahraman kartı", "miktar": "1 (Kuruluş havuzundaki 3 kahramandan seçmeli)"},
+    {"kalem": "Hadalit", "miktar": "500"},
+    {"kalem": "Genel hızlandırma", "miktar": "5 × 1 sa"},
+    {"kalem": "Titanyum Kapsülü", "miktar": "20 GS"},
+    {"kalem": "Derinlik İzni puanı", "miktar": "1.000"},
+    {"kalem": "Profil çerçevesi", "miktar": "Kurucu (kozmetik)"}
+  ],
+  "kurulus_sutunlar": [["kalem", "Kalem"], ["miktar", "Miktar"]],
+  "sozlesme": {
+    "fiyat": 4.99,
+    "gun": 30,
+    "hd_hemen": 300,
+    "hd_gun": 100,
+    "hd_toplam": 3300,
+    "insaatci": 1,
+    "hiz": 5,
+    "hiz_gun_dk": 90,
+    "alasim_gun_payi": 0.1,
+    "giris_eki": 150,
+    "uzatma_sinir_gun": 60,
+    "otomatik_yenileme": false
+  },
+  "sozlesme_icerik": [
+    {"kalem": "Hadalit (hemen)", "miktar": "300", "toplam": "300"},
+    {"kalem": "Hadalit (her gün)", "miktar": "100", "toplam": "3.000"},
+    {"kalem": "3. inşaatçı", "miktar": "Sözleşme boyunca", "toplam": "30 gün"},
+    {"kalem": "İnşa ve araştırma hızı", "miktar": "+%5", "toplam": "30 gün"},
+    {"kalem": "İnşaat hızlandırma (her gün)", "miktar": "1 × 1 sa", "toplam": "30 sa"},
+    {"kalem": "Genel hızlandırma (her gün)", "miktar": "2 × 15 dk", "toplam": "15 sa"},
+    {"kalem": "Titanyum Kapsülü (her gün)", "miktar": "1 GS", "toplam": "30 GS"},
+    {
+      "kalem": "Süperalaşım payı (Reaktör 30'dan sonra, her gün)",
+      "miktar": "0,1 Süperalaşım günü",
+      "toplam": "3 Süperalaşım günü"
+    },
+    {"kalem": "Derinlik İzni giriş eki", "miktar": "+150 / giriş günü", "toplam": "≈4.500"}
+  ],
+  "sozlesme_icerik_sutunlar": [["kalem", "Kalem"], ["miktar", "Miktar"], ["toplam", "30 günde"]],
+  "bilet": {
+    "hafta": 8,
+    "seviye": 50,
+    "xp_seviye": 500,
+    "xp_hafta": 3650,
+    "akinti": 9.99,
+    "derin": 19.99,
+    "yukseltme": 9.99,
+    "atlama_hd": 200,
+    "atlama_sinir": 10
+  },
+  "bilet_yollari": [
+    {
+      "yol": "Ücretsiz",
+      "fiyat": null,
+      "hd": 600,
+      "hiz_sa": 9,
+      "arastirma_sa": 5,
+      "egitim_sa": 5,
+      "bilet": 2,
+      "kart": "1 Nadir",
+      "gelir_sa": 40,
+      "alasim_gun": 1,
+      "kozmetik": "—",
+      "vip": 150,
+      "dolar_basi": null
+    },
+    {
+      "yol": "Akıntı",
+      "fiyat": 9.99,
+      "hd": 1500,
+      "hiz_sa": 24,
+      "arastirma_sa": 10,
+      "egitim_sa": 8,
+      "bilet": 6,
+      "kart": "1 Destansı (seçmeli)",
+      "gelir_sa": 50,
+      "alasim_gun": 2,
+      "kozmetik": "Sezon denizaltı kaplaması",
+      "vip": 1000,
+      "dolar_basi": 1231
+    },
+    {
+      "yol": "Derin Akıntı (Akıntı'ya ek)",
+      "fiyat": 9.99,
+      "hd": 1500,
+      "hiz_sa": 30,
+      "arastirma_sa": 10,
+      "egitim_sa": 10,
+      "bilet": 12,
+      "kart": "2 Destansı (seçmeli; biri 50. seviyede)",
+      "gelir_sa": 60,
+      "alasim_gun": 2,
+      "kozmetik": "Sezon üs kaplaması",
+      "vip": 1000,
+      "dolar_basi": 1628
+    }
+  ],
+  "bilet_yollari_sutunlar": [
+    ["yol", "Yol"],
+    ["fiyat", "Fiyat", "para"],
+    ["hd", "Hadalit"],
+    ["hiz_sa", "Genel + inşaat (sa)"],
+    ["arastirma_sa", "Araştırma (sa)"],
+    ["egitim_sa", "Eğitim (sa)"],
+    ["bilet", "Kriyo bileti"],
+    ["kart", "Kart"],
+    ["gelir_sa", "Gelir saati"],
+    ["alasim_gun", "Süperalaşım günü"],
+    ["kozmetik", "Kozmetik"],
+    ["vip", "İzin puanı"],
+    ["dolar_basi", "HD değeri / $"]
+  ],
+  "bilet_basamaklari": [
+    {
+      "aralik": "1–10",
+      "ucretsiz": "Kaynak, kısa hızlandırmalar",
+      "akinti": "Hadalit, inşaat hızlandırmaları, denizaltı kaplaması (1)",
+      "derin": "Hadalit, genel hızlandırmalar"
+    },
+    {
+      "aralik": "11–20",
+      "ucretsiz": "Kriyo bileti (15)",
+      "akinti": "Kriyo biletleri, araştırma hızlandırmaları",
+      "derin": "Kriyo biletleri, eğitim hızlandırmaları"
+    },
+    {
+      "aralik": "21–30",
+      "ucretsiz": "Nadir kart (25), Hadalit",
+      "akinti": "Destansı kart (25), gelir sandıkları",
+      "derin": "Gelir sandıkları, inşaat hızlandırmaları"
+    },
+    {
+      "aralik": "31–40",
+      "ucretsiz": "Süperalaşım günü (35)",
+      "akinti": "Süperalaşım günleri, Hadalit",
+      "derin": "Süperalaşım günleri, Hadalit"
+    },
+    {
+      "aralik": "41–50",
+      "ucretsiz": "Kriyo bileti (50)",
+      "akinti": "Hadalit, Kriyo biletleri",
+      "derin": "Destansı kart (50), üs kaplaması (50)"
+    }
+  ],
+  "bilet_basamaklari_sutunlar": [["aralik", "Seviye"], ["ucretsiz", "Ücretsiz"], ["akinti", "Akıntı"], ["derin", "Derin Akıntı"]],
+  "fon": {"fiyat": 19.99, "acilis_reaktor": 6, "toplam_hd": 18000, "tek_sefer": true},
+  "fon_odemeleri": [
+    {"reaktor": 10, "hd": 1000, "kumulatif": 1000, "kart_gun": 0.2, "balina_gun": 0.1, "f2p_gun": 0.3},
+    {"reaktor": 15, "hd": 1000, "kumulatif": 2000, "kart_gun": 0.8, "balina_gun": 0.3, "f2p_gun": 1.4},
+    {"reaktor": 20, "hd": 1500, "kumulatif": 3500, "kart_gun": 2.7, "balina_gun": 1.1, "f2p_gun": 4.5},
+    {"reaktor": 25, "hd": 1500, "kumulatif": 5000, "kart_gun": 8.3, "balina_gun": 3.7, "f2p_gun": 13.4},
+    {"reaktor": 30, "hd": 2000, "kumulatif": 7000, "kart_gun": 19.9, "balina_gun": 10.0, "f2p_gun": 28.6},
+    {"reaktor": 33, "hd": 1500, "kumulatif": 8500, "kart_gun": 32.5, "balina_gun": 16.8, "f2p_gun": 50.1},
+    {"reaktor": 36, "hd": 1500, "kumulatif": 10000, "kart_gun": 49.9, "balina_gun": 26.6, "f2p_gun": 79.2},
+    {"reaktor": 40, "hd": 2000, "kumulatif": 12000, "kart_gun": 84.5, "balina_gun": 45.9, "f2p_gun": 128.4},
+    {"reaktor": 43, "hd": 1500, "kumulatif": 13500, "kart_gun": 125.2, "balina_gun": 68.2, "f2p_gun": 184.5},
+    {"reaktor": 46, "hd": 1500, "kumulatif": 15000, "kart_gun": 180.0, "balina_gun": 98.5, "f2p_gun": 255.8},
+    {"reaktor": 50, "hd": 3000, "kumulatif": 18000, "kart_gun": 267.2, "balina_gun": 147.1, "f2p_gun": 368.1}
+  ],
+  "fon_odemeleri_sutunlar": [
+    ["reaktor", "Reaktör"],
+    ["hd", "Ödeme (HD)"],
+    ["kumulatif", "Toplam (HD)"],
+    ["balina_gun", "Balina ulaşır", "gun"],
+    ["kart_gun", "Aylık kart ulaşır", "gun"],
+    ["f2p_gun", "F2P temposunda", "gun"]
+  ],
+  "seriler": [
+    {
+      "id": "insaat_hatti",
+      "ad": "İnşaat Hattı",
+      "tema": "İnşaat hızlandırma, genel hızlandırma, Titanyum ağırlıklı gelir",
+      "acilis": "Reaktör 6"
+    },
+    {
+      "id": "laboratuvar",
+      "ad": "Laboratuvar Serisi",
+      "tema": "Araştırma hızlandırma, Biyokütle ağırlıklı gelir",
+      "acilis": "Reaktör 6"
+    },
+    {
+      "id": "filo",
+      "ad": "Filo Serisi",
+      "tema": "Eğitim ve iyileştirme hızlandırma, Gıda ağırlıklı gelir",
+      "acilis": "Reaktör 8"
+    },
+    {
+      "id": "kriyo",
+      "ad": "Kriyo Serisi",
+      "tema": "Kriyo-Kapsül biletleri, kahraman kartları",
+      "acilis": "Reaktör 6"
+    }
+  ],
+  "seriler_sutunlar": [["ad", "Seri"], ["tema", "İçerik"], ["acilis", "Açılış"]],
+  "seri_basamaklari": [
+    {
+      "seri": "İnşaat Hattı",
+      "basamak": "I",
+      "fiyat": 4.99,
+      "icerik": "300 HD · 2 sa genel · 12 sa inşaat · 10 GS kaynak kapsülü",
+      "hd_degeri": 2220,
+      "dolar_basi": 445,
+      "kat": 8.9
+    },
+    {
+      "seri": "İnşaat Hattı",
+      "basamak": "II",
+      "fiyat": 9.99,
+      "icerik": "500 HD · 3 sa genel · 24 sa inşaat · 16 GS kaynak kapsülü",
+      "hd_degeri": 3980,
+      "dolar_basi": 398,
+      "kat": 8.0
+    },
+    {
+      "seri": "İnşaat Hattı",
+      "basamak": "III",
+      "fiyat": 19.99,
+      "icerik": "900 HD · 6 sa genel · 40 sa inşaat · 30 GS kaynak kapsülü",
+      "hd_degeri": 7020,
+      "dolar_basi": 351,
+      "kat": 7.0
+    },
+    {
+      "seri": "İnşaat Hattı",
+      "basamak": "IV",
+      "fiyat": 49.99,
+      "icerik": "2.000 HD · 12 sa genel · 80 sa inşaat · 72 GS kaynak kapsülü",
+      "hd_degeri": 14960,
+      "dolar_basi": 299,
+      "kat": 6.0
+    },
+    {
+      "seri": "İnşaat Hattı",
+      "basamak": "V",
+      "fiyat": 99.99,
+      "icerik": "4.000 HD · 24 sa genel · 120 sa inşaat · 120 GS kaynak kapsülü",
+      "hd_degeri": 24880,
+      "dolar_basi": 249,
+      "kat": 5.0
+    },
+    {
+      "seri": "Laboratuvar Serisi",
+      "basamak": "I",
+      "fiyat": 4.99,
+      "icerik": "300 HD · 14 sa araştırma · 10 GS kaynak kapsülü",
+      "hd_degeri": 2160,
+      "dolar_basi": 433,
+      "kat": 8.7
+    },
+    {
+      "seri": "Laboratuvar Serisi",
+      "basamak": "II",
+      "fiyat": 9.99,
+      "icerik": "500 HD · 28 sa araştırma · 16 GS kaynak kapsülü",
+      "hd_degeri": 3980,
+      "dolar_basi": 398,
+      "kat": 8.0
+    },
+    {
+      "seri": "Laboratuvar Serisi",
+      "basamak": "III",
+      "fiyat": 19.99,
+      "icerik": "900 HD · 50 sa araştırma · 30 GS kaynak kapsülü",
+      "hd_degeri": 7200,
+      "dolar_basi": 360,
+      "kat": 7.2
+    },
+    {
+      "seri": "Laboratuvar Serisi",
+      "basamak": "IV",
+      "fiyat": 49.99,
+      "icerik": "2.000 HD · 100 sa araştırma · 70 GS kaynak kapsülü",
+      "hd_degeri": 15200,
+      "dolar_basi": 304,
+      "kat": 6.1
+    },
+    {
+      "seri": "Laboratuvar Serisi",
+      "basamak": "V",
+      "fiyat": 99.99,
+      "icerik": "4.000 HD · 160 sa araştırma · 110 GS kaynak kapsülü",
+      "hd_degeri": 25000,
+      "dolar_basi": 250,
+      "kat": 5.0
+    },
+    {
+      "seri": "Filo Serisi",
+      "basamak": "I",
+      "fiyat": 4.99,
+      "icerik": "300 HD · 12 sa eğitim · 2 sa iyileştirme · 10 GS kaynak kapsülü",
+      "hd_degeri": 2160,
+      "dolar_basi": 433,
+      "kat": 8.7
+    },
+    {
+      "seri": "Filo Serisi",
+      "basamak": "II",
+      "fiyat": 9.99,
+      "icerik": "500 HD · 24 sa eğitim · 4 sa iyileştirme · 16 GS kaynak kapsülü",
+      "hd_degeri": 3980,
+      "dolar_basi": 398,
+      "kat": 8.0
+    },
+    {
+      "seri": "Filo Serisi",
+      "basamak": "III",
+      "fiyat": 19.99,
+      "icerik": "900 HD · 44 sa eğitim · 6 sa iyileştirme · 30 GS kaynak kapsülü",
+      "hd_degeri": 7200,
+      "dolar_basi": 360,
+      "kat": 7.2
+    },
+    {
+      "seri": "Filo Serisi",
+      "basamak": "IV",
+      "fiyat": 49.99,
+      "icerik": "2.000 HD · 90 sa eğitim · 12 sa iyileştirme · 68 GS kaynak kapsülü",
+      "hd_degeri": 15260,
+      "dolar_basi": 305,
+      "kat": 6.1
+    },
+    {
+      "seri": "Filo Serisi",
+      "basamak": "V",
+      "fiyat": 99.99,
+      "icerik": "4.000 HD · 140 sa eğitim · 20 sa iyileştirme · 110 GS kaynak kapsülü",
+      "hd_degeri": 25000,
+      "dolar_basi": 250,
+      "kat": 5.0
+    },
+    {
+      "seri": "Kriyo Serisi",
+      "basamak": "I",
+      "fiyat": 4.99,
+      "icerik": "300 HD · 10 Kriyo bileti",
+      "hd_degeri": 2100,
+      "dolar_basi": 421,
+      "kat": 8.4
+    },
+    {
+      "seri": "Kriyo Serisi",
+      "basamak": "II",
+      "fiyat": 9.99,
+      "icerik": "500 HD · 12 Kriyo bileti · 1 Destansı kart (seçmeli)",
+      "hd_degeri": 4160,
+      "dolar_basi": 416,
+      "kat": 8.3
+    },
+    {
+      "seri": "Kriyo Serisi",
+      "basamak": "III",
+      "fiyat": 19.99,
+      "icerik": "900 HD · 25 Kriyo bileti · 1 Destansı kart (seçmeli)",
+      "hd_degeri": 6900,
+      "dolar_basi": 345,
+      "kat": 6.9
+    },
+    {
+      "seri": "Kriyo Serisi",
+      "basamak": "IV",
+      "fiyat": 49.99,
+      "icerik": "2.000 HD · 54 Kriyo bileti · 2 Destansı kart (seçmeli)",
+      "hd_degeri": 14720,
+      "dolar_basi": 294,
+      "kat": 5.9
+    },
+    {
+      "seri": "Kriyo Serisi",
+      "basamak": "V",
+      "fiyat": 99.99,
+      "icerik": "4.000 HD · 85 Kriyo bileti · 4 Destansı kart (seçmeli)",
+      "hd_degeri": 25300,
+      "dolar_basi": 253,
+      "kat": 5.1
+    }
+  ],
+  "seri_basamaklari_sutunlar": [
+    ["seri", "Seri"],
+    ["basamak", "Basamak"],
+    ["fiyat", "Fiyat", "para"],
+    ["icerik", "İçerik"],
+    ["hd_degeri", "HD değeri"],
+    ["dolar_basi", "HD değeri / $"],
+    ["kat", "× taban"]
+  ],
+  "gunluk_secki": [
+    {"ad": "Vardiya Payı", "fiyat": 0.99, "icerik": "60 HD · 3 sa genel", "dolar_basi": 424, "kat": 8.5},
+    {
+      "ad": "İkmal Sandığı",
+      "fiyat": 1.99,
+      "icerik": "100 HD · 2 sa araştırma · 6 GS kaynak kapsülü · 1 Kriyo bileti",
+      "dolar_basi": 412,
+      "kat": 8.2
+    },
+    {
+      "ad": "Derin İkmal",
+      "fiyat": 4.99,
+      "icerik": "250 HD · 8 sa inşaat · 4 sa araştırma · 10 GS kaynak kapsülü",
+      "dolar_basi": 387,
+      "kat": 7.7
+    }
+  ],
+  "gunluk_secki_sutunlar": [
+    ["ad", "Örnek"],
+    ["fiyat", "Fiyat", "para"],
+    ["icerik", "İçerik"],
+    ["dolar_basi", "HD değeri / $"],
+    ["kat", "× taban"]
+  ],
+  "kristal_kutulari": [
+    {
+      "ad": "Anı Kristali Kutusu I",
+      "fiyat": 4.99,
+      "icerik": "100 HD · 80 Anı Kristali",
+      "sinir": "ayda 1",
+      "dolar_basi": 341,
+      "kat": 6.8
+    },
+    {
+      "ad": "Anı Kristali Kutusu II",
+      "fiyat": 19.99,
+      "icerik": "400 HD · 300 Anı Kristali",
+      "sinir": "ayda 1",
+      "dolar_basi": 320,
+      "kat": 6.4
+    },
+    {
+      "ad": "Nesil Paketi",
+      "fiyat": 19.99,
+      "icerik": "1.200 HD · 15 Kriyo bileti · yeni neslin adlı bir Destansı kahramanının 20 kartı",
+      "sinir": "nesil başına 1",
+      "dolar_basi": 345,
+      "kat": 6.9
+    }
+  ],
+  "kristal_kutulari_sutunlar": [
+    ["ad", "Ürün"],
+    ["fiyat", "Fiyat", "para"],
+    ["icerik", "İçerik"],
+    ["sinir", "Sınır"],
+    ["dolar_basi", "HD değeri / $"],
+    ["kat", "× taban"]
+  ],
+  "nodul": {
+    "acilis": "Reaktör 30 (Alaşım Dökümhanesi)",
+    "sifirlama": "her pazartesi",
+    "haftalik_gun": 19,
+    "haftalik_pay": 2.71,
+    "bilet_pay": 0.07,
+    "sozlesme_pay": 0.1,
+    "satin_alma_pay": 2.89,
+    "tavan_pay": 3,
+    "kendi_pay": 1,
+    "balina_carpani": 5,
+    "balina_toplam": 4.89
+  },
+  "nodul_paketleri": [
+    {
+      "ad": "Nodül Sandığı I",
+      "fiyat": 4.99,
+      "icerik": "100 HD · 3 Süperalaşım günü",
+      "dolar_basi": 381,
+      "kat": 7.6
+    },
+    {
+      "ad": "Nodül Sandığı II",
+      "fiyat": 14.99,
+      "icerik": "200 HD · 7 Süperalaşım günü",
+      "dolar_basi": 294,
+      "kat": 5.9
+    },
+    {
+      "ad": "Nodül Sandığı III",
+      "fiyat": 29.99,
+      "icerik": "400 HD · 9 Süperalaşım günü",
+      "dolar_basi": 193,
+      "kat": 3.9
+    }
+  ],
+  "nodul_paketleri_sutunlar": [
+    ["ad", "Paket"],
+    ["fiyat", "Fiyat", "para"],
+    ["icerik", "İçerik"],
+    ["dolar_basi", "HD değeri / $"],
+    ["kat", "× taban"]
+  ],
+  "nodul_haftalik": [
+    {
+      "hafta": 0,
+      "sa_gun": 41,
+      "n1": 124,
+      "n2": 289,
+      "n3": 372,
+      "toplam": 784,
+      "f2p_hafta": 289,
+      "balina_hafta": 1445
+    },
+    {
+      "hafta": 4,
+      "sa_gun": 53,
+      "n1": 159,
+      "n2": 372,
+      "n3": 478,
+      "toplam": 1009,
+      "f2p_hafta": 372,
+      "balina_hafta": 1859
+    },
+    {
+      "hafta": 8,
+      "sa_gun": 68,
+      "n1": 205,
+      "n2": 479,
+      "n3": 615,
+      "toplam": 1299,
+      "f2p_hafta": 479,
+      "balina_hafta": 2393
+    },
+    {
+      "hafta": 13,
+      "sa_gun": 92,
+      "n1": 276,
+      "n2": 644,
+      "n3": 828,
+      "toplam": 1748,
+      "f2p_hafta": 644,
+      "balina_hafta": 3220
+    },
+    {
+      "hafta": 17,
+      "sa_gun": 106,
+      "n1": 317,
+      "n2": 739,
+      "n3": 950,
+      "toplam": 2006,
+      "f2p_hafta": 739,
+      "balina_hafta": 3695
+    },
+    {
+      "hafta": 21,
+      "sa_gun": 121,
+      "n1": 363,
+      "n2": 848,
+      "n3": 1090,
+      "toplam": 2301,
+      "f2p_hafta": 848,
+      "balina_hafta": 4239
+    },
+    {
+      "hafta": 26,
+      "sa_gun": 142,
+      "n1": 427,
+      "n2": 996,
+      "n3": 1280,
+      "toplam": 2702,
+      "f2p_hafta": 996,
+      "balina_hafta": 4978
+    },
+    {
+      "hafta": 39,
+      "sa_gun": 185,
+      "n1": 555,
+      "n2": 1294,
+      "n3": 1664,
+      "toplam": 3512,
+      "f2p_hafta": 1294,
+      "balina_hafta": 6469
+    },
+    {
+      "hafta": 48,
+      "sa_gun": 222,
+      "n1": 665,
+      "n2": 1551,
+      "n3": 1994,
+      "toplam": 4210,
+      "f2p_hafta": 1551,
+      "balina_hafta": 7756
+    }
+  ],
+  "nodul_haftalik_sutunlar": [
+    ["hafta", "Dökümhane haftası"],
+    ["sa_gun", "F2P Süperalaşım / gün"],
+    ["n1", "Nodül I"],
+    ["n2", "Nodül II"],
+    ["n3", "Nodül III"],
+    ["toplam", "Paketler / hafta"],
+    ["f2p_hafta", "F2P / hafta"],
+    ["balina_hafta", "Balina ×5 / hafta"]
+  ],
+  "tetiklenen": [
+    {
+      "tetik": "Reaktör 10",
+      "ad": "İlk Halkalar",
+      "fiyat": 4.99,
+      "icerik": "400 HD · 10 sa inşaat · 15 GS kaynak kapsülü · 1 Destansı kart (seçmeli)",
+      "kat": 14.8
+    },
+    {
+      "tetik": "Reaktör 15",
+      "ad": "Kubbe Hazırlığı",
+      "fiyat": 9.99,
+      "icerik": "600 HD · 4 sa genel · 20 sa inşaat · 30 GS kaynak kapsülü · 5 Kriyo bileti",
+      "kat": 11.2
+    },
+    {
+      "tetik": "Reaktör 20",
+      "ad": "Derin Kuşak",
+      "fiyat": 9.99,
+      "icerik": "600 HD · 18 sa inşaat · 10 sa araştırma · 30 GS kaynak kapsülü · 4 Kriyo bileti",
+      "kat": 11.3
+    },
+    {
+      "tetik": "Reaktör 25",
+      "ad": "Basınç Eşiği",
+      "fiyat": 19.99,
+      "icerik": "1.200 HD · 36 sa inşaat · 16 sa araştırma · 60 GS kaynak kapsülü · 1 Destansı kart (seçmeli)",
+      "kat": 11.0
+    },
+    {
+      "tetik": "Reaktör 30",
+      "ad": "Dökümhane Açılışı",
+      "fiyat": 19.99,
+      "icerik": "1.200 HD · 40 sa inşaat · 60 GS kaynak kapsülü · 10 Kriyo bileti · 1 Destansı kart (seçmeli)",
+      "kat": 11.7
+    },
+    {
+      "tetik": "Reaktör 35",
+      "ad": "Nodül Sahaları",
+      "fiyat": 19.99,
+      "icerik": "1.200 HD · 40 sa inşaat · 20 sa araştırma · 60 GS kaynak kapsülü · 6 Kriyo bileti",
+      "kat": 11.3
+    },
+    {
+      "tetik": "Reaktör 40",
+      "ad": "Kubbe Ustalığı",
+      "fiyat": 49.99,
+      "icerik": "3.000 HD · 90 sa inşaat · 40 sa eğitim · 120 GS kaynak kapsülü · 2 Destansı kart (seçmeli)",
+      "kat": 10.0
+    },
+    {
+      "tetik": "Reaktör 45",
+      "ad": "Son Basamaklar",
+      "fiyat": 49.99,
+      "icerik": "3.000 HD · 100 sa inşaat · 40 sa araştırma · 140 GS kaynak kapsülü · 10 Kriyo bileti",
+      "kat": 10.3
+    },
+    {
+      "tetik": "İlk Efsanevi kahraman",
+      "ad": "Efsanevi Gelişim",
+      "fiyat": 9.99,
+      "icerik": "500 HD · 20 GS kaynak kapsülü · 120 Anı Kristali",
+      "kat": 8.2
+    },
+    {
+      "tetik": "İlk ittifaka katılış",
+      "ad": "İttifak Başlangıcı",
+      "fiyat": 1.99,
+      "icerik": "120 HD · 3 sa genel · 6 GS kaynak kapsülü",
+      "kat": 8.4
+    },
+    {
+      "tetik": "Reaktör 50",
+      "ad": "Çekirdeğe Varış",
+      "fiyat": null,
+      "icerik": "Ücretsiz armağan: Çekirdek madalyonu (profil) ve sezonluk üs ışığı",
+      "kat": null
+    }
+  ],
+  "tetiklenen_sutunlar": [["tetik", "Tetik"], ["ad", "Teklif"], ["fiyat", "Fiyat", "para"], ["icerik", "İçerik"], ["kat", "× taban"]],
+  "yasak_tetikler": [
+    {
+      "durum": "Savaş yenilgisi, üssün yağmalanması",
+      "neden": "Kayıp anındaki öfke ya da utanç satışa çevrilmez"
+    },
+    {
+      "durum": "Asker ölümü, Revir taşması",
+      "neden": "Kayıp telafisi Kurtarma Kapsülü (K-21) ile ücretsiz yapılır"
+    },
+    {"durum": "Oksijen ya da Gıda kritik seviyede", "neden": "Hayatta kalma baskısı paraya çevrilmez"},
+    {
+      "durum": "Kriyo-Kapsül'de uzun şanssız seri",
+      "neden": "Kumar döngüsü beslenmez; garanti sayacı zaten görünür"
+    },
+    {"durum": "Uzun aradan dönüş", "neden": "Dönüşte ücretsiz Dönüş Kapsülü verilir (15), teklif verilmez"},
+    {"durum": "Oturum 3 saati aştığında", "neden": "Yorgun karar anında yeni rozet çıkmaz"},
+    {"durum": "Harcama sınırına yaklaşma", "neden": "Sınır hiçbir zaman teklif tetikleyicisi değildir"},
+    {"durum": "13–17 yaş hesabı", "neden": "Tetiklenen teklif gösterilmez"}
+  ],
+  "yasak_tetikler_sutunlar": [["durum", "Durum"], ["neden", "Neden teklif yok"]],
+  "ittifak_hediyeleri": [
+    {
+      "kademe": "Kıyı Hediyesi",
+      "tetik": "0,99–9,99 $",
+      "icerik": "Biri: 5 dk genel hızlandırma · 10 HD · Titanyum Kapsülü 0,05 GS · 5 dk araştırma hızlandırma"
+    },
+    {
+      "kademe": "Derin Hediye",
+      "tetik": "14,99–49,99 $ ya da Sendika Sözleşmesi",
+      "icerik": "Biri: 15 dk genel hızlandırma · 25 HD · Titanyum Kapsülü 0,1 GS · küçük Sonar Pili"
+    },
+    {
+      "kademe": "Hadal Hediyesi",
+      "tetik": "99,99 $",
+      "icerik": "İkisi: 15 dk genel hızlandırma · 50 HD · Titanyum Kapsülü 0,2 GS · %20 olasılıkla 1 Kriyo bileti · R30+ küçük Süperalaşım Kapsülü"
+    }
+  ],
+  "ittifak_hediyeleri_sutunlar": [["kademe", "Hediye"], ["tetik", "Üyenin alımı"], ["icerik", "Her üyeye"]],
+  "deger_tablosu": [
+    {
+      "urun": "Hadalit 50",
+      "tur": "hadalit",
+      "fiyat": 0.99,
+      "sinir": "sınırsız",
+      "hd_degeri": 50,
+      "dolar_basi": 51,
+      "kat": 1.0,
+      "hiz_sa": null,
+      "vip": 100
+    },
+    {
+      "urun": "Hadalit 270",
+      "tur": "hadalit",
+      "fiyat": 4.99,
+      "sinir": "sınırsız",
+      "hd_degeri": 270,
+      "dolar_basi": 54,
+      "kat": 1.1,
+      "hiz_sa": null,
+      "vip": 500
+    },
+    {
+      "urun": "Hadalit 560",
+      "tur": "hadalit",
+      "fiyat": 9.99,
+      "sinir": "sınırsız",
+      "hd_degeri": 560,
+      "dolar_basi": 56,
+      "kat": 1.1,
+      "hiz_sa": null,
+      "vip": 1000
+    },
+    {
+      "urun": "Hadalit 1.200",
+      "tur": "hadalit",
+      "fiyat": 19.99,
+      "sinir": "sınırsız",
+      "hd_degeri": 1200,
+      "dolar_basi": 60,
+      "kat": 1.2,
+      "hiz_sa": null,
+      "vip": 2000
+    },
+    {
+      "urun": "Hadalit 3.200",
+      "tur": "hadalit",
+      "fiyat": 49.99,
+      "sinir": "sınırsız",
+      "hd_degeri": 3200,
+      "dolar_basi": 64,
+      "kat": 1.3,
+      "hiz_sa": null,
+      "vip": 5000
+    },
+    {
+      "urun": "Hadalit 7.000",
+      "tur": "hadalit",
+      "fiyat": 99.99,
+      "sinir": "sınırsız",
+      "hd_degeri": 7000,
+      "dolar_basi": 70,
+      "kat": 1.4,
+      "hiz_sa": null,
+      "vip": 10000
+    },
+    {
+      "urun": "Kuruluş Hediyesi (ilk alımla)",
+      "tur": "kurulus",
+      "fiyat": 0.99,
+      "sinir": "hesap başına 1",
+      "hd_degeri": 3900,
+      "dolar_basi": 3939,
+      "kat": 78.8,
+      "hiz_sa": 5,
+      "vip": 1100
+    },
+    {
+      "urun": "Sendika Sözleşmesi (R30 öncesi)",
+      "tur": "sozlesme",
+      "fiyat": 4.99,
+      "sinir": "30 günde 1",
+      "hd_degeri": 9600,
+      "dolar_basi": 1924,
+      "kat": 38.5,
+      "hiz_sa": 45,
+      "vip": 500
+    },
+    {
+      "urun": "Sendika Sözleşmesi (R30 sonrası)",
+      "tur": "sozlesme",
+      "fiyat": 4.99,
+      "sinir": "30 günde 1",
+      "hd_degeri": 11400,
+      "dolar_basi": 2285,
+      "kat": 45.7,
+      "hiz_sa": 45,
+      "vip": 500
+    },
+    {
+      "urun": "Derin Akıntı Bileti · Akıntı",
+      "tur": "bilet",
+      "fiyat": 9.99,
+      "sinir": "sezonda 1",
+      "hd_degeri": 12300,
+      "dolar_basi": 1231,
+      "kat": 24.6,
+      "hiz_sa": 24,
+      "vip": 1000
+    },
+    {
+      "urun": "Derin Akıntı Bileti · Derin Akıntı",
+      "tur": "bilet",
+      "fiyat": 19.99,
+      "sinir": "sezonda 1",
+      "hd_degeri": 28560,
+      "dolar_basi": 1429,
+      "kat": 28.6,
+      "hiz_sa": 54,
+      "vip": 2000
+    },
+    {
+      "urun": "Reaktör Fonu",
+      "tur": "fon",
+      "fiyat": 19.99,
+      "sinir": "hesap başına 1",
+      "hd_degeri": 18000,
+      "dolar_basi": 900,
+      "kat": 18.0,
+      "hiz_sa": null,
+      "vip": 2000
+    },
+    {
+      "urun": "İnşaat Hattı I",
+      "tur": "seri",
+      "fiyat": 4.99,
+      "sinir": "haftada 1",
+      "hd_degeri": 2220,
+      "dolar_basi": 445,
+      "kat": 8.9,
+      "hiz_sa": 14,
+      "vip": 500
+    },
+    {
+      "urun": "İnşaat Hattı II",
+      "tur": "seri",
+      "fiyat": 9.99,
+      "sinir": "haftada 1",
+      "hd_degeri": 3980,
+      "dolar_basi": 398,
+      "kat": 8.0,
+      "hiz_sa": 27,
+      "vip": 1000
+    },
+    {
+      "urun": "İnşaat Hattı III",
+      "tur": "seri",
+      "fiyat": 19.99,
+      "sinir": "haftada 1",
+      "hd_degeri": 7020,
+      "dolar_basi": 351,
+      "kat": 7.0,
+      "hiz_sa": 46,
+      "vip": 2000
+    },
+    {
+      "urun": "İnşaat Hattı IV",
+      "tur": "seri",
+      "fiyat": 49.99,
+      "sinir": "haftada 1",
+      "hd_degeri": 14960,
+      "dolar_basi": 299,
+      "kat": 6.0,
+      "hiz_sa": 92,
+      "vip": 5000
+    },
+    {
+      "urun": "İnşaat Hattı V",
+      "tur": "seri",
+      "fiyat": 99.99,
+      "sinir": "haftada 1",
+      "hd_degeri": 24880,
+      "dolar_basi": 249,
+      "kat": 5.0,
+      "hiz_sa": 144,
+      "vip": 10000
+    },
+    {
+      "urun": "Laboratuvar Serisi I",
+      "tur": "seri",
+      "fiyat": 4.99,
+      "sinir": "haftada 1",
+      "hd_degeri": 2160,
+      "dolar_basi": 433,
+      "kat": 8.7,
+      "hiz_sa": null,
+      "vip": 500
+    },
+    {
+      "urun": "Filo Serisi I",
+      "tur": "seri",
+      "fiyat": 4.99,
+      "sinir": "haftada 1",
+      "hd_degeri": 2160,
+      "dolar_basi": 433,
+      "kat": 8.7,
+      "hiz_sa": null,
+      "vip": 500
+    },
+    {
+      "urun": "Kriyo Serisi I",
+      "tur": "seri",
+      "fiyat": 4.99,
+      "sinir": "haftada 1",
+      "hd_degeri": 2100,
+      "dolar_basi": 421,
+      "kat": 8.4,
+      "hiz_sa": null,
+      "vip": 500
+    },
+    {
+      "urun": "Vardiya Payı",
+      "tur": "gunluk",
+      "fiyat": 0.99,
+      "sinir": "günde 1",
+      "hd_degeri": 420,
+      "dolar_basi": 424,
+      "kat": 8.5,
+      "hiz_sa": 3,
+      "vip": 100
+    },
+    {
+      "urun": "İkmal Sandığı",
+      "tur": "gunluk",
+      "fiyat": 1.99,
+      "sinir": "günde 1",
+      "hd_degeri": 820,
+      "dolar_basi": 412,
+      "kat": 8.2,
+      "hiz_sa": null,
+      "vip": 200
+    },
+    {
+      "urun": "Derin İkmal",
+      "tur": "gunluk",
+      "fiyat": 4.99,
+      "sinir": "günde 1",
+      "hd_degeri": 1930,
+      "dolar_basi": 387,
+      "kat": 7.7,
+      "hiz_sa": 8,
+      "vip": 500
+    },
+    {
+      "urun": "Anı Kristali Kutusu I",
+      "tur": "kristal",
+      "fiyat": 4.99,
+      "sinir": "ayda 1",
+      "hd_degeri": 1700,
+      "dolar_basi": 341,
+      "kat": 6.8,
+      "hiz_sa": null,
+      "vip": 500
+    },
+    {
+      "urun": "Anı Kristali Kutusu II",
+      "tur": "kristal",
+      "fiyat": 19.99,
+      "sinir": "ayda 1",
+      "hd_degeri": 6400,
+      "dolar_basi": 320,
+      "kat": 6.4,
+      "hiz_sa": null,
+      "vip": 2000
+    },
+    {
+      "urun": "Nesil Paketi",
+      "tur": "nesil",
+      "fiyat": 19.99,
+      "sinir": "nesil başına 1",
+      "hd_degeri": 6900,
+      "dolar_basi": 345,
+      "kat": 6.9,
+      "hiz_sa": null,
+      "vip": 2000
+    },
+    {
+      "urun": "Nodül Sandığı I",
+      "tur": "nodul",
+      "fiyat": 4.99,
+      "sinir": "haftada 1",
+      "hd_degeri": 1900,
+      "dolar_basi": 381,
+      "kat": 7.6,
+      "hiz_sa": null,
+      "vip": 500
+    },
+    {
+      "urun": "Nodül Sandığı II",
+      "tur": "nodul",
+      "fiyat": 14.99,
+      "sinir": "haftada 1",
+      "hd_degeri": 4400,
+      "dolar_basi": 294,
+      "kat": 5.9,
+      "hiz_sa": null,
+      "vip": 1500
+    },
+    {
+      "urun": "Nodül Sandığı III",
+      "tur": "nodul",
+      "fiyat": 29.99,
+      "sinir": "haftada 1",
+      "hd_degeri": 5800,
+      "dolar_basi": 193,
+      "kat": 3.9,
+      "hiz_sa": null,
+      "vip": 3000
+    },
+    {
+      "urun": "İlk Halkalar",
+      "tur": "tetik",
+      "fiyat": 4.99,
+      "sinir": "tek sefer",
+      "hd_degeri": 3700,
+      "dolar_basi": 741,
+      "kat": 14.8,
+      "hiz_sa": 10,
+      "vip": 500
+    },
+    {
+      "urun": "Kubbe Hazırlığı",
+      "tur": "tetik",
+      "fiyat": 9.99,
+      "sinir": "tek sefer",
+      "hd_degeri": 5580,
+      "dolar_basi": 559,
+      "kat": 11.2,
+      "hiz_sa": 24,
+      "vip": 1000
+    },
+    {
+      "urun": "Derin Kuşak",
+      "tur": "tetik",
+      "fiyat": 9.99,
+      "sinir": "tek sefer",
+      "hd_degeri": 5640,
+      "dolar_basi": 565,
+      "kat": 11.3,
+      "hiz_sa": 18,
+      "vip": 1000
+    },
+    {
+      "urun": "Basınç Eşiği",
+      "tur": "tetik",
+      "fiyat": 19.99,
+      "sinir": "tek sefer",
+      "hd_degeri": 10980,
+      "dolar_basi": 549,
+      "kat": 11.0,
+      "hiz_sa": 36,
+      "vip": 2000
+    },
+    {
+      "urun": "Dökümhane Açılışı",
+      "tur": "tetik",
+      "fiyat": 19.99,
+      "sinir": "tek sefer",
+      "hd_degeri": 11700,
+      "dolar_basi": 585,
+      "kat": 11.7,
+      "hiz_sa": 40,
+      "vip": 2000
+    },
+    {
+      "urun": "Nodül Sahaları",
+      "tur": "tetik",
+      "fiyat": 19.99,
+      "sinir": "tek sefer",
+      "hd_degeri": 11280,
+      "dolar_basi": 564,
+      "kat": 11.3,
+      "hiz_sa": 40,
+      "vip": 2000
+    },
+    {
+      "urun": "Kubbe Ustalığı",
+      "tur": "tetik",
+      "fiyat": 49.99,
+      "sinir": "tek sefer",
+      "hd_degeri": 24900,
+      "dolar_basi": 498,
+      "kat": 10.0,
+      "hiz_sa": 90,
+      "vip": 5000
+    },
+    {
+      "urun": "Son Basamaklar",
+      "tur": "tetik",
+      "fiyat": 49.99,
+      "sinir": "tek sefer",
+      "hd_degeri": 25800,
+      "dolar_basi": 516,
+      "kat": 10.3,
+      "hiz_sa": 100,
+      "vip": 5000
+    },
+    {
+      "urun": "Efsanevi Gelişim",
+      "tur": "tetik",
+      "fiyat": 9.99,
+      "sinir": "tek sefer",
+      "hd_degeri": 4100,
+      "dolar_basi": 410,
+      "kat": 8.2,
+      "hiz_sa": null,
+      "vip": 1000
+    },
+    {
+      "urun": "İttifak Başlangıcı",
+      "tur": "tetik",
+      "fiyat": 1.99,
+      "sinir": "tek sefer",
+      "hd_degeri": 840,
+      "dolar_basi": 422,
+      "kat": 8.4,
+      "hiz_sa": 3,
+      "vip": 200
+    }
+  ],
+  "deger_tablosu_sutunlar": [
+    ["urun", "Ürün"],
+    ["fiyat", "Fiyat", "para"],
+    ["sinir", "Sınır"],
+    ["hd_degeri", "HD değeri"],
+    ["dolar_basi", "HD değeri / $"],
+    ["kat", "× taban"],
+    ["hiz_sa", "Genel + inşaat (sa)"],
+    ["vip", "İzin puanı"]
+  ],
+  "harcama_kart": [
+    {"kalem": "Sendika Sözleşmesi", "adet": 1, "dolar": 4.99, "hd": 3300, "sa": 45},
+    {
+      "kalem": "Derin Akıntı Bileti · Akıntı (8 haftaya bölünmüş)",
+      "adet": 0.54,
+      "dolar": 5.42,
+      "hd": 814,
+      "sa": 13.0
+    },
+    {"kalem": "İnşaat Hattı I", "adet": 2, "dolar": 9.98, "hd": 600, "sa": 28},
+    {"kalem": "Günlük seçki · Vardiya Payı", "adet": 5, "dolar": 4.95, "hd": 300, "sa": 15},
+    {"kalem": "Reaktör Fonu (9 aya bölünmüş)", "adet": 0.11, "dolar": 2.22, "hd": 2000, "sa": null}
+  ],
+  "harcama_kart_sutunlar": [
+    ["kalem", "Kalem"],
+    ["adet", "Adet / ay"],
+    ["dolar", "$ / ay"],
+    ["hd", "Hadalit / ay"],
+    ["sa", "Genel + inşaat (sa / ay)"]
+  ],
+  "harcama_balina": [
+    {"kalem": "Sendika Sözleşmesi", "adet": 1, "dolar": 4.99, "hd": 3300, "sa": 45},
+    {
+      "kalem": "Derin Akıntı Bileti · Derin Akıntı (8 haftaya bölünmüş)",
+      "adet": 0.54,
+      "dolar": 10.85,
+      "hd": 1629,
+      "sa": 29.3
+    },
+    {"kalem": "İnşaat Hattı I–III (her hafta)", "adet": 4.34, "dolar": 151.87, "hd": 7383, "sa": 377.8},
+    {"kalem": "İnşaat Hattı IV", "adet": 1, "dolar": 49.99, "hd": 2000, "sa": 92},
+    {"kalem": "Laboratuvar Serisi I–IV (her hafta)", "adet": 4.34, "dolar": 368.97, "hd": 16069, "sa": null},
+    {"kalem": "Filo Serisi I–III (her hafta)", "adet": 4.34, "dolar": 151.87, "hd": 7383, "sa": null},
+    {"kalem": "Kriyo Serisi I–IV (her hafta)", "adet": 4.34, "dolar": 368.97, "hd": 16069, "sa": null},
+    {"kalem": "Nodül Sandığı I–III (her hafta)", "adet": 4.34, "dolar": 217.01, "hd": 3040, "sa": null},
+    {"kalem": "Hadalit 7.000", "adet": 3, "dolar": 299.97, "hd": 21000, "sa": null},
+    {"kalem": "Günlük seçki · Derin İkmal", "adet": 8, "dolar": 39.92, "hd": 2000, "sa": 64}
+  ],
+  "harcama_balina_sutunlar": [
+    ["kalem", "Kalem"],
+    ["adet", "Adet / ay"],
+    ["dolar", "$ / ay"],
+    ["hd", "Hadalit / ay"],
+    ["sa", "Genel + inşaat (sa / ay)"]
+  ],
+  "yasal": [
+    {
+      "konu": "Olasılık açıklaması",
+      "kural": "Kriyo-Kapsül oranları (%65 / %25 / %8 / %2) ve garantiler (30. çekimde Destansı, 80. çekimde Efsanevi) satın almadan önce kapsül ekranında; seri paketlerdeki rastgele kalemler de aynı ekranda.",
+      "dayanak": "App Store İnceleme Yönergeleri 3.1.1, Google Play ödeme politikası, Güney Kore oyun yasası (2024)"
+    },
+    {
+      "konu": "Bölge kuralı",
+      "kural": "Ücretli rastgele içeriği kumar sayan ülkelerde (ör. Belçika) satın alınmış Hadalit ile Kriyo çekimi kapalı; ücretsiz çekim ve bilet açık.",
+      "dayanak": "Ülke düzenleyicileri; bölge bayrağı sunucuda"
+    },
+    {
+      "konu": "Yaş",
+      "kural": "13 yaş altı hesap açamaz. 13–17: aylık 50 $ harcama tavanı, tetiklenen teklif yok, Nodül ve 49,99 $ üstü basamaklar kapalı.",
+      "dayanak": "COPPA / GDPR-K, mağaza aile politikaları"
+    },
+    {
+      "konu": "Yaş derecelendirmesi",
+      "kural": "PEGI 12 ve ESRB T hedefi; 'Oyun içi satın alma (rastgele öğeler içerir)' etiketi.",
+      "dayanak": "PEGI, ESRB, IARC"
+    },
+    {
+      "konu": "Gönüllü harcama sınırı",
+      "kural": "Hesap → Harcama sınırı: günlük, haftalık ya da aylık. Düşürmek hemen, yükseltmek 72 saat sonra geçerli.",
+      "dayanak": "Oyuncu koruması (tasarım ilkesi)"
+    },
+    {
+      "konu": "Fiyat şeffaflığı",
+      "kural": "Her ürün mağazanın yerel fiyatını gösterir. Hadalit fiyatlı her şeyin yanında yaklaşık para karşılığı isteğe bağlı görünür (AB'de varsayılan açık). Gereğinden fazla Hadalit almaya zorlayan kademe yoktur.",
+      "dayanak": "AB tüketici koruma ağının sanal para ilkeleri (2025)"
+    },
+    {
+      "konu": "Dil",
+      "kural": "Emir kipi, aciliyet ve kıtlık dili yok ('hemen al', 'son şans', 'kaçırma'). Düğme yalnız 'Satın al'.",
+      "dayanak": "Haksız ticari uygulamalar (çocuklara doğrudan çağrı yasağı)"
+    },
+    {
+      "konu": "Cayma hakkı",
+      "kural": "Dijital içerik anında teslim edilir; oyuncu bunu satın alma sayfasında onaylar. İade mağaza üzerinden yürür.",
+      "dayanak": "Mesafeli Sözleşmeler Yönetmeliği (cayma hakkı istisnası), AB tüketici hakları direktifi"
+    },
+    {
+      "konu": "Abonelik yok",
+      "kural": "Sendika Sözleşmesi ve Bilet otomatik yenilenmez; her dönem ayrı satın alınır.",
+      "dayanak": "Tasarım ilkesi; mağaza abonelik kuralları devre dışı"
+    },
+    {
+      "konu": "Aylık özet",
+      "kural": "Her ayın ilk günü posta: 'Geçen ay The Syndicate'te harcadığın: …'. Bildirim değil, posta.",
+      "dayanak": "Şeffaflık (tasarım ilkesi)"
+    },
+    {
+      "konu": "Kişisel veri",
+      "kural": "Makbuz ve satın alma kaydı hesapla saklanır; analitik açık rızayla. Satın alma verisi reklam ağına gitmez.",
+      "dayanak": "KVKK, GDPR"
+    }
+  ],
+  "yasal_sutunlar": [["konu", "Konu"], ["kural", "Kural"], ["dayanak", "Dayanak"]],
+  "iade": [
+    {
+      "durum": "Mağaza iadeyi bildirdi",
+      "davranis": "Ürünün verdiği Hadalit önce ücretli, yetmezse kazanılmış bakiyeden geri alınır (15); bakiye eksiye düşebilir. Eksi bakiyede Hadalit harcanamaz, oyun oynanır."
+    },
+    {
+      "durum": "Sendika Sözleşmesi iadesi",
+      "davranis": "Kalan günler biter; 3. inşaatçı süren işini tamamlar, yenisini almaz. Teslim edilmiş günlük Hadalit geri alınır."
+    },
+    {
+      "durum": "Bilet ya da Fon iadesi",
+      "davranis": "Ücretli yol ya da fon kapanır; ödenmiş Hadalit geri alınır, kozmetik kalır."
+    },
+    {
+      "durum": "Derinlik İzni puanı",
+      "davranis": "İade edilen tutarın puanı düşülür, İzin seviyesi yeniden hesaplanır (kalıcılığın tek istisnası)."
+    },
+    {
+      "durum": "İttifak hediyeleri",
+      "davranis": "Üyelerden geri alınmaz; masum üçüncü kişiler cezalandırılmaz."
+    },
+    {
+      "durum": "Tekrarlayan iade",
+      "davranis": "90 günde 3+ kullanılmış ürün iadesi → satın alma 30 gün kapanır; hesap kapatılmaz."
+    },
+    {
+      "durum": "Bekleyen ödeme",
+      "davranis": "Aile onayı ya da nakit ödeme bekleyen işlem tamamlanınca ödül verilir."
+    },
+    {
+      "durum": "Çift bildirim, yeniden deneme",
+      "davranis": "İşlem kimliğiyle tekil kayıt; aynı işlem ikinci kez ödül vermez."
+    }
+  ],
+  "iade_sutunlar": [["durum", "Durum"], ["davranis", "Sunucu ne yapar"]]
+}

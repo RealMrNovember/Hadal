@@ -1,0 +1,1018 @@
+{
+  "surum": "rehber-1",
+  "_not": "10 · İttifak verisi. İttifak Kredisi (İK) ittifakın ortak hesabıdır, Bireysel Kredi kaptanındır. 'Ortak' Titanyum: kuleler ve madenlerin beslediği İttifak Kaynakları hesabı. GS = oduller.json Gelir Saati.",
+  "kodda_sutunlar": [["ozellik", "Özellik"], ["kodda", "Bugün kodda"], ["hedef", "Hedef"], ["durum", "Durum"]],
+  "kodda": [
+    {"ozellik": "Kurma bedeli", "kodda": "3.000 Titanyum", "hedef": "3.000 Titanyum", "durum": "✅"},
+    {"ozellik": "Ad / etiket", "kodda": "3–20 / 3–4 karakter, benzersiz", "hedef": "Aynı", "durum": "✅"},
+    {"ozellik": "Katılım", "kodda": "Açık", "hedef": "Açık · onaylı · kapalı", "durum": "🟡"},
+    {"ozellik": "Üye sınırı", "kodda": "30", "hedef": "30 → 100 (ittifak seviyesi + kuleler)", "durum": "🟡"},
+    {"ozellik": "Rütbeler", "kodda": "Lider / Üye", "hedef": "R5–R1 ve yetki tablosu", "durum": "🟡"},
+    {
+      "ozellik": "Liderlik devri",
+      "kodda": "Lider ayrılınca en eski üye",
+      "hedef": "+ 7 gün girmeyen liderin yerine en etkin R4",
+      "durum": "🟡"
+    },
+    {
+      "ozellik": "Yardım",
+      "kodda": "%1, en az 60 sn, inşaat başına 10",
+      "hedef": "10 + ⌊İttifak Merkezi Sv / 5⌋, en çok 20; araştırma ve iyileştirme de",
+      "durum": "🟡"
+    },
+    {
+      "ozellik": "Çevrimdışı yardım",
+      "kodda": "Girişte uygulanır (bellekte)",
+      "hedef": "Kalıcı kayıt",
+      "durum": "🟡"
+    },
+    {
+      "ozellik": "Sohbet",
+      "kodda": "Dünya + İttifak · 200 karakter · 2 sn · son 50",
+      "hedef": "+ sabit duyuru, koordinat bağlantısı, ralli kartı",
+      "durum": "🟡"
+    },
+    {
+      "ozellik": "Teknoloji, kredi, dükkân, hediye, bölge, savaş, posta",
+      "kodda": "Yok",
+      "hedef": "Bu bölüm",
+      "durum": "⬜"
+    }
+  ],
+  "rutbeler_sutunlar": [["rutbe", "Rütbe"], ["ad", "Ad"], ["adet", "Adet"], ["aciklama", "Rolü"]],
+  "rutbeler": [
+    {"rutbe": "R5", "ad": "Lider", "adet": "1", "aciklama": "İttifakın sahibi. Egemen olunursa Egemen odur."},
+    {
+      "rutbe": "R4",
+      "ad": "Kurmay",
+      "adet": "4 → 8 (seviyeyle)",
+      "aciklama": "Yönetim: üye, bölge, dükkân, teknoloji önceliği."
+    },
+    {
+      "rutbe": "R3",
+      "ad": "Usta",
+      "adet": "Sınırsız",
+      "aciklama": "Güvenilen çekirdek: başvuru onayı, harita imleri, kule kurma."
+    },
+    {"rutbe": "R2", "ad": "Dalgıç", "adet": "Sınırsız", "aciklama": "Tam üye: ralli, dükkân, ambar."},
+    {
+      "rutbe": "R1",
+      "ad": "Aday",
+      "adet": "Sınırsız",
+      "aciklama": "Yeni katılan; 48 saat ya da R4 onayıyla R2 olur."
+    }
+  ],
+  "yetkiler_sutunlar": [["yetki", "Yetki"], ["r5", "R5"], ["r4", "R4"], ["r3", "R3"], ["r2", "R2"], ["r1", "R1"]],
+  "yetkiler": [
+    {"yetki": "Başvuru onayı ve davet", "r5": "✔", "r4": "✔", "r3": "✔", "r2": "—", "r1": "—"},
+    {"yetki": "R1–R2 üyeyi çıkarma", "r5": "✔", "r4": "✔", "r3": "—", "r2": "—", "r1": "—"},
+    {"yetki": "R3 üyeyi çıkarma", "r5": "✔", "r4": "✔", "r3": "—", "r2": "—", "r1": "—"},
+    {"yetki": "R1–R3 rütbe değiştirme", "r5": "✔", "r4": "✔", "r3": "—", "r2": "—", "r1": "—"},
+    {"yetki": "R4 atama ve görevden alma", "r5": "✔", "r4": "—", "r3": "—", "r2": "—", "r1": "—"},
+    {"yetki": "Liderliği devretme, ittifakı dağıtma", "r5": "✔", "r4": "—", "r3": "—", "r2": "—", "r1": "—"},
+    {"yetki": "Ad, etiket, amblem, katılım türü", "r5": "✔", "r4": "—", "r3": "—", "r2": "—", "r1": "—"},
+    {"yetki": "Duyuru ve ittifak postası", "r5": "✔", "r4": "✔", "r3": "—", "r2": "—", "r1": "—"},
+    {"yetki": "Sohbette mesaj sabitleme", "r5": "✔", "r4": "✔", "r3": "—", "r2": "—", "r1": "—"},
+    {"yetki": "Teknoloji önceliği ve devreye alma", "r5": "✔", "r4": "✔", "r3": "—", "r2": "—", "r1": "—"},
+    {
+      "yetki": "Karargâh, maden, ambar kurma ve kaldırma",
+      "r5": "✔",
+      "r4": "✔",
+      "r3": "—",
+      "r2": "—",
+      "r1": "—"
+    },
+    {"yetki": "Sonar Kulesi kurma", "r5": "✔", "r4": "✔", "r3": "✔", "r2": "—", "r1": "—"},
+    {"yetki": "Dükkânı stoklama (İttifak Kredisi)", "r5": "✔", "r4": "✔", "r3": "—", "r2": "—", "r1": "—"},
+    {"yetki": "Savaş bildirisi, ateşkes", "r5": "✔", "r4": "—", "r3": "—", "r2": "—", "r1": "—"},
+    {"yetki": "Dost ittifak ve geçit izni", "r5": "✔", "r4": "✔", "r3": "—", "r2": "—", "r1": "—"},
+    {"yetki": "Haritaya ittifak imi koyma", "r5": "✔", "r4": "✔", "r3": "✔", "r2": "—", "r1": "—"},
+    {"yetki": "Ralli kurma", "r5": "✔", "r4": "✔", "r3": "✔", "r2": "✔", "r1": "—"},
+    {"yetki": "İttifak Dükkânı'ndan alım", "r5": "✔", "r4": "✔", "r3": "✔", "r2": "✔", "r1": "—"},
+    {"yetki": "İttifak Ambarı'na yatırma", "r5": "✔", "r4": "✔", "r3": "✔", "r2": "✔", "r1": "—"},
+    {
+      "yetki": "Bağış, yardım, takviye, ralliye katılma",
+      "r5": "✔",
+      "r4": "✔",
+      "r3": "✔",
+      "r2": "✔",
+      "r1": "✔"
+    }
+  ],
+  "seviyeler_sutunlar": [
+    ["seviye", "Sv"],
+    ["adim", "Deneyim (adım)"],
+    ["toplam", "Deneyim (toplam)"],
+    ["uye", "Üye"],
+    ["r4", "R4 yuvası"],
+    ["karargah", "Karargâh"],
+    ["kule", "Kule sınırı"],
+    ["acilan", "Açılan"]
+  ],
+  "seviyeler": [
+    {
+      "seviye": 1,
+      "adim": null,
+      "toplam": 0,
+      "uye": 30,
+      "r4": 4,
+      "karargah": 1,
+      "kule": 10,
+      "acilan": "Hız, Kalkınma dalları; temel dükkân"
+    },
+    {
+      "seviye": 2,
+      "adim": 10000,
+      "toplam": 10000,
+      "uye": 33,
+      "r4": 4,
+      "karargah": 1,
+      "kule": 16,
+      "acilan": "Harita dalı; İttifak Ambarı"
+    },
+    {
+      "seviye": 3,
+      "adim": 13300,
+      "toplam": 23300,
+      "uye": 36,
+      "r4": 4,
+      "karargah": 1,
+      "kule": 22,
+      "acilan": "Bölge dalı; Titanyum, Gıda, Biyokütle madenleri"
+    },
+    {
+      "seviye": 4,
+      "adim": 17700,
+      "toplam": 41000,
+      "uye": 39,
+      "r4": 4,
+      "karargah": 1,
+      "kule": 28,
+      "acilan": "Savunma dalı"
+    },
+    {
+      "seviye": 5,
+      "adim": 23500,
+      "toplam": 64500,
+      "uye": 43,
+      "r4": 5,
+      "karargah": 1,
+      "kule": 34,
+      "acilan": "Savaş bildirisi"
+    },
+    {
+      "seviye": 6,
+      "adim": 31300,
+      "toplam": 95800,
+      "uye": 46,
+      "r4": 5,
+      "karargah": 1,
+      "kule": 40,
+      "acilan": "Muharebe dalı; dükkân 2. kademe"
+    },
+    {
+      "seviye": 7,
+      "adim": 41600,
+      "toplam": 137400,
+      "uye": 49,
+      "r4": 5,
+      "karargah": 1,
+      "kule": 46,
+      "acilan": "—"
+    },
+    {
+      "seviye": 8,
+      "adim": 55300,
+      "toplam": 192700,
+      "uye": 52,
+      "r4": 5,
+      "karargah": 2,
+      "kule": 52,
+      "acilan": "2. Karargâh"
+    },
+    {
+      "seviye": 9,
+      "adim": 73600,
+      "toplam": 266300,
+      "uye": 55,
+      "r4": 5,
+      "karargah": 2,
+      "kule": 58,
+      "acilan": "—"
+    },
+    {
+      "seviye": 10,
+      "adim": 97900,
+      "toplam": 364200,
+      "uye": 58,
+      "r4": 6,
+      "karargah": 2,
+      "kule": 64,
+      "acilan": "Süperalaşım madeni"
+    },
+    {
+      "seviye": 11,
+      "adim": 130000,
+      "toplam": 494200,
+      "uye": 62,
+      "r4": 6,
+      "karargah": 2,
+      "kule": 70,
+      "acilan": "—"
+    },
+    {
+      "seviye": 12,
+      "adim": 173000,
+      "toplam": 667200,
+      "uye": 65,
+      "r4": 6,
+      "karargah": 2,
+      "kule": 76,
+      "acilan": "Dükkân 3. kademe"
+    },
+    {
+      "seviye": 13,
+      "adim": 230000,
+      "toplam": 897200,
+      "uye": 68,
+      "r4": 6,
+      "karargah": 2,
+      "kule": 82,
+      "acilan": "—"
+    },
+    {
+      "seviye": 14,
+      "adim": 306000,
+      "toplam": 1203200,
+      "uye": 71,
+      "r4": 6,
+      "karargah": 2,
+      "kule": 88,
+      "acilan": "—"
+    },
+    {
+      "seviye": 15,
+      "adim": 407000,
+      "toplam": 1610200,
+      "uye": 74,
+      "r4": 7,
+      "karargah": 3,
+      "kule": 94,
+      "acilan": "3. Karargâh"
+    },
+    {
+      "seviye": 16,
+      "adim": 542000,
+      "toplam": 2152200,
+      "uye": 77,
+      "r4": 7,
+      "karargah": 3,
+      "kule": 100,
+      "acilan": "—"
+    },
+    {
+      "seviye": 17,
+      "adim": 721000,
+      "toplam": 2873200,
+      "uye": 81,
+      "r4": 7,
+      "karargah": 3,
+      "kule": 106,
+      "acilan": "—"
+    },
+    {
+      "seviye": 18,
+      "adim": 959000,
+      "toplam": 3832200,
+      "uye": 84,
+      "r4": 7,
+      "karargah": 3,
+      "kule": 112,
+      "acilan": "Dükkân 4. kademe"
+    },
+    {
+      "seviye": 19,
+      "adim": 1270000,
+      "toplam": 5102200,
+      "uye": 87,
+      "r4": 7,
+      "karargah": 3,
+      "kule": 118,
+      "acilan": "—"
+    },
+    {
+      "seviye": 20,
+      "adim": 1700000,
+      "toplam": 6802200,
+      "uye": 90,
+      "r4": 8,
+      "karargah": 3,
+      "kule": 124,
+      "acilan": "En yüksek seviye; kulelerle 100 üye"
+    }
+  ],
+  "xp_kaynaklari_sutunlar": [["kaynak", "Kaynak"], ["xp", "Deneyim"], ["not", "Not"]],
+  "xp_kaynaklari": [
+    {"kaynak": "Bağış (her biri)", "xp": 10, "not": "Kaptan başına günde en çok ~48 bağış hakkı"},
+    {"kaynak": "Yardım (her biri)", "xp": 1, "not": "Kaptan başına günde en çok 50 sayılır"},
+    {"kaynak": "PvE rallisi zaferi", "xp": 50, "not": "Katılımcı başına"},
+    {"kaynak": "Leviathan yuvası zaferi", "xp": 500, "not": "Yuva seviyesi × 100 ek"},
+    {"kaynak": "Bağlı Sonar Kulesi", "xp": 20, "not": "Kule başına günde"},
+    {"kaynak": "Kronik ittifak hedefi", "xp": "5.000–50.000", "not": "Aşamaya göre"}
+  ],
+  "dallar_sutunlar": [
+    ["ad", "Dal"],
+    ["acilis", "İttifak Sv"],
+    ["teknoloji", "Teknoloji"],
+    ["puan", "Toplam puan"],
+    ["aciklama", "Kapsam"]
+  ],
+  "dallar": [
+    {
+      "id": "kalkinma",
+      "ad": "Kalkınma",
+      "acilis": 1,
+      "aciklama": "Üretim ve depo: üssün ekonomisi.",
+      "teknoloji": 6,
+      "puan": 472000
+    },
+    {
+      "id": "hiz",
+      "ad": "Hız",
+      "acilis": 1,
+      "aciklama": "İnşaat, araştırma, eğitim, iyileştirme ve yardım.",
+      "teknoloji": 5,
+      "puan": 507500
+    },
+    {
+      "id": "harita",
+      "ad": "Harita",
+      "acilis": 2,
+      "aciklama": "Toplama, taşıma, yürüyüş, Sonar Enerjisi, PvE.",
+      "teknoloji": 6,
+      "puan": 426000
+    },
+    {
+      "id": "bolge",
+      "ad": "Bölge",
+      "acilis": 3,
+      "aciklama": "Kuleler, madenler, ambar, dükkân, hediyeler.",
+      "teknoloji": 5,
+      "puan": 256000
+    },
+    {
+      "id": "savunma",
+      "ad": "Savunma",
+      "acilis": 4,
+      "aciklama": "Takviye, dayanıklılık, garnizon, Revir.",
+      "teknoloji": 5,
+      "puan": 415000
+    },
+    {
+      "id": "muharebe",
+      "ad": "Muharebe",
+      "acilis": 6,
+      "aciklama": "Saldırı, savunma, can, ralli, Leviathan.",
+      "teknoloji": 6,
+      "puan": 787500
+    }
+  ],
+  "teknolojiler_sutunlar": [
+    ["dal_ad", "Dal"],
+    ["ad", "Teknoloji"],
+    ["etki", "Seviye başına"],
+    ["maks", "Maks"],
+    ["taban", "Sv 1 puanı"],
+    ["son", "Son seviye puanı"],
+    ["toplam", "Toplam puan"],
+    ["ittifak_sv", "İttifak Sv"]
+  ],
+  "teknolojiler": [
+    {
+      "dal": "kalkinma",
+      "id": "titanyum_verimi",
+      "ad": "Titanyum Verimi",
+      "etki": "+%1 Titanyum üretimi",
+      "maks": 10,
+      "taban": 1500,
+      "son": 15000,
+      "toplam": 82500,
+      "ittifak_sv": 1,
+      "dal_ad": "Kalkınma"
+    },
+    {
+      "dal": "kalkinma",
+      "id": "gida_verimi",
+      "ad": "Gıda Verimi",
+      "etki": "+%1 Gıda üretimi",
+      "maks": 10,
+      "taban": 1200,
+      "son": 12000,
+      "toplam": 66000,
+      "ittifak_sv": 1,
+      "dal_ad": "Kalkınma"
+    },
+    {
+      "dal": "kalkinma",
+      "id": "biyokutle_verimi",
+      "ad": "Biyokütle Verimi",
+      "etki": "+%1 Biyokütle üretimi",
+      "maks": 10,
+      "taban": 1200,
+      "son": 12000,
+      "toplam": 66000,
+      "ittifak_sv": 2,
+      "dal_ad": "Kalkınma"
+    },
+    {
+      "dal": "kalkinma",
+      "id": "yasam_destegi",
+      "ad": "Yaşam Desteği",
+      "etki": "+%1 Oksijen ve Enerji üretimi",
+      "maks": 10,
+      "taban": 1000,
+      "son": 10000,
+      "toplam": 55000,
+      "ittifak_sv": 2,
+      "dal_ad": "Kalkınma"
+    },
+    {
+      "dal": "kalkinma",
+      "id": "ambar_muhurleri",
+      "ad": "Ambar Mühürleri",
+      "etki": "+%2 Basınç Ambarı koruması",
+      "maks": 5,
+      "taban": 2500,
+      "son": 12500,
+      "toplam": 37500,
+      "ittifak_sv": 4,
+      "dal_ad": "Kalkınma"
+    },
+    {
+      "dal": "kalkinma",
+      "id": "dokum_ustaligi",
+      "ad": "Döküm Ustalığı",
+      "etki": "+%1 Alaşım Dökümhanesi verimi",
+      "maks": 10,
+      "taban": 3000,
+      "son": 30000,
+      "toplam": 165000,
+      "ittifak_sv": 10,
+      "dal_ad": "Kalkınma"
+    },
+    {
+      "dal": "hiz",
+      "id": "ortak_muhendislik",
+      "ad": "Ortak Mühendislik",
+      "etki": "+%0,5 inşa hızı",
+      "maks": 10,
+      "taban": 3000,
+      "son": 30000,
+      "toplam": 165000,
+      "ittifak_sv": 1,
+      "dal_ad": "Hız"
+    },
+    {
+      "dal": "hiz",
+      "id": "ortak_laboratuvar",
+      "ad": "Ortak Laboratuvar",
+      "etki": "+%0,5 araştırma hızı",
+      "maks": 10,
+      "taban": 3000,
+      "son": 30000,
+      "toplam": 165000,
+      "ittifak_sv": 2,
+      "dal_ad": "Hız"
+    },
+    {
+      "dal": "hiz",
+      "id": "egitim_protokolu",
+      "ad": "Eğitim Protokolü",
+      "etki": "+%1 asker eğitim hızı",
+      "maks": 10,
+      "taban": 2000,
+      "son": 20000,
+      "toplam": 110000,
+      "ittifak_sv": 3,
+      "dal_ad": "Hız"
+    },
+    {
+      "dal": "hiz",
+      "id": "dayanisma_agi",
+      "ad": "Dayanışma Ağı",
+      "etki": "Yardımın en az süresi +15 sn (60 → 135 sn)",
+      "maks": 5,
+      "taban": 2500,
+      "son": 12500,
+      "toplam": 37500,
+      "ittifak_sv": 3,
+      "dal_ad": "Hız"
+    },
+    {
+      "dal": "hiz",
+      "id": "revir_protokolu",
+      "ad": "Revir Protokolü",
+      "etki": "+%2 iyileştirme hızı",
+      "maks": 5,
+      "taban": 2000,
+      "son": 10000,
+      "toplam": 30000,
+      "ittifak_sv": 5,
+      "dal_ad": "Hız"
+    },
+    {
+      "dal": "harita",
+      "id": "hizli_toplama",
+      "ad": "Hızlı Toplama",
+      "etki": "+%1,5 toplama hızı",
+      "maks": 10,
+      "taban": 1500,
+      "son": 15000,
+      "toplam": 82500,
+      "ittifak_sv": 2,
+      "dal_ad": "Harita"
+    },
+    {
+      "dal": "harita",
+      "id": "genis_ambar_bolmesi",
+      "ad": "Geniş Ambar Bölmesi",
+      "etki": "+%2 taşıma kapasitesi",
+      "maks": 10,
+      "taban": 1200,
+      "son": 12000,
+      "toplam": 66000,
+      "ittifak_sv": 2,
+      "dal_ad": "Harita"
+    },
+    {
+      "dal": "harita",
+      "id": "akinti_okuma",
+      "ad": "Akıntı Okuma",
+      "etki": "+%1 yürüyüş hızı",
+      "maks": 10,
+      "taban": 1500,
+      "son": 15000,
+      "toplam": 82500,
+      "ittifak_sv": 4,
+      "dal_ad": "Harita"
+    },
+    {
+      "dal": "harita",
+      "id": "sonar_rezonansi",
+      "ad": "Sonar Rezonansı",
+      "etki": "+%2 Sonar Enerjisi yenilenmesi",
+      "maks": 10,
+      "taban": 1500,
+      "son": 15000,
+      "toplam": 82500,
+      "ittifak_sv": 4,
+      "dal_ad": "Harita"
+    },
+    {
+      "dal": "harita",
+      "id": "derin_haritacilik",
+      "ad": "Derin Haritacılık",
+      "etki": "+1 kare görüş yarıçapı",
+      "maks": 5,
+      "taban": 2000,
+      "son": 10000,
+      "toplam": 30000,
+      "ittifak_sv": 6,
+      "dal_ad": "Harita"
+    },
+    {
+      "dal": "harita",
+      "id": "av_taktikleri",
+      "ad": "Av Taktikleri",
+      "etki": "+%1 PvE düşmanlarına hasar",
+      "maks": 10,
+      "taban": 1500,
+      "son": 15000,
+      "toplam": 82500,
+      "ittifak_sv": 6,
+      "dal_ad": "Harita"
+    },
+    {
+      "dal": "bolge",
+      "id": "kule_muhendisligi",
+      "ad": "Kule Mühendisliği",
+      "etki": "−%8 Sonar Kulesi inşa süresi",
+      "maks": 5,
+      "taban": 1500,
+      "son": 7500,
+      "toplam": 22500,
+      "ittifak_sv": 3,
+      "dal_ad": "Bölge"
+    },
+    {
+      "dal": "bolge",
+      "id": "maden_verimi",
+      "ad": "Maden Verimi",
+      "etki": "+%3 İttifak Madeni toplama hızı",
+      "maks": 10,
+      "taban": 1500,
+      "son": 15000,
+      "toplam": 82500,
+      "ittifak_sv": 3,
+      "dal_ad": "Bölge"
+    },
+    {
+      "dal": "bolge",
+      "id": "ambar_genisletme",
+      "ad": "Ambar Genişletme",
+      "etki": "+%10 İttifak Ambarı kişisel bölmesi",
+      "maks": 10,
+      "taban": 1200,
+      "son": 12000,
+      "toplam": 66000,
+      "ittifak_sv": 5,
+      "dal_ad": "Bölge"
+    },
+    {
+      "dal": "bolge",
+      "id": "dukkan_agi",
+      "ad": "Dükkân Ağı",
+      "etki": "−%2 dükkân stok bedeli",
+      "maks": 5,
+      "taban": 2000,
+      "son": 10000,
+      "toplam": 30000,
+      "ittifak_sv": 6,
+      "dal_ad": "Bölge"
+    },
+    {
+      "dal": "bolge",
+      "id": "hediye_agi",
+      "ad": "Hediye Ağı",
+      "etki": "+%2 hediye puanı",
+      "maks": 10,
+      "taban": 1000,
+      "son": 10000,
+      "toplam": 55000,
+      "ittifak_sv": 6,
+      "dal_ad": "Bölge"
+    },
+    {
+      "dal": "savunma",
+      "id": "takviye_agi",
+      "ad": "Takviye Ağı",
+      "etki": "+%2 takviye kapasitesi",
+      "maks": 10,
+      "taban": 2000,
+      "son": 20000,
+      "toplam": 110000,
+      "ittifak_sv": 4,
+      "dal_ad": "Savunma"
+    },
+    {
+      "dal": "savunma",
+      "id": "kalkan_kaplamasi",
+      "ad": "Kalkan Kaplaması",
+      "etki": "+%2 üs dayanıklılığı",
+      "maks": 10,
+      "taban": 1500,
+      "son": 15000,
+      "toplam": 82500,
+      "ittifak_sv": 4,
+      "dal_ad": "Savunma"
+    },
+    {
+      "dal": "savunma",
+      "id": "su_gecirmez_bolmeler",
+      "ad": "Su Geçirmez Bölmeler",
+      "etki": "−%5 su baskını kaybı",
+      "maks": 5,
+      "taban": 2000,
+      "son": 10000,
+      "toplam": 30000,
+      "ittifak_sv": 6,
+      "dal_ad": "Savunma"
+    },
+    {
+      "dal": "savunma",
+      "id": "garnizon_disiplini",
+      "ad": "Garnizon Disiplini",
+      "etki": "+%1 garnizondaki askerin savunması",
+      "maks": 10,
+      "taban": 2000,
+      "son": 20000,
+      "toplam": 110000,
+      "ittifak_sv": 8,
+      "dal_ad": "Savunma"
+    },
+    {
+      "dal": "savunma",
+      "id": "revir_kanatlari",
+      "ad": "Revir Kanatları",
+      "etki": "+%2 yaralı kapasitesi",
+      "maks": 10,
+      "taban": 1500,
+      "son": 15000,
+      "toplam": 82500,
+      "ittifak_sv": 8,
+      "dal_ad": "Savunma"
+    },
+    {
+      "dal": "muharebe",
+      "id": "saldiri_doktrini",
+      "ad": "Saldırı Doktrini",
+      "etki": "+%0,5 asker saldırısı",
+      "maks": 10,
+      "taban": 3000,
+      "son": 30000,
+      "toplam": 165000,
+      "ittifak_sv": 6,
+      "dal_ad": "Muharebe"
+    },
+    {
+      "dal": "muharebe",
+      "id": "savunma_doktrini",
+      "ad": "Savunma Doktrini",
+      "etki": "+%0,5 asker savunması",
+      "maks": 10,
+      "taban": 3000,
+      "son": 30000,
+      "toplam": 165000,
+      "ittifak_sv": 6,
+      "dal_ad": "Muharebe"
+    },
+    {
+      "dal": "muharebe",
+      "id": "govde_takviyesi",
+      "ad": "Gövde Takviyesi",
+      "etki": "+%0,5 asker canı",
+      "maks": 10,
+      "taban": 3000,
+      "son": 30000,
+      "toplam": 165000,
+      "ittifak_sv": 7,
+      "dal_ad": "Muharebe"
+    },
+    {
+      "dal": "muharebe",
+      "id": "ralli_komutasi",
+      "ad": "Ralli Komutası",
+      "etki": "+%1 ralli kapasitesi",
+      "maks": 10,
+      "taban": 2500,
+      "son": 25000,
+      "toplam": 137500,
+      "ittifak_sv": 8,
+      "dal_ad": "Muharebe"
+    },
+    {
+      "dal": "muharebe",
+      "id": "leviathan_avciligi",
+      "ad": "Leviathan Avcılığı",
+      "etki": "+%1 Leviathan ve Kadim Muhafızlara hasar",
+      "maks": 10,
+      "taban": 2000,
+      "son": 20000,
+      "toplam": 110000,
+      "ittifak_sv": 10,
+      "dal_ad": "Muharebe"
+    },
+    {
+      "dal": "muharebe",
+      "id": "kusatma",
+      "ad": "Kuşatma",
+      "etki": "+%2 geçit ve yapı dayanıklılığına hasar",
+      "maks": 5,
+      "taban": 3000,
+      "son": 15000,
+      "toplam": 45000,
+      "ittifak_sv": 12,
+      "dal_ad": "Muharebe"
+    }
+  ],
+  "bagis": {
+    "hak": 20,
+    "hak_dk": 30,
+    "gunluk_hak": 48,
+    "bedel_gs": 0.1,
+    "puan": 10,
+    "bireysel": 10,
+    "ittifak": 10,
+    "xp": 10,
+    "oncelik_ek": 50,
+    "hadalit_bedel": 20,
+    "hadalit_puan": 20,
+    "hadalit_gunluk": 10,
+    "devreye_alma_dk": 30,
+    "toplam_puan": 2864000,
+    "teknoloji": 33,
+    "seviye": 290
+  },
+  "krediler_sutunlar": [["kaynak", "Kaynak"], ["bireysel", "Bireysel Kredi"], ["ittifak", "İttifak Kredisi"]],
+  "krediler": [
+    {"kaynak": "Bağış", "bireysel": "10 (öncelikli teknolojide 15)", "ittifak": 10},
+    {"kaynak": "Yardım", "bireysel": "1 (günde en çok 50)", "ittifak": 1},
+    {"kaynak": "PvE rallisi zaferi", "bireysel": 20, "ittifak": 20},
+    {"kaynak": "Leviathan yuvası zaferi", "bireysel": 40, "ittifak": 200},
+    {
+      "kaynak": "Garnizonda geçen saat (bölge yapısı, geçit, alan)",
+      "bireysel": "5 (günde en çok 60)",
+      "ittifak": "—"
+    },
+    {"kaynak": "Tutulan Rezonans Alanı", "bireysel": "—", "ittifak": "100 / gün"},
+    {"kaynak": "Kronik ittifak hedefi", "bireysel": 200, "ittifak": "1.000–5.000"}
+  ],
+  "dukkan_sutunlar": [
+    ["ad", "Ürün"],
+    ["stok", "Stok bedeli (İK)"],
+    ["fiyat", "Üye fiyatı (Bireysel)"],
+    ["sinir", "Kaptan sınırı"],
+    ["kademe", "Dükkân kademesi"]
+  ],
+  "dukkan": [
+    {"ad": "Genel Hızlandırma 5 dk", "stok": 5, "fiyat": 30, "sinir": "20 / gün", "kademe": 1},
+    {"ad": "Genel Hızlandırma 1 sa", "stok": 50, "fiyat": 300, "sinir": "5 / gün", "kademe": 1},
+    {"ad": "İnşa Hızlandırma 1 sa", "stok": 40, "fiyat": 240, "sinir": "5 / gün", "kademe": 1},
+    {"ad": "Araştırma Hızlandırma 1 sa", "stok": 40, "fiyat": 240, "sinir": "5 / gün", "kademe": 1},
+    {"ad": "Sonar Pili (küçük, +50)", "stok": 10, "fiyat": 60, "sinir": "10 / gün", "kademe": 1},
+    {"ad": "Kaynak Kapsülü (0,5 GS)", "stok": 30, "fiyat": 200, "sinir": "5 / gün", "kademe": 1},
+    {"ad": "Sonar Pili (orta, +200)", "stok": 40, "fiyat": 220, "sinir": "3 / gün", "kademe": 2},
+    {"ad": "Bereket Akışı (+%25 toplama, 8 sa)", "stok": 60, "fiyat": 400, "sinir": "1 / gün", "kademe": 2},
+    {"ad": "Sessizlik Kalkanı · 8 sa", "stok": 150, "fiyat": 1200, "sinir": "1 / gün", "kademe": 2},
+    {"ad": "İttifak Rotası", "stok": 120, "fiyat": 900, "sinir": "1 / gün", "kademe": 2},
+    {"ad": "Basınç Kodeksi", "stok": 80, "fiyat": 500, "sinir": "2 / gün", "kademe": 3},
+    {"ad": "Anı Kristali", "stok": 60, "fiyat": 450, "sinir": "2 / gün", "kademe": 3},
+    {"ad": "Hassas Konuşlanma", "stok": 400, "fiyat": 3000, "sinir": "1 / hafta", "kademe": 4}
+  ],
+  "hediyeler_sutunlar": [
+    ["ad", "Hediye"],
+    ["kaynak", "Ne zaman gelir"],
+    ["icerik", "İçerik"],
+    ["puan", "Hediye puanı"],
+    ["sure", "Açma süresi", "sure"]
+  ],
+  "hediyeler": [
+    {
+      "ad": "Kıyı Hediyesi",
+      "kaynak": "Bir üyenin küçük The Syndicate alımı",
+      "icerik": "Hızlandırma, Kaynak Kapsülü, az Hadalit",
+      "puan": 10,
+      "sure": 259200
+    },
+    {
+      "ad": "Derin Hediye",
+      "kaynak": "Bir üyenin orta alımı ya da Sendika Sözleşmesi",
+      "icerik": "Daha uzun hızlandırma, Sonar Pili, Hadalit",
+      "puan": 40,
+      "sure": 259200
+    },
+    {
+      "ad": "Hadal Hediyesi",
+      "kaynak": "Bir üyenin büyük alımı",
+      "icerik": "Kriyo-Kapsül çekimi şansı, Süperalaşım (R30+)",
+      "puan": 120,
+      "sure": 259200
+    },
+    {
+      "ad": "Av Hediyesi",
+      "kaynak": "Leviathan Avı etkinliğinin 5., 10., 15. dalgası (13) ya da haritada bir Leviathan yuvası zaferi (günde en çok 3)",
+      "icerik": "Basınç Kodeksi şansı, Süperalaşım, hızlandırma",
+      "puan": 20,
+      "sure": 259200
+    },
+    {
+      "ad": "Kronik Hediyesi",
+      "kaynak": "Bir Kronik ittifak hedefi",
+      "icerik": "Aşamaya göre sandık",
+      "puan": 30,
+      "sure": 604800
+    },
+    {
+      "ad": "Derin Hazine",
+      "kaynak": "Hediye puanı çubuğu her 2.000 puanda dolar",
+      "icerik": "Büyük sandık; Hediye Seviyesi'ne göre",
+      "puan": "—",
+      "sure": 604800
+    }
+  ],
+  "hediye_seviyeleri_sutunlar": [["seviye", "Hediye Sv"], ["toplam", "Toplam puan"], ["carpan", "İçerik çarpanı"]],
+  "hediye_seviyeleri": [
+    {"seviye": 1, "toplam": 0, "carpan": "×1,0"},
+    {"seviye": 2, "toplam": 500, "carpan": "×1,05"},
+    {"seviye": 3, "toplam": 1120, "carpan": "×1,1"},
+    {"seviye": 4, "toplam": 1900, "carpan": "×1,15"},
+    {"seviye": 5, "toplam": 2880, "carpan": "×1,2"},
+    {"seviye": 6, "toplam": 4100, "carpan": "×1,25"},
+    {"seviye": 7, "toplam": 5630, "carpan": "×1,3"},
+    {"seviye": 8, "toplam": 7540, "carpan": "×1,35"},
+    {"seviye": 9, "toplam": 9920, "carpan": "×1,4"},
+    {"seviye": 10, "toplam": 12900, "carpan": "×1,45"},
+    {"seviye": 11, "toplam": 16630, "carpan": "×1,5"},
+    {"seviye": 12, "toplam": 21290, "carpan": "×1,55"},
+    {"seviye": 13, "toplam": 27110, "carpan": "×1,6"},
+    {"seviye": 14, "toplam": 34390, "carpan": "×1,65"},
+    {"seviye": 15, "toplam": 43480, "carpan": "×1,7"},
+    {"seviye": 16, "toplam": 54880, "carpan": "×1,75"},
+    {"seviye": 17, "toplam": 69080, "carpan": "×1,8"},
+    {"seviye": 18, "toplam": 86880, "carpan": "×1,85"},
+    {"seviye": 19, "toplam": 109080, "carpan": "×1,9"},
+    {"seviye": 20, "toplam": 136880, "carpan": "×1,95"}
+  ],
+  "bolge_yapilari_sutunlar": [
+    ["ad", "Yapı"],
+    ["boyut", "Boyut"],
+    ["yaricap", "Bölge yarıçapı"],
+    ["sinir", "Sınır"],
+    ["bedel", "Bedel"],
+    ["sure", "İnşa", "sure"],
+    ["garnizon", "Garnizon (sefer)"],
+    ["islev", "İşlev"]
+  ],
+  "bolge_yapilari": [
+    {
+      "id": "karargah",
+      "ad": "Karargâh Kubbesi",
+      "boyut": "3 × 3",
+      "yaricap": 7,
+      "sinir": "1 · 2 (Sv 8) · 3 (Sv 15)",
+      "bedel": "2.000.000 Ti (ortak) + 1.000 İK",
+      "sure": 28800,
+      "garnizon": 20,
+      "islev": "Bölgenin çekirdeği; İttifak Rotası iniş noktası; ambar ve madenler buna bağlanır."
+    },
+    {
+      "id": "sonar_kulesi",
+      "ad": "Sonar Kulesi",
+      "boyut": "1 × 1",
+      "yaricap": 3,
+      "sinir": "10 + 6 × (Sv − 1)",
+      "bedel": "100.000 Ti (ortak) + 50 İK; her 10 kulede ×1,25",
+      "sure": 3600,
+      "garnizon": 3,
+      "islev": "Bölgeyi genişletir; bağlıyken saatte 1.500 Ti ortak hesaba yazar."
+    },
+    {
+      "id": "ittifak_madeni",
+      "ad": "İttifak Madeni",
+      "boyut": "2 × 2",
+      "yaricap": 0,
+      "sinir": "Her türden 1 (Ti, GD, BK; Sv 10'da SA)",
+      "bedel": "500.000 Ti (ortak) + 300 İK",
+      "sure": 14400,
+      "garnizon": 0,
+      "islev": "5.000.000 yük; üyeler toplar, toplananın %10'u kadar ortak hesaba ek yazılır."
+    },
+    {
+      "id": "ittifak_ambari",
+      "ad": "İttifak Ambarı",
+      "boyut": "2 × 2",
+      "yaricap": 0,
+      "sinir": "1 (Sv 2)",
+      "bedel": "1.000.000 Ti (ortak) + 500 İK",
+      "sure": 14400,
+      "garnizon": 0,
+      "islev": "Kişisel bölmeler: yağmalanmaz, yatırılan 24 saat çekilemez."
+    }
+  ],
+  "bolge_etkileri_sutunlar": [["etki", "Etki"], ["deger", "Değer"]],
+  "bolge_etkileri": [
+    {"etki": "Toplama hızı (bölgedeki yataklarda ve madenlerde)", "deger": "+%20"},
+    {"etki": "Yürüyüş hızı (kendi bölgende)", "deger": "+%30"},
+    {"etki": "Yürüyüş hızı (başka ittifakın bölgesinde)", "deger": "−%15"},
+    {"etki": "Bölgedeki üye üslerinin savunması", "deger": "+%5"},
+    {"etki": "Görüş", "deger": "Bölgenin tamamı sissiz"},
+    {"etki": "Üye kapasitesi", "deger": "Her 12 bağlı kulede +1 (en çok +10)"}
+  ],
+  "savas_bildirisi": {
+    "bedel_ik": 2000,
+    "min_sv": 5,
+    "min_asama": 4,
+    "guc_orani": 50,
+    "hazirlik_saat": 12,
+    "savas_saat": 72,
+    "ayni_cift_gun": 7,
+    "esik_carpani": 1.5
+  },
+  "posta_sutunlar": [["tur", "Tür"], ["kim", "Kim gönderir"], ["sinir", "Sınır"], ["not", "Not"]],
+  "posta": [
+    {
+      "tur": "Kişisel posta",
+      "kim": "Herkes",
+      "sinir": "1 alıcı · 1.000 karakter · saatte 20",
+      "not": "Engelleme ve şikâyet"
+    },
+    {
+      "tur": "İttifak postası",
+      "kim": "R5, R4",
+      "sinir": "Tüm üyeler · 2.000 karakter · günde 3",
+      "not": "Okundu sayacı yalnızca gönderene"
+    },
+    {
+      "tur": "Rapor",
+      "kim": "Sistem",
+      "sinir": "Savaş, keşif, toplama, ralli · 30 gün saklanır",
+      "not": "Yıldızlanan rapor kalıcı"
+    },
+    {
+      "tur": "Kronik",
+      "kim": "Kronik Feneri",
+      "sinir": "Aşama açılışları, sunucu ilkleri",
+      "not": "Ayrı sekme"
+    }
+  ]
+}

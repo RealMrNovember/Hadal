@@ -1,0 +1,76 @@
+{
+  "surum": "rehber-1",
+  "_not": "Adlandırılmış eğriler. Değer, çapalar [seviye, değer] arasında log-doğrusal (geometrik) enterpolasyonla bulunur; uçların dışında ilk/son aralığın büyüme hızı sürdürülür. Bina maliyet ve süreleri 'olcek × eğri(seviye)' olarak hesaplanır. Yuvarlama: maliyet 20'nin altında tam sayı, 1.000'in altında 5'in katı, üstünde 3 anlamlı basamak; süre 2 dakikanın altında saniye, 2 saatin altında dakika, 1 günün altında 5 dakika, üstünde 15 dakika.",
+  "egriler": {
+    "reaktor_sure": {
+      "ad": "Reaktör inşa süresi",
+      "birim": "saniye",
+      "capalar": [
+        [1, 3],
+        [2, 5],
+        [3, 15],
+        [4, 30],
+        [5, 60],
+        [6, 120],
+        [7, 240],
+        [8, 480],
+        [9, 900],
+        [10, 1800],
+        [12, 4800],
+        [15, 14400],
+        [20, 50400],
+        [25, 172800],
+        [30, 388800],
+        [35, 820800],
+        [40, 1468800],
+        [45, 2419200],
+        [50, 3628800]
+      ]
+    },
+    "reaktor_bedel": {
+      "ad": "Reaktör Titanyum maliyeti",
+      "birim": "Titanyum",
+      "capalar": [
+        [1, 60],
+        [2, 100],
+        [3, 180],
+        [4, 350],
+        [5, 700],
+        [10, 5000],
+        [15, 30000],
+        [20, 130000],
+        [25, 420000],
+        [30, 1100000],
+        [35, 2500000],
+        [40, 5000000],
+        [45, 10000000],
+        [50, 20000000]
+      ]
+    },
+    "alasim": {
+      "ad": "Reaktör Süperalaşım maliyeti",
+      "birim": "Süperalaşım",
+      "capalar": [[31, 100], [35, 170], [40, 330], [45, 600], [50, 1050]]
+    },
+    "uretim": {
+      "ad": "Üretim çarpanı",
+      "birim": "× Sv 1 değeri",
+      "capalar": [[1, 1], [10, 6], [20, 21], [30, 48], [40, 102], [50, 180]]
+    },
+    "alasim_uretim": {
+      "ad": "Süperalaşım üretim çarpanı",
+      "birim": "× Sv 1 değeri",
+      "capalar": [[1, 1], [30, 1], [40, 2.5], [50, 5]]
+    },
+    "guc": {
+      "ad": "Güç artışı",
+      "birim": "güç",
+      "capalar": [[1, 10], [10, 120], [20, 500], [30, 1400], [40, 3000], [50, 5500]]
+    },
+    "depo": {
+      "ad": "Basınç Ambarı kapasitesi",
+      "birim": "× reaktör Titanyum maliyeti",
+      "capalar": [[1, 2000], [10, 15000], [20, 300000], [30, 2400000], [40, 10000000], [50, 40000000]]
+    }
+  }
+}

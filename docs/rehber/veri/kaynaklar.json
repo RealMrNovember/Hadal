@@ -1,0 +1,97 @@
+{
+  "surum": "rehber-1",
+  "_not": "Kaynak tanımları. 'v8' = shared/catalog/catalog.json v8'deki değer. 'tavan_carpani': hedef cüzdan tavanı = max(v8 tavanı, çarpan × bir sonraki reaktör seviyesinin Titanyum maliyeti). Basınç Ambarı bunun üstüne ek kapasite verir.",
+  "kaynaklar": [
+    {
+      "id": "Oxygen",
+      "ad": "Oksijen",
+      "sembol": "O₂",
+      "renk": "#4FC3F7",
+      "kritik": true,
+      "durum": "kodda",
+      "aciklama": "Mürettebatın ve askerlerin nefesi. Oksijen biterse üretim durur, mürettebat bayılır.",
+      "kaynagi": "Deniz suyu elektrolizi (Oksijen Tesisi), Mega Kubbe; geç dönemde nodül sahalarından karanlık oksijen.",
+      "harcama": "Mürettebat ve asker bakımı, dalış (sefer) maliyeti, iyileştirme.",
+      "v8": {"baslangic": 600, "tavan": 6000},
+      "hedef": {"baslangic": 600, "tavan_carpani": 0.5}
+    },
+    {
+      "id": "Energy",
+      "ad": "Enerji",
+      "sembol": "EN",
+      "renk": "#FFD54F",
+      "kritik": false,
+      "durum": "kodda",
+      "aciklama": "Üssün dolaşımı. Her üretim binası enerji tüketir; açık verilirse stok erir.",
+      "kaynagi": "Çekirdek Reaktör (kompakt fisyon), Hidrotermal Santral (baca ısısı).",
+      "harcama": "Bina bakımı, Takviye, Kalkan Jeneratörü.",
+      "v8": {"baslangic": 400, "tavan": 10000},
+      "hedef": {"baslangic": 400, "tavan_carpani": 0.4}
+    },
+    {
+      "id": "Food",
+      "ad": "Gıda",
+      "sembol": "GD",
+      "renk": "#A5D6A7",
+      "kritik": true,
+      "durum": "kodda",
+      "aciklama": "Mürettebatın ve askerlerin erzakı.",
+      "kaynagi": "Kemosentetik bakteri kültürü (Gıda Laboratuvarı), LED hidroponik (Hidroponik Çiftlik, Tarım Kubbesi), deniz karı olayları.",
+      "harcama": "Asker eğitimi ve bakımı, iyileştirme, kahraman eğitimi.",
+      "v8": {"baslangic": 400, "tavan": 5000},
+      "hedef": {"baslangic": 400, "tavan_carpani": 0.6}
+    },
+    {
+      "id": "Biomass",
+      "ad": "Biyokütle",
+      "sembol": "BK",
+      "renk": "#81C784",
+      "kritik": false,
+      "durum": "kodda",
+      "aciklama": "Organik malzeme: bakteri matları, tüp kurdu kolonileri, balina leşi ekosistemleri.",
+      "kaynagi": "Biyo Laboratuvar, Tarım Kubbesi, haritadaki balina leşleri.",
+      "harcama": "İnşaat (ikincil), araştırma, hidroponik besin.",
+      "v8": {"baslangic": 200, "tavan": 6000},
+      "hedef": {"baslangic": 200, "tavan_carpani": 0.6}
+    },
+    {
+      "id": "Titanium",
+      "ad": "Titanyum",
+      "sembol": "Ti",
+      "renk": "#B0BEC5",
+      "kritik": false,
+      "durum": "kodda",
+      "aciklama": "Yapının ve gövdenin metali. Tam okyanus derinliğine inen araçların basınç küreleri titanyumdandır.",
+      "kaynagi": "Dron Fabrikası (hurda, ilmenit, demir-mangan kabuğu), kurtarma görevleri, haritadaki enkaz yatakları.",
+      "harcama": "Her bina, araştırma, asker ve denizaltı.",
+      "v8": {"baslangic": 500, "tavan": 25000},
+      "hedef": {"baslangic": 500, "tavan_carpani": 1.5}
+    },
+    {
+      "id": "Alloy",
+      "ad": "Süperalaşım",
+      "sembol": "SA",
+      "renk": "#CE93D8",
+      "kritik": false,
+      "durum": "tasarim",
+      "aciklama": "Polimetalik nodüllerdeki nikel ve kobalttan dökülen ısıya ve basınca dayanıklı alaşım. Reaktör 30'dan sonraki kapı kaynağı.",
+      "kaynagi": "Alaşım Dökümhanesi, nodül sahası ve kobalt kabuğu toplama, üst düzey seferler, etkinlikler.",
+      "harcama": "Reaktör 31–50 ve önkoşulları, T9–T10 askerler, Kadim Teknoloji araştırmaları, efsanevi teçhizat.",
+      "v8": null,
+      "hedef": {"baslangic": 0, "tavan_carpani": 0}
+    },
+    {
+      "id": "Hadalite",
+      "ad": "Hadalit",
+      "sembol": "HD",
+      "renk": "#64FFDA",
+      "kritik": false,
+      "durum": "kodda",
+      "aciklama": "Kadim uygarlığın kristali. Baca ağızlarında ve çukur tabanında, yalnızca karanlıkta parıldar. Premium para birimi.",
+      "kaynagi": "The Syndicate, görevler, sandıklar, kurtarma görevleri, etkinlikler, VIP sandıkları.",
+      "harcama": "Kriyo-Kapsül, hızlandırma, köken değişimi, Kadim Şema, kozmetik.",
+      "v8": {"baslangic": 100, "tavan": 1000},
+      "hedef": {"baslangic": 1000, "tavan_carpani": 0, "olcek_carpani": 10}
+    }
+  ]
+}

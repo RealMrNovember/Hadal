@@ -1,0 +1,1676 @@
+{
+  "surum": "rehber-1",
+  "_not": "Asker türleri, kademeler, bina kapasiteleri, iyileştirme, kayıp kuralları ve savaş çözümü. Tasarım verisidir; kodda asker yoktur. İstatistik = taban (ATK 30, DEF 30, HP 100) × tür çarpanı × (kademe gücü / 3), en yakın tam sayıya yuvarlanır. Kapasite tabloları anahtar seviyelerdir; aradaki seviyeler aynı çapalardan log-doğrusal okunur ('capalar' alanları). 'denge' ve 'ornek_savaslar' hesaplanmış tablolardır: temel dosyalar değişirse yeniden hesaplanmalıdır.",
+  "turler": [
+    {
+      "id": "armored",
+      "ad": "Zırhlı Dalgıç",
+      "kimlik": "`armored`",
+      "rol": "Ön saf, dayanıklı",
+      "sira": "Ön",
+      "ustun": "Ark Askeri",
+      "zayif": "Zıpkıncı",
+      "atk_c": 0.85,
+      "def_c": 1.25,
+      "hp_c": 1.2,
+      "hiz": 80,
+      "yuk_c": 1.0
+    },
+    {
+      "id": "harpoon",
+      "ad": "Zıpkıncı",
+      "kimlik": "`harpoon`",
+      "rol": "Arka saf, delici atış",
+      "sira": "Arka",
+      "ustun": "Zırhlı Dalgıç",
+      "zayif": "Ark Askeri",
+      "atk_c": 1.25,
+      "def_c": 0.85,
+      "hp_c": 0.85,
+      "hiz": 120,
+      "yuk_c": 0.8
+    },
+    {
+      "id": "arc",
+      "ad": "Ark Askeri",
+      "kimlik": "`arc`",
+      "rol": "Arka saf, yayılan hasar",
+      "sira": "Arka",
+      "ustun": "Zıpkıncı",
+      "zayif": "Zırhlı Dalgıç",
+      "atk_c": 1.1,
+      "def_c": 0.95,
+      "hp_c": 0.95,
+      "hiz": 100,
+      "yuk_c": 0.7
+    },
+    {
+      "id": "driller",
+      "ad": "Delici",
+      "kimlik": "`driller`",
+      "rol": "Kuşatma ve taşıma",
+      "sira": "Ön",
+      "ustun": "Yapılar",
+      "zayif": "Sahada herkes",
+      "atk_c": 0.9,
+      "def_c": 0.9,
+      "hp_c": 1.1,
+      "hiz": 70,
+      "yuk_c": 2.0
+    }
+  ],
+  "turler_sutunlar": [
+    ["ad", "Tür"],
+    ["kimlik", "Kimlik"],
+    ["rol", "Rol"],
+    ["sira", "Saf"],
+    ["ustun", "Üstün"],
+    ["zayif", "Zayıf"],
+    ["atk_c", "ATK ×"],
+    ["def_c", "DEF ×"],
+    ["hp_c", "HP ×"],
+    ["hiz", "Hız"],
+    ["yuk_c", "Yük ×"]
+  ],
+  "turler_esin": {
+    "sutunlar": [["ad", "Tür"], ["esin", "Dayandığı mühendislik"], ["ozellik", "Savaştaki özelliği"]],
+    "satirlar": [
+      {
+        "ad": "Zırhlı Dalgıç",
+        "esin": "İçini 1 atmosferde tutan sert basınç kıyafetleri: dalgıç, derinliğin ezici basıncını eklemli bir kabuğun içinde hissetmez.",
+        "ozellik": "Faraday kabuğu: iletken dış kabuk ark akımını gövdeden geçirip suya verir; Ark Askerine karşı üstün."
+      },
+      {
+        "ad": "Zıpkıncı",
+        "esin": "Lastikli ve pnömatik zıpkın tüfekleri, gaz kartuşlu fırlatıcılar, patlayıcı uçlar; geç kademede bobin ve ray hızlandırıcılar.",
+        "ozellik": "Delici atış: hasarının %85'ini ön safa verir; ağır kabukları deler, Zırhlı Dalgıça karşı üstün. En hızlı tür."
+      },
+      {
+        "ad": "Ark Askeri",
+        "esin": "Yalıtımlı temas mızrakları, şok çubukları, ıslak kaynak ve kesme arkları; tuzlu suda akım dağılır, bu yüzden silah hedefe dokunarak ya da çok kısa mesafede ateşlenir.",
+        "ozellik": "Zincir ark: hasarı ön ve arka safa yarı yarıya yayılır; hafif korunan zıpkıncıları sersemletir, Zıpkıncıya karşı üstün."
+      },
+      {
+        "ad": "Delici",
+        "esin": "Hidrolik kesiciler, elmas tel testereler, aşındırıcılı su jeti, termik mızrak ve tünel açma burguları: batık kurtarma ve deniz tabanı sondajının araçları.",
+        "ozellik": "Askerlere karşı hasarı ×0,6; yapılara (Kalkan, kale, yuva) karşı ×3. Taşıma kapasitesi diğer türlerin iki katından fazla. Üçgenin dışındadır."
+      }
+    ]
+  },
+  "karsi": {
+    "avantaj": 1.2,
+    "dezavantaj": 0.85,
+    "anit_on_seviye": 0.02,
+    "anit_en_fazla": 0.1,
+    "saha_cezasi": 0.6,
+    "yapi_carpani": 3.0,
+    "diger_yapi_carpani": 1.0
+  },
+  "karsi_tablosu": [
+    {"saldiran": "Zırhlı Dalgıç", "armored": 1.0, "harpoon": 0.85, "arc": 1.2, "driller": 1.0, "yapi": 1.0},
+    {"saldiran": "Zıpkıncı", "armored": 1.2, "harpoon": 1.0, "arc": 0.85, "driller": 1.0, "yapi": 1.0},
+    {"saldiran": "Ark Askeri", "armored": 0.85, "harpoon": 1.2, "arc": 1.0, "driller": 1.0, "yapi": 1.0},
+    {"saldiran": "Delici", "armored": 0.6, "harpoon": 0.6, "arc": 0.6, "driller": 0.6, "yapi": 3.0}
+  ],
+  "karsi_tablosu_sutunlar": [
+    ["saldiran", "Saldıran ↓ / Savunan →"],
+    ["armored", "Zırhlı Dalgıç"],
+    ["harpoon", "Zıpkıncı"],
+    ["arc", "Ark Askeri"],
+    ["driller", "Delici"],
+    ["yapi", "Yapı"]
+  ],
+  "anitlar": [
+    {
+      "bina": "Dalgıç Anıtı",
+      "kimlik": "`armor_monument`",
+      "etki": "Zırhlı → Ark avantajı",
+      "sv10": 1.22,
+      "sv25": 1.25,
+      "sv50": 1.3
+    },
+    {
+      "bina": "Zıpkın Anıtı",
+      "kimlik": "`harpoon_monument`",
+      "etki": "Zıpkıncı → Zırhlı avantajı",
+      "sv10": 1.22,
+      "sv25": 1.25,
+      "sv50": 1.3
+    },
+    {
+      "bina": "Ark Anıtı",
+      "kimlik": "`arc_monument`",
+      "etki": "Ark → Zıpkıncı avantajı",
+      "sv10": 1.22,
+      "sv25": 1.25,
+      "sv50": 1.3
+    }
+  ],
+  "anitlar_sutunlar": [
+    ["bina", "Anıt"],
+    ["kimlik", "Kimlik"],
+    ["etki", "Etki"],
+    ["sv10", "Sv 10"],
+    ["sv25", "Sv 25"],
+    ["sv50", "Sv 50"]
+  ],
+  "kademeler": [
+    {
+      "id": "t1",
+      "kademe": "T1",
+      "tatbikat": 1,
+      "reaktor": 5,
+      "arastirma": "—",
+      "guc": 3,
+      "gida": 6,
+      "biyokutle": 2,
+      "titanyum": 4,
+      "alasim": null,
+      "sure": 2,
+      "bakim_gida": 0.3,
+      "bakim_o2": 0.2,
+      "yuk": 10,
+      "parti": 40,
+      "parti_gida": 240,
+      "parti_biyokutle": 80,
+      "parti_titanyum": 160,
+      "parti_alasim": null,
+      "parti_sure": 80,
+      "gida_tavan_yuzde": 5,
+      "titan_tavan_yuzde": 0.6,
+      "biyo_tavan_yuzde": 1.3
+    },
+    {
+      "id": "t2",
+      "kademe": "T2",
+      "tatbikat": 5,
+      "reaktor": 5,
+      "arastirma": "—",
+      "guc": 4,
+      "gida": 9,
+      "biyokutle": 3,
+      "titanyum": 6,
+      "alasim": null,
+      "sure": 3,
+      "bakim_gida": 0.35,
+      "bakim_o2": 0.2,
+      "yuk": 12,
+      "parti": 100,
+      "parti_gida": 900,
+      "parti_biyokutle": 300,
+      "parti_titanyum": 600,
+      "parti_alasim": null,
+      "parti_sure": 300,
+      "gida_tavan_yuzde": 18,
+      "titan_tavan_yuzde": 2.4,
+      "biyo_tavan_yuzde": 5.0
+    },
+    {
+      "id": "t3",
+      "kademe": "T3",
+      "tatbikat": 10,
+      "reaktor": 10,
+      "arastirma": "—",
+      "guc": 6,
+      "gida": 14,
+      "biyokutle": 5,
+      "titanyum": 9,
+      "alasim": null,
+      "sure": 4,
+      "bakim_gida": 0.4,
+      "bakim_o2": 0.2,
+      "yuk": 14,
+      "parti": 250,
+      "parti_gida": 3500,
+      "parti_biyokutle": 1250,
+      "parti_titanyum": 2250,
+      "parti_alasim": null,
+      "parti_sure": 1000,
+      "gida_tavan_yuzde": 70,
+      "titan_tavan_yuzde": 9.0,
+      "biyo_tavan_yuzde": 20.8
+    },
+    {
+      "id": "t4",
+      "kademe": "T4",
+      "tatbikat": 15,
+      "reaktor": 15,
+      "arastirma": "Kademe IV Doktrini",
+      "guc": 9,
+      "gida": 30,
+      "biyokutle": 9,
+      "titanyum": 18,
+      "alasim": null,
+      "sure": 6,
+      "bakim_gida": 0.5,
+      "bakim_o2": 0.2,
+      "yuk": 17,
+      "parti": 500,
+      "parti_gida": 15000,
+      "parti_biyokutle": 4500,
+      "parti_titanyum": 9000,
+      "parti_alasim": null,
+      "parti_sure": 3000,
+      "gida_tavan_yuzde": 62,
+      "titan_tavan_yuzde": 14.9,
+      "biyo_tavan_yuzde": 18.7
+    },
+    {
+      "id": "t5",
+      "kademe": "T5",
+      "tatbikat": 20,
+      "reaktor": 20,
+      "arastirma": "Kademe V Doktrini",
+      "guc": 13,
+      "gida": 60,
+      "biyokutle": 18,
+      "titanyum": 35,
+      "alasim": null,
+      "sure": 8,
+      "bakim_gida": 0.6,
+      "bakim_o2": 0.2,
+      "yuk": 20,
+      "parti": 900,
+      "parti_gida": 54000,
+      "parti_biyokutle": 16200,
+      "parti_titanyum": 31500,
+      "parti_alasim": null,
+      "parti_sure": 7200,
+      "gida_tavan_yuzde": 55,
+      "titan_tavan_yuzde": 12.8,
+      "biyo_tavan_yuzde": 16.5
+    },
+    {
+      "id": "t6",
+      "kademe": "T6",
+      "tatbikat": 25,
+      "reaktor": 25,
+      "arastirma": "Kademe VI Doktrini",
+      "guc": 18,
+      "gida": 110,
+      "biyokutle": 30,
+      "titanyum": 65,
+      "alasim": null,
+      "sure": 11,
+      "bakim_gida": 0.7,
+      "bakim_o2": 0.2,
+      "yuk": 24,
+      "parti": 1400,
+      "parti_gida": 154000,
+      "parti_biyokutle": 42000,
+      "parti_titanyum": 91000,
+      "parti_alasim": null,
+      "parti_sure": 15400,
+      "gida_tavan_yuzde": 50,
+      "titan_tavan_yuzde": 11.9,
+      "biyo_tavan_yuzde": 13.8
+    },
+    {
+      "id": "t7",
+      "kademe": "T7",
+      "tatbikat": 30,
+      "reaktor": 30,
+      "arastirma": "Kademe VII Doktrini",
+      "guc": 25,
+      "gida": 190,
+      "biyokutle": 50,
+      "titanyum": 110,
+      "alasim": null,
+      "sure": 15,
+      "bakim_gida": 0.8,
+      "bakim_o2": 0.2,
+      "yuk": 28,
+      "parti": 2000,
+      "parti_gida": 380000,
+      "parti_biyokutle": 100000,
+      "parti_titanyum": 220000,
+      "parti_alasim": null,
+      "parti_sure": 30000,
+      "gida_tavan_yuzde": 49,
+      "titan_tavan_yuzde": 11.3,
+      "biyo_tavan_yuzde": 12.8
+    },
+    {
+      "id": "t8",
+      "kademe": "T8",
+      "tatbikat": 35,
+      "reaktor": 35,
+      "arastirma": "Kademe VIII Doktrini",
+      "guc": 34,
+      "gida": 300,
+      "biyokutle": 80,
+      "titanyum": 170,
+      "alasim": null,
+      "sure": 20,
+      "bakim_gida": 0.9,
+      "bakim_o2": 0.2,
+      "yuk": 33,
+      "parti": 2700,
+      "parti_gida": 810000,
+      "parti_biyokutle": 216000,
+      "parti_titanyum": 459000,
+      "parti_alasim": null,
+      "parti_sure": 54000,
+      "gida_tavan_yuzde": 47,
+      "titan_tavan_yuzde": 10.7,
+      "biyo_tavan_yuzde": 12.6
+    },
+    {
+      "id": "t9",
+      "kademe": "T9",
+      "tatbikat": 40,
+      "reaktor": 40,
+      "arastirma": "Kademe IX Doktrini",
+      "guc": 45,
+      "gida": 450,
+      "biyokutle": 120,
+      "titanyum": 250,
+      "alasim": 0.02,
+      "sure": 26,
+      "bakim_gida": 1.0,
+      "bakim_o2": 0.2,
+      "yuk": 39,
+      "parti": 3500,
+      "parti_gida": 1575000,
+      "parti_biyokutle": 420000,
+      "parti_titanyum": 875000,
+      "parti_alasim": 70,
+      "parti_sure": 91000,
+      "gida_tavan_yuzde": 46,
+      "titan_tavan_yuzde": 10.2,
+      "biyo_tavan_yuzde": 12.2
+    },
+    {
+      "id": "t10",
+      "kademe": "T10",
+      "tatbikat": 45,
+      "reaktor": 45,
+      "arastirma": "Kademe X Doktrini",
+      "guc": 60,
+      "gida": 650,
+      "biyokutle": 170,
+      "titanyum": 360,
+      "alasim": 0.04,
+      "sure": 34,
+      "bakim_gida": 1.1,
+      "bakim_o2": 0.2,
+      "yuk": 46,
+      "parti": 4400,
+      "parti_gida": 2860000,
+      "parti_biyokutle": 748000,
+      "parti_titanyum": 1584000,
+      "parti_alasim": 176,
+      "parti_sure": 149600,
+      "gida_tavan_yuzde": 41,
+      "titan_tavan_yuzde": 9.2,
+      "biyo_tavan_yuzde": 10.8
+    }
+  ],
+  "kademeler_sutunlar": [
+    ["kademe", "Kademe"],
+    ["tatbikat", "Tatbikat Sv"],
+    ["reaktor", "En erken R"],
+    ["arastirma", "Araştırma"],
+    ["guc", "Güç/asker"],
+    ["gida", "Gıda"],
+    ["biyokutle", "Biyokütle"],
+    ["titanyum", "Titanyum"],
+    ["alasim", "Süperalaşım"],
+    ["sure", "Süre (sn)"],
+    ["bakim_gida", "Bakım Gıda/sa"],
+    ["bakim_o2", "Bakım O₂/sa"]
+  ],
+  "parti_kontrol_sutunlar": [
+    ["kademe", "Kademe"],
+    ["tatbikat", "Tatbikat Sv"],
+    ["reaktor", "R"],
+    ["parti", "Parti"],
+    ["parti_gida", "Parti Gıda"],
+    ["gida_tavan_yuzde", "Gıda tavanının %'si"],
+    ["parti_titanyum", "Parti Titanyum"],
+    ["titan_tavan_yuzde", "Ti tavanının %'si"],
+    ["parti_alasim", "Parti SA"],
+    ["parti_sure", "Parti ham süre", "sure"]
+  ],
+  "istatistik": {
+    "armored": {
+      "sutunlar": [
+        ["kademe", "Kademe"],
+        ["ad", "Ad"],
+        ["atk", "ATK"],
+        ["def", "DEF"],
+        ["hp", "HP"],
+        ["hiz", "Hız"],
+        ["yuk", "Yük"],
+        ["guc", "Güç"]
+      ],
+      "satirlar": [
+        {
+          "kademe": "T1",
+          "ad": "Bakır Miğfer",
+          "atk": 26,
+          "def": 38,
+          "hp": 120,
+          "hiz": 80,
+          "yuk": 10,
+          "guc": 3
+        },
+        {
+          "kademe": "T2",
+          "ad": "Perçinli Korse",
+          "atk": 34,
+          "def": 50,
+          "hp": 160,
+          "hiz": 80,
+          "yuk": 12,
+          "guc": 4
+        },
+        {
+          "kademe": "T3",
+          "ad": "Mafsallı Kabuk",
+          "atk": 51,
+          "def": 75,
+          "hp": 240,
+          "hiz": 80,
+          "yuk": 14,
+          "guc": 6
+        },
+        {
+          "kademe": "T4",
+          "ad": "Tek Atmosfer Zırhı",
+          "atk": 77,
+          "def": 113,
+          "hp": 360,
+          "hiz": 80,
+          "yuk": 17,
+          "guc": 9
+        },
+        {
+          "kademe": "T5",
+          "ad": "Titanyum Kabuk",
+          "atk": 110,
+          "def": 163,
+          "hp": 520,
+          "hiz": 80,
+          "yuk": 20,
+          "guc": 13
+        },
+        {
+          "kademe": "T6",
+          "ad": "Seramik Gövde",
+          "atk": 153,
+          "def": 225,
+          "hp": 720,
+          "hiz": 80,
+          "yuk": 24,
+          "guc": 18
+        },
+        {
+          "kademe": "T7",
+          "ad": "Sintaktik Zırh",
+          "atk": 213,
+          "def": 313,
+          "hp": 1000,
+          "hiz": 80,
+          "yuk": 28,
+          "guc": 25
+        },
+        {
+          "kademe": "T8",
+          "ad": "Basınç Siperi",
+          "atk": 289,
+          "def": 425,
+          "hp": 1360,
+          "hiz": 80,
+          "yuk": 33,
+          "guc": 34
+        },
+        {
+          "kademe": "T9",
+          "ad": "Derinlik Kalesi",
+          "atk": 383,
+          "def": 563,
+          "hp": 1800,
+          "hiz": 80,
+          "yuk": 39,
+          "guc": 45
+        },
+        {
+          "kademe": "T10",
+          "ad": "Hadal Kolosu",
+          "atk": 510,
+          "def": 750,
+          "hp": 2400,
+          "hiz": 80,
+          "yuk": 46,
+          "guc": 60
+        }
+      ]
+    },
+    "harpoon": {
+      "sutunlar": [
+        ["kademe", "Kademe"],
+        ["ad", "Ad"],
+        ["atk", "ATK"],
+        ["def", "DEF"],
+        ["hp", "HP"],
+        ["hiz", "Hız"],
+        ["yuk", "Yük"],
+        ["guc", "Güç"]
+      ],
+      "satirlar": [
+        {
+          "kademe": "T1",
+          "ad": "Sapan Zıpkıncı",
+          "atk": 38,
+          "def": 26,
+          "hp": 85,
+          "hiz": 120,
+          "yuk": 8,
+          "guc": 3
+        },
+        {
+          "kademe": "T2",
+          "ad": "Lastikli Tüfekçi",
+          "atk": 50,
+          "def": 34,
+          "hp": 113,
+          "hiz": 120,
+          "yuk": 10,
+          "guc": 4
+        },
+        {
+          "kademe": "T3",
+          "ad": "Pnömatik Zıpkıncı",
+          "atk": 75,
+          "def": 51,
+          "hp": 170,
+          "hiz": 120,
+          "yuk": 11,
+          "guc": 6
+        },
+        {
+          "kademe": "T4",
+          "ad": "Kartuşlu Avcı",
+          "atk": 113,
+          "def": 77,
+          "hp": 255,
+          "hiz": 120,
+          "yuk": 14,
+          "guc": 9
+        },
+        {
+          "kademe": "T5",
+          "ad": "Patlayıcı Uçlu Nişancı",
+          "atk": 163,
+          "def": 110,
+          "hp": 368,
+          "hiz": 120,
+          "yuk": 16,
+          "guc": 13
+        },
+        {
+          "kademe": "T6",
+          "ad": "Çift Namlu Avcısı",
+          "atk": 225,
+          "def": 153,
+          "hp": 510,
+          "hiz": 120,
+          "yuk": 19,
+          "guc": 18
+        },
+        {
+          "kademe": "T7",
+          "ad": "Bobin Zıpkıncısı",
+          "atk": 313,
+          "def": 213,
+          "hp": 708,
+          "hiz": 120,
+          "yuk": 22,
+          "guc": 25
+        },
+        {
+          "kademe": "T8",
+          "ad": "Ray Zıpkıncısı",
+          "atk": 425,
+          "def": 289,
+          "hp": 963,
+          "hiz": 120,
+          "yuk": 26,
+          "guc": 34
+        },
+        {
+          "kademe": "T9",
+          "ad": "Güdümlü Nişancı",
+          "atk": 563,
+          "def": 383,
+          "hp": 1275,
+          "hiz": 120,
+          "yuk": 31,
+          "guc": 45
+        },
+        {
+          "kademe": "T10",
+          "ad": "Uçurum Nişancısı",
+          "atk": 750,
+          "def": 510,
+          "hp": 1700,
+          "hiz": 120,
+          "yuk": 37,
+          "guc": 60
+        }
+      ]
+    },
+    "arc": {
+      "sutunlar": [
+        ["kademe", "Kademe"],
+        ["ad", "Ad"],
+        ["atk", "ATK"],
+        ["def", "DEF"],
+        ["hp", "HP"],
+        ["hiz", "Hız"],
+        ["yuk", "Yük"],
+        ["guc", "Güç"]
+      ],
+      "satirlar": [
+        {
+          "kademe": "T1",
+          "ad": "Şok Çubukçusu",
+          "atk": 33,
+          "def": 29,
+          "hp": 95,
+          "hiz": 100,
+          "yuk": 7,
+          "guc": 3
+        },
+        {
+          "kademe": "T2",
+          "ad": "Batarya Mızrakçısı",
+          "atk": 44,
+          "def": 38,
+          "hp": 127,
+          "hiz": 100,
+          "yuk": 8,
+          "guc": 4
+        },
+        {
+          "kademe": "T3",
+          "ad": "Kıvılcım Eri",
+          "atk": 66,
+          "def": 57,
+          "hp": 190,
+          "hiz": 100,
+          "yuk": 10,
+          "guc": 6
+        },
+        {
+          "kademe": "T4",
+          "ad": "Kondansatör Eri",
+          "atk": 99,
+          "def": 86,
+          "hp": 285,
+          "hiz": 100,
+          "yuk": 12,
+          "guc": 9
+        },
+        {
+          "kademe": "T5",
+          "ad": "Plazma Kesici",
+          "atk": 143,
+          "def": 123,
+          "hp": 412,
+          "hiz": 100,
+          "yuk": 14,
+          "guc": 13
+        },
+        {
+          "kademe": "T6",
+          "ad": "Ark Kaynakçısı",
+          "atk": 198,
+          "def": 171,
+          "hp": 570,
+          "hiz": 100,
+          "yuk": 17,
+          "guc": 18
+        },
+        {
+          "kademe": "T7",
+          "ad": "Fırtına Eri",
+          "atk": 275,
+          "def": 238,
+          "hp": 792,
+          "hiz": 100,
+          "yuk": 20,
+          "guc": 25
+        },
+        {
+          "kademe": "T8",
+          "ad": "Yıldırım Mızrakçısı",
+          "atk": 374,
+          "def": 323,
+          "hp": 1077,
+          "hiz": 100,
+          "yuk": 23,
+          "guc": 34
+        },
+        {
+          "kademe": "T9",
+          "ad": "Volta Şövalyesi",
+          "atk": 495,
+          "def": 428,
+          "hp": 1425,
+          "hiz": 100,
+          "yuk": 27,
+          "guc": 45
+        },
+        {
+          "kademe": "T10",
+          "ad": "Derin Yıldırım",
+          "atk": 660,
+          "def": 570,
+          "hp": 1900,
+          "hiz": 100,
+          "yuk": 32,
+          "guc": 60
+        }
+      ]
+    },
+    "driller": {
+      "sutunlar": [
+        ["kademe", "Kademe"],
+        ["ad", "Ad"],
+        ["atk", "ATK"],
+        ["def", "DEF"],
+        ["hp", "HP"],
+        ["hiz", "Hız"],
+        ["yuk", "Yük"],
+        ["guc", "Güç"]
+      ],
+      "satirlar": [
+        {
+          "kademe": "T1",
+          "ad": "El Matkapçısı",
+          "atk": 27,
+          "def": 27,
+          "hp": 110,
+          "hiz": 70,
+          "yuk": 20,
+          "guc": 3
+        },
+        {
+          "kademe": "T2",
+          "ad": "Hidrolik Kesici",
+          "atk": 36,
+          "def": 36,
+          "hp": 147,
+          "hiz": 70,
+          "yuk": 24,
+          "guc": 4
+        },
+        {
+          "kademe": "T3",
+          "ad": "Elmas Testere Ekibi",
+          "atk": 54,
+          "def": 54,
+          "hp": 220,
+          "hiz": 70,
+          "yuk": 28,
+          "guc": 6
+        },
+        {
+          "kademe": "T4",
+          "ad": "Su Jeti Ekibi",
+          "atk": 81,
+          "def": 81,
+          "hp": 330,
+          "hiz": 70,
+          "yuk": 34,
+          "guc": 9
+        },
+        {
+          "kademe": "T5",
+          "ad": "Burgu Taşıyıcı",
+          "atk": 117,
+          "def": 117,
+          "hp": 477,
+          "hiz": 70,
+          "yuk": 40,
+          "guc": 13
+        },
+        {
+          "kademe": "T6",
+          "ad": "Termik Mızrak Ekibi",
+          "atk": 162,
+          "def": 162,
+          "hp": 660,
+          "hiz": 70,
+          "yuk": 48,
+          "guc": 18
+        },
+        {
+          "kademe": "T7",
+          "ad": "Kaya Delici",
+          "atk": 225,
+          "def": 225,
+          "hp": 917,
+          "hiz": 70,
+          "yuk": 56,
+          "guc": 25
+        },
+        {
+          "kademe": "T8",
+          "ad": "Yürüyen Sondaj",
+          "atk": 306,
+          "def": 306,
+          "hp": 1247,
+          "hiz": 70,
+          "yuk": 66,
+          "guc": 34
+        },
+        {
+          "kademe": "T9",
+          "ad": "Tünel Kurdu",
+          "atk": 405,
+          "def": 405,
+          "hp": 1650,
+          "hiz": 70,
+          "yuk": 78,
+          "guc": 45
+        },
+        {
+          "kademe": "T10",
+          "ad": "Uçurum Burgusu",
+          "atk": 540,
+          "def": 540,
+          "hp": 2200,
+          "hiz": 70,
+          "yuk": 92,
+          "guc": 60
+        }
+      ]
+    }
+  },
+  "kapasite": {
+    "askeri_kubbe": {
+      "sutunlar": [
+        ["seviye", "Askeri Kubbe Sv"],
+        ["reaktor", "En erken R"],
+        ["ordu", "Ordu kapasitesi"],
+        ["kuyruk", "Eğitim kuyruğu"]
+      ],
+      "satirlar": [
+        {"seviye": 1, "reaktor": 5, "ordu": 300, "kuyruk": 1},
+        {"seviye": 5, "reaktor": 5, "ordu": 800, "kuyruk": 1},
+        {"seviye": 10, "reaktor": 10, "ordu": 2500, "kuyruk": 2},
+        {"seviye": 15, "reaktor": 15, "ordu": 6000, "kuyruk": 2},
+        {"seviye": 20, "reaktor": 20, "ordu": 12000, "kuyruk": 2},
+        {"seviye": 25, "reaktor": 25, "ordu": 19000, "kuyruk": 3},
+        {"seviye": 30, "reaktor": 30, "ordu": 27000, "kuyruk": 3},
+        {"seviye": 35, "reaktor": 35, "ordu": 37000, "kuyruk": 3},
+        {"seviye": 40, "reaktor": 40, "ordu": 48000, "kuyruk": 4},
+        {"seviye": 45, "reaktor": 45, "ordu": 60000, "kuyruk": 4},
+        {"seviye": 50, "reaktor": 50, "ordu": 75000, "kuyruk": 4}
+      ],
+      "capalar": [
+        [1, 300],
+        [5, 800],
+        [10, 2500],
+        [15, 6000],
+        [20, 12000],
+        [25, 19000],
+        [30, 27000],
+        [35, 37000],
+        [40, 48000],
+        [45, 60000],
+        [50, 75000]
+      ]
+    },
+    "tatbikat": {
+      "sutunlar": [
+        ["seviye", "Tatbikat Sv"],
+        ["reaktor", "En erken R"],
+        ["parti", "Parti boyutu"],
+        ["kademe", "En yüksek kademe"],
+        ["hiz", "Eğitim hızı +%"]
+      ],
+      "satirlar": [
+        {"seviye": 1, "reaktor": 5, "parti": 40, "kademe": "T1", "hiz": 0.5},
+        {"seviye": 5, "reaktor": 5, "parti": 100, "kademe": "T2", "hiz": 2.5},
+        {"seviye": 10, "reaktor": 10, "parti": 250, "kademe": "T3", "hiz": 5.0},
+        {"seviye": 15, "reaktor": 15, "parti": 500, "kademe": "T4", "hiz": 7.5},
+        {"seviye": 20, "reaktor": 20, "parti": 900, "kademe": "T5", "hiz": 10.0},
+        {"seviye": 25, "reaktor": 25, "parti": 1400, "kademe": "T6", "hiz": 12.5},
+        {"seviye": 30, "reaktor": 30, "parti": 2000, "kademe": "T7", "hiz": 15.0},
+        {"seviye": 35, "reaktor": 35, "parti": 2700, "kademe": "T8", "hiz": 17.5},
+        {"seviye": 40, "reaktor": 40, "parti": 3500, "kademe": "T9", "hiz": 20.0},
+        {"seviye": 45, "reaktor": 45, "parti": 4400, "kademe": "T10", "hiz": 22.5},
+        {"seviye": 50, "reaktor": 50, "parti": 5500, "kademe": "T10", "hiz": 25.0}
+      ],
+      "capalar": [
+        [1, 40],
+        [5, 100],
+        [10, 250],
+        [15, 500],
+        [20, 900],
+        [25, 1400],
+        [30, 2000],
+        [35, 2700],
+        [40, 3500],
+        [45, 4400],
+        [50, 5500]
+      ]
+    },
+    "revir": {
+      "sutunlar": [
+        ["seviye", "Revir Sv"],
+        ["reaktor", "En erken R"],
+        ["kapasite", "Yaralı kapasitesi"],
+        ["iki_revir", "İki Revir toplamı"],
+        ["hiz", "İyileştirme hızı +%"]
+      ],
+      "satirlar": [
+        {"seviye": 1, "reaktor": 6, "kapasite": 100, "iki_revir": null, "hiz": 1},
+        {"seviye": 5, "reaktor": 6, "kapasite": 300, "iki_revir": null, "hiz": 5},
+        {"seviye": 10, "reaktor": 10, "kapasite": 700, "iki_revir": null, "hiz": 10},
+        {"seviye": 15, "reaktor": 15, "kapasite": 1600, "iki_revir": 3200, "hiz": 15},
+        {"seviye": 20, "reaktor": 20, "kapasite": 3000, "iki_revir": 6000, "hiz": 20},
+        {"seviye": 25, "reaktor": 25, "kapasite": 5000, "iki_revir": 10000, "hiz": 25},
+        {"seviye": 30, "reaktor": 30, "kapasite": 7200, "iki_revir": 14400, "hiz": 30},
+        {"seviye": 35, "reaktor": 35, "kapasite": 10000, "iki_revir": 20000, "hiz": 35},
+        {"seviye": 40, "reaktor": 40, "kapasite": 13000, "iki_revir": 26000, "hiz": 40},
+        {"seviye": 45, "reaktor": 45, "kapasite": 16500, "iki_revir": 33000, "hiz": 45},
+        {"seviye": 50, "reaktor": 50, "kapasite": 20000, "iki_revir": 40000, "hiz": 50}
+      ],
+      "capalar": [
+        [1, 100],
+        [5, 300],
+        [10, 700],
+        [15, 1600],
+        [20, 3000],
+        [25, 5000],
+        [30, 7200],
+        [35, 10000],
+        [40, 13000],
+        [45, 16500],
+        [50, 20000]
+      ]
+    },
+    "kriyo": {
+      "sutunlar": [["seviye", "Kriyo Bakım Sv"], ["reaktor", "En erken R"], ["kapasite", "Kurtarma kapasitesi"]],
+      "satirlar": [
+        {"seviye": 1, "reaktor": 16, "kapasite": 500},
+        {"seviye": 5, "reaktor": 16, "kapasite": 870},
+        {"seviye": 10, "reaktor": 16, "kapasite": 1750},
+        {"seviye": 16, "reaktor": 16, "kapasite": 4000},
+        {"seviye": 20, "reaktor": 20, "kapasite": 5500},
+        {"seviye": 25, "reaktor": 25, "kapasite": 8000},
+        {"seviye": 30, "reaktor": 30, "kapasite": 11000},
+        {"seviye": 35, "reaktor": 35, "kapasite": 14500},
+        {"seviye": 40, "reaktor": 40, "kapasite": 18500},
+        {"seviye": 45, "reaktor": 45, "kapasite": 23000},
+        {"seviye": 50, "reaktor": 50, "kapasite": 28000}
+      ],
+      "capalar": [
+        [1, 500],
+        [16, 4000],
+        [20, 5500],
+        [25, 8000],
+        [30, 11000],
+        [35, 14500],
+        [40, 18500],
+        [45, 23000],
+        [50, 28000]
+      ]
+    }
+  },
+  "egitim": {
+    "kuyruk_esikleri": [1, 10, 25, 40],
+    "tatbikat_hiz_seviye_basi": 0.5,
+    "terfi": "Bedel ve süre, iki kademenin farkıdır; hedef kademe açık olmalıdır.",
+    "terhis_iadesi": 0
+  },
+  "bakim": {"aclik_cezasi": 10, "nefessizlik_cezasi": 10, "seferde_o2_carpani": 2},
+  "denge": [
+    {
+      "reaktor": 10,
+      "ordu": 2500,
+      "kademe": "T3",
+      "tam_ordu_gida": 35000,
+      "gunluk_gida": 313968,
+      "gun": 0.1,
+      "bakim_gida": 1000,
+      "bakim_payi": 8,
+      "bakim_o2": 500,
+      "o2_payi": 6.8,
+      "guc": 15000,
+      "bina_gucu": 17312
+    },
+    {
+      "reaktor": 15,
+      "ordu": 6000,
+      "kademe": "T4",
+      "tam_ordu_gida": 180000,
+      "gunluk_gida": 601560,
+      "gun": 0.3,
+      "bakim_gida": 3000,
+      "bakim_payi": 12,
+      "bakim_o2": 1200,
+      "o2_payi": 9.7,
+      "guc": 54000,
+      "bina_gucu": 63304
+    },
+    {
+      "reaktor": 20,
+      "ordu": 12000,
+      "kademe": "T5",
+      "tam_ordu_gida": 720000,
+      "gunluk_gida": 1552320,
+      "gun": 0.5,
+      "bakim_gida": 7200,
+      "bakim_payi": 11,
+      "bakim_o2": 2400,
+      "o2_payi": 7.3,
+      "guc": 156000,
+      "bina_gucu": 176721
+    },
+    {
+      "reaktor": 25,
+      "ordu": 19000,
+      "kademe": "T6",
+      "tam_ordu_gida": 2090000,
+      "gunluk_gida": 2037360,
+      "gun": 1.0,
+      "bakim_gida": 13300,
+      "bakim_payi": 16,
+      "bakim_o2": 3800,
+      "o2_payi": 8.8,
+      "guc": 342000,
+      "bina_gucu": 343977
+    },
+    {
+      "reaktor": 30,
+      "ordu": 27000,
+      "kademe": "T7",
+      "tam_ordu_gida": 5130000,
+      "gunluk_gida": 3548160,
+      "gun": 1.4,
+      "bakim_gida": 21600,
+      "bakim_payi": 15,
+      "bakim_o2": 5400,
+      "o2_payi": 7.2,
+      "guc": 675000,
+      "bina_gucu": 682445
+    },
+    {
+      "reaktor": 35,
+      "ordu": 37000,
+      "kademe": "T8",
+      "tam_ordu_gida": 11100000,
+      "gunluk_gida": 4539504,
+      "gun": 2.4,
+      "bakim_gida": 33300,
+      "bakim_payi": 18,
+      "bakim_o2": 7400,
+      "o2_payi": 7.7,
+      "guc": 1258000,
+      "bina_gucu": 1130246
+    },
+    {
+      "reaktor": 40,
+      "ordu": 48000,
+      "kademe": "T9",
+      "tam_ordu_gida": 21600000,
+      "gunluk_gida": 7539840,
+      "gun": 2.9,
+      "bakim_gida": 48000,
+      "bakim_payi": 15,
+      "bakim_o2": 9600,
+      "o2_payi": 6.0,
+      "guc": 2160000,
+      "bina_gucu": 1892081
+    },
+    {
+      "reaktor": 45,
+      "ordu": 60000,
+      "kademe": "T10",
+      "tam_ordu_gida": 39000000,
+      "gunluk_gida": 10016136,
+      "gun": 3.9,
+      "bakim_gida": 66000,
+      "bakim_payi": 16,
+      "bakim_o2": 12000,
+      "o2_payi": 5.7,
+      "guc": 3600000,
+      "bina_gucu": 2921308
+    },
+    {
+      "reaktor": 50,
+      "ordu": 75000,
+      "kademe": "T10",
+      "tam_ordu_gida": 48750000,
+      "gunluk_gida": 12023976,
+      "gun": 4.1,
+      "bakim_gida": 82500,
+      "bakim_payi": 16,
+      "bakim_o2": 15000,
+      "o2_payi": 5.9,
+      "guc": 4500000,
+      "bina_gucu": 4182944
+    }
+  ],
+  "denge_sutunlar": [
+    ["reaktor", "R"],
+    ["ordu", "Ordu kapasitesi"],
+    ["kademe", "En yüksek kademe"],
+    ["tam_ordu_gida", "Tam ordu Gıda"],
+    ["gunluk_gida", "Günlük Gıda üretimi"],
+    ["gun", "Kaç günlük üretim"],
+    ["bakim_gida", "Bakım Gıda/sa"],
+    ["bakim_payi", "Bakım / üretim %"],
+    ["guc", "Ordu gücü"],
+    ["bina_gucu", "Bina gücü (referans)"]
+  ],
+  "iyilestirme": {
+    "bedel_yuzde": 30,
+    "sure_yuzde": 25,
+    "revir_hiz_seviye_basi": 1,
+    "pve_yuzde": 50,
+    "kriyo_yuzde": 50,
+    "dinlenme_saat": 8,
+    "tablo": {
+      "sutunlar": [
+        ["kademe", "Kademe"],
+        ["gida", "Gıda"],
+        ["biyokutle", "Biyokütle"],
+        ["titanyum", "Titanyum"],
+        ["sure", "Süre (sn)"],
+        ["kriyo_gida", "Kriyo uyandırma Gıda"]
+      ],
+      "satirlar": [
+        {"kademe": "T1", "gida": 1.8, "biyokutle": 0.6, "titanyum": 1.2, "sure": 0.5, "kriyo_gida": 0.9},
+        {"kademe": "T2", "gida": 2.7, "biyokutle": 0.9, "titanyum": 1.8, "sure": 0.75, "kriyo_gida": 1.35},
+        {"kademe": "T3", "gida": 4.2, "biyokutle": 1.5, "titanyum": 2.7, "sure": 1.0, "kriyo_gida": 2.1},
+        {"kademe": "T4", "gida": 9.0, "biyokutle": 2.7, "titanyum": 5.4, "sure": 1.5, "kriyo_gida": 4.5},
+        {"kademe": "T5", "gida": 18.0, "biyokutle": 5.4, "titanyum": 10.5, "sure": 2.0, "kriyo_gida": 9.0},
+        {"kademe": "T6", "gida": 33.0, "biyokutle": 9.0, "titanyum": 19.5, "sure": 2.75, "kriyo_gida": 16.5},
+        {"kademe": "T7", "gida": 57.0, "biyokutle": 15.0, "titanyum": 33.0, "sure": 3.75, "kriyo_gida": 28.5},
+        {"kademe": "T8", "gida": 90.0, "biyokutle": 24.0, "titanyum": 51.0, "sure": 5.0, "kriyo_gida": 45.0},
+        {"kademe": "T9", "gida": 135.0, "biyokutle": 36.0, "titanyum": 75.0, "sure": 6.5, "kriyo_gida": 67.5},
+        {
+          "kademe": "T10",
+          "gida": 195.0,
+          "biyokutle": 51.0,
+          "titanyum": 108.0,
+          "sure": 8.5,
+          "kriyo_gida": 97.5
+        }
+      ]
+    }
+  },
+  "kayiplar": [
+    {
+      "durum": "Derinlik Haritası, harita canavarları, Sürü Baskını, Leviathan avı (PvE)",
+      "yarali": 100,
+      "olu": 0,
+      "tasma": "Ölmez; Askeri Kubbe'de dinlenir, 8 saatte ücretsiz iyileşir",
+      "not": "İyileştirme bedeli yarıya iner"
+    },
+    {
+      "durum": "Açık suda karşılaşma (iki yürüyüş)",
+      "yarali": 100,
+      "olu": 0,
+      "tasma": "Revir doluysa taşan yaralı ölür",
+      "not": "İki taraf için aynı kural"
+    },
+    {
+      "durum": "Üsse saldırı (saldıran)",
+      "yarali": 70,
+      "olu": 30,
+      "tasma": "Revir doluysa taşan yaralı ölür",
+      "not": "Kriyo saldırana çalışmaz"
+    },
+    {
+      "durum": "Üs savunması (savunan)",
+      "yarali": 100,
+      "olu": 0,
+      "tasma": "Taşanların %50'si Kriyo'ya (kapasiteye kadar), kalanı ölür",
+      "not": "Takviye gönderenin askeri kendi Revir'ine gider"
+    },
+    {
+      "durum": "İttifak yapısına saldırı / yapı savunması",
+      "yarali": 70,
+      "olu": 30,
+      "tasma": "Revir doluysa taşan yaralı ölür",
+      "not": "Ayrıntı: 09 ve 10"
+    }
+  ],
+  "kayiplar_sutunlar": [["durum", "Durum"], ["yarali", "Yaralı %"], ["olu", "Ölü %"], ["tasma", "Revir taşarsa"], ["not", "Not"]],
+  "kurtarma_kapsulu": {
+    "oran": 50,
+    "aciklama": "Sezon boyunca ölen askerlerin %50'si, kademe kademe aşağı yuvarlanarak sezon sonunda Kurtarma Kapsülü olarak verilir."
+  },
+  "savas": {
+    "taban": {"atk": 30, "def": 30, "hp": 100},
+    "tur_katsayisi": 0.4,
+    "tur_sayisi": 10,
+    "boss_tur_sayisi": 15,
+    "bozgun_yuzde": 30,
+    "on_sira_yuzde": 10
+  },
+  "sabitler": [
+    {"ad": "Tur sayısı", "deger": "10 (boss savaşında 15)", "aciklama": "Savaş en çok bu kadar tur sürer."},
+    {
+      "ad": "Tur katsayısı C",
+      "deger": "0,40",
+      "aciklama": "Eşit iki ordu bir turda gücünün yaklaşık %6'sını kaybeder."
+    },
+    {
+      "ad": "Bozgun eşiği",
+      "deger": "%30",
+      "aciklama": "Bir tarafın kalan askeri başlangıcın %30'unun altına inerse o tur sonunda çekilir ve kaybeder."
+    },
+    {
+      "ad": "Ön saf koruması",
+      "deger": "%10",
+      "aciklama": "Ön safta başlangıcın %10'undan az asker kalınca ön saf düşmüş sayılır; bütün hasar arka safa gider."
+    },
+    {
+      "ad": "Karşı avantajı",
+      "deger": "×1,20",
+      "aciklama": "Zırhlı > Ark > Zıpkıncı > Zırhlı. Anıtlar avantajı en çok +0,10 artırır."
+    },
+    {"ad": "Karşı dezavantajı", "deger": "×0,85", "aciklama": "Anıtlar dezavantajı değiştirmez."},
+    {"ad": "Delici saha cezası", "deger": "×0,6", "aciklama": "Delici askerlere karşı."},
+    {
+      "ad": "Kuşatma çarpanı",
+      "deger": "Delici ×3, diğerleri ×1",
+      "aciklama": "Kuşatma gücünde: hayatta kalan askerlerin gücü yapı hasarına bu çarpanla yansır (geçit, üs, yuva; 09)."
+    },
+    {
+      "ad": "Beraberlik",
+      "deger": "Savunan kazanır",
+      "aciklama": "10 tur sonunda kimse bozulmadıysa kalan güç oranı yüksek olan kazanır; eşitlikte savunan."
+    }
+  ],
+  "sabitler_sutunlar": [["ad", "Sabit"], ["deger", "Değer"], ["aciklama", "Açıklama"]],
+  "hedefleme": [
+    {"tur": "Zırhlı Dalgıç", "on": 70, "arka": 30, "not": "Varsayılan dağılım"},
+    {"tur": "Zıpkıncı", "on": 85, "arka": 15, "not": "Delici atış: ağır hedefe odaklanır"},
+    {"tur": "Ark Askeri", "on": 50, "arka": 50, "not": "Zincir ark: arka safa ulaşır"},
+    {"tur": "Delici", "on": 100, "arka": 0, "not": "Ön saf ve yapılar"},
+    {"tur": "Taret (Sürü Baskını)", "on": 70, "arka": 30, "not": "Basınç Topu önce kuşatma düşmanını vurur"}
+  ],
+  "hedefleme_sutunlar": [["tur", "Saldıran"], ["on", "Ön safa %"], ["arka", "Arka safa %"], ["not", "Not"]],
+  "kahraman_katkisi": [
+    {
+      "kaynak": "Komuta bonusu",
+      "kaptan": "Tam",
+      "subay": "Subay çarpanıyla",
+      "etki": "Kahramanın ATK, DEF ve HP'si askerlere yüzde olarak eklenir (05)"
+    },
+    {
+      "kaynak": "Aktif yetenek (öfke)",
+      "kaptan": "Çalışır",
+      "subay": "Çalışır",
+      "etki": "Her kahramanın kendi öfke çubuğu; dolunca tur başında tetiklenir"
+    },
+    {"kaynak": "Pasif yetenek", "kaptan": "Çalışır", "subay": "Çalışır", "etki": "Savaş boyunca sürekli"},
+    {
+      "kaynak": "Sefer / basınç yeteneği",
+      "kaptan": "Çalışır",
+      "subay": "Çalışır",
+      "etki": "Dalış, basınç ve PvE karşılaşmalarında; ordu savaşında etkisiz"
+    },
+    {
+      "kaynak": "Komuta ve Uyanış yeteneği",
+      "kaptan": "Çalışır",
+      "subay": "Çalışmaz",
+      "etki": "Filoya, ralliye ya da garnizona yayılır"
+    },
+    {"kaynak": "Yetenek ağacı ve teçhizat", "kaptan": "Çalışır", "subay": "Çalışmaz", "etki": "05, 17"},
+    {
+      "kaynak": "Sınıf yatkınlığı",
+      "kaptan": "Sayılır",
+      "subay": "Sayılmaz",
+      "etki": "Filonun yeterli payı Kaptan'ın türündense o türe bonus (05)"
+    }
+  ],
+  "kahraman_katkisi_sutunlar": [["kaynak", "Kaynak"], ["kaptan", "Kaptan"], ["subay", "Subay"], ["etki", "Askerlere etkisi"]],
+  "ornek_savaslar": [
+    {
+      "senaryo": "Ayna savaş",
+      "saldiran": "10.000 T5 karma",
+      "savunan": "10.000 T5 karma",
+      "guc_orani": 1.0,
+      "tur": 10,
+      "kazanan": "Savunan",
+      "saldiran_kayip": 49,
+      "savunan_kayip": 49
+    },
+    {
+      "senaryo": "%20 sayı üstünlüğü",
+      "saldiran": "12.000 T5 karma",
+      "savunan": "10.000 T5 karma",
+      "guc_orani": 1.2,
+      "tur": 10,
+      "kazanan": "Saldıran",
+      "saldiran_kayip": 38,
+      "savunan_kayip": 64
+    },
+    {
+      "senaryo": "%50 sayı üstünlüğü",
+      "saldiran": "15.000 T5 karma",
+      "savunan": "10.000 T5 karma",
+      "guc_orani": 1.5,
+      "tur": 8,
+      "kazanan": "Saldıran",
+      "saldiran_kayip": 24,
+      "savunan_kayip": 70
+    },
+    {
+      "senaryo": "Karşı: Zırhlı → Ark",
+      "saldiran": "10.000 T5 Zırhlı Dalgıç",
+      "savunan": "10.000 T5 Ark Askeri",
+      "guc_orani": 1.0,
+      "tur": 10,
+      "kazanan": "Saldıran",
+      "saldiran_kayip": 33,
+      "savunan_kayip": 50
+    },
+    {
+      "senaryo": "Karşı: Zıpkıncı → Zırhlı",
+      "saldiran": "10.000 T5 Zıpkıncı",
+      "savunan": "10.000 T5 Zırhlı Dalgıç",
+      "guc_orani": 1.0,
+      "tur": 10,
+      "kazanan": "Saldıran",
+      "saldiran_kayip": 36,
+      "savunan_kayip": 61
+    },
+    {
+      "senaryo": "Karşı: Ark → Zıpkıncı",
+      "saldiran": "10.000 T5 Ark Askeri",
+      "savunan": "10.000 T5 Zıpkıncı",
+      "guc_orani": 1.0,
+      "tur": 9,
+      "kazanan": "Saldıran",
+      "saldiran_kayip": 44,
+      "savunan_kayip": 72
+    },
+    {
+      "senaryo": "Ters karşı: Ark → Zırhlı",
+      "saldiran": "10.000 T5 Ark Askeri",
+      "savunan": "10.000 T5 Zırhlı Dalgıç",
+      "guc_orani": 1.0,
+      "tur": 10,
+      "kazanan": "Savunan",
+      "saldiran_kayip": 50,
+      "savunan_kayip": 33
+    },
+    {
+      "senaryo": "Kademe: T6 → T5, eşit sayı",
+      "saldiran": "10.000 T6 karma",
+      "savunan": "10.000 T5 karma",
+      "guc_orani": 1.38,
+      "tur": 8,
+      "kazanan": "Saldıran",
+      "saldiran_kayip": 21,
+      "savunan_kayip": 76
+    },
+    {
+      "senaryo": "Kademe: T7 → T5, ~eşit güç",
+      "saldiran": "5.200 T7 karma",
+      "savunan": "10.000 T5 karma",
+      "guc_orani": 1.0,
+      "tur": 10,
+      "kazanan": "Saldıran",
+      "saldiran_kayip": 30,
+      "savunan_kayip": 74
+    },
+    {
+      "senaryo": "Delici sahada",
+      "saldiran": "10.000 T5 Delici",
+      "savunan": "10.000 T5 karma",
+      "guc_orani": 1.0,
+      "tur": 10,
+      "kazanan": "Savunan",
+      "saldiran_kayip": 60,
+      "savunan_kayip": 16
+    }
+  ],
+  "ornek_savaslar_sutunlar": [
+    ["senaryo", "Senaryo"],
+    ["saldiran", "Saldıran"],
+    ["savunan", "Savunan"],
+    ["guc_orani", "Güç oranı"],
+    ["tur", "Tur"],
+    ["kazanan", "Kazanan"],
+    ["saldiran_kayip", "Saldıran kayıp %"],
+    ["savunan_kayip", "Savunan kayıp %"]
+  ],
+  "dusmanlar": [
+    {
+      "id": "abyss_crawler",
+      "ad": "Uçurum Sürüngenleri",
+      "karsilik": "Zırhlı (ön saf)",
+      "rol": "Kitin kabuklu, hızlı, kalabalık sürü",
+      "sayac": "Zıpkıncı",
+      "ozellik": "Hız 130; HP ×0,8"
+    },
+    {
+      "id": "siren_swarm",
+      "ad": "Siren Sürüsü",
+      "karsilik": "Ark (arka saf)",
+      "rol": "Elektrik boşaltan yüzücü sürü",
+      "sayac": "Zırhlı Dalgıç",
+      "ozellik": "ATK ×1,2; HP ×0,7; zincir ark"
+    },
+    {
+      "id": "sand_borer",
+      "ad": "Kum Kazıcıları",
+      "karsilik": "Kuşatma (ön saf)",
+      "rol": "Tortulu delip yapıya tırmanan kazıcılar",
+      "sayac": "Taret: Basınç Topu",
+      "ozellik": "Yapı hasarı ×3; sızma ×3"
+    },
+    {
+      "id": "pressure_wraith",
+      "ad": "Basınç Hayaletleri",
+      "karsilik": "Zıpkıncı (arka saf)",
+      "rol": "Yalnızca sonarda görünen sessiz avcılar",
+      "sayac": "Ark Askeri",
+      "ozellik": "İlk tur hedef alınamaz"
+    },
+    {
+      "id": "ancient_guardian",
+      "ad": "Kadim Muhafızlar",
+      "karsilik": "Zırhlı (ön saf)",
+      "rol": "Kadim uygarlığın biyomekanik askerleri",
+      "sayac": "Zıpkıncı",
+      "ozellik": "DEF ×1,3; Ark Askerine dirençli; her 3 turda bir kalkan"
+    },
+    {
+      "id": "iron_leviathan",
+      "ad": "Demir Leviathan",
+      "karsilik": "Zırhlı (boss)",
+      "rol": "Tek gövde, dev HP havuzu",
+      "sayac": "Zıpkıncı",
+      "ozellik": "Her 4 turda yutma: ön safın %3'ü"
+    },
+    {
+      "id": "siren_queen",
+      "ad": "Siren Kraliçesi",
+      "karsilik": "Ark (boss)",
+      "rol": "Siren Sürüsü'nü yöneten dev",
+      "sayac": "Zırhlı Dalgıç",
+      "ozellik": "Her 3 turda sürü çağırır"
+    },
+    {
+      "id": "titan_spawn",
+      "ad": "Titan'ın Yavrusu",
+      "karsilik": "Tarafsız (boss)",
+      "rol": "Hadal Titanı'nın uyanmış yavrusu",
+      "sayac": "Yok (karşı çarpanı ×1)",
+      "ozellik": "Öfke kazancını yarıya indirir"
+    },
+    {
+      "id": "hadal_titan",
+      "ad": "Hadal Titanı",
+      "karsilik": "Tarafsız (son boss)",
+      "rol": "Son oyun; ittifak savaşı",
+      "sayac": "—",
+      "ozellik": "Ayrıntı: 14 · Son Oyun"
+    }
+  ],
+  "dusmanlar_sutunlar": [
+    ["ad", "Düşman"],
+    ["id", "Kimlik", "ham"],
+    ["karsilik", "Savaşta sayılır"],
+    ["rol", "Rol"],
+    ["sayac", "En iyi karşı"],
+    ["ozellik", "Özellik"]
+  ],
+  "kalkan": {
+    "sutunlar": [
+      ["seviye", "Kalkan Jeneratörü Sv"],
+      ["suru_direnci", "Kalkan dayanıklılığı"],
+      ["taret", "Taret yuvası"],
+      ["taret_asker", "Taret gücü (eşdeğer asker)"],
+      ["taret_kademe", "Taret kademesi"],
+      ["def_bonus", "Garnizon DEF +%"]
+    ],
+    "satirlar": [
+      {
+        "seviye": 1,
+        "suru_direnci": 135,
+        "taret": 1,
+        "taret_asker": 10,
+        "taret_kademe": "T1",
+        "def_bonus": 0.4
+      },
+      {
+        "seviye": 5,
+        "suru_direnci": 430,
+        "taret": 1,
+        "taret_asker": 30,
+        "taret_kademe": "T2",
+        "def_bonus": 2.0
+      },
+      {
+        "seviye": 10,
+        "suru_direnci": 1950,
+        "taret": 1,
+        "taret_asker": 100,
+        "taret_kademe": "T3",
+        "def_bonus": 4.0
+      },
+      {
+        "seviye": 15,
+        "suru_direnci": 7020,
+        "taret": 2,
+        "taret_asker": 240,
+        "taret_kademe": "T4",
+        "def_bonus": 6.0
+      },
+      {
+        "seviye": 20,
+        "suru_direnci": 20500,
+        "taret": 2,
+        "taret_asker": 480,
+        "taret_kademe": "T5",
+        "def_bonus": 8.0
+      },
+      {
+        "seviye": 25,
+        "suru_direnci": 45600,
+        "taret": 2,
+        "taret_asker": 760,
+        "taret_kademe": "T6",
+        "def_bonus": 10.0
+      },
+      {
+        "seviye": 30,
+        "suru_direnci": 89900,
+        "taret": 3,
+        "taret_asker": 1100,
+        "taret_kademe": "T7",
+        "def_bonus": 12.0
+      },
+      {
+        "seviye": 35,
+        "suru_direnci": 169000,
+        "taret": 3,
+        "taret_asker": 1500,
+        "taret_kademe": "T8",
+        "def_bonus": 14.0
+      },
+      {
+        "seviye": 40,
+        "suru_direnci": 292000,
+        "taret": 3,
+        "taret_asker": 1900,
+        "taret_kademe": "T9",
+        "def_bonus": 16.0
+      },
+      {
+        "seviye": 45,
+        "suru_direnci": 486000,
+        "taret": 3,
+        "taret_asker": 2400,
+        "taret_kademe": "T10",
+        "def_bonus": 18.0
+      },
+      {
+        "seviye": 50,
+        "suru_direnci": 608000,
+        "taret": 3,
+        "taret_asker": 3000,
+        "taret_kademe": "T10",
+        "def_bonus": 20.0
+      }
+    ]
+  },
+  "taretler": [
+    {
+      "ad": "Zıpkın Bataryası",
+      "tur": "Zıpkıncı gibi",
+      "hedef": "%85 ön saf",
+      "not": "Uçurum Sürüngenleri ve Kadim Muhafızlara karşı"
+    },
+    {"ad": "Ark Bobini", "tur": "Ark Askeri gibi", "hedef": "%50 / %50", "not": "Basınç Hayaletlerine karşı"},
+    {
+      "ad": "Basınç Topu",
+      "tur": "Zırhlı Dalgıç gibi",
+      "hedef": "Önce kuşatma düşmanı",
+      "not": "Siren Sürüsü ve Kum Kazıcılarına karşı"
+    }
+  ],
+  "taretler_sutunlar": [["ad", "Taret"], ["tur", "Savaşta sayılır"], ["hedef", "Hedef"], ["not", "En iyi"]],
+  "kesif_gelen": [
+    {"radar": 1, "bilgi": "Saldırı uyarısı: saldıranın adı, varış süresi"},
+    {"radar": 10, "bilgi": "Saldıranın toplam asker sayısı"},
+    {"radar": 20, "bilgi": "Saldıran Kaptan ve Subaylar"},
+    {"radar": 30, "bilgi": "Asker türü dağılımı"},
+    {"radar": 40, "bilgi": "Asker kademeleri ve takviyeler"}
+  ],
+  "kesif_gelen_sutunlar": [["radar", "Radar Merkezi Sv"], ["bilgi", "Yaklaşan saldırı hakkında görülen"]],
+  "kesif_giden": [
+    {"radar": 1, "bilgi": "Yağmalanabilir kaynak (±%20), Kalkan Jeneratörü seviyesi ve dayanıklılığı"},
+    {"radar": 5, "bilgi": "Garnizon toplamı (±%20)"},
+    {"radar": 10, "bilgi": "Garnizon kesin sayısı"},
+    {"radar": 20, "bilgi": "Savunma filosunun Kaptanı ve Subayları"},
+    {"radar": 25, "bilgi": "İttifak takviyelerinin toplamı"},
+    {"radar": 30, "bilgi": "Tür dağılımı, taret türleri"},
+    {"radar": 40, "bilgi": "Kademeler, takviyelerin ayrıntısı"},
+    {"radar": 45, "bilgi": "Hedefin askeri araştırma bonuslarının özeti"}
+  ],
+  "kesif_giden_sutunlar": [["radar", "Kendi Radar Sv"], ["bilgi", "Keşif raporunda görülen"]],
+  "kesif": {"karistirma_farki": 10},
+  "guc_ornekleri": [
+    {"ordu": "1.000 T1 karma", "guc": 3000},
+    {"ordu": "10.000 T5 karma", "guc": 130000},
+    {"ordu": "27.000 T7 (R30 kapasitesi)", "guc": 675000},
+    {"ordu": "75.000 T10 (R50 kapasitesi)", "guc": 4500000}
+  ],
+  "guc_ornekleri_sutunlar": [["ordu", "Ordu"], ["guc", "Asker gücü"]]
+}

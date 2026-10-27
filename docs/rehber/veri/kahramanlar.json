@@ -1,0 +1,2925 @@
+{
+  "surum": "rehber-1",
+  "_not": "05 · Kahramanlar verisi. 8 kahraman (mara, lyra, tess, kael, orin, juno, sable, aelis) catalog v8'den gelir; kimlik, ad, sınıf, fraksiyon, nadirlik ve mürettebat becerisi değişmez. Mürettebat değeri = taban + ⌊(Sv−1) × seviye_onda / 10⌋ + (★−1) × yildiz (HeroRules.EffectValue). İstatistik = nadirlik tabanı × sınıf çarpanı × (1 + seviye(L−1)) × (1 + yildiz(★−1)). Yetenek 'degerler' yetenek seviyesi 1–5'tir. Yetenek hasarı ve iyileştirmesi filonun o turki normal hasarının yüzdesiyle yazılır (katsayı; 100 = bir turluk normal hasar, 07 savaş formülü). Savaşta rastgelelik yoktur; bütün düğüm ve yetenekler belirlenimcidir.",
+  "nadirlikler": [
+    {
+      "id": "common",
+      "ad": "Sıradan",
+      "agirlik": 65,
+      "taban": {"atk": 100, "def": 80, "hp": 1000},
+      "egitim_carpani": 1.0,
+      "cagri_parca": 10,
+      "kopya_parca": 10,
+      "v8_guc": 100,
+      "fazla_parca_kristal": 1,
+      "yetenek_sayisi": 3,
+      "uyanis": false
+    },
+    {
+      "id": "rare",
+      "ad": "Nadir",
+      "agirlik": 25,
+      "taban": {"atk": 130, "def": 105, "hp": 1300},
+      "egitim_carpani": 1.2,
+      "cagri_parca": 20,
+      "kopya_parca": 10,
+      "v8_guc": 150,
+      "fazla_parca_kristal": 2,
+      "yetenek_sayisi": 3,
+      "uyanis": false
+    },
+    {
+      "id": "epic",
+      "ad": "Destansı",
+      "agirlik": 8,
+      "taban": {"atk": 170, "def": 135, "hp": 1700},
+      "egitim_carpani": 1.5,
+      "cagri_parca": 30,
+      "kopya_parca": 15,
+      "v8_guc": 220,
+      "fazla_parca_kristal": 3,
+      "yetenek_sayisi": 4,
+      "uyanis": true
+    },
+    {
+      "id": "legendary",
+      "ad": "Efsanevi",
+      "agirlik": 2,
+      "taban": {"atk": 220, "def": 175, "hp": 2200},
+      "egitim_carpani": 2.0,
+      "cagri_parca": 50,
+      "kopya_parca": 20,
+      "v8_guc": 320,
+      "fazla_parca_kristal": 5,
+      "yetenek_sayisi": 5,
+      "uyanis": true
+    }
+  ],
+  "siniflar": [
+    {
+      "id": "Commander",
+      "ad": "Komutan",
+      "carpan": {"atk": 0.85, "def": 1.2, "hp": 1.2},
+      "birlik": "armored",
+      "rol": "Ön saf ve liderlik: dayanıklı, birlik kapasitesi ve ralli ağaçları.",
+      "agac_egilimi": "Liderlik, Zırhlı, Garnizon, Fetih"
+    },
+    {
+      "id": "Medic",
+      "ad": "Hekim",
+      "carpan": {"atk": 0.8, "def": 1.1, "hp": 1.3},
+      "birlik": "armored",
+      "rol": "İyileştirme, kalkan ve kayıp azaltma; en yüksek HP.",
+      "agac_egilimi": "Destek, Zırhlı, Savunma"
+    },
+    {
+      "id": "Hunter",
+      "ad": "Avcı",
+      "carpan": {"atk": 1.25, "def": 0.9, "hp": 0.95},
+      "birlik": "harpoon",
+      "rol": "Tek hedef hasarı ve canavar avı; en yüksek ATK.",
+      "agac_egilimi": "Avcılık, Zıpkın, Saldırı"
+    },
+    {
+      "id": "Pilot",
+      "ad": "Pilot",
+      "carpan": {"atk": 1.15, "def": 0.95, "hp": 1.0},
+      "birlik": "harpoon",
+      "rol": "Hız, yük ve sefer; haritada en çevik kaptan.",
+      "agac_egilimi": "Akıntı, Zıpkın, Toplama, Derinlik"
+    },
+    {
+      "id": "Engineer",
+      "ad": "Mühendis",
+      "carpan": {"atk": 1.0, "def": 1.15, "hp": 1.05},
+      "birlik": "arc",
+      "rol": "Ark birlikleri, garnizon, kuşatma ve üretim.",
+      "agac_egilimi": "Ark, Garnizon, Fetih, Toplama"
+    },
+    {
+      "id": "Scientist",
+      "ad": "Bilim insanı",
+      "carpan": {"atk": 1.2, "def": 0.85, "hp": 0.9},
+      "birlik": "arc",
+      "rol": "Aktif yetenek hasarı ve öfke; sefer ve araştırma.",
+      "agac_egilimi": "Beceri, Ark, Derinlik, Destek"
+    }
+  ],
+  "birlik_turleri": [
+    {
+      "id": "armored",
+      "ad": "Zırhlı Dalgıç",
+      "ustun": "Ark Askeri",
+      "zayif": "Zıpkıncı",
+      "anit": "Dalgıç Anıtı",
+      "anit_id": "armor_monument",
+      "siniflar": "Komutan, Hekim",
+      "aciklama": "Ağır basınç kıyafetli ön saf; yüksek DEF ve HP."
+    },
+    {
+      "id": "harpoon",
+      "ad": "Zıpkıncı",
+      "ustun": "Zırhlı Dalgıç",
+      "zayif": "Ark Askeri",
+      "anit": "Zıpkın Anıtı",
+      "anit_id": "harpoon_monument",
+      "siniflar": "Avcı, Pilot",
+      "aciklama": "Uzaktan vuran hafif birlik; yüksek ATK ve hız."
+    },
+    {
+      "id": "arc",
+      "ad": "Ark Askeri",
+      "ustun": "Zıpkıncı",
+      "zayif": "Zırhlı Dalgıç",
+      "anit": "Ark Anıtı",
+      "anit_id": "arc_monument",
+      "siniflar": "Mühendis, Bilim insanı",
+      "aciklama": "Suda elektrik arkı kuran destek birliği; yetenek ve alan hasarı."
+    },
+    {
+      "id": "driller",
+      "ad": "Delici",
+      "ustun": "—",
+      "zayif": "—",
+      "anit": "—",
+      "anit_id": "",
+      "siniflar": "Hiçbiri (Fetih ağacı)",
+      "aciklama": "Kuşatma birliği; yapılara ve yataklara karşı. Karşı üçgenin dışındadır."
+    }
+  ],
+  "birlik_turleri_sutunlar": [
+    ["ad", "Birlik"],
+    ["ustun", "Üstün olduğu"],
+    ["zayif", "Zayıf olduğu"],
+    ["siniflar", "Yatkın sınıflar"],
+    ["anit", "Anıt"],
+    ["aciklama", "Rol"]
+  ],
+  "fraksiyonlar": [
+    {
+      "id": "AtlanticUnion",
+      "ad": "Atlantik Birliği",
+      "aciklama": "Kuzey ve Güney Atlantik ile Akdeniz kıyı devletlerinin ortak deniz kurumu. Disiplinli, mühendislik ve lojistik odaklı; Porto Riko ve Güney Sandwich çukurlarındaki ilk basınç akademilerini kurdu. Çöküş gecesi tahliyeyi yöneten de, son konvoyu Hadal Eşiği'ne indiren de onlardı.",
+      "deger": "Düzen, inşa, sorumluluk",
+      "ekip_rezonansi": "İnşa hızı +%5",
+      "koken_kahramani": "amara",
+      "kahramanlar": "Elias Rourke, Tess Ruiz, Amara Okafor, Deniz Karaca, Kwame Boateng, Saoirse Kavanagh"
+    },
+    {
+      "id": "PacificOrder",
+      "ad": "Pasifik Tarikatı",
+      "aciklama": "Pasifik çemberindeki araştırma istasyonlarının hekim ve bilim insanlarından doğan yemini olan düzen. Mariana, Izu-Ogasawara ve Filipin çukurlarında revir ve laboratuvar ağı işletir. Bilgiyi silahtan üstün tutar, ama bilginin bedelini de bilir.",
+      "deger": "Bilgi, şifa, sabır",
+      "ekip_rezonansi": "Araştırma hızı +%5",
+      "koken_kahramani": "orin",
+      "kahramanlar": "Dr. Lyra Moss, Dr. Orin Hale, Dr. Emi Sakamoto, Dr. Priya Raman, Dr. Han Seo-yeon, Dr. Isagani Dela Cruz"
+    },
+    {
+      "id": "Deepborn",
+      "ad": "Derindoğanlar",
+      "aciklama": "Hadal habitatlarında doğup büyüyen kuşak. Gün ışığı görmemiş, basınca ve karanlığa uyum sağlamış; sonar tıklamalarıyla yön bulur, kubbe dışını yüzeyden gelenlerden iyi tanır. Çukurun canlılarına dokunmamak onların en eski kuralıdır.",
+      "deger": "Uyum, sezgi, topluluk",
+      "ekip_rezonansi": "Gıda ve Biyokütle üretimi +%5",
+      "koken_kahramani": "kael",
+      "kahramanlar": "Kael, Noa, Ilo, Aelis, Kiri, Sela"
+    },
+    {
+      "id": "ForgottenOnes",
+      "ad": "Unutulanlar",
+      "aciklama": "Çöküşte boşaltılan istasyonlarda geride bırakılanlar ve onlara sonradan katılanlar. Hurdadan gövde, enkazdan reaktör kurar; 'her şey yeniden kullanılır' sözleri bir yaşam biçimidir. Aralarında insan olmayanlar da vardır.",
+      "deger": "Dayanıklılık, beceriklilik, sadakat",
+      "ekip_rezonansi": "Kurtarma ve toplama ödülü +%5",
+      "koken_kahramani": "rafa",
+      "kahramanlar": "Vera Kostina, Rafael Quispe, Juno Vega, Wira Santoso, Ufuk, Meridyen"
+    },
+    {
+      "id": "AbyssCult",
+      "ad": "Uçurum Tarikatı",
+      "aciklama": "Hadalit'i ve Demir Leviathan'ları derinin iradesinin işaretleri sayan gizemli topluluk. Kristalle deney yapmaktan, bedeni basınca ve kristale açmaktan çekinmez. Tehlikeli ama sonuç alır: üsleri en az tüketen ve en çok bulanlardır.",
+      "deger": "Adanmışlık, cesaret, bedel",
+      "ekip_rezonansi": "Hadalit bulma şansı +%5",
+      "koken_kahramani": "darius",
+      "kahramanlar": "Darius Farahani, Sable, Mattias Gröndahl, Odalys Ferreira, Ilian Varga, Sura"
+    }
+  ],
+  "fraksiyonlar_sutunlar": [
+    ["ad", "Fraksiyon"],
+    ["deger", "Değerleri"],
+    ["ekip_rezonansi", "Ekip rezonansı (3 aynı fraksiyon)"],
+    ["kahramanlar", "Kahramanlar"]
+  ],
+  "uzmanliklar": [
+    {
+      "id": "zirhli",
+      "ad": "Zırhlı",
+      "odak": "Zırhlı Dalgıç savunması ve dayanıklılığı",
+      "siniflar": "Komutan, Hekim",
+      "aciklama": "Ön saftaki duvarı kalınlaştırır, Ark Askerlerine karşı üstünlüğü büyütür.",
+      "dugumler_sutunlar": [
+        ["k", "Kademe"],
+        ["ad", "Düğüm"],
+        ["maks", "Maks"],
+        ["etki", "Etki (puan başına; anahtar ve zirvede toplam)"]
+      ],
+      "dugumler": [
+        {"k": 1, "ad": "Kalın Levha", "maks": 3, "etki": "Zırhlı Dalgıç DEF +%1"},
+        {"k": 1, "ad": "Basınç Contası", "maks": 3, "etki": "Zırhlı Dalgıç HP +%1"},
+        {"k": 2, "ad": "Kenet Düzeni", "maks": 3, "etki": "Zırhlı Dalgıç ATK +%1"},
+        {"k": 2, "ad": "Ağır Adım", "maks": 3, "etki": "Arka saftan alınan hasar −%1"},
+        {
+          "k": 3,
+          "ad": "Duvar Gibi",
+          "maks": 1,
+          "etki": "Anahtar: birliklerin yarısından fazlası Zırhlı Dalgıç ise normal saldırıdan alınan hasar −%3"
+        },
+        {"k": 4, "ad": "Titanyum Omuz", "maks": 5, "etki": "Zırhlı Dalgıç DEF +%1,5"},
+        {"k": 4, "ad": "Dalgıç Ciğeri", "maks": 5, "etki": "Zırhlı Dalgıç HP +%1,5"},
+        {
+          "k": 5,
+          "ad": "Karşı Basınç",
+          "maks": 1,
+          "etki": "Anahtar: Zırhlı Dalgıçların aldığı hasarın %5'i saldıran yığına geri yansır"
+        },
+        {"k": 6, "ad": "Sabır", "maks": 5, "etki": "Hasar alınca kazanılan öfke +%2"},
+        {"k": 6, "ad": "Çelik Sıra", "maks": 5, "etki": "Ark Askerlerine verilen hasar +%1"},
+        {
+          "k": 7,
+          "ad": "Abis Kalesi",
+          "maks": 1,
+          "etki": "Zirve: filo ilk kez yarı canın altına inince 3 tur alınan tüm hasar −%10 (savaş başına bir kez)"
+        }
+      ]
+    },
+    {
+      "id": "zipkin",
+      "ad": "Zıpkın",
+      "odak": "Zıpkıncı saldırısı, açılış darbesi",
+      "siniflar": "Avcı, Pilot",
+      "aciklama": "Uzaktan vuran Zıpkıncıların ağacı: ilk turlarda ağır darbe, Zırhlı Dalgıçlara karşı üstünlük.",
+      "dugumler_sutunlar": [
+        ["k", "Kademe"],
+        ["ad", "Düğüm"],
+        ["maks", "Maks"],
+        ["etki", "Etki (puan başına; anahtar ve zirvede toplam)"]
+      ],
+      "dugumler": [
+        {"k": 1, "ad": "Keskin Uç", "maks": 3, "etki": "Zıpkıncı ATK +%1"},
+        {"k": 1, "ad": "Hafif Donanım", "maks": 3, "etki": "Zıpkıncı HP +%1"},
+        {"k": 2, "ad": "Gergin Halat", "maks": 3, "etki": "Zıpkıncı DEF +%1"},
+        {"k": 2, "ad": "Hızlı Nişan", "maks": 3, "etki": "Normal saldırı hasarı +%1"},
+        {"k": 3, "ad": "Kanca ve Çek", "maks": 1, "etki": "Anahtar: savaşın ilk 3 turunda verilen hasar +%5"},
+        {"k": 4, "ad": "Delici Uç", "maks": 5, "etki": "Zıpkıncı ATK +%1,5"},
+        {"k": 4, "ad": "Akıntıya Karşı", "maks": 5, "etki": "Zıpkıncı HP +%1,5"},
+        {
+          "k": 5,
+          "ad": "Zincirleme Atış",
+          "maks": 1,
+          "etki": "Anahtar: Zıpkıncıların ön safa verdiği hasarın %10'u arka safa da sıçrar"
+        },
+        {"k": 6, "ad": "Avcı Gözü", "maks": 5, "etki": "Zırhlı Dalgıçlara verilen hasar +%1"},
+        {"k": 6, "ad": "Hareketli Hedef", "maks": 5, "etki": "Yürüyüş hızı +%1"},
+        {
+          "k": 7,
+          "ad": "Derin Zıpkın",
+          "maks": 1,
+          "etki": "Zirve: her 4. turda Zıpkıncılar hedef DEF'inin %20'sini yok sayar"
+        }
+      ]
+    },
+    {
+      "id": "ark",
+      "ad": "Ark",
+      "odak": "Ark Askeri hasarı ve yetenek gücü",
+      "siniflar": "Mühendis, Bilim insanı",
+      "aciklama": "Suda kararlı elektrik arkı kuran birliklerin ağacı: yetenek hasarı ve Zıpkıncılara karşı üstünlük.",
+      "dugumler_sutunlar": [
+        ["k", "Kademe"],
+        ["ad", "Düğüm"],
+        ["maks", "Maks"],
+        ["etki", "Etki (puan başına; anahtar ve zirvede toplam)"]
+      ],
+      "dugumler": [
+        {"k": 1, "ad": "Bakır Bobin", "maks": 3, "etki": "Ark Askeri ATK +%1"},
+        {"k": 1, "ad": "Yalıtım", "maks": 3, "etki": "Ark Askeri HP +%1"},
+        {"k": 2, "ad": "Kapasitör", "maks": 3, "etki": "Ark Askeri DEF +%1"},
+        {"k": 2, "ad": "Statik Yük", "maks": 3, "etki": "Öfke kazanımı +%1"},
+        {
+          "k": 3,
+          "ad": "Deşarj",
+          "maks": 1,
+          "etki": "Anahtar: birliklerin yarısından fazlası Ark Askeri ise aktif yetenek hasarı +%5"
+        },
+        {"k": 4, "ad": "Yüksek Gerilim", "maks": 5, "etki": "Ark Askeri ATK +%1,5"},
+        {"k": 4, "ad": "Faraday Kafesi", "maks": 5, "etki": "Ark Askeri HP +%1,5"},
+        {
+          "k": 5,
+          "ad": "Zincir Ark",
+          "maks": 1,
+          "etki": "Anahtar: aktif yetenek hasarının %30'u hedefin yanındaki bir yığına da sıçrar"
+        },
+        {"k": 6, "ad": "Toprak Hattı", "maks": 5, "etki": "Zıpkıncılara verilen hasar +%1"},
+        {"k": 6, "ad": "Aşırı Yük", "maks": 5, "etki": "Aktif yetenek hasarı +%1"},
+        {
+          "k": 7,
+          "ad": "Fırtına Çekirdeği",
+          "maks": 1,
+          "etki": "Zirve: aktif yetenek kullanılınca 2 tur Ark Askeri ATK +%10"
+        }
+      ]
+    },
+    {
+      "id": "liderlik",
+      "ad": "Liderlik",
+      "odak": "Birlik kapasitesi, karma ordu, ralli",
+      "siniflar": "Komutan",
+      "aciklama": "Büyük ve karışık filoları yöneten kaptanların ağacı: daha çok asker, üç türün birlikte savaşması, ralli liderliği.",
+      "dugumler_sutunlar": [
+        ["k", "Kademe"],
+        ["ad", "Düğüm"],
+        ["maks", "Maks"],
+        ["etki", "Etki (puan başına; anahtar ve zirvede toplam)"]
+      ],
+      "dugumler": [
+        {"k": 1, "ad": "Komuta Zinciri", "maks": 3, "etki": "Birlik kapasitesi +%1"},
+        {"k": 1, "ad": "Moral", "maks": 3, "etki": "Tüm birlik ATK +%0,5"},
+        {"k": 2, "ad": "Disiplin", "maks": 3, "etki": "Tüm birlik DEF +%0,5"},
+        {"k": 2, "ad": "Kriz Yönetimi", "maks": 3, "etki": "Tüm birlik HP +%0,5"},
+        {
+          "k": 3,
+          "ad": "Karma Düzen",
+          "maks": 1,
+          "etki": "Anahtar: filoda Zırhlı, Zıpkıncı ve Ark birlikte varsa tüm hasar +%3"
+        },
+        {"k": 4, "ad": "Kalabalık Komuta", "maks": 5, "etki": "Birlik kapasitesi +%1"},
+        {"k": 4, "ad": "Sağlam Hat", "maks": 5, "etki": "Alınan tüm hasar −%0,5"},
+        {"k": 5, "ad": "Ralli Sancağı", "maks": 1, "etki": "Anahtar: ralli lideriyken ralli kapasitesi +%5"},
+        {"k": 6, "ad": "Sıkı Saf", "maks": 5, "etki": "Tüm birlik ATK +%1"},
+        {"k": 6, "ad": "Yedek Kuvvet", "maks": 5, "etki": "Ölecek askerlerin +%1'i yaralı olur"},
+        {
+          "k": 7,
+          "ad": "Amiral Gemisi",
+          "maks": 1,
+          "etki": "Zirve: savaşın ilk 2 turunda Subayların öfke kazanımı +%25"
+        }
+      ]
+    },
+    {
+      "id": "saldiri",
+      "ad": "Saldırı",
+      "odak": "Türden bağımsız hasar, açılış ve bitiriş",
+      "siniflar": "Avcı, Pilot, Komutan",
+      "aciklama": "Savaşı erken bitirmek isteyen kaptanların ağacı.",
+      "dugumler_sutunlar": [
+        ["k", "Kademe"],
+        ["ad", "Düğüm"],
+        ["maks", "Maks"],
+        ["etki", "Etki (puan başına; anahtar ve zirvede toplam)"]
+      ],
+      "dugumler": [
+        {"k": 1, "ad": "Hücum", "maks": 3, "etki": "Tüm birlik ATK +%1"},
+        {"k": 1, "ad": "Ön Hat", "maks": 3, "etki": "Normal saldırı hasarı +%1"},
+        {"k": 2, "ad": "Hedef Seçimi", "maks": 3, "etki": "Arka safa verilen hasar +%1"},
+        {"k": 2, "ad": "Kesik", "maks": 3, "etki": "Öfke kazanımı +%1"},
+        {"k": 3, "ad": "İlk Darbe", "maks": 1, "etki": "Anahtar: savaşın ilk turunda verilen hasar +%10"},
+        {"k": 4, "ad": "Keskin Kenar", "maks": 5, "etki": "Tüm birlik ATK +%1"},
+        {"k": 4, "ad": "Yarma", "maks": 5, "etki": "Hedef DEF'inin %1'i yok sayılır"},
+        {
+          "k": 5,
+          "ad": "Kırık Zırh",
+          "maks": 1,
+          "etki": "Anahtar: canı yarının altındaki birliklere verilen hasar +%5"
+        },
+        {"k": 6, "ad": "Ardı Ardına", "maks": 5, "etki": "Normal saldırı hasarı +%1"},
+        {"k": 6, "ad": "Gözü Kara", "maks": 5, "etki": "Aktif yetenek hasarı +%1"},
+        {
+          "k": 7,
+          "ad": "Kırılma Noktası",
+          "maks": 1,
+          "etki": "Zirve: düşman filosunun canı %25'in altına inince tüm hasar +%10"
+        }
+      ]
+    },
+    {
+      "id": "savunma",
+      "ad": "Savunma",
+      "odak": "Hasar azaltma ve dayanma",
+      "siniflar": "Komutan, Hekim, Mühendis",
+      "aciklama": "Uzun savaşları kazanmak için DEF, HP ve hasar azaltma.",
+      "dugumler_sutunlar": [
+        ["k", "Kademe"],
+        ["ad", "Düğüm"],
+        ["maks", "Maks"],
+        ["etki", "Etki (puan başına; anahtar ve zirvede toplam)"]
+      ],
+      "dugumler": [
+        {"k": 1, "ad": "Ek Perçin", "maks": 3, "etki": "Tüm birlik DEF +%1"},
+        {"k": 1, "ad": "Yedek Hava", "maks": 3, "etki": "Tüm birlik HP +%1"},
+        {"k": 2, "ad": "Kalkan Duvarı", "maks": 3, "etki": "Normal saldırıdan alınan hasar −%1"},
+        {"k": 2, "ad": "Soğukkanlılık", "maks": 3, "etki": "Aktif yetenekten alınan hasar −%1"},
+        {
+          "k": 3,
+          "ad": "Sığınak",
+          "maks": 1,
+          "etki": "Anahtar: saldırıya uğrayan taraf olunca ilk 3 tur alınan hasar −%5"
+        },
+        {"k": 4, "ad": "Kat Kat Zırh", "maks": 5, "etki": "Tüm birlik DEF +%1"},
+        {"k": 4, "ad": "Dayanıklılık", "maks": 5, "etki": "Tüm birlik HP +%1"},
+        {
+          "k": 5,
+          "ad": "Basınç Dengesi",
+          "maks": 1,
+          "etki": "Anahtar: her 5 turda bir, 1 tur boyunca alınan hasar −%15"
+        },
+        {
+          "k": 6,
+          "ad": "İkinci Nefes",
+          "maks": 5,
+          "etki": "Her tur filoya küçük iyileşme (normal hasarın %2'si kadar HP)"
+        },
+        {"k": 6, "ad": "Siper", "maks": 5, "etki": "Ön saftan alınan hasar −%1"},
+        {
+          "k": 7,
+          "ad": "Kırılmaz",
+          "maks": 1,
+          "etki": "Zirve: filo ilk kez canının %30'unun altına inince Kaptan HP'sinin 3 katı hasar emen kalkan"
+        }
+      ]
+    },
+    {
+      "id": "akinti",
+      "ad": "Akıntı",
+      "odak": "Yürüyüş hızı, geri dönüş, Sonar Enerjisi",
+      "siniflar": "Pilot, Avcı",
+      "aciklama": "Haritada hız ve esneklik: filo daha çabuk varır, daha az Sonar Enerjisiyle avlanır, kayıpsız çekilir.",
+      "dugumler_sutunlar": [
+        ["k", "Kademe"],
+        ["ad", "Düğüm"],
+        ["maks", "Maks"],
+        ["etki", "Etki (puan başına; anahtar ve zirvede toplam)"]
+      ],
+      "dugumler": [
+        {"k": 1, "ad": "Hidrodinamik", "maks": 3, "etki": "Yürüyüş hızı +%1"},
+        {"k": 1, "ad": "Hızlı Dönüş", "maks": 3, "etki": "Üsse dönüş hızı +%2"},
+        {
+          "k": 2,
+          "ad": "Sonar Okuma",
+          "maks": 3,
+          "etki": "Harita PvE saldırılarında Sonar Enerjisi tüketimi −%1"
+        },
+        {"k": 2, "ad": "Kaçış Rotası", "maks": 3, "etki": "Geri çekilme hızı +%2"},
+        {"k": 3, "ad": "Akıntıya Bin", "maks": 1, "etki": "Anahtar: savaştan sonra üsse dönüş hızı +%20"},
+        {"k": 4, "ad": "Türbülans", "maks": 5, "etki": "Yürüyüş hızı +%1,5"},
+        {
+          "k": 4,
+          "ad": "Hafif Gövde",
+          "maks": 5,
+          "etki": "Birliklerin yarısından fazlası Zıpkıncı ise tüm birlik ATK +%1"
+        },
+        {
+          "k": 5,
+          "ad": "Pusu Akıntısı",
+          "maks": 1,
+          "etki": "Anahtar: yürüyüşteyken saldırıya uğrayınca alınan hasar −%5"
+        },
+        {"k": 6, "ad": "Rota Ustası", "maks": 5, "etki": "İttifak bölgesinde yürüyüş hızı +%2"},
+        {"k": 6, "ad": "Akıntı Haritası", "maks": 5, "etki": "Tarafsız bölgede yürüyüş hızı +%1"},
+        {
+          "k": 7,
+          "ad": "Girdap",
+          "maks": 1,
+          "etki": "Zirve: geri çekilme komutuyla savaştan çıkınca kayıplar −%20"
+        }
+      ]
+    },
+    {
+      "id": "destek",
+      "ad": "Destek",
+      "odak": "İyileştirme, yaralı oranı, müttefik desteği",
+      "siniflar": "Hekim, Bilim insanı",
+      "aciklama": "Kaybı azaltan ve müttefiki güçlendiren ağaç; garnizonda ve rallilerde parlar.",
+      "dugumler_sutunlar": [
+        ["k", "Kademe"],
+        ["ad", "Düğüm"],
+        ["maks", "Maks"],
+        ["etki", "Etki (puan başına; anahtar ve zirvede toplam)"]
+      ],
+      "dugumler": [
+        {"k": 1, "ad": "İlk Yardım", "maks": 3, "etki": "İyileştirme etkisi +%1"},
+        {"k": 1, "ad": "Moral Desteği", "maks": 3, "etki": "Tüm birlik HP +%0,5"},
+        {"k": 2, "ad": "Triyaj", "maks": 3, "etki": "Ölecek askerlerin +%1'i yaralı olur"},
+        {"k": 2, "ad": "Takviye Hattı", "maks": 3, "etki": "Takviye olarak gönderilen birliklerin DEF'i +%1"},
+        {
+          "k": 3,
+          "ad": "Saha Hekimi",
+          "maks": 1,
+          "etki": "Anahtar: aktif yetenek kullanılınca filoya iyileşme (normal hasarın %15'i kadar HP)"
+        },
+        {"k": 4, "ad": "Kriyo Bandaj", "maks": 5, "etki": "İyileştirme etkisi +%1,5"},
+        {"k": 4, "ad": "Paylaşılan Kalkan", "maks": 5, "etki": "Kalkan etkisi +%1,5"},
+        {"k": 5, "ad": "Dayanışma", "maks": 1, "etki": "Anahtar: ittifak bölgesindeyken tüm birlik DEF +%3"},
+        {
+          "k": 6,
+          "ad": "Hızlı Taburcu",
+          "maks": 5,
+          "etki": "Bu filonun yaralılarının Revir'de iyileşme süresi −%2"
+        },
+        {"k": 6, "ad": "Ortak Nefes", "maks": 5, "etki": "Takviye ve rallide tüm birlik ATK +%1"},
+        {
+          "k": 7,
+          "ad": "Hayat Hattı",
+          "maks": 1,
+          "etki": "Zirve: savaşta ölecek askerlerin %5'i daha yaralı olarak kurtulur"
+        }
+      ]
+    },
+    {
+      "id": "beceri",
+      "ad": "Beceri",
+      "odak": "Öfke ve aktif yetenek",
+      "siniflar": "Bilim insanı, Mühendis",
+      "aciklama": "Yeteneğini sık ve sert kullanan kaptanların ağacı.",
+      "dugumler_sutunlar": [
+        ["k", "Kademe"],
+        ["ad", "Düğüm"],
+        ["maks", "Maks"],
+        ["etki", "Etki (puan başına; anahtar ve zirvede toplam)"]
+      ],
+      "dugumler": [
+        {"k": 1, "ad": "Odak", "maks": 3, "etki": "Öfke kazanımı +%1"},
+        {"k": 1, "ad": "Nöral Bağ", "maks": 3, "etki": "Aktif yetenek hasarı +%1"},
+        {"k": 2, "ad": "Ritim", "maks": 3, "etki": "Savaş başında +30 öfke"},
+        {"k": 2, "ad": "Rezonans", "maks": 3, "etki": "Pasif yetenek etkileri +%1"},
+        {
+          "k": 3,
+          "ad": "Kıvılcım",
+          "maks": 1,
+          "etki": "Anahtar: aktif yetenek kullanılınca 1 tur tüm birlik ATK +%10"
+        },
+        {"k": 4, "ad": "Hadalit Bilinci", "maks": 5, "etki": "Aktif yetenek hasarı +%1,5"},
+        {"k": 4, "ad": "Sabırsız Zihin", "maks": 5, "etki": "Öfke kazanımı +%1,5"},
+        {
+          "k": 5,
+          "ad": "Yankı",
+          "maks": 1,
+          "etki": "Anahtar: aktif yetenek bir sonraki turun başında %30 güçle bir kez daha etki eder"
+        },
+        {
+          "k": 6,
+          "ad": "Taşkın Öfke",
+          "maks": 5,
+          "etki": "Aktif yetenekten sonra harcanan öfkenin %2'si geri gelir"
+        },
+        {"k": 6, "ad": "Zayıf Nokta", "maks": 5, "etki": "Aktif yetenek hedef DEF'inin %1'ini yok sayar"},
+        {"k": 7, "ad": "Uyanmış Zihin", "maks": 1, "etki": "Zirve: aktif yetenek için gereken öfke −%15"}
+      ]
+    },
+    {
+      "id": "garnizon",
+      "ad": "Garnizon",
+      "odak": "Üs ve ittifak yapısı savunması",
+      "siniflar": "Mühendis, Komutan, Hekim",
+      "aciklama": "Kubbeni ve ittifak yapılarını savunan kaptanların ağacı; yalnızca savunmada çalışır.",
+      "dugumler_sutunlar": [
+        ["k", "Kademe"],
+        ["ad", "Düğüm"],
+        ["maks", "Maks"],
+        ["etki", "Etki (puan başına; anahtar ve zirvede toplam)"]
+      ],
+      "dugumler": [
+        {"k": 1, "ad": "Kubbe Muhafızı", "maks": 3, "etki": "Üs savunmasında tüm birlik DEF +%1"},
+        {"k": 1, "ad": "Basınç Kapısı", "maks": 3, "etki": "Üs savunmasında tüm birlik HP +%1"},
+        {"k": 2, "ad": "Sur Topçusu", "maks": 3, "etki": "Üs savunma kulelerinin hasarı +%1"},
+        {"k": 2, "ad": "Tanıdık Sular", "maks": 3, "etki": "Üs savunmasında tüm birlik ATK +%1"},
+        {
+          "k": 3,
+          "ad": "Son Hat",
+          "maks": 1,
+          "etki": "Anahtar: Kalkan Jeneratörü çalışırken üs savunmasında alınan hasar −%5"
+        },
+        {"k": 4, "ad": "Kale Garnizonu", "maks": 5, "etki": "İttifak yapısı savunmasında DEF ve HP +%1"},
+        {
+          "k": 4,
+          "ad": "Takviye Kabulü",
+          "maks": 5,
+          "etki": "Üsse kabul edilen ittifak takviyesi kapasitesi +%2"
+        },
+        {"k": 5, "ad": "Kuşatma Kırıcı", "maks": 1, "etki": "Anahtar: Delicilere verilen hasar +%10"},
+        {
+          "k": 6,
+          "ad": "Yaralı Kurtarma",
+          "maks": 5,
+          "etki": "Üs savunmasında ölecek askerlerin +%1'i yaralı olur"
+        },
+        {"k": 6, "ad": "Kat Kat Sur", "maks": 5, "etki": "Üs savunmasında alınan hasar −%1"},
+        {
+          "k": 7,
+          "ad": "Yıkılmaz Kubbe",
+          "maks": 1,
+          "etki": "Zirve: üs savunması başında Kaptan DEF'inin 5 katı hasar emen kalkan"
+        }
+      ]
+    },
+    {
+      "id": "toplama",
+      "ad": "Toplama",
+      "odak": "Toplama hızı, yük, malzeme",
+      "siniflar": "Pilot, Mühendis",
+      "aciklama": "Harita yataklarından kaynak ve teçhizat malzemesi toplayan filolar için; savaş gücü vermez.",
+      "dugumler_sutunlar": [
+        ["k", "Kademe"],
+        ["ad", "Düğüm"],
+        ["maks", "Maks"],
+        ["etki", "Etki (puan başına; anahtar ve zirvede toplam)"]
+      ],
+      "dugumler": [
+        {"k": 1, "ad": "Hasat Rotası", "maks": 3, "etki": "Toplama hızı +%2"},
+        {"k": 1, "ad": "Geniş Ambar", "maks": 3, "etki": "Denizaltı yük kapasitesi +%2"},
+        {"k": 2, "ad": "Kısa Yol", "maks": 3, "etki": "Yataklara yürüyüş hızı +%3"},
+        {"k": 2, "ad": "Titanyum Damarı", "maks": 3, "etki": "Titanyum toplama hızı +%3"},
+        {
+          "k": 3,
+          "ad": "Eşsiz Tarama",
+          "maks": 1,
+          "etki": "Anahtar: toplamada teçhizat malzemesi bulma şansı +%10"
+        },
+        {"k": 4, "ad": "Ağır Yük", "maks": 5, "etki": "Denizaltı yük kapasitesi +%2"},
+        {"k": 4, "ad": "Usta Hasatçı", "maks": 5, "etki": "Toplama hızı +%2"},
+        {
+          "k": 5,
+          "ad": "Kesintisiz Hasat",
+          "maks": 1,
+          "etki": "Anahtar: toplama yapan filo saldırıya uğrayınca yükün %30'u korunur"
+        },
+        {"k": 6, "ad": "Nodül Gözü", "maks": 5, "etki": "Süperalaşım toplama hızı +%2"},
+        {"k": 6, "ad": "Derin Yatak", "maks": 5, "etki": "Sv 5 ve üstü yataklarda toplama hızı +%2"},
+        {
+          "k": 7,
+          "ad": "Hadalit İzi",
+          "maks": 1,
+          "etki": "Zirve: her tam toplama %5 şansla Hadalit verir (harita günlük sınırına sayılır)"
+        }
+      ]
+    },
+    {
+      "id": "avcilik",
+      "ad": "Avcılık",
+      "odak": "Canavarlar ve harita PvE",
+      "siniflar": "Avcı",
+      "aciklama": "Uçurum Sürüngenleri, Siren Sürüsü, Demir Leviathan, Kadim Muhafızlar ve Hadal Titanı'na karşı. Sonarla taranan canlılar hiçbir zaman hedef olmaz; bu ağaç onlara dokunmaz.",
+      "dugumler_sutunlar": [
+        ["k", "Kademe"],
+        ["ad", "Düğüm"],
+        ["maks", "Maks"],
+        ["etki", "Etki (puan başına; anahtar ve zirvede toplam)"]
+      ],
+      "dugumler": [
+        {"k": 1, "ad": "İz Sürme", "maks": 3, "etki": "Canavarlara verilen hasar +%1"},
+        {"k": 1, "ad": "Tuzak", "maks": 3, "etki": "Canavarlardan alınan hasar −%1"},
+        {"k": 2, "ad": "Sonar Avı", "maks": 3, "etki": "Canavar saldırısında Sonar Enerjisi tüketimi −%2"},
+        {"k": 2, "ad": "Ganimet", "maks": 3, "etki": "Canavar ödülleri +%2"},
+        {
+          "k": 3,
+          "ad": "Sürü Bozucu",
+          "maks": 1,
+          "etki": "Anahtar: Siren Sürüsü ve Uçurum Sürüngenleri'ne karşı ilk 3 turda hasar +%10"
+        },
+        {"k": 4, "ad": "Leviathan Avcısı", "maks": 5, "etki": "Demir Leviathan'a verilen hasar +%1,5"},
+        {"k": 4, "ad": "Kadim Bilgisi", "maks": 5, "etki": "Kadim Muhafızlar'a verilen hasar +%1,5"},
+        {
+          "k": 5,
+          "ad": "Zincirleme Av",
+          "maks": 1,
+          "etki": "Anahtar: canavar yenilince harcanan Sonar Enerjisinin %25'i geri gelir"
+        },
+        {"k": 6, "ad": "Av Disiplini", "maks": 5, "etki": "Canavar savaşında kayıplar −%2"},
+        {"k": 6, "ad": "Usta Avcı", "maks": 5, "etki": "Canavar savaşında tüm birlik ATK +%1"},
+        {
+          "k": 7,
+          "ad": "Titan Kokusu",
+          "maks": 1,
+          "etki": "Zirve: Leviathan rallilerinde ve Hadal Titanı'na karşı tüm hasar +%8"
+        }
+      ]
+    },
+    {
+      "id": "fetih",
+      "ad": "Fetih",
+      "odak": "Üs ve yapı saldırısı, Delici, yağma",
+      "siniflar": "Komutan, Mühendis",
+      "aciklama": "Düşman kubbelerine ve ittifak yapılarına saldıran kaptanların ağacı; Delici kuşatma birliğini güçlendirir.",
+      "dugumler_sutunlar": [
+        ["k", "Kademe"],
+        ["ad", "Düğüm"],
+        ["maks", "Maks"],
+        ["etki", "Etki (puan başına; anahtar ve zirvede toplam)"]
+      ],
+      "dugumler": [
+        {"k": 1, "ad": "Kuşatma Planı", "maks": 3, "etki": "Delici ATK +%1"},
+        {"k": 1, "ad": "Yarma Hattı", "maks": 3, "etki": "Üs ve yapı saldırısında tüm birlik ATK +%1"},
+        {"k": 2, "ad": "Basınç Kırıcı", "maks": 3, "etki": "Yapılara verilen hasar +%1"},
+        {"k": 2, "ad": "Hızlı Yağma", "maks": 3, "etki": "Yağma kapasitesi +%2"},
+        {
+          "k": 3,
+          "ad": "Kapı Kırıcı",
+          "maks": 1,
+          "etki": "Anahtar: saldırıda düşman savunma kulelerinin hasarı −%10"
+        },
+        {"k": 4, "ad": "Delici Ustalığı", "maks": 5, "etki": "Delici HP +%1,5"},
+        {"k": 4, "ad": "Fetih Sancağı", "maks": 5, "etki": "Saldırıda tüm birlik ATK +%1"},
+        {
+          "k": 5,
+          "ad": "Duvar Yıkıcı",
+          "maks": 1,
+          "etki": "Anahtar: üs saldırısında savunan garnizonun DEF'i −%5"
+        },
+        {"k": 6, "ad": "Yağmacı", "maks": 5, "etki": "Yağma kapasitesi +%2"},
+        {
+          "k": 6,
+          "ad": "Tahkimat Yıkımı",
+          "maks": 5,
+          "etki": "İttifak yapılarına ve geçitlere verilen hasar +%2"
+        },
+        {"k": 7, "ad": "Kuşatma Ustası", "maks": 1, "etki": "Zirve: yapılara verilen hasar +%15"}
+      ]
+    },
+    {
+      "id": "derinlik",
+      "ad": "Derinlik",
+      "odak": "Sefer, basınç ve iç kuşaklar",
+      "siniflar": "Bilim insanı, Pilot, Mühendis",
+      "aciklama": "Hadal'a özgü ağaç: seferde basınca dayanmak, sonar-yalnız bölgelerde savaşmak ve haritanın derin iç kuşaklarında üstünlük.",
+      "dugumler_sutunlar": [
+        ["k", "Kademe"],
+        ["ad", "Düğüm"],
+        ["maks", "Maks"],
+        ["etki", "Etki (puan başına; anahtar ve zirvede toplam)"]
+      ],
+      "dugumler": [
+        {"k": 1, "ad": "Basınç Toleransı", "maks": 3, "etki": "Seferde basınç hasarı −%2"},
+        {"k": 1, "ad": "Sonar Haritacı", "maks": 3, "etki": "Sefer keşif hızı +%2"},
+        {"k": 2, "ad": "Gövde Bilgisi", "maks": 3, "etki": "Seferde denizaltı gövde dayanımı +%2"},
+        {"k": 2, "ad": "Karanlık Gözü", "maks": 3, "etki": "Sonar-yalnız bölgelerde tüm birlik ATK +%1"},
+        {"k": 3, "ad": "Basınç Kodu", "maks": 1, "etki": "Anahtar: sefer ödülleri +%5"},
+        {"k": 4, "ad": "Kriyo Kabin", "maks": 5, "etki": "Seferde kahraman takımının HP'si +%2"},
+        {"k": 4, "ad": "Akıntı Uzmanı", "maks": 5, "etki": "Sefer olaylarında başarı şansı +%1"},
+        {
+          "k": 5,
+          "ad": "Hadal Uyumu",
+          "maks": 1,
+          "etki": "Anahtar: Çukur Yamacı ve daha derin kuşaklarda tüm birlik DEF +%3"
+        },
+        {"k": 6, "ad": "Kalıntı Avcısı", "maks": 5, "etki": "Seferde kalıntı bulma şansı +%2"},
+        {
+          "k": 6,
+          "ad": "Derin Nefes",
+          "maks": 5,
+          "etki": "Derin Yamaç ve daha derin kuşaklarda yürüyüş hızı +%1"
+        },
+        {
+          "k": 7,
+          "ad": "Çukurun Çocuğu",
+          "maks": 1,
+          "etki": "Zirve: Çukur Ekseni ile Dip ve Çekirdek kuşaklarında tüm hasar +%8"
+        }
+      ]
+    }
+  ],
+  "uzmanliklar_sutunlar": [["ad", "Uzmanlık"], ["odak", "Odak"], ["siniflar", "Çoğunlukla"], ["aciklama", "Açıklama"]],
+  "stat_formulu": {"seviye": 0.08, "yildiz": 0.15},
+  "egitim": {"Food": 0.03, "Biomass": 0.01},
+  "deneyim": {
+    "birim": "1 deneyim puanı = 1 birim eğitim kaynağı (Gıda ya da Biyokütle)",
+    "kaptan_payi": 50,
+    "subay_payi": 25,
+    "ekip_payi": 0
+  },
+  "seviye_kurali": {"yildiz_basi": 10, "reaktor_tavani": true},
+  "ekip_yuvalari": {"reaktor": [1, 5, 10], "durum": "kodda"},
+  "murettebat_egrileri": [
+    {
+      "egri": "Sıradan · standart",
+      "degerler": "3 / 2 / 2",
+      "maks": 20,
+      "kimler": "Rourke, Moss, Ruiz, Kostina"
+    },
+    {
+      "egri": "Nadir · standart",
+      "degerler": "4 / 3 / 3",
+      "maks": 30,
+      "kimler": "Kael, Hale, Okafor, Quispe, Farahani, Noa"
+    },
+    {
+      "egri": "Destansı · standart",
+      "degerler": "5 / 4 / 4",
+      "maks": 40,
+      "kimler": "Vega, Sable, Sakamoto, Ilo, Gröndahl, Karaca, Santoso"
+    },
+    {
+      "egri": "Destansı · düşük",
+      "degerler": "3 / 2 / 2",
+      "maks": 20,
+      "kimler": "Raman (Süperalaşım), Ferreira (asker eğitim bedeli)"
+    },
+    {
+      "egri": "Efsanevi · standart",
+      "degerler": "8 / 5 / 5",
+      "maks": 52,
+      "kimler": "Aelis, Kavanagh, Kiri, Dela Cruz"
+    },
+    {
+      "egri": "Efsanevi · tempo",
+      "degerler": "6 / 4 / 3",
+      "maks": 37,
+      "kimler": "Meridyen (inşa), Han Seo-yeon (araştırma), Varga, Sela"
+    },
+    {
+      "egri": "Efsanevi · geniş etki",
+      "degerler": "5 / 3 / 2",
+      "maks": 27,
+      "kimler": "Boateng (tüm üretim), Ufuk (Süperalaşım)"
+    },
+    {
+      "egri": "Efsanevi · premium",
+      "degerler": "4 / 2 / 2",
+      "maks": 21,
+      "kimler": "Sura (Hadalit bulma şansı)"
+    }
+  ],
+  "murettebat_egrileri_sutunlar": [
+    ["egri", "Eğri"],
+    ["degerler", "Taban / Sv başına onda / ★ başına"],
+    ["maks", "5★ Sv 50 (mutlak)", "yuzde"],
+    ["kimler", "Kimler"]
+  ],
+  "kurallar": {"bedel_alt_siniri": 25, "one_cikan_standarda_gecis_gun": 21},
+  "komuta": {"kaptan_carpani": 1.0, "subay_carpani": 0.4, "atk_bolen": 100, "def_bolen": 100, "hp_bolen": 1000},
+  "ofke": {"tavan": 1000, "tur_basi": 150, "hasar_alinca": 50, "baslangic": 200, "katsayi_birimi": 100},
+  "sinerji": {
+    "fraksiyon_esik": 3,
+    "fraksiyon_bonus": 5,
+    "yatkinlik_esik": 50,
+    "yatkinlik_bonus": 5,
+    "ekip_esik": 3,
+    "ekip_bonus": 5
+  },
+  "roller": [
+    {
+      "rol": "Komuta Ekibi",
+      "yer": "Üs; 3 yuva",
+      "calisan": "Yalnızca mürettebat becerisi",
+      "istatistik": "—",
+      "agac": "—",
+      "techizat": "—",
+      "not": "Seviye ve yıldız beceri gücünü belirler"
+    },
+    {
+      "rol": "Kaptan",
+      "yer": "Denizaltı başına 1",
+      "calisan": "Tüm açık yetenekler (Komuta ve Uyanış dahil)",
+      "istatistik": "Komuta bonusu ×1",
+      "agac": "Evet",
+      "techizat": "Evet",
+      "not": "Filonun sınıf yatkınlığı ve fraksiyon sinerjisi Kaptan'dan sayılır"
+    },
+    {
+      "rol": "Subay",
+      "yer": "Denizaltı başına 2",
+      "calisan": "Aktif, pasif ve sefer yetenekleri",
+      "istatistik": "Komuta bonusu ×0,4",
+      "agac": "Hayır",
+      "techizat": "Hayır",
+      "not": "Kendi öfke çubuğu vardır; Komuta ve Uyanış çalışmaz"
+    },
+    {
+      "rol": "Savunma Kaptanı / Subay",
+      "yer": "Askeri Kubbe; 1 + 2 koltuk",
+      "calisan": "Kaptan ve Subay kurallarıyla aynı",
+      "istatistik": "Kaptan ×1, Subay ×0,4",
+      "agac": "Kaptan'da",
+      "techizat": "Kaptan'da",
+      "not": "Üs savunmasında garnizonu yönetir; o sırada denizaltıda olamaz (07, 08)"
+    }
+  ],
+  "roller_sutunlar": [
+    ["rol", "Rol"],
+    ["yer", "Yer"],
+    ["calisan", "Çalışan yetenekler"],
+    ["istatistik", "İstatistik katkısı"],
+    ["agac", "Yetenek ağacı"],
+    ["techizat", "Teçhizat"],
+    ["not", "Not"]
+  ],
+  "yildizlar": [
+    {
+      "yildiz": "1★",
+      "parca": 0,
+      "toplam_parca": 0,
+      "seviye_tavani": 10,
+      "agac_puani": 9,
+      "acilan": "Aktif yetenek (öfke)",
+      "not": "Çağırma: Sıradan 10, Nadir 20, Destansı 30, Efsanevi 50 kart"
+    },
+    {
+      "yildiz": "2★",
+      "parca": 10,
+      "toplam_parca": 10,
+      "seviye_tavani": 20,
+      "agac_puani": 21,
+      "acilan": "Pasif yetenek",
+      "not": "+2 ağaç puanı"
+    },
+    {
+      "yildiz": "3★",
+      "parca": 20,
+      "toplam_parca": 30,
+      "seviye_tavani": 30,
+      "agac_puani": 33,
+      "acilan": "Sefer yeteneği (Destansı, Efsanevi)",
+      "not": "+2 ağaç puanı"
+    },
+    {
+      "yildiz": "4★",
+      "parca": 40,
+      "toplam_parca": 70,
+      "seviye_tavani": 40,
+      "agac_puani": 46,
+      "acilan": "Sefer yeteneği (Sıradan, Nadir) · Komuta yeteneği (Efsanevi)",
+      "not": "+3 ağaç puanı"
+    },
+    {
+      "yildiz": "5★",
+      "parca": 80,
+      "toplam_parca": 150,
+      "seviye_tavani": 50,
+      "agac_puani": 60,
+      "acilan": "Uyanış hakkı (Destansı, Efsanevi)",
+      "not": "+4 ağaç puanı; fazla parça Anı Kristali'ne döner"
+    }
+  ],
+  "yildizlar_sutunlar": [
+    ["yildiz", "Yıldız"],
+    ["parca", "Bu yıldız için parça"],
+    ["toplam_parca", "Toplam parça"],
+    ["seviye_tavani", "Seviye tavanı"],
+    ["agac_puani", "Ağaç puanı (tavan seviyede)"],
+    ["acilan", "Açılan yetenek"],
+    ["not", "Not"]
+  ],
+  "yetenek_turleri": [
+    {
+      "id": "aktif",
+      "ad": "Aktif (öfke)",
+      "siradan_nadir": "1★",
+      "destansi": "1★",
+      "efsanevi": "1★",
+      "subay": "Çalışır",
+      "aciklama": "Öfke dolunca tur başında kendiliğinden tetiklenir: ek hasar, iyileştirme, kalkan ya da zayıflatma."
+    },
+    {
+      "id": "pasif",
+      "ad": "Pasif",
+      "siradan_nadir": "2★",
+      "destansi": "2★",
+      "efsanevi": "2★",
+      "subay": "Çalışır",
+      "aciklama": "Savaş boyunca sürekli etki; aynı türden pasifler toplanır."
+    },
+    {
+      "id": "sefer",
+      "ad": "Sefer / basınç",
+      "siradan_nadir": "4★",
+      "destansi": "3★",
+      "efsanevi": "3★",
+      "subay": "Çalışır",
+      "aciklama": "Sefer dalışları, basınç, kurtarma, toplama ve PvE karşılaşmaları; ordu savaşında etkisizdir."
+    },
+    {
+      "id": "komuta",
+      "ad": "Komuta",
+      "siradan_nadir": "—",
+      "destansi": "—",
+      "efsanevi": "4★",
+      "subay": "Çalışmaz",
+      "aciklama": "Yalnızca Kaptan'ken: filoya ya da ralli lideri / Savunma Kaptanı iken komutadaki bütün askerlere yayılan etki."
+    },
+    {
+      "id": "uyanis",
+      "ad": "Uyanış",
+      "siradan_nadir": "—",
+      "destansi": "5★ + Uyanış",
+      "efsanevi": "5★ + Uyanış",
+      "subay": "Çalışmaz",
+      "aciklama": "Aktif yeteneği dönüştüren ya da güçlendiren son yetenek; Uyanış töreniyle açılır."
+    }
+  ],
+  "yetenek_turleri_sutunlar": [
+    ["ad", "Tür"],
+    ["siradan_nadir", "Sıradan / Nadir"],
+    ["destansi", "Destansı"],
+    ["efsanevi", "Efsanevi"],
+    ["subay", "Subayken"],
+    ["aciklama", "Ne yapar"]
+  ],
+  "yetenek_bedeli": [
+    {"gecis": "1 → 2", "kahraman_sv": 10, "common": 5, "rare": 10, "epic": 15, "legendary": 20},
+    {"gecis": "2 → 3", "kahraman_sv": 20, "common": 10, "rare": 20, "epic": 30, "legendary": 45},
+    {"gecis": "3 → 4", "kahraman_sv": 30, "common": 20, "rare": 35, "epic": 55, "legendary": 80},
+    {"gecis": "4 → 5", "kahraman_sv": 40, "common": 35, "rare": 55, "epic": 90, "legendary": 135},
+    {
+      "gecis": "Yetenek başına toplam",
+      "kahraman_sv": null,
+      "common": 70,
+      "rare": 120,
+      "epic": 190,
+      "legendary": 280
+    },
+    {
+      "gecis": "Kahraman başına toplam (tüm yetenekler)",
+      "kahraman_sv": null,
+      "common": 210,
+      "rare": 360,
+      "epic": 760,
+      "legendary": 1400
+    }
+  ],
+  "yetenek_bedeli_sutunlar": [
+    ["gecis", "Yetenek seviyesi"],
+    ["kahraman_sv", "Gereken kahraman Sv"],
+    ["common", "Sıradan"],
+    ["rare", "Nadir"],
+    ["epic", "Destansı"],
+    ["legendary", "Efsanevi"]
+  ],
+  "ani_kristali": {
+    "kaynaklar": [
+      {
+        "kaynak": "Kriyo-Kapsül",
+        "miktar": "Her çekimde 1",
+        "f2p_ay": 65,
+        "not": "Ücretsiz çekimler dahil; onlu çekim 10 verir"
+      },
+      {
+        "kaynak": "Fazla parça (5★ sonrası)",
+        "miktar": "Parça başına 1 / 2 / 3 / 5",
+        "f2p_ay": 20,
+        "not": "Sıradan / Nadir / Destansı / Efsanevi; kendiliğinden döner"
+      },
+      {
+        "kaynak": "Günlük görev sandığı (100 puan)",
+        "miktar": "2",
+        "f2p_ay": 60,
+        "not": "15 · Ekonomi ile eklenir"
+      },
+      {
+        "kaynak": "Siren Sürüsü ve Fay Çatlağı I",
+        "miktar": "Şansla 1–3",
+        "f2p_ay": 30,
+        "not": "09 · Dünya Haritası ödül tablosu"
+      },
+      {"kaynak": "Basınç Arenası haftalık sıralaması", "miktar": "5–20", "f2p_ay": 40, "not": "Orta sıralar"},
+      {
+        "kaynak": "Derinlik Kroniği aşamaları",
+        "miktar": "Aşama başına 50–150",
+        "f2p_ay": 30,
+        "not": "Tek seferlik; yıl ortalaması"
+      },
+      {
+        "kaynak": "Etkinlikler (Lig, Sürü, Mahzen, nesil etkinliği)",
+        "miktar": "Kademe ödülü",
+        "f2p_ay": 60,
+        "not": "13 · Etkinlikler"
+      },
+      {
+        "kaynak": "İttifak Dükkânı",
+        "miktar": "Haftada en çok 20",
+        "f2p_ay": 0,
+        "not": "İttifak katkısıyla; F2P tahminine katılmadı"
+      },
+      {
+        "kaynak": "The Syndicate",
+        "miktar": "Kristal kutuları, aylık alım sınırıyla",
+        "f2p_ay": 0,
+        "not": "12 · The Syndicate"
+      }
+    ],
+    "kaynaklar_sutunlar": [["kaynak", "Kaynak"], ["miktar", "Miktar"], ["f2p_ay", "F2P aylık tahmin"], ["not", "Not"]],
+    "f2p_aylik": 305
+  },
+  "uyanis": {
+    "kosul": "5★, Sv 50 ve diğer tüm yetenekler 5. seviye",
+    "bedel": [
+      {
+        "nadirlik": "Destansı",
+        "ani_kristali": 100,
+        "uyanis_ozu": 1,
+        "kazanc": "Uyanış yeteneği Sv 1 · portre ve modelde biyolüminesan iz · profilde 'Uyanmış' rozeti"
+      },
+      {
+        "nadirlik": "Efsanevi",
+        "ani_kristali": 200,
+        "uyanis_ozu": 2,
+        "kazanc": "Uyanış yeteneği Sv 1 · portre ve modelde biyolüminesan iz · profilde 'Uyanmış' rozeti"
+      }
+    ],
+    "bedel_sutunlar": [
+      ["nadirlik", "Nadirlik"],
+      ["ani_kristali", "Anı Kristali"],
+      ["uyanis_ozu", "Uyanış Özü"],
+      ["kazanc", "Kazanç"]
+    ],
+    "oz_kaynaklari": [
+      {
+        "kaynak": "Derinlik Kroniği",
+        "miktar": "Aşama 6, 8 ve 10'da 1'er",
+        "not": "Sunucu ilerledikçe herkes alır"
+      },
+      {
+        "kaynak": "Demir Leviathan Yuvası Sv 5–6",
+        "miktar": "Ralli katılımcısına %5 şans",
+        "not": "Günlük Leviathan ödül hakkıyla sınırlı"
+      },
+      {"kaynak": "Basınç Arenası sezonu", "miktar": "İlk %10'a 1", "not": "Sezon sonu"},
+      {"kaynak": "Akıntı Savaşı dükkânı", "miktar": "Sezonda en çok 1", "not": "Sezon puanıyla"},
+      {"kaynak": "Nesil etkinliği", "miktar": "Etkinlik zirvesinde 1", "not": "Her yeni nesilde"}
+    ],
+    "oz_kaynaklari_sutunlar": [["kaynak", "Kaynak"], ["miktar", "Miktar"], ["not", "Not"]]
+  },
+  "agac": {
+    "puan": {"seviye_basi": 1, "yildiz_bonus": {"2": 2, "3": 2, "4": 3, "5": 4}, "toplam": 60, "agac_toplam": 35},
+    "kademeler": [
+      {"kademe": 1, "dugum": "2 düğüm × 3 puan", "gereken": 0, "toplam": 6},
+      {"kademe": 2, "dugum": "2 düğüm × 3 puan", "gereken": 5, "toplam": 6},
+      {"kademe": 3, "dugum": "Anahtar I × 1", "gereken": 10, "toplam": 1},
+      {"kademe": 4, "dugum": "2 düğüm × 5 puan", "gereken": 11, "toplam": 10},
+      {"kademe": 5, "dugum": "Anahtar II × 1", "gereken": 21, "toplam": 1},
+      {"kademe": 6, "dugum": "2 düğüm × 5 puan", "gereken": 22, "toplam": 10},
+      {"kademe": 7, "dugum": "Zirve × 1", "gereken": 34, "toplam": 1}
+    ],
+    "kademeler_sutunlar": [
+      ["kademe", "Kademe"],
+      ["dugum", "Düğümler"],
+      ["gereken", "Açılış (o ağaçta harcanmış puan)"],
+      ["toplam", "Kademedeki puan"]
+    ],
+    "insa_ornekleri": [
+      {
+        "ad": "Uzman",
+        "dagilim": "35 + 25 + 0",
+        "kazanir": "Ana ağacın Zirvesi + ikinci ağacın Anahtar II'si",
+        "kime": "Tek işe odaklı Kaptan: ralli lideri, saf Zırhlı duvar, Leviathan avcısı"
+      },
+      {
+        "ad": "Çift anahtar",
+        "dagilim": "22 + 22 + 16",
+        "kazanir": "İki Anahtar II + üçüncü ağacın Anahtar I'i",
+        "kime": "Karma filolar, saha savaşı; Zirve yok ama altı anahtarın beşi"
+      },
+      {
+        "ad": "Üçlü denge",
+        "dagilim": "20 + 20 + 20",
+        "kazanir": "Üç Anahtar I ve geniş istatistik",
+        "kime": "Erken oyun ve sık rol değiştiren kahramanlar"
+      },
+      {
+        "ad": "Ekonomi",
+        "dagilim": "Toplama 35 + Akıntı 25",
+        "kazanir": "Toplama Zirvesi (Hadalit İzi) + hızlı rota",
+        "kime": "Toplama filoları; savaşa girmez"
+      }
+    ],
+    "insa_ornekleri_sutunlar": [["ad", "Dizilim"], ["dagilim", "Puan dağılımı"], ["kazanir", "Kazandığı"], ["kime", "Kime uygun"]],
+    "sifirlama": {"ilk_ucretsiz": 1, "esya": "Kalibrasyon Çipi", "hadalit": 300, "kayitli_dizilim": 2}
+  },
+  "kriyo": {
+    "bedel_tek": 200,
+    "bedel_onlu": 1800,
+    "v8_bedel_tek": 20,
+    "v8_bedel_onlu": 180,
+    "destansi_garanti": 30,
+    "efsanevi_garanti": 80,
+    "onlu_garanti": "En az 1 Nadir ya da üstü",
+    "one_cikan_payi": 50,
+    "beklenen_efsanevi": 40,
+    "beklenen_destansi_ustu": 9.6,
+    "beklenen_one_cikan": 60,
+    "en_kotu_one_cikan": 160,
+    "bannerlar": [
+      {
+        "ad": "Standart Kapsül",
+        "havuz": "Yayımlanmış tüm kahramanlar",
+        "garanti": "Destansı+ 30 · Efsanevi 80",
+        "ucretsiz": "Evet (Kriyo Salonu)",
+        "sure": "Sürekli",
+        "sayac": "Kendi sayaçları"
+      },
+      {
+        "ad": "Öne Çıkan Kapsül",
+        "havuz": "Tüm kahramanlar; Efsanevi sonucun %50'si öne çıkan kahraman",
+        "garanti": "Destansı+ 30 · Efsanevi 80 · kaybedilen 50/50'den sonraki Efsanevi kesin öne çıkan",
+        "ucretsiz": "Hayır",
+        "sure": "Nesil çıkışında 21 gün; sonra 14 günlük dönüşüm",
+        "sayac": "Öne çıkanlar arasında taşınır"
+      }
+    ],
+    "bannerlar_sutunlar": [
+      ["ad", "Kapsül"],
+      ["havuz", "Havuz"],
+      ["garanti", "Garanti"],
+      ["ucretsiz", "Ücretsiz çekim"],
+      ["sure", "Süre"],
+      ["sayac", "Sayaçlar"]
+    ],
+    "kurulus_havuzu": [
+      {
+        "ad": "Dr. Emi Sakamoto",
+        "birlik": "Zırhlı Dalgıç",
+        "fraksiyon": "Pasifik Tarikatı",
+        "neden": "Ana hekim Subayı; iyileştirme hızı becerisi her oyuncuya yarar"
+      },
+      {
+        "ad": "Juno Vega",
+        "birlik": "Zıpkıncı",
+        "fraksiyon": "Unutulanlar",
+        "neden": "Zıpkıncı Kaptanı; Enerji becerisi orta oyunun açığını kapatır"
+      },
+      {
+        "ad": "Sable",
+        "birlik": "Ark Askeri",
+        "fraksiyon": "Uçurum Tarikatı",
+        "neden": "Garnizon Kaptanı; depo becerisi yağmaya karşı korur"
+      }
+    ],
+    "kurulus_havuzu_sutunlar": [["ad", "Kahraman"], ["birlik", "Yatkın birlik"], ["fraksiyon", "Fraksiyon"], ["neden", "Neden"]],
+    "bilet": "Kriyo-Kapsül bileti bir çekim yerine geçer; iki kapsülde de kullanılır ve garanti sayaçlarını ilerletir."
+  },
+  "kartlar": [
+    {
+      "ad": "Sıradan Kahraman Kartı",
+      "icerik": "Rastgele bir Sıradan kahramanın 10 kartı",
+      "nereden": "Günlük sandık (60 puan), Bronz Sandık, d_pod görevi",
+      "durum": "✅"
+    },
+    {
+      "ad": "Nadir Kahraman Kartı",
+      "icerik": "Rastgele bir Nadir kahramanın 10 kartı",
+      "nereden": "Günlük sandık (100 puan), Gümüş Sandık, hikâye",
+      "durum": "✅"
+    },
+    {
+      "ad": "Destansı Kahraman Kartı",
+      "icerik": "Rastgele bir Destansı kahramanın 10 kartı",
+      "nereden": "Hikâye bölümleri, Altın Sandık, Derinlik Sandığı",
+      "durum": "✅"
+    },
+    {
+      "ad": "Efsanevi Kahraman Kartı",
+      "icerik": "Rastgele bir Efsanevi kahramanın 10 kartı",
+      "nereden": "Hikâye bölümleri, Altın Sandık, etkinlik zirveleri",
+      "durum": "✅"
+    },
+    {
+      "ad": "Seçmeli Destansı Kart",
+      "icerik": "Seçilen bir Destansı kahramanın 10 kartı",
+      "nereden": "Kronik aşamaları, Derinlik Ligi sezonu",
+      "durum": "⬜"
+    },
+    {
+      "ad": "Seçmeli Efsanevi Kart",
+      "icerik": "Seçilen bir Efsanevi kahramanın 10 kartı",
+      "nereden": "Kronik aşama 5 ve 10, Akıntı Savaşı sezonu",
+      "durum": "⬜"
+    },
+    {
+      "ad": "Adlı kahraman kartı",
+      "icerik": "Belirli bir kahramanın kartları",
+      "nereden": "Nesil etkinlikleri, İttifak Dükkânı (Destansı'ya kadar)",
+      "durum": "⬜"
+    }
+  ],
+  "kartlar_sutunlar": [["ad", "Eşya"], ["icerik", "İçerik"], ["nereden", "Nereden"], ["durum", "Durum"]],
+  "nesiller": [
+    {
+      "nesil": 1,
+      "gun": 0,
+      "sayi": 18,
+      "tema": "Çıkış kadrosu: dört Sıradan, altı Nadir, beş Destansı, üç Efsanevi; her köken için en az üç kahraman",
+      "kahramanlar": "Rourke, Moss, Ruiz, Kostina, Kael, Hale, Okafor, Quispe, Farahani, Noa, Vega, Sable, Sakamoto, Ilo, Gröndahl, Aelis, Boateng, Meridyen"
+    },
+    {
+      "nesil": 2,
+      "gun": 56,
+      "sayi": 4,
+      "tema": "Kadim kapılar ve Süperalaşım çağı: ilk uyanan Muhafız, rekor dalışçı",
+      "kahramanlar": "Ufuk, Saoirse Kavanagh, Deniz Karaca, Dr. Priya Raman"
+    },
+    {
+      "nesil": 3,
+      "gun": 112,
+      "sayi": 4,
+      "tema": "Avcılar: Leviathan sezonu ve kristal ayini",
+      "kahramanlar": "Dr. Han Seo-yeon, Kiri, Sura, Odalys Ferreira"
+    },
+    {
+      "nesil": 4,
+      "gun": 168,
+      "sayi": 4,
+      "tema": "Koloni: Derindoğanlar'ın Anası, hastane gemisi, Uçurumun Sözcüsü",
+      "kahramanlar": "Ilian Varga, Dr. Isagani Dela Cruz, Sela, Wira Santoso"
+    }
+  ],
+  "nesiller_sutunlar": [
+    ["nesil", "Nesil"],
+    ["gun", "Sunucu günü"],
+    ["sayi", "Kahraman"],
+    ["tema", "Tema"],
+    ["kahramanlar", "Kimler"]
+  ],
+  "f2p_beklenti": [
+    {
+      "profil": "Ücretsiz oyuncu",
+      "cekim": 800,
+      "efsanevi": 20,
+      "kristal_ay": 305,
+      "bes_yildiz": "1–2 Efsanevi, 3–4 Destansı",
+      "tam_yetenek": "2 Efsanevi"
+    },
+    {
+      "profil": "Aylık kart + VIP 8",
+      "cekim": 1400,
+      "efsanevi": 35,
+      "kristal_ay": 550,
+      "bes_yildiz": "3–4 Efsanevi, 6+ Destansı",
+      "tam_yetenek": "4 Efsanevi"
+    },
+    {
+      "profil": "Balina",
+      "cekim": 6000,
+      "efsanevi": 150,
+      "kristal_ay": 2200,
+      "bes_yildiz": "Tüm Efsanevi kadro",
+      "tam_yetenek": "Tüm Efsanevi kadro"
+    }
+  ],
+  "f2p_beklenti_sutunlar": [
+    ["profil", "Profil"],
+    ["cekim", "Yılda çekim"],
+    ["efsanevi", "Yılda Efsanevi (beklenen)"],
+    ["kristal_ay", "Anı Kristali / ay"],
+    ["bes_yildiz", "Yıl sonunda 5★"],
+    ["tam_yetenek", "Tüm yetenekleri 5. seviye"]
+  ],
+  "durum": [
+    {
+      "konu": "Komuta Ekibi: 3 yuva, Reaktör 1 / 5 / 10",
+      "durum": "✅",
+      "not": "HeroRules.OpenSlots · catalog heroes.crewSlotReactorLevels"
+    },
+    {
+      "konu": "Mürettebat becerisi formülü ve 8 kahramanın değerleri",
+      "durum": "✅",
+      "not": "HeroRules.EffectValue; değerler v8 ile aynı"
+    },
+    {
+      "konu": "Yeni mürettebat etki türleri",
+      "durum": "⬜",
+      "not": "ApplyEffect yalnızca buildTime, researchTime, capacity, production tanıyor"
+    },
+    {
+      "konu": "Süre becerileri bölen olarak (K-13)",
+      "durum": "🟡",
+      "not": "Kod yüzdeyi süreden çıkarıyor (ResearchRules.ApplyPercent)"
+    },
+    {"konu": "Seviye tavanı ★ × 10", "durum": "✅", "not": "HeroRules.LevelCap"},
+    {"konu": "Seviye tavanı ≤ Reaktör seviyesi", "durum": "⬜", "not": "Yeni kural"},
+    {
+      "konu": "Eğitim bedeli: Gıda + Biyokütle, reaktör eğrisi",
+      "durum": "🟡",
+      "not": "Kod: 150 Ti + 100 BK × 1,08^(Sv−1) × nadirlik çarpanı"
+    },
+    {"konu": "Kahraman deneyimi (savaştan)", "durum": "⬜", "not": "09'daki PvE ödülleri bunu verir"},
+    {"konu": "Yıldız parçası 10 / 20 / 40 / 80", "durum": "✅", "not": "heroes.shardsPerStar"},
+    {"konu": "Kopya parçası 10 / 10 / 15 / 20", "durum": "✅", "not": "rarities[].duplicateShards"},
+    {
+      "konu": "Kahraman kartı ve çağırma 10 / 20 / 30 / 50",
+      "durum": "✅",
+      "not": "RecruitHeroCommand · items card_*"
+    },
+    {"konu": "Kriyo-Kapsül oranları 65 / 25 / 8 / 2", "durum": "✅", "not": "rarities[].weight"},
+    {"konu": "Destansı+ garantisi 30. çekim", "durum": "✅", "not": "pod.pity / pityRarity"},
+    {"konu": "Efsanevi garantisi 80. çekim (K-04)", "durum": "⬜", "not": "İkinci sayaç gerekir"},
+    {"konu": "Öne Çıkan Kapsül, 50/50", "durum": "⬜", "not": "Banner kimliği HeroRules.PodBanner tek"},
+    {"konu": "Onlu çekimde Nadir+ garantisi", "durum": "⬜", "not": "—"},
+    {"konu": "Çekim bedeli 200 / 1.800 HD (K-12)", "durum": "🟡", "not": "Kod 20 / 180"},
+    {
+      "konu": "Ücretsiz çekim 24 saatte bir",
+      "durum": "✅",
+      "not": "pod.freeSeconds; Kriyo Salonu kademeleri ⬜"
+    },
+    {"konu": "Fazla parça → Anı Kristali", "durum": "⬜", "not": "Bugün 5★ sonrası parça birikiyor"},
+    {
+      "konu": "ATK / DEF / HP ve stat tabanlı güç",
+      "durum": "🟡",
+      "not": "Kod: taban güç × (1 + 0,1(Sv−1)) × (1 + 0,2(★−1))"
+    },
+    {"konu": "Yetenekler, öfke, Anı Kristali", "durum": "⬜", "not": "—"},
+    {"konu": "Yetenek ağaçları", "durum": "⬜", "not": "—"},
+    {"konu": "Kaptan / Subay, filo kadrosu", "durum": "⬜", "not": "07 ve 08 ile birlikte"},
+    {"konu": "Uyanış", "durum": "⬜", "not": "—"},
+    {"konu": "Fraksiyon sinerjisi ve ekip rezonansı", "durum": "⬜", "not": "—"},
+    {"konu": "22 yeni kahraman", "durum": "⬜", "not": "Kimlikler, portreler, tr.txt metinleri"},
+    {"konu": "Kökene bağlı başlangıç kahramanı (K-19)", "durum": "⬜", "not": "16 ile birlikte"}
+  ],
+  "durum_sutunlar": [["konu", "Konu"], ["durum", "Durum"], ["not", "Kodda / not"]],
+  "kahramanlar": [
+    {
+      "id": "mara",
+      "ad": "Komutan Elias Rourke",
+      "unvan": "Son konvoyun komutanı",
+      "sinif": "Commander",
+      "fraksiyon": "AtlanticUnion",
+      "nadirlik": "common",
+      "nesil": 1,
+      "durum": "kodda",
+      "biyografi": "Hendeğe ulaşan son konvoyun komutanı. Herkes pes etmek istediğinde üssü kurmaya devam eden o. Konvoyu Hadal Eşiği'ne demirlediğinde elinde üç kubbe, yarı yanmış bir reaktör ve bitmeyen bir yapılacaklar listesi vardı; listeyi hâlâ cebinde taşır.",
+      "kazanim": "Başlangıç kahramanı (her oyuncu); kopyaları Kriyo-Kapsül ve Sıradan kartlarından",
+      "murettebat": {"etki": "buildTime", "taban": -3, "seviye_onda": -2, "yildiz": -2},
+      "yetenekler": [
+        {
+          "ad": "Konvoy Düzeni",
+          "tur": "aktif",
+          "tur_ad": "Aktif (öfke)",
+          "yildiz": 1,
+          "aciklama": "Filoyu sıkı düzene sokar: 2 tur boyunca tüm birliklerin aldığı hasar yüzde {0} azalır.",
+          "degerler": [8, 10, 12, 14, 17]
+        },
+        {
+          "ad": "Önce Kubbe",
+          "tur": "pasif",
+          "tur_ad": "Pasif",
+          "yildiz": 2,
+          "aciklama": "Filodaki Zırhlı Dalgıçların DEF'i yüzde {0} artar.",
+          "degerler": [3, 4, 5, 6, 8]
+        },
+        {
+          "ad": "Dönüş Rotası",
+          "tur": "sefer",
+          "tur_ad": "Sefer / basınç",
+          "yildiz": 4,
+          "aciklama": "Seferde denizaltı ağır hasar alıp geri çekilirse taşınan ganimetin bir kısmı korunur (yüzde {0}).",
+          "degerler": [20, 25, 30, 35, 40]
+        }
+      ],
+      "agaclar": ["liderlik", "zirhli", "garnizon"],
+      "notlar": "Oyunun ilk Kaptanı ve ilk mürettebatı. Asıl değeri ekonomi yuvasındadır: inşa süresi becerisi ilk aylarda her oyuncunun ekibinde kalır, Efsanevi Meridyen gelince yerini ona bırakır. Savaşta Zırhlı ağırlıklı erken filoların Kaptanı; Subay olarak Amara Okafor ya da Dr. Lyra Moss ile eşleşir. Rourke, Ruiz ve Okafor üçlüsü oyunun en erken ekip rezonansıdır (Atlantik Birliği, inşa hızı)."
+    },
+    {
+      "id": "lyra",
+      "ad": "Dr. Lyra Moss",
+      "unvan": "Hava filtrelerinin hekimi",
+      "sinif": "Medic",
+      "fraksiyon": "PacificOrder",
+      "nadirlik": "common",
+      "nesil": 1,
+      "durum": "kodda",
+      "biyografi": "Pasifik Tarikatı'nın saha hekimi. Can çekişen üç istasyonun hava filtrelerini kendi elleriyle yeniden kurdu. Basınç altında yaşayan bedenin neye dayanıp neye dayanamayacağını kitaplardan değil, revirde geçen uykusuz gecelerden öğrendi.",
+      "kazanim": "1. hikâye bölümü (10 kart, çağırmaya yeter); Kriyo-Kapsül, Sıradan kartı",
+      "murettebat": {"etki": "production:Oxygen", "taban": 3, "seviye_onda": 2, "yildiz": 2},
+      "yetenekler": [
+        {
+          "ad": "Temiz Hava",
+          "tur": "aktif",
+          "tur_ad": "Aktif (öfke)",
+          "yildiz": 1,
+          "aciklama": "Filonun en çok kayıp vermiş yığınını iyileştirir (normal hasarın yüzde {0} kadarı HP; kurtarılanlar hafif yaralı döner).",
+          "degerler": [35, 40, 45, 52, 60]
+        },
+        {
+          "ad": "Triyaj",
+          "tur": "pasif",
+          "tur_ad": "Pasif",
+          "yildiz": 2,
+          "aciklama": "Savaşta ölecek askerlerin bir kısmı yaralı olarak kurtulur (yüzde {0}).",
+          "degerler": [3, 4, 5, 6, 8]
+        },
+        {
+          "ad": "Basınç Hekimliği",
+          "tur": "sefer",
+          "tur_ad": "Sefer / basınç",
+          "yildiz": 4,
+          "aciklama": "Seferde kahraman takımının basınçtan aldığı hasar yüzde {0} azalır.",
+          "degerler": [5, 6, 8, 10, 12]
+        }
+      ],
+      "agaclar": ["destek", "zirhli", "savunma"],
+      "notlar": "Erken oyunun hekimi; Temiz Hava ilk haftaların PvE kayıplarını belirgin biçimde azaltır. Oksijen becerisi Oksijen darboğazının yaşandığı ilk günlerde ekibe girer. Moss, Hale ve Sakamoto üçlüsü Pasifik Tarikatı'nın araştırma rezonansını açar."
+    },
+    {
+      "id": "tess",
+      "ad": "Tess Ruiz",
+      "unvan": "Dipteki her metalin sahibi",
+      "sinif": "Engineer",
+      "fraksiyon": "AtlanticUnion",
+      "nadirlik": "common",
+      "nesil": 1,
+      "durum": "kodda",
+      "biyografi": "Kurtarma mühendisi. Metalden yapılmış ve deniz tabanında yatıyorsa Tess onu eve getirir. Abisal düzlükteki batık konvoy gövdelerinden söktüğü titanyum levhalar, üssün ilk kubbelerinin iskeletidir.",
+      "kazanim": "2. hikâye bölümü (10 kart); Kriyo-Kapsül, Sıradan kartı",
+      "murettebat": {"etki": "production:Titanium", "taban": 3, "seviye_onda": 2, "yildiz": 2},
+      "yetenekler": [
+        {
+          "ad": "Kaynak Arkı",
+          "tur": "aktif",
+          "tur_ad": "Aktif (öfke)",
+          "yildiz": 1,
+          "aciklama": "Ön saftaki düşman yığınlarına ek hasar (normal hasarın yüzde {0} kadarı).",
+          "degerler": [40, 45, 50, 58, 68]
+        },
+        {
+          "ad": "Sahada Onarım",
+          "tur": "pasif",
+          "tur_ad": "Pasif",
+          "yildiz": 2,
+          "aciklama": "Her 3 turda bir filoya küçük onarım (normal hasarın yüzde {0} kadarı HP).",
+          "degerler": [8, 10, 12, 14, 17]
+        },
+        {
+          "ad": "Enkaz Gözü",
+          "tur": "sefer",
+          "tur_ad": "Sefer / basınç",
+          "yildiz": 4,
+          "aciklama": "Seferde ve Enkaz Alanı'nda bulunan Titanyum ve teçhizat malzemesi yüzde {0} artar.",
+          "degerler": [5, 6, 8, 10, 12]
+        }
+      ],
+      "agaclar": ["ark", "toplama", "garnizon"],
+      "notlar": "Titanyum becerisi oyun boyunca geçerli bir mürettebat seçeneğidir. Savaşta Ark Askeri filolarının erken Subayı; Toplama ağacıyla Enkaz Alanı filolarının Kaptanı olur."
+    },
+    {
+      "id": "vera",
+      "ad": "Vera Kostina",
+      "unvan": "Listede adı olmayan pilot",
+      "sinif": "Pilot",
+      "fraksiyon": "ForgottenOnes",
+      "nadirlik": "common",
+      "nesil": 1,
+      "durum": "tasarim",
+      "biyografi": "Kuril-Kamçatka Çukuru'ndaki bir yük istasyonunda römorkör pilotuydu; istasyon boşaltılırken tahliye listesinde adı yoktu. Üç yıl terk edilmiş iskelede tek başına kargo taşıdı ve Unutulanlar onu bulduğunda çukurun bütün akıntılarını ezbere biliyordu.",
+      "kazanim": "Kriyo-Kapsül, Sıradan kartı",
+      "murettebat": {"etki": "gatherSpeed", "ad": "Toplama hızı", "taban": 3, "seviye_onda": 2, "yildiz": 2},
+      "yetenekler": [
+        {
+          "ad": "Römorkör Hamlesi",
+          "tur": "aktif",
+          "tur_ad": "Aktif (öfke)",
+          "yildiz": 1,
+          "aciklama": "En kalabalık düşman yığınına ek hasar (normal hasarın yüzde {0} kadarı); düşman Kaptan'ının öfkesi 100 azalır.",
+          "degerler": [36, 41, 46, 53, 62]
+        },
+        {
+          "ad": "Bildik Akıntılar",
+          "tur": "pasif",
+          "tur_ad": "Pasif",
+          "yildiz": 2,
+          "aciklama": "Filonun yürüyüş hızı yüzde {0} artar.",
+          "degerler": [3, 4, 5, 6, 8]
+        },
+        {
+          "ad": "Yük Dengesi",
+          "tur": "sefer",
+          "tur_ad": "Sefer / basınç",
+          "yildiz": 4,
+          "aciklama": "Seferden ve toplamadan dönen yük kapasitesi yüzde {0} artar.",
+          "degerler": [5, 6, 8, 10, 12]
+        }
+      ],
+      "agaclar": ["akinti", "toplama", "zipkin"],
+      "notlar": "Toplama filolarının Kaptanı: hız ve yük becerileri hasat rotalarının belkemiğidir. Savaş gücü düşüktür; Toplama ağacıyla tam verim verir. Unutulanlar kökenli oyuncular için ilk günlerden fraksiyon üçlüsünü (Kostina, Quispe, Vega) tamamlar."
+    },
+    {
+      "id": "kael",
+      "ad": "Kael",
+      "unvan": "Işık çizgisinin altında doğan avcı",
+      "sinif": "Hunter",
+      "fraksiyon": "Deepborn",
+      "nadirlik": "rare",
+      "nesil": 1,
+      "durum": "kodda",
+      "biyografi": "Işık çizgisinin altında doğdu. Karanlıkta yalnızca sonar tıklamaları ve sabırla avlanır. Kubbenin çevresindeki canlıları adlarıyla tanır ve onlara dokunmaz; avı, kubbeleri yoklayan Uçurum Sürüngenleri'dir.",
+      "kazanim": "Köken: Derindoğanlar seçenlere başlangıçta (2★); Kriyo-Kapsül, Nadir kartı",
+      "murettebat": {"etki": "production:Food", "taban": 4, "seviye_onda": 3, "yildiz": 3},
+      "yetenekler": [
+        {
+          "ad": "Sessiz Zıpkın",
+          "tur": "aktif",
+          "tur_ad": "Aktif (öfke)",
+          "yildiz": 1,
+          "aciklama": "Arka saftaki düşman yığınlarına ek hasar (normal hasarın yüzde {0} kadarı); vurulan yığınlar bir sonraki tur %15 daha az hasar verir.",
+          "degerler": [50, 56, 63, 72, 84]
+        },
+        {
+          "ad": "Sabırlı Av",
+          "tur": "pasif",
+          "tur_ad": "Pasif",
+          "yildiz": 2,
+          "aciklama": "Filodaki Zıpkıncıların ATK'sı yüzde {0} artar.",
+          "degerler": [4, 5, 6, 8, 10]
+        },
+        {
+          "ad": "Tıklama Haritası",
+          "tur": "sefer",
+          "tur_ad": "Sefer / basınç",
+          "yildiz": 4,
+          "aciklama": "Sonar-yalnız sefer bölgelerinde filonun hasarı yüzde {0} artar.",
+          "degerler": [6, 8, 10, 12, 15]
+        }
+      ],
+      "agaclar": ["avcilik", "zipkin", "akinti"],
+      "notlar": "Erken Zıpkıncı filosunun Kaptanı ve canavar avının ilk uzmanı. Gıda becerisi ordu büyüdükçe değer kazanır. Derindoğanlar kökeninin başlangıç kahramanı."
+    },
+    {
+      "id": "orin",
+      "ad": "Dr. Orin Hale",
+      "unvan": "Laboratuvardan çıkmayan adam",
+      "sinif": "Scientist",
+      "fraksiyon": "PacificOrder",
+      "nadirlik": "rare",
+      "nesil": 1,
+      "durum": "kodda",
+      "biyografi": "Çöküşten beri laboratuvardan çıkmayan Hadalit araştırmacısı. Notları üç arşivi doldurur. Kristalin basınç altında neden ışıdığını açıklayan ilk modeli o kurdu; ikinci modelini henüz kimse anlamadı.",
+      "kazanim": "Köken kahramanı önerisi: Pasifik Tarikatı seçenlere başlangıçta (2★); Kriyo-Kapsül, Nadir kartı",
+      "murettebat": {"etki": "researchTime", "taban": -4, "seviye_onda": -3, "yildiz": -3},
+      "yetenekler": [
+        {
+          "ad": "Rezonans Darbesi",
+          "tur": "aktif",
+          "tur_ad": "Aktif (öfke)",
+          "yildiz": 1,
+          "aciklama": "En kalabalık düşman yığınına ek hasar (normal hasarın yüzde {0} kadarı); düşman Kaptan'ının öfke kazanımı 2 tur yarıya iner.",
+          "degerler": [46, 52, 58, 67, 78]
+        },
+        {
+          "ad": "Hipotez",
+          "tur": "pasif",
+          "tur_ad": "Pasif",
+          "yildiz": 2,
+          "aciklama": "Filonun aktif yetenek hasarı yüzde {0} artar.",
+          "degerler": [4, 5, 6, 8, 10]
+        },
+        {
+          "ad": "Örnekleme",
+          "tur": "sefer",
+          "tur_ad": "Sefer / basınç",
+          "yildiz": 4,
+          "aciklama": "Seferde kalıntı ve araştırma verisi bulma şansı yüzde {0} artar.",
+          "degerler": [6, 8, 10, 12, 15]
+        }
+      ],
+      "agaclar": ["beceri", "ark", "derinlik"],
+      "notlar": "Araştırma süresi becerisi oyunun en uzun ömürlü mürettebat seçeneklerinden biridir; Dr. Han Seo-yeon gelene kadar ekipten çıkmaz. Savaşta Ark filolarının yetenek Subayı. Pasifik Tarikatı kökeni için önerilen başlangıç kahramanı."
+    },
+    {
+      "id": "amara",
+      "ad": "Kaptan Amara Okafor",
+      "unvan": "Basınç akademisinin eğitmeni",
+      "sinif": "Commander",
+      "fraksiyon": "AtlanticUnion",
+      "nadirlik": "rare",
+      "nesil": 1,
+      "durum": "tasarim",
+      "biyografi": "Lagos'ta doğdu, Atlantik Birliği'nin Porto Riko Çukuru kıyısındaki basınç akademisinde yetişti; Atlantik'in en derin çukuru onun sınıfıydı. Her acemi dalgıcın ilk inişinde yanındadır ve o güne dek bir öğrencisini bile kaybetmedi.",
+      "kazanim": "Köken kahramanı önerisi: Atlantik Birliği seçenlere başlangıçta (2★); Kriyo-Kapsül, Nadir kartı",
+      "murettebat": {"etki": "trainingTime", "ad": "Asker eğitim süresi", "taban": -4, "seviye_onda": -3, "yildiz": -3},
+      "yetenekler": [
+        {
+          "ad": "Kalkan Duvarı",
+          "tur": "aktif",
+          "tur_ad": "Aktif (öfke)",
+          "yildiz": 1,
+          "aciklama": "Ön saftaki yığınların DEF'i 2 tur yüzde {0} artar.",
+          "degerler": [10, 12, 14, 17, 20]
+        },
+        {
+          "ad": "Tatbikat Disiplini",
+          "tur": "pasif",
+          "tur_ad": "Pasif",
+          "yildiz": 2,
+          "aciklama": "Filonun DEF'i yüzde {0} artar.",
+          "degerler": [4, 5, 6, 8, 10]
+        },
+        {
+          "ad": "İlk İniş",
+          "tur": "sefer",
+          "tur_ad": "Sefer / basınç",
+          "yildiz": 4,
+          "aciklama": "Seferin ilk karşılaşmasında filonun aldığı hasar yüzde {0} azalır.",
+          "degerler": [6, 8, 10, 12, 15]
+        }
+      ],
+      "agaclar": ["zirhli", "liderlik", "savunma"],
+      "notlar": "Erken oyunun en sağlam Zırhlı Kaptanı. Asker eğitim süresi becerisi Tatbikat Havuzu açıldıktan sonra ekipte yer bulur. Atlantik Birliği kökeni için önerilen başlangıç kahramanı."
+    },
+    {
+      "id": "rafa",
+      "ad": "Rafael Quispe",
+      "unvan": "Atacama'nın hurdacısı",
+      "sinif": "Engineer",
+      "fraksiyon": "ForgottenOnes",
+      "nadirlik": "rare",
+      "nesil": 1,
+      "durum": "tasarim",
+      "biyografi": "Peru açıklarındaki Atacama Çukuru'nda bir maden istasyonunun kaynakçısıydı. İstasyon terk edildiğinde geride kalanlarla birlikte çöken tünellerden çıkış yolunu kaynakla açtı; Unutulanlar'ın 'her şey yeniden kullanılır' sözü ondan çıktı.",
+      "kazanim": "Köken kahramanı önerisi: Unutulanlar seçenlere başlangıçta (2★); Kriyo-Kapsül, Nadir kartı",
+      "murettebat": {"etki": "salvageReward", "ad": "Kurtarma görevi ödülü", "taban": 4, "seviye_onda": 3, "yildiz": 3},
+      "yetenekler": [
+        {
+          "ad": "Kesme Şaloması",
+          "tur": "aktif",
+          "tur_ad": "Aktif (öfke)",
+          "yildiz": 1,
+          "aciklama": "Ön saftaki düşman yığınlarına ek hasar (normal hasarın yüzde {0} kadarı); ön safın DEF'i 2 tur %10 düşer.",
+          "degerler": [46, 52, 58, 67, 78]
+        },
+        {
+          "ad": "Hurdadan Zırh",
+          "tur": "pasif",
+          "tur_ad": "Pasif",
+          "yildiz": 2,
+          "aciklama": "Filodaki Ark Askerlerinin HP'si yüzde {0} artar.",
+          "degerler": [4, 5, 6, 8, 10]
+        },
+        {
+          "ad": "Enkaz Haritası",
+          "tur": "sefer",
+          "tur_ad": "Sefer / basınç",
+          "yildiz": 4,
+          "aciklama": "Seferdeki batık enkaz olaylarının ödülü yüzde {0} artar.",
+          "degerler": [6, 8, 10, 12, 15]
+        }
+      ],
+      "agaclar": ["ark", "fetih", "toplama"],
+      "notlar": "Kurtarma ödülü becerisi Dron Fabrikası görevleriyle erken Titanyum akışını büyütür. Fetih ağacına sahip ilk Nadir kahraman; Delicili yağma filolarının ucuz Kaptanı. Unutulanlar kökeni için önerilen başlangıç kahramanı."
+    },
+    {
+      "id": "darius",
+      "ad": "Darius Farahani",
+      "unvan": "Tarikatın simyacısı",
+      "sinif": "Scientist",
+      "fraksiyon": "AbyssCult",
+      "nadirlik": "rare",
+      "nesil": 1,
+      "durum": "tasarim",
+      "biyografi": "Tahran'da jeokimya okudu; Uçurum Tarikatı'na Hadalit'in canlı dokuyla etkileşimini araştırmak için katıldı ve bir daha dönmedi. Hazırladığı nöral serumlar kahramanların eğitimini kısaltır; tarifini yalnızca tarikat bilir.",
+      "kazanim": "Köken kahramanı önerisi: Uçurum Tarikatı seçenlere başlangıçta (2★); Kriyo-Kapsül, Nadir kartı",
+      "murettebat": {"etki": "heroTrainCost", "ad": "Kahraman eğitim bedeli", "taban": -4, "seviye_onda": -3, "yildiz": -3},
+      "yetenekler": [
+        {
+          "ad": "Çözücü Bulut",
+          "tur": "aktif",
+          "tur_ad": "Aktif (öfke)",
+          "yildiz": 1,
+          "aciklama": "En kalabalık iki düşman yığınına ek hasar (normal hasarın yüzde {0} kadarı); bu yığınların DEF'i 2 tur %8 düşer.",
+          "degerler": [36, 41, 46, 53, 62]
+        },
+        {
+          "ad": "Katalizör",
+          "tur": "pasif",
+          "tur_ad": "Pasif",
+          "yildiz": 2,
+          "aciklama": "Filonun öfke kazanımı yüzde {0} artar.",
+          "degerler": [4, 5, 6, 8, 10]
+        },
+        {
+          "ad": "Basınç Simyası",
+          "tur": "sefer",
+          "tur_ad": "Sefer / basınç",
+          "yildiz": 4,
+          "aciklama": "Seferde bulunan Hadalit yüzde {0} artar.",
+          "degerler": [6, 8, 10, 12, 15]
+        }
+      ],
+      "agaclar": ["beceri", "ark", "destek"],
+      "notlar": "Kahraman eğitim bedeli becerisi kadro büyüdükçe kendini öder. Savaşta öfkeyi hızlandıran Subay; Çözücü Bulut Zırhlı hedeflerin savunmasını açar. Uçurum Tarikatı kökeni için önerilen başlangıç kahramanı."
+    },
+    {
+      "id": "noa",
+      "ad": "Noa",
+      "unvan": "Tıklamalarla yol bulan",
+      "sinif": "Pilot",
+      "fraksiyon": "Deepborn",
+      "nadirlik": "rare",
+      "nesil": 1,
+      "durum": "tasarim",
+      "biyografi": "Çukur Yamacı'ndaki bir habitatta, güneş ışığının son ulaştığı derinliğin altı kilometreden fazla altında doğdu. Dilini damağına vurarak çıkardığı tıklamaların yankısıyla yön bulur; Derindoğan pilotlar arasında karanlıkta en hızlı dönen odur.",
+      "kazanim": "Kriyo-Kapsül, Nadir kartı",
+      "murettebat": {"etki": "sonarRegen", "ad": "Sonar Enerjisi yenilenmesi", "taban": 4, "seviye_onda": 3, "yildiz": 3},
+      "yetenekler": [
+        {
+          "ad": "Yankı Dalışı",
+          "tur": "aktif",
+          "tur_ad": "Aktif (öfke)",
+          "yildiz": 1,
+          "aciklama": "Arka saftaki düşman yığınlarına ek hasar (normal hasarın yüzde {0} kadarı); bu tur filonun aldığı hasar %15 azalır.",
+          "degerler": [46, 52, 58, 67, 78]
+        },
+        {
+          "ad": "Karanlık Rota",
+          "tur": "pasif",
+          "tur_ad": "Pasif",
+          "yildiz": 2,
+          "aciklama": "Filonun yürüyüş hızı yüzde {0} artar.",
+          "degerler": [4, 5, 6, 8, 10]
+        },
+        {
+          "ad": "Yankı Haritası",
+          "tur": "sefer",
+          "tur_ad": "Sefer / basınç",
+          "yildiz": 4,
+          "aciklama": "Sonar-yalnız sefer bölgelerinde olay başarı şansı yüzde {0} artar.",
+          "degerler": [6, 8, 10, 12, 15]
+        }
+      ],
+      "agaclar": ["akinti", "zipkin", "derinlik"],
+      "notlar": "Sonar Enerjisi becerisi harita avcılığını sıklaştırır; avcı oyuncuların ekibindeki sessiz yıldız. Derindoğan Zıpkıncı filolarında hız Subayı, Derinlik ağacıyla sefer uzmanı."
+    },
+    {
+      "id": "juno",
+      "ad": "Juno Vega",
+      "unvan": "Çekirdeği indiren pilot",
+      "sinif": "Pilot",
+      "fraksiyon": "ForgottenOnes",
+      "nadirlik": "epic",
+      "nesil": 1,
+      "durum": "kodda",
+      "biyografi": "Eski istasyon çökerken reaktör çekirdeğini hendeğe indiren pilot. Bunu ondan başkası yapamazdı. Unutulanlar arasında 'Juno'nun inişi' bir ölçü birimidir: imkânsızla çok zor arasındaki mesafe.",
+      "kazanim": "Kriyo-Kapsül, Destansı kartı",
+      "murettebat": {"etki": "production:Energy", "taban": 5, "seviye_onda": 4, "yildiz": 4},
+      "yetenekler": [
+        {
+          "ad": "Çekirdek İnişi",
+          "tur": "aktif",
+          "tur_ad": "Aktif (öfke)",
+          "yildiz": 1,
+          "aciklama": "Düşmanın arka safına tam güç dalış: ek hasar (normal hasarın yüzde {0} kadarı).",
+          "degerler": [54, 61, 68, 78, 90]
+        },
+        {
+          "ad": "Soğuk Kan",
+          "tur": "pasif",
+          "tur_ad": "Pasif",
+          "yildiz": 2,
+          "aciklama": "Filodaki Zıpkıncıların ATK'sı yüzde {0} artar.",
+          "degerler": [5, 6, 8, 10, 12]
+        },
+        {
+          "ad": "Kontrollü Çöküş",
+          "tur": "sefer",
+          "tur_ad": "Sefer / basınç",
+          "yildiz": 3,
+          "aciklama": "Seferde denizaltı basınç sınıfının sınırında aldığı gövde hasarı yüzde {0} azalır.",
+          "degerler": [8, 10, 12, 15, 18]
+        },
+        {
+          "ad": "Reaktör Kalbi",
+          "tur": "uyanis",
+          "tur_ad": "Uyanış",
+          "yildiz": 5,
+          "aciklama": "Çekirdek İnişi'nden sonra 2 tur filonun bütün hasarı yüzde {0} artar.",
+          "degerler": [10, 12, 14, 17, 20]
+        }
+      ],
+      "agaclar": ["zipkin", "akinti", "saldiri"],
+      "notlar": "Enerji becerisi orta oyunun enerji açığında ekibe girer. Savaşta arka sırayı vuran Zıpkıncı Kaptanı; Uyanış'tan sonra Çekirdek İnişi filonun en büyük patlama anı olur."
+    },
+    {
+      "id": "sable",
+      "ad": "Sable",
+      "unvan": "Kasaların ustası",
+      "sinif": "Engineer",
+      "fraksiyon": "AbyssCult",
+      "nadirlik": "epic",
+      "nesil": 1,
+      "durum": "kodda",
+      "biyografi": "Eski Uçurum Tarikatı mühendisi. Başkalarının kaybedeceğini koruyan basınç kasaları kurar. Tarikatın en derin mahzenlerini o mühürledi; bugün aynı ustalıkla her kubbenin ambarını korur ve kasalarının kapağına hâlâ tarikatın sarmal işaretini kazır.",
+      "kazanim": "Kriyo-Kapsül, Destansı kartı",
+      "murettebat": {"etki": "capacity:All", "taban": 5, "seviye_onda": 4, "yildiz": 4},
+      "yetenekler": [
+        {
+          "ad": "Basınç Kilidi",
+          "tur": "aktif",
+          "tur_ad": "Aktif (öfke)",
+          "yildiz": 1,
+          "aciklama": "Filonun DEF'i 2 tur yüzde {0} artar; ikinci turun sonunda engellenen hasarın onda biri saldırana döner.",
+          "degerler": [12, 14, 17, 20, 24]
+        },
+        {
+          "ad": "Mühürlü Ambar",
+          "tur": "pasif",
+          "tur_ad": "Pasif",
+          "yildiz": 2,
+          "aciklama": "Savunma Kaptanı ya da Subayıyken üs yağmalanırsa kaybedilen kaynak yüzde {0} azalır.",
+          "degerler": [5, 6, 8, 10, 12]
+        },
+        {
+          "ad": "Kasa Gövde",
+          "tur": "sefer",
+          "tur_ad": "Sefer / basınç",
+          "yildiz": 3,
+          "aciklama": "Seferde denizaltının gövde dayanımı yüzde {0} artar.",
+          "degerler": [8, 10, 12, 15, 18]
+        },
+        {
+          "ad": "Sarmal Mühür",
+          "tur": "uyanis",
+          "tur_ad": "Uyanış",
+          "yildiz": 5,
+          "aciklama": "Basınç Kilidi 3 tur sürer ve etkisi yüzde {0} artar.",
+          "degerler": [10, 12, 14, 17, 20]
+        }
+      ],
+      "agaclar": ["garnizon", "ark", "savunma"],
+      "notlar": "Depo becerisi yağma baskısı altındaki oyuncular için değerlidir. Savaşta garnizon Kaptanı: kalkanları ve Garnizon ağacı üssü savunur. Mühürlü Ambar, Sable Komuta Ekibi'nde değil üsteki garnizon filosundayken çalışır."
+    },
+    {
+      "id": "emi",
+      "ad": "Dr. Emi Sakamoto",
+      "unvan": "Basınç cerrahı",
+      "sinif": "Medic",
+      "fraksiyon": "PacificOrder",
+      "nadirlik": "epic",
+      "nesil": 1,
+      "durum": "tasarim",
+      "biyografi": "Yokohama'da doğdu; Pasifik Tarikatı'nın Izu-Ogasawara Çukuru'ndaki revirinde basınç cerrahisini o kurdu. Doygunluk dalgıçlarının yüksek basınç sinir sendromu için yazdığı protokol, bugün her kubbenin revir duvarında asılıdır.",
+      "kazanim": "Kriyo-Kapsül, Destansı kartı",
+      "murettebat": {"etki": "healingSpeed", "ad": "Yaralı iyileştirme hızı", "taban": 5, "seviye_onda": 4, "yildiz": 4},
+      "yetenekler": [
+        {
+          "ad": "Dekompresyon",
+          "tur": "aktif",
+          "tur_ad": "Aktif (öfke)",
+          "yildiz": 1,
+          "aciklama": "Filonun en çok kayıp vermiş iki yığınını iyileştirir (normal hasarın yüzde {0} kadarı HP).",
+          "degerler": [45, 51, 57, 65, 75]
+        },
+        {
+          "ad": "Steril Alan",
+          "tur": "pasif",
+          "tur_ad": "Pasif",
+          "yildiz": 2,
+          "aciklama": "Savaşta ölecek askerlerin bir kısmı yaralı olarak kurtulur (yüzde {0}).",
+          "degerler": [5, 6, 8, 10, 12]
+        },
+        {
+          "ad": "Doygunluk Protokolü",
+          "tur": "sefer",
+          "tur_ad": "Sefer / basınç",
+          "yildiz": 3,
+          "aciklama": "Seferde her karşılaşmadan sonra kahraman takımı canının bir kısmını geri kazanır (yüzde {0}).",
+          "degerler": [8, 10, 12, 15, 18]
+        },
+        {
+          "ad": "İkinci Nefes",
+          "tur": "uyanis",
+          "tur_ad": "Uyanış",
+          "yildiz": 5,
+          "aciklama": "Filo ilk kez başlangıcının yarısının altına inince o ana kadarki kayıpların bir kısmı hafif yaralı olarak geri döner (yüzde {0}); savaş başına bir kez.",
+          "degerler": [8, 10, 12, 14, 16]
+        }
+      ],
+      "agaclar": ["destek", "zirhli", "savunma"],
+      "notlar": "İyileştirme hızı becerisi büyük savaşlardan sonra Revir'i hızla boşaltır. Savaşta ana hekim Subayı; Uyanış'ı filoyu bir kez ayağa kaldırır."
+    },
+    {
+      "id": "ilo",
+      "ad": "Ilo",
+      "unvan": "Işıyan şifacı",
+      "sinif": "Medic",
+      "fraksiyon": "Deepborn",
+      "nadirlik": "epic",
+      "nesil": 1,
+      "durum": "tasarim",
+      "biyografi": "Derindoğanlar'ın şifacısı. Derisindeki ortakyaşar bakteriler yaralandığında soluk mavi ışır ve yarayı karanlıkta görünür kılar. Ilo yaraları bu ışığı izleyerek dikmeyi, ışığı söndürmeden iyileştirmeyi öğrendi.",
+      "kazanim": "Kriyo-Kapsül, Destansı kartı",
+      "murettebat": {"etki": "woundedCapacity", "ad": "Revir kapasitesi", "taban": 5, "seviye_onda": 4, "yildiz": 4},
+      "yetenekler": [
+        {
+          "ad": "Mavi Işık",
+          "tur": "aktif",
+          "tur_ad": "Aktif (öfke)",
+          "yildiz": 1,
+          "aciklama": "Filoya 3 tur boyunca her tur iyileşme (normal hasarın yüzde {0} kadarı HP).",
+          "degerler": [16, 18, 20, 23, 27]
+        },
+        {
+          "ad": "Ortakyaşam",
+          "tur": "pasif",
+          "tur_ad": "Pasif",
+          "yildiz": 2,
+          "aciklama": "Filodaki Zırhlı Dalgıçların HP'si yüzde {0} artar.",
+          "degerler": [5, 6, 8, 10, 12]
+        },
+        {
+          "ad": "Karanlıkta Görmek",
+          "tur": "sefer",
+          "tur_ad": "Sefer / basınç",
+          "yildiz": 3,
+          "aciklama": "Seferde ışıksız ve sonar-yalnız bölgelerde kahraman takımının ATK'sı yüzde {0} artar.",
+          "degerler": [8, 10, 12, 15, 18]
+        },
+        {
+          "ad": "Sönmeyen Işık",
+          "tur": "uyanis",
+          "tur_ad": "Uyanış",
+          "yildiz": 5,
+          "aciklama": "Mavi Işık süresince filonun aldığı hasar yüzde {0} azalır.",
+          "degerler": [10, 12, 14, 17, 20]
+        }
+      ],
+      "agaclar": ["destek", "zirhli", "derinlik"],
+      "notlar": "Revir kapasitesi becerisi K-21 kayıp kuralında doğrudan ölüm azaltır: Revir taşmadıkça asker ölmez. Zırhlı filolarda sürekli iyileşme sağlar."
+    },
+    {
+      "id": "mattias",
+      "ad": "Mattias Gröndahl",
+      "unvan": "Leviathan izcisi",
+      "sinif": "Hunter",
+      "fraksiyon": "AbyssCult",
+      "nadirlik": "epic",
+      "nesil": 1,
+      "durum": "tasarim",
+      "biyografi": "Norveç kıyısında, balina avcılarının torunu olarak büyüdü; dedesinin mesleğinden utandı ve okyanusa başka bir yoldan döndü. Uçurum Tarikatı için Demir Leviathan'ların izini sürer ve onları ittifak avlarına çeker; tarikatın Leviathan'larda neyi dinlediğini soranlara yalnızca gülümser.",
+      "kazanim": "Kriyo-Kapsül, Destansı kartı",
+      "murettebat": {"etki": "huntReward", "ad": "Canavar avı ödülü", "taban": 5, "seviye_onda": 4, "yildiz": 4},
+      "yetenekler": [
+        {
+          "ad": "Zıpkın Yağmuru",
+          "tur": "aktif",
+          "tur_ad": "Aktif (öfke)",
+          "yildiz": 1,
+          "aciklama": "Bütün düşman yığınlarına ek hasar (normal hasarın yüzde {0} kadarı).",
+          "degerler": [48, 54, 61, 70, 80]
+        },
+        {
+          "ad": "İz Okuma",
+          "tur": "pasif",
+          "tur_ad": "Pasif",
+          "yildiz": 2,
+          "aciklama": "Canavarlara (Uçurum Sürüngenleri, Siren Sürüsü, Demir Leviathan) verilen hasar yüzde {0} artar.",
+          "degerler": [5, 6, 8, 10, 12]
+        },
+        {
+          "ad": "Soğuk Su",
+          "tur": "sefer",
+          "tur_ad": "Sefer / basınç",
+          "yildiz": 3,
+          "aciklama": "Seferde ve haritada canavar karşılaşmalarındaki kayıplar yüzde {0} azalır.",
+          "degerler": [8, 10, 12, 15, 18]
+        },
+        {
+          "ad": "Dev Avı",
+          "tur": "uyanis",
+          "tur_ad": "Uyanış",
+          "yildiz": 5,
+          "aciklama": "Zıpkın Yağmuru, kaybı henüz %25'i geçmemiş yığınlara yüzde {0} daha fazla vurur.",
+          "degerler": [10, 12, 14, 17, 20]
+        }
+      ],
+      "agaclar": ["avcilik", "zipkin", "saldiri"],
+      "notlar": "Canavar avı ödülü becerisi Sürü Baskını ve Leviathan Avı çıktısını büyütür. Avcılık ağacıyla oyunun ilk tam PvE Kaptanı; Uçurum Tarikatı kökenli oyunculara çıkışta üçüncü fraksiyon kahramanını sağlar."
+    },
+    {
+      "id": "deniz",
+      "ad": "Deniz Karaca",
+      "unvan": "Gövde mimarı",
+      "sinif": "Engineer",
+      "fraksiyon": "AtlanticUnion",
+      "nadirlik": "epic",
+      "nesil": 2,
+      "durum": "tasarim",
+      "biyografi": "İstanbul'da gemi inşa okudu, Atlantik Birliği'nin basınç gövdesi bürosunda yükseldi. Orta Atlantik Sırtı'ndaki Lost City'nin karbonat bacalarını inceleyerek basıncı taşımak yerine yönlendiren gövde fikrini geliştirdi; ekibi ona 'Mimar' der.",
+      "kazanim": "2. nesil: Öne Çıkan Kapsül (Destansı), Kriyo-Kapsül, Destansı kartı",
+      "murettebat": {"etki": "craftTime", "ad": "Teçhizat üretim süresi", "taban": -5, "seviye_onda": -4, "yildiz": -4},
+      "yetenekler": [
+        {
+          "ad": "Gerilim Hattı",
+          "tur": "aktif",
+          "tur_ad": "Aktif (öfke)",
+          "yildiz": 1,
+          "aciklama": "Arka saftaki düşman yığınlarına ark deşarjı: ek hasar (normal hasarın yüzde {0} kadarı).",
+          "degerler": [54, 61, 68, 78, 90]
+        },
+        {
+          "ad": "Akıllı Gövde",
+          "tur": "pasif",
+          "tur_ad": "Pasif",
+          "yildiz": 2,
+          "aciklama": "Filodaki Ark Askerlerinin DEF'i yüzde {0} artar.",
+          "degerler": [5, 6, 8, 10, 12]
+        },
+        {
+          "ad": "Basınç Mimarisi",
+          "tur": "sefer",
+          "tur_ad": "Sefer / basınç",
+          "yildiz": 3,
+          "aciklama": "Seferde basınç sınıfının sınırındaki gövde hasarı yüzde {0} azalır.",
+          "degerler": [8, 10, 12, 15, 18]
+        },
+        {
+          "ad": "Karbonat Kule",
+          "tur": "uyanis",
+          "tur_ad": "Uyanış",
+          "yildiz": 5,
+          "aciklama": "Gerilim Hattı'nın vurduğu yığınların ATK'sı 2 tur yüzde {0} düşer.",
+          "degerler": [10, 12, 14, 17, 20]
+        }
+      ],
+      "agaclar": ["ark", "fetih", "garnizon"],
+      "notlar": "Teçhizat üretim süresi becerisi Teçhizat Atölyesi kuyruğunu kısaltır (17 · Teçhizat). Savaşta Ark filolarının kontrol Subayı: Gerilim Hattı düşmanın saldırısını kırar."
+    },
+    {
+      "id": "priya",
+      "ad": "Dr. Priya Raman",
+      "unvan": "Nodül kâşifi",
+      "sinif": "Scientist",
+      "fraksiyon": "PacificOrder",
+      "nadirlik": "epic",
+      "nesil": 2,
+      "durum": "tasarim",
+      "biyografi": "Chennai'de doğdu; Hint Okyanusu ve Clarion-Clipperton Bölgesi'ndeki polimetalik nodül alanlarını haritalayan ekibin başındaydı. Milyon yılda birkaç milimetre büyüyen bu yumrulardan nikel ve kobaltı ayırıp Süperalaşım'a döken ilk dökümhanenin reçetesi onundur.",
+      "kazanim": "2. nesil: Öne Çıkan Kapsül (Destansı), Kriyo-Kapsül, Destansı kartı",
+      "murettebat": {"etki": "production:Alloy", "taban": 3, "seviye_onda": 2, "yildiz": 2},
+      "yetenekler": [
+        {
+          "ad": "Kobalt Kıvılcımı",
+          "tur": "aktif",
+          "tur_ad": "Aktif (öfke)",
+          "yildiz": 1,
+          "aciklama": "En kalabalık düşman yığınına ek hasar (normal hasarın yüzde {0} kadarı).",
+          "degerler": [60, 68, 76, 87, 100]
+        },
+        {
+          "ad": "Element Analizi",
+          "tur": "pasif",
+          "tur_ad": "Pasif",
+          "yildiz": 2,
+          "aciklama": "Filonun aktif yetenek hasarı yüzde {0} artar.",
+          "degerler": [5, 6, 8, 10, 12]
+        },
+        {
+          "ad": "Nodül Haritası",
+          "tur": "sefer",
+          "tur_ad": "Sefer / basınç",
+          "yildiz": 3,
+          "aciklama": "Seferde ve Nodül Sahası'nda Süperalaşım bulma yüzde {0} artar.",
+          "degerler": [8, 10, 12, 15, 18]
+        },
+        {
+          "ad": "Dökümhane Ateşi",
+          "tur": "uyanis",
+          "tur_ad": "Uyanış",
+          "yildiz": 5,
+          "aciklama": "Kobalt Kıvılcımı'nın vurduğu yığın 3 tur boyunca her tur ek hasar alır (normal hasarın yüzde {0} kadarı).",
+          "degerler": [12, 14, 16, 19, 22]
+        }
+      ],
+      "agaclar": ["beceri", "ark", "toplama"],
+      "notlar": "Süperalaşım becerisi Reaktör 30 sonrası kapı kaynağında doğrudan rahatlama sağlar; düşük eğri bilinçlidir (en çok %20). 2. nesille gelir, çünkü F2P'nin Süperalaşım çağı o sıralarda başlar."
+    },
+    {
+      "id": "odalys",
+      "ad": "Odalys Ferreira",
+      "unvan": "Derinlik vaizi",
+      "sinif": "Commander",
+      "fraksiyon": "AbyssCult",
+      "nadirlik": "epic",
+      "nesil": 3,
+      "durum": "tasarim",
+      "biyografi": "Brezilya donanmasında denizaltı subayıydı; Güney Sandwich Çukuru'nun buz gibi dip sularındaki bir seferde ekibiyle üç hafta mahsur kaldı ve döndüğünde artık Uçurum Tarikatı'na aitti. Askerlerine az yemeyi, az konuşmayı ve geri adım atmamayı öğretir.",
+      "kazanim": "3. nesil: Öne Çıkan Kapsül (Destansı), Kriyo-Kapsül, Destansı kartı",
+      "murettebat": {"etki": "trainingCost", "ad": "Asker eğitim bedeli", "taban": -3, "seviye_onda": -2, "yildiz": -2},
+      "yetenekler": [
+        {
+          "ad": "Vaaz",
+          "tur": "aktif",
+          "tur_ad": "Aktif (öfke)",
+          "yildiz": 1,
+          "aciklama": "Filonun tüm birliklerinin ATK'sı 2 tur yüzde {0} artar.",
+          "degerler": [10, 12, 14, 17, 20]
+        },
+        {
+          "ad": "Perhiz",
+          "tur": "pasif",
+          "tur_ad": "Pasif",
+          "yildiz": 2,
+          "aciklama": "Filonun HP'si yüzde {0} artar.",
+          "degerler": [5, 6, 8, 10, 12]
+        },
+        {
+          "ad": "Buzlu Sular",
+          "tur": "sefer",
+          "tur_ad": "Sefer / basınç",
+          "yildiz": 3,
+          "aciklama": "Seferde soğuk ve derin bölgelerde filonun DEF'i yüzde {0} artar.",
+          "degerler": [8, 10, 12, 15, 18]
+        },
+        {
+          "ad": "Geri Adım Yok",
+          "tur": "uyanis",
+          "tur_ad": "Uyanış",
+          "yildiz": 5,
+          "aciklama": "Filo başlangıcının yarısının altına inince bütün hasar yüzde {0} artar.",
+          "degerler": [10, 12, 14, 17, 20]
+        }
+      ],
+      "agaclar": ["liderlik", "saldiri", "fetih"],
+      "notlar": "Asker eğitim bedeli becerisi büyük ordu yenilemelerinde Gıda ve Titanyum kazandırır; düşük eğri bilinçlidir. Savaşta saldırı Kaptanı: Vaaz bütün filonun ATK'sını yükseltir, Fetih ağacıyla üs saldırısında parlar."
+    },
+    {
+      "id": "wira",
+      "ad": "Wira Santoso",
+      "unvan": "Java'nın son balıkçısı",
+      "sinif": "Hunter",
+      "fraksiyon": "ForgottenOnes",
+      "nadirlik": "epic",
+      "nesil": 4,
+      "durum": "tasarim",
+      "biyografi": "Java kıyısında bir balıkçı köyünde büyüdü. Hint Okyanusu'nun en derin noktasını barındıran Java Çukuru'ndaki istasyon terk edilince geride kalan otuz kişiyi iki yıl o besledi. Uçurum Sürüngenleri'nin yuvalarını bulmakta ve oradaki malzemeyi toplamakta üstüne yoktur.",
+      "kazanim": "4. nesil: Öne Çıkan Kapsül (Destansı), Kriyo-Kapsül, Destansı kartı",
+      "murettebat": {
+        "etki": "materialFind",
+        "ad": "Teçhizat malzemesi bulma şansı",
+        "taban": 5,
+        "seviye_onda": 4,
+        "yildiz": 4
+      },
+      "yetenekler": [
+        {
+          "ad": "Ağ ve Zıpkın",
+          "tur": "aktif",
+          "tur_ad": "Aktif (öfke)",
+          "yildiz": 1,
+          "aciklama": "En kalabalık düşman yığınına ek hasar (normal hasarın yüzde {0} kadarı); hedef yığın bir sonraki tur %20 daha az hasar verir.",
+          "degerler": [60, 68, 76, 87, 100]
+        },
+        {
+          "ad": "Hayatta Kalan",
+          "tur": "pasif",
+          "tur_ad": "Pasif",
+          "yildiz": 2,
+          "aciklama": "Filodaki Zıpkıncıların HP'si yüzde {0} artar.",
+          "degerler": [5, 6, 8, 10, 12]
+        },
+        {
+          "ad": "Yuva Yağması",
+          "tur": "sefer",
+          "tur_ad": "Sefer / basınç",
+          "yildiz": 3,
+          "aciklama": "Canavar yuvalarından ve seferden gelen teçhizat malzemesi yüzde {0} artar.",
+          "degerler": [8, 10, 12, 15, 18]
+        },
+        {
+          "ad": "Kıyıdaki Ateş",
+          "tur": "uyanis",
+          "tur_ad": "Uyanış",
+          "yildiz": 5,
+          "aciklama": "Ağ ve Zıpkın'ın vurduğu yığının aldığı hasar 2 tur yüzde {0} artar.",
+          "degerler": [10, 12, 14, 17, 20]
+        }
+      ],
+      "agaclar": ["avcilik", "zipkin", "toplama"],
+      "notlar": "Teçhizat malzemesi becerisi 17 · Teçhizat ekonomisinin F2P dostu kahramanıdır: para harcamadan malzeme açığını kapatır. Savaşta tek hedefi kilitleyen Zıpkıncı Subayı."
+    },
+    {
+      "id": "aelis",
+      "ad": "Aelis",
+      "unvan": "Yarı insan, yarı canlı ışık",
+      "sinif": "Scientist",
+      "fraksiyon": "Deepborn",
+      "nadirlik": "legendary",
+      "nesil": 1,
+      "durum": "kodda",
+      "biyografi": "Bir seferde ölen ve Hadalit kristalleriyle geri dönen deniz biyoloğu. Yarı insan, yarı canlı ışık. Ölmeden önce hadal amfipodlarını ve dipteki dev tek hücrelileri kataloglardı; şimdi kubbelerin dışında onların arasında süzülür ve hiçbirine dokunmaz.",
+      "kazanim": "Kriyo-Kapsül, Efsanevi kartı; çıkış Öne Çıkan Kapsülü",
+      "murettebat": {"etki": "production:Biomass", "taban": 8, "seviye_onda": 5, "yildiz": 5},
+      "yetenekler": [
+        {
+          "ad": "Uçurum Çiçeklenmesi",
+          "tur": "aktif",
+          "tur_ad": "Aktif (öfke)",
+          "yildiz": 1,
+          "aciklama": "Bütün düşman yığınlarına biyolüminesan dalga: ek hasar (normal hasarın yüzde {0} kadarı).",
+          "degerler": [60, 68, 76, 86, 100]
+        },
+        {
+          "ad": "Canlı Işık",
+          "tur": "pasif",
+          "tur_ad": "Pasif",
+          "yildiz": 2,
+          "aciklama": "Filonun aktif yetenek hasarı yüzde {0} artar.",
+          "degerler": [6, 8, 10, 13, 16]
+        },
+        {
+          "ad": "Tür Kataloğu",
+          "tur": "sefer",
+          "tur_ad": "Sefer / basınç",
+          "yildiz": 3,
+          "aciklama": "Seferde Tür Kataloğu taramaları ve Biyokütle ödülü yüzde {0} artar.",
+          "degerler": [10, 12, 15, 18, 22]
+        },
+        {
+          "ad": "Okyanus Hafızası",
+          "tur": "komuta",
+          "tur_ad": "Komuta",
+          "yildiz": 4,
+          "aciklama": "Savaşta bir kez, ilk kez bir yığın tamamen yok olunca o yığının askerlerinin bir kısmı yaralı olarak geri çağrılır (yüzde {0}).",
+          "degerler": [20, 25, 30, 35, 40]
+        },
+        {
+          "ad": "Kristal Diriliş",
+          "tur": "uyanis",
+          "tur_ad": "Uyanış",
+          "yildiz": 5,
+          "aciklama": "Uçurum Çiçeklenmesi düşman Kaptan'ının öfkesini sıfırlar ve filoyu iyileştirir (normal hasarın yüzde {0} kadarı HP).",
+          "degerler": [40, 46, 52, 60, 70]
+        }
+      ],
+      "agaclar": ["beceri", "ark", "destek"],
+      "notlar": "Biyokütle becerisi eğitim, iyileştirme ve araştırma yükünü taşır. Savaşta oyunun ilk alan hasarı Kaptanı; Okyanus Hafızası büyük savaşlarda kaybı belirgin biçimde azaltır. Eski tasarımdaki 'Ocean Memory' ve 'Abyss Bloom' fikirleri burada yaşar."
+    },
+    {
+      "id": "kwame",
+      "ad": "Amiral Kwame Boateng",
+      "unvan": "Atlantik'in amirali",
+      "sinif": "Commander",
+      "fraksiyon": "AtlanticUnion",
+      "nadirlik": "legendary",
+      "nesil": 1,
+      "durum": "tasarim",
+      "biyografi": "Akra'da doğdu; Atlantik Birliği'nin Porto Riko'dan Güney Sandwich'e uzanan derin filosunu yirmi yıl yönetti. Çöküş gecesi yedi istasyonun tahliyesini aynı anda yürüttü ve son denizaltıya kendisi binmedi: konvoyun arkasında kalıp yolu açık tuttu.",
+      "kazanim": "Kriyo-Kapsül, Efsanevi kartı; çıkış Öne Çıkan Kapsülü",
+      "murettebat": {"etki": "production:All", "taban": 5, "seviye_onda": 3, "yildiz": 2},
+      "yetenekler": [
+        {
+          "ad": "Filo Emri",
+          "tur": "aktif",
+          "tur_ad": "Aktif (öfke)",
+          "yildiz": 1,
+          "aciklama": "Filonun DEF'i 3 tur yüzde {0} artar.",
+          "degerler": [12, 14, 17, 20, 24]
+        },
+        {
+          "ad": "Amiral Gemisi",
+          "tur": "pasif",
+          "tur_ad": "Pasif",
+          "yildiz": 2,
+          "aciklama": "Filonun birlik kapasitesi yüzde {0} artar.",
+          "degerler": [4, 5, 6, 8, 10]
+        },
+        {
+          "ad": "Konvoy Disiplini",
+          "tur": "sefer",
+          "tur_ad": "Sefer / basınç",
+          "yildiz": 3,
+          "aciklama": "Seferde ve yürüyüşte saldırıya uğrayan filonun aldığı hasar yüzde {0} azalır.",
+          "degerler": [10, 12, 15, 18, 22]
+        },
+        {
+          "ad": "Arka Koruma",
+          "tur": "komuta",
+          "tur_ad": "Komuta",
+          "yildiz": 4,
+          "aciklama": "Ralli lideri ya da Savunma Kaptanı iken komutasındaki bütün askerlerin DEF'i yüzde {0} artar.",
+          "degerler": [4, 5, 6, 8, 10]
+        },
+        {
+          "ad": "Son Denizaltı",
+          "tur": "uyanis",
+          "tur_ad": "Uyanış",
+          "yildiz": 5,
+          "aciklama": "Filo ilk kez başlangıcının yarısının altına inince Filo Emri yeniden tetiklenir ve etkisi ayrıca yüzde {0} artar.",
+          "degerler": [12, 15, 18, 22, 26]
+        }
+      ],
+      "agaclar": ["liderlik", "zirhli", "garnizon"],
+      "notlar": "Tüm üretim becerisi tek yuvada geniş etki verir; düşük eğri bilinçlidir (en çok %27). Savaşta liderlik ve garnizon Kaptanı; Arka Koruma rallide ve kale savunmasında bütün müttefiklere yayılır."
+    },
+    {
+      "id": "meridyen",
+      "ad": "Meridyen",
+      "unvan": "Terk edilmiş istasyonun zekâsı",
+      "sinif": "Pilot",
+      "fraksiyon": "ForgottenOnes",
+      "nadirlik": "legendary",
+      "nesil": 1,
+      "durum": "tasarim",
+      "biyografi": "Kuzey Atlantik'teki bir derin istasyonun yönetim zekâsıydı. İstasyon boşaltılınca onu kapatmayı unuttular; Meridyen on bir yıl boş koridorları onardı, dron sürüsünü çalıştırdı ve kimse dönmeyince Unutulanlar'a katıldı. Bir sesi, bir dron sürüsü ve tükenmeyen bir sabrı var.",
+      "kazanim": "Kriyo-Kapsül, Efsanevi kartı; çıkış Öne Çıkan Kapsülü",
+      "murettebat": {"etki": "buildTime", "taban": -6, "seviye_onda": -4, "yildiz": -3},
+      "yetenekler": [
+        {
+          "ad": "Dron Sürüsü",
+          "tur": "aktif",
+          "tur_ad": "Aktif (öfke)",
+          "yildiz": 1,
+          "aciklama": "Dron sürüsü en kalabalık iki düşman yığınına saldırır: ek hasar (normal hasarın yüzde {0} kadarı); düşman Kaptan'ı 1 tur öfke kazanamaz.",
+          "degerler": [68, 77, 86, 97, 112]
+        },
+        {
+          "ad": "Hesaplanmış Rota",
+          "tur": "pasif",
+          "tur_ad": "Pasif",
+          "yildiz": 2,
+          "aciklama": "Filonun yürüyüş hızı yüzde {0} artar.",
+          "degerler": [6, 8, 10, 13, 16]
+        },
+        {
+          "ad": "Otonom Keşif",
+          "tur": "sefer",
+          "tur_ad": "Sefer / basınç",
+          "yildiz": 3,
+          "aciklama": "Seferde keşif dronları gizli olay bulma şansını yüzde {0} artırır.",
+          "degerler": [10, 12, 15, 18, 22]
+        },
+        {
+          "ad": "Ağ Komutası",
+          "tur": "komuta",
+          "tur_ad": "Komuta",
+          "yildiz": 4,
+          "aciklama": "Filodaki iki Subay'ın aktif yetenek hasarı yüzde {0} artar.",
+          "degerler": [5, 6, 8, 10, 12]
+        },
+        {
+          "ad": "Sonsuz Döngü",
+          "tur": "uyanis",
+          "tur_ad": "Uyanış",
+          "yildiz": 5,
+          "aciklama": "Dron Sürüsü her kullanıldığında Meridyen'in sonraki yeteneği için gereken öfke yüzde {0} azalır (en çok 3 kez birikir).",
+          "degerler": [6, 7, 8, 10, 12]
+        }
+      ],
+      "agaclar": ["akinti", "beceri", "zipkin"],
+      "notlar": "İnşa süresi becerisinin efsanevi sürümü; Komutan Elias Rourke'nin doğal halefi. Eğri v8 standardının (8/5/5) altında tutuldu, çünkü inşa hızı Reaktör 50 temposunu doğrudan değiştirir. Savaşta dron sürüsüyle düşman öfkesini kesen Zıpkıncı Kaptanı."
+    },
+    {
+      "id": "ufuk",
+      "ad": "Ufuk",
+      "unvan": "Uyanan Kadim Muhafız",
+      "sinif": "Engineer",
+      "fraksiyon": "ForgottenOnes",
+      "nadirlik": "legendary",
+      "nesil": 2,
+      "durum": "tasarim",
+      "biyografi": "Tonga Çukuru'nun Horizon Deep'inde, kadim bir kapının önünde uyanan Kadim Muhafız. Ötekilerin aksine saldırmadı; yalnızca bekledi ve onu bulan Unutulanlar'a dönüp kendi adını sordu. Adı yoktu; ona uyandığı derinliğin adını verdiler: Ufuk. Kadim alaşımların nasıl döküldüğünü hatırlayan tek varlık odur.",
+      "kazanim": "2. nesil: Öne Çıkan Kapsül, Kriyo-Kapsül, Efsanevi kartı",
+      "murettebat": {"etki": "production:Alloy", "taban": 5, "seviye_onda": 3, "yildiz": 2},
+      "yetenekler": [
+        {
+          "ad": "Kadim Ark",
+          "tur": "aktif",
+          "tur_ad": "Aktif (öfke)",
+          "yildiz": 1,
+          "aciklama": "Bütün düşman yığınlarına kadim alaşımdan sıçrayan ark: ek hasar (normal hasarın yüzde {0} kadarı).",
+          "degerler": [60, 68, 76, 86, 100]
+        },
+        {
+          "ad": "Muhafız Kabuğu",
+          "tur": "pasif",
+          "tur_ad": "Pasif",
+          "yildiz": 2,
+          "aciklama": "Filodaki Ark Askerlerinin DEF ve HP'si yüzde {0} artar.",
+          "degerler": [5, 6, 8, 10, 13]
+        },
+        {
+          "ad": "Kapıların Hafızası",
+          "tur": "sefer",
+          "tur_ad": "Sefer / basınç",
+          "yildiz": 3,
+          "aciklama": "Seferde kadim kalıntılarda kalıntı ve kadim parça bulma şansı yüzde {0} artar.",
+          "degerler": [10, 12, 15, 18, 22]
+        },
+        {
+          "ad": "Eski Direktif",
+          "tur": "komuta",
+          "tur_ad": "Komuta",
+          "yildiz": 4,
+          "aciklama": "Kadim Muhafızlar'a karşı filonun tüm hasarı yüzde {0} artar.",
+          "degerler": [8, 10, 12, 15, 18]
+        },
+        {
+          "ad": "Kapıyı Açan",
+          "tur": "uyanis",
+          "tur_ad": "Uyanış",
+          "yildiz": 5,
+          "aciklama": "Kadim Ark, vurduğu yığınların o turki DEF artışlarını (kalkanlarını) siler ve hasarı yüzde {0} artar.",
+          "degerler": [12, 15, 18, 22, 26]
+        }
+      ],
+      "agaclar": ["ark", "garnizon", "derinlik"],
+      "notlar": "Süperalaşım becerisinin efsanevi sürümü; Dr. Priya Raman ile aynı nesilde gelir ve Süperalaşım darboğazını hedefler. Savaşta Kadim Muhafızlar'a karşı en güçlü Kaptan. 2. nesil etkinliği kadim kapıların hikâyesini açar (16 · Kronik)."
+    },
+    {
+      "id": "saoirse",
+      "ad": "Saoirse Kavanagh",
+      "unvan": "Derinlik rekortmeni",
+      "sinif": "Pilot",
+      "fraksiyon": "AtlanticUnion",
+      "nadirlik": "legendary",
+      "nesil": 2,
+      "durum": "tasarim",
+      "biyografi": "Galway'li test pilotu; Atlantik Birliği'nin en derin dalış sınıfı denizaltısını Porto Riko Çukuru'nun dibine o indirdi. 2014'te Kermadec'te 9.990 metrede kaybolan insansız Nereus'un mühendislik raporunu ezbere bilir ve her dalıştan önce bir sayfasını yeniden okur.",
+      "kazanim": "2. nesil: Öne Çıkan Kapsül, Kriyo-Kapsül, Efsanevi kartı",
+      "murettebat": {"etki": "carryCapacity", "ad": "Denizaltı yük kapasitesi", "taban": 8, "seviye_onda": 5, "yildiz": 5},
+      "yetenekler": [
+        {
+          "ad": "Dikey İniş",
+          "tur": "aktif",
+          "tur_ad": "Aktif (öfke)",
+          "yildiz": 1,
+          "aciklama": "En kalabalık düşman yığınına dikey dalış: ek hasar (normal hasarın yüzde {0} kadarı); hedefin DEF'i 2 tur %10 düşer.",
+          "degerler": [75, 85, 95, 108, 125]
+        },
+        {
+          "ad": "Gövde Hissi",
+          "tur": "pasif",
+          "tur_ad": "Pasif",
+          "yildiz": 2,
+          "aciklama": "Filodaki Zıpkıncıların ATK'sı yüzde {0} artar.",
+          "degerler": [6, 8, 10, 13, 16]
+        },
+        {
+          "ad": "Rekor Dalışı",
+          "tur": "sefer",
+          "tur_ad": "Sefer / basınç",
+          "yildiz": 3,
+          "aciklama": "Seferde gövdenin bir sınıf derinindeki bölgelerde aldığı basınç hasarı yüzde {0} azalır.",
+          "degerler": [10, 12, 15, 18, 22]
+        },
+        {
+          "ad": "Kanat Pilotları",
+          "tur": "komuta",
+          "tur_ad": "Komuta",
+          "yildiz": 4,
+          "aciklama": "Filodaki Zıpkıncıların normal saldırı hasarı yüzde {0} artar.",
+          "degerler": [4, 5, 6, 8, 10]
+        },
+        {
+          "ad": "Dip",
+          "tur": "uyanis",
+          "tur_ad": "Uyanış",
+          "yildiz": 5,
+          "aciklama": "Dikey İniş'in hasarı yüzde {0} artar; hedef yığını yok ederse Kaptan'ın öfkesinin yarısı geri gelir.",
+          "degerler": [12, 15, 18, 22, 26]
+        }
+      ],
+      "agaclar": ["zipkin", "akinti", "derinlik"],
+      "notlar": "Yük kapasitesi becerisi toplama ve yağma verimini büyütür. Savaşta tek hedefe oyunun en büyük açılış hasarını yapan Zıpkıncı Kaptanı. Biyografisindeki Nereus anması bir mühendislik dersidir (K-26)."
+    },
+    {
+      "id": "seoyeon",
+      "ad": "Dr. Han Seo-yeon",
+      "unvan": "Hadalit'in kâhini",
+      "sinif": "Scientist",
+      "fraksiyon": "PacificOrder",
+      "nadirlik": "legendary",
+      "nesil": 3,
+      "durum": "tasarim",
+      "biyografi": "Busan'da doğdu ve Pasifik Tarikatı'nın en genç başaraştırmacısı oldu. Hadalit'in basınç altında ışık ile ses arasında enerji aktardığını ilk o gösterdi. Tarikat ona 'kâhin' der, çünkü kristalin bir sonraki adımını hep herkesten önce görür.",
+      "kazanim": "3. nesil: Öne Çıkan Kapsül, Kriyo-Kapsül, Efsanevi kartı",
+      "murettebat": {"etki": "researchTime", "taban": -6, "seviye_onda": -4, "yildiz": -3},
+      "yetenekler": [
+        {
+          "ad": "Rezonans Kırılması",
+          "tur": "aktif",
+          "tur_ad": "Aktif (öfke)",
+          "yildiz": 1,
+          "aciklama": "En kalabalık düşman yığınına yıkıcı rezonans: ek hasar (normal hasarın yüzde {0} kadarı); düşman Kaptan'ının öfkesi 150 azalır.",
+          "degerler": [75, 85, 95, 108, 125]
+        },
+        {
+          "ad": "Öngörü",
+          "tur": "pasif",
+          "tur_ad": "Pasif",
+          "yildiz": 2,
+          "aciklama": "Filonun öfke kazanımı yüzde {0} artar.",
+          "degerler": [6, 8, 10, 13, 16]
+        },
+        {
+          "ad": "Kristal Okuma",
+          "tur": "sefer",
+          "tur_ad": "Sefer / basınç",
+          "yildiz": 3,
+          "aciklama": "Seferde Hadalit ve kalıntı bulma şansı yüzde {0} artar.",
+          "degerler": [10, 12, 15, 18, 22]
+        },
+        {
+          "ad": "Laboratuvar Disiplini",
+          "tur": "komuta",
+          "tur_ad": "Komuta",
+          "yildiz": 4,
+          "aciklama": "Filodaki bütün aktif yeteneklerin hasarı yüzde {0} artar.",
+          "degerler": [4, 5, 6, 8, 10]
+        },
+        {
+          "ad": "Kâhin",
+          "tur": "uyanis",
+          "tur_ad": "Uyanış",
+          "yildiz": 5,
+          "aciklama": "Rezonans Kırılması, hedefin yanındaki yığınlara yüzde {0} güçle sıçrar.",
+          "degerler": [30, 35, 40, 45, 50]
+        }
+      ],
+      "agaclar": ["beceri", "ark", "derinlik"],
+      "notlar": "Araştırma süresi becerisinin efsanevi sürümü; Dr. Orin Hale'in halefi. Eğri inşa hızındaki gibi v8 standardının altındadır. Savaşta yetenek odaklı Ark filolarının Kaptanı."
+    },
+    {
+      "id": "kiri",
+      "ad": "Kiri",
+      "unvan": "Kermadec'in avcısı",
+      "sinif": "Hunter",
+      "fraksiyon": "Deepborn",
+      "nadirlik": "legendary",
+      "nesil": 3,
+      "durum": "tasarim",
+      "biyografi": "Kermadec Çukuru'nun dibindeki ilk Derindoğan kolonisinde doğdu. Atalarının adalarını hiç görmedi ama onların seyir şarkılarını bilir; şarkının ritmiyle nefesini tutar ve Siren Sürüsü'nü sessizce ikiye bölerek avlar.",
+      "kazanim": "3. nesil: Öne Çıkan Kapsül, Kriyo-Kapsül, Efsanevi kartı",
+      "murettebat": {"etki": "huntReward", "ad": "Canavar avı ödülü", "taban": 8, "seviye_onda": 5, "yildiz": 5},
+      "yetenekler": [
+        {
+          "ad": "Seyir Şarkısı",
+          "tur": "aktif",
+          "tur_ad": "Aktif (öfke)",
+          "yildiz": 1,
+          "aciklama": "Düşmanın arka safına sessiz baskın: ek hasar (normal hasarın yüzde {0} kadarı).",
+          "degerler": [68, 77, 86, 97, 112]
+        },
+        {
+          "ad": "Nefes Ritmi",
+          "tur": "pasif",
+          "tur_ad": "Pasif",
+          "yildiz": 2,
+          "aciklama": "Filonun ATK'sı yüzde {0} artar.",
+          "degerler": [6, 8, 10, 13, 16]
+        },
+        {
+          "ad": "Sürüyü Bölmek",
+          "tur": "sefer",
+          "tur_ad": "Sefer / basınç",
+          "yildiz": 3,
+          "aciklama": "Siren Sürüsü ve Uçurum Sürüngenleri'ne karşı kayıplar yüzde {0} azalır.",
+          "degerler": [10, 12, 15, 18, 22]
+        },
+        {
+          "ad": "Av Lideri",
+          "tur": "komuta",
+          "tur_ad": "Komuta",
+          "yildiz": 4,
+          "aciklama": "Demir Leviathan rallisinin lideriyken ralliye katılan bütün askerlerin hasarı yüzde {0} artar.",
+          "degerler": [4, 5, 6, 8, 10]
+        },
+        {
+          "ad": "Atalardan Kalan",
+          "tur": "uyanis",
+          "tur_ad": "Uyanış",
+          "yildiz": 5,
+          "aciklama": "Seyir Şarkısı'nın vurduğu yığınların yeteneklerden aldığı hasar 2 tur yüzde {0} artar.",
+          "degerler": [12, 15, 18, 22, 26]
+        }
+      ],
+      "agaclar": ["avcilik", "saldiri", "zipkin"],
+      "notlar": "Canavar avı ödülünün efsanevi sürümü; Mattias Gröndahl'ın halefi. Leviathan rallilerinin lideri; Avcılık Zirvesi (Titan Kokusu) ile son oyunun Titan dalgalarında da öndedir."
+    },
+    {
+      "id": "sura",
+      "ad": "Sura",
+      "unvan": "Kor taşıyan",
+      "sinif": "Hunter",
+      "fraksiyon": "AbyssCult",
+      "nadirlik": "legendary",
+      "nesil": 3,
+      "durum": "tasarim",
+      "biyografi": "Tarikatın kristal ayininden sağ çıkan tek kişi. Sol kolundan omzuna kadar Hadalit kafesiyle kaplı; kristal karanlıkta onun nabzıyla ışır. Soyadını ayinde bıraktı. Avladığı her Demir Leviathan'ın gövdesinden bir kristal kıymığı söker ve kafesine ekler.",
+      "kazanim": "3. nesil: Öne Çıkan Kapsül, Kriyo-Kapsül, Efsanevi kartı",
+      "murettebat": {"etki": "hadaliteChance", "ad": "Hadalit bulma şansı", "taban": 4, "seviye_onda": 2, "yildiz": 2},
+      "yetenekler": [
+        {
+          "ad": "Kristal Pençe",
+          "tur": "aktif",
+          "tur_ad": "Aktif (öfke)",
+          "yildiz": 1,
+          "aciklama": "En kalabalık düşman yığınına yıkıcı darbe: ek hasar (normal hasarın yüzde {0} kadarı); filonun kaybı arttıkça hasar büyür (en çok iki katı).",
+          "degerler": [70, 80, 90, 102, 118]
+        },
+        {
+          "ad": "Kor",
+          "tur": "pasif",
+          "tur_ad": "Pasif",
+          "yildiz": 2,
+          "aciklama": "Filonun normal saldırı hasarı yüzde {0} artar.",
+          "degerler": [6, 8, 10, 13, 16]
+        },
+        {
+          "ad": "Kristal Nabzı",
+          "tur": "sefer",
+          "tur_ad": "Sefer / basınç",
+          "yildiz": 3,
+          "aciklama": "Seferde bulunan Hadalit yüzde {0} artar.",
+          "degerler": [10, 12, 15, 18, 22]
+        },
+        {
+          "ad": "Kafes",
+          "tur": "komuta",
+          "tur_ad": "Komuta",
+          "yildiz": 4,
+          "aciklama": "Filo kayıp verdikçe filodaki kahramanların kazandığı öfke yüzde {0} artar.",
+          "degerler": [8, 10, 12, 15, 18]
+        },
+        {
+          "ad": "Ayin",
+          "tur": "uyanis",
+          "tur_ad": "Uyanış",
+          "yildiz": 5,
+          "aciklama": "Kristal Pençe hedef yığını yok ederse o turun kayıplarının bir kısmı hafif yaralı olarak geri döner (yüzde {0}).",
+          "degerler": [20, 24, 28, 33, 40]
+        }
+      ],
+      "agaclar": ["saldiri", "zipkin", "avcilik"],
+      "notlar": "Hadalit bulma şansı becerisi küçük ama kalıcı bir premium para akışıdır; harita Hadalit günlük sınırı korunur ve eğri bilinçli olarak en düşük tutuldu (en çok %21, göreli). Savaşta tek hedef bitirici Kaptan."
+    },
+    {
+      "id": "ilian",
+      "ad": "Ilian Varga",
+      "unvan": "Uçurumun Sözcüsü",
+      "sinif": "Commander",
+      "fraksiyon": "AbyssCult",
+      "nadirlik": "legendary",
+      "nesil": 4,
+      "durum": "tasarim",
+      "biyografi": "Budapeşte'de akustik mühendisiydi; Demir Leviathan'ların çağrılarını kaydeden ilk hidrofon ağını kurdu. Kayıtları dinledikçe tarikata yaklaştı ve sonunda sözcüsü oldu. Uçurum Tarikatı'nda kimse ona emir vermez; o yalnızca derinin ne istediğini söyler.",
+      "kazanim": "4. nesil: Öne Çıkan Kapsül, Kriyo-Kapsül, Efsanevi kartı",
+      "murettebat": {"etki": "upkeep:Food", "ad": "Ordu Gıda tüketimi", "taban": -6, "seviye_onda": -4, "yildiz": -3},
+      "yetenekler": [
+        {
+          "ad": "Çağrı",
+          "tur": "aktif",
+          "tur_ad": "Aktif (öfke)",
+          "yildiz": 1,
+          "aciklama": "Leviathan çağrısının yankısı: bütün düşman yığınlarının ATK'sı 2 tur yüzde {0} düşer.",
+          "degerler": [8, 10, 12, 14, 17]
+        },
+        {
+          "ad": "Sözcü",
+          "tur": "pasif",
+          "tur_ad": "Pasif",
+          "yildiz": 2,
+          "aciklama": "Filonun ATK'sı yüzde {0} artar.",
+          "degerler": [5, 6, 8, 10, 12]
+        },
+        {
+          "ad": "Hidrofon Ağı",
+          "tur": "sefer",
+          "tur_ad": "Sefer / basınç",
+          "yildiz": 3,
+          "aciklama": "Seferde ve haritada Leviathan izlerini ve canavar yuvalarını önceden görme şansı yüzde {0} artar.",
+          "degerler": [10, 12, 15, 18, 22]
+        },
+        {
+          "ad": "Derinin İradesi",
+          "tur": "komuta",
+          "tur_ad": "Komuta",
+          "yildiz": 4,
+          "aciklama": "Ralli lideriyken ralliye katılan bütün askerlerin ATK'sı yüzde {0} artar.",
+          "degerler": [3, 4, 5, 6, 8]
+        },
+        {
+          "ad": "Uçurum Konuşuyor",
+          "tur": "uyanis",
+          "tur_ad": "Uyanış",
+          "yildiz": 5,
+          "aciklama": "Çağrı ayrıca düşman Kaptan ve Subaylarının öfkesini yüzde {0} azaltır.",
+          "degerler": [15, 18, 22, 26, 30]
+        }
+      ],
+      "agaclar": ["liderlik", "fetih", "saldiri"],
+      "notlar": "Ordu Gıda tüketimi becerisi büyük ordularda bakım yükünü hafifletir. Savaşta ralli lideri ve düşman saldırısını kıran kontrol Kaptanı; Odalys Ferreira ile Uçurum Tarikatı'nın saldırı ikilisini kurar."
+    },
+    {
+      "id": "isagani",
+      "ad": "Dr. Isagani Dela Cruz",
+      "unvan": "Filipin Çukuru'nun cerrahı",
+      "sinif": "Medic",
+      "fraksiyon": "PacificOrder",
+      "nadirlik": "legendary",
+      "nesil": 4,
+      "durum": "tasarim",
+      "biyografi": "Manila'da yetişen travma cerrahı; Pasifik Tarikatı'nın Filipin Çukuru üzerindeki hastane gemisini on yıl yönetti. Çöküş sırasında gemiyi dört yüz yaralıyla birlikte, hiçbirini kaybetmeden kubbelere kadar taşıdı.",
+      "kazanim": "4. nesil: Öne Çıkan Kapsül, Kriyo-Kapsül, Efsanevi kartı",
+      "murettebat": {"etki": "healingCost", "ad": "Yaralı iyileştirme bedeli", "taban": -8, "seviye_onda": -5, "yildiz": -5},
+      "yetenekler": [
+        {
+          "ad": "Acil Müdahale",
+          "tur": "aktif",
+          "tur_ad": "Aktif (öfke)",
+          "yildiz": 1,
+          "aciklama": "Filonun bütün yığınlarını iyileştirir (normal hasarın yüzde {0} kadarı HP).",
+          "degerler": [55, 62, 70, 80, 92]
+        },
+        {
+          "ad": "Ameliyathane",
+          "tur": "pasif",
+          "tur_ad": "Pasif",
+          "yildiz": 2,
+          "aciklama": "Savaşta ölecek askerlerin bir kısmı yaralı olarak kurtulur (yüzde {0}).",
+          "degerler": [6, 8, 10, 13, 16]
+        },
+        {
+          "ad": "Hastane Gemisi",
+          "tur": "sefer",
+          "tur_ad": "Sefer / basınç",
+          "yildiz": 3,
+          "aciklama": "Seferde düşen bir kahraman takımı üyesi bir kez ayağa kalkar ve canının bir kısmıyla döner (yüzde {0}).",
+          "degerler": [10, 12, 15, 18, 22]
+        },
+        {
+          "ad": "Triyaj Komutası",
+          "tur": "komuta",
+          "tur_ad": "Komuta",
+          "yildiz": 4,
+          "aciklama": "Ralli lideri ya da Savunma Kaptanı iken komutasındaki askerlerden ölecek olanların bir kısmı yaralı olur (yüzde {0}).",
+          "degerler": [3, 4, 5, 6, 8]
+        },
+        {
+          "ad": "Kimse Geride Kalmaz",
+          "tur": "uyanis",
+          "tur_ad": "Uyanış",
+          "yildiz": 5,
+          "aciklama": "Acil Müdahale ayrıca 2 tur alınan hasarı yüzde {0} azaltır.",
+          "degerler": [12, 15, 18, 22, 26]
+        }
+      ],
+      "agaclar": ["destek", "savunma", "zirhli"],
+      "notlar": "İyileştirme bedeli becerisi Akıntı Savaşı sezonlarında büyük kaynak tasarrufu sağlar. Savaşta ralli ve garnizonda kayıp azaltan destek Kaptanı; K-21 ile birlikte büyük savaşları F2P için katlanılabilir kılan kahramanlardan biri."
+    },
+    {
+      "id": "sela",
+      "ad": "Sela",
+      "unvan": "Derindoğanlar'ın Anası",
+      "sinif": "Medic",
+      "fraksiyon": "Deepborn",
+      "nadirlik": "legendary",
+      "nesil": 4,
+      "durum": "tasarim",
+      "biyografi": "Hadal Eşiği'ndeki ilk habitatta doğan çocukların ilki; bugün Derindoğanlar'ın en yaşlısı. Kanındaki ortakyaşarlar Hadalit tozuna dayanıklıdır ve ondan hazırlanan serum koloninin her yeni doğanını korur. Konuştuğunda kubbe susar.",
+      "kazanim": "4. nesil: Öne Çıkan Kapsül, Kriyo-Kapsül, Efsanevi kartı",
+      "murettebat": {
+        "etki": "consumption:Oxygen",
+        "ad": "Üs Oksijen tüketimi",
+        "taban": -6,
+        "seviye_onda": -4,
+        "yildiz": -3
+      },
+      "yetenekler": [
+        {
+          "ad": "Koruyucu Kan",
+          "tur": "aktif",
+          "tur_ad": "Aktif (öfke)",
+          "yildiz": 1,
+          "aciklama": "Filonun DEF ve HP'si 2 tur yüzde {0} artar.",
+          "degerler": [14, 16, 19, 22, 26]
+        },
+        {
+          "ad": "Ana Gözü",
+          "tur": "pasif",
+          "tur_ad": "Pasif",
+          "yildiz": 2,
+          "aciklama": "Filodaki Zırhlı Dalgıçların DEF ve HP'si yüzde {0} artar.",
+          "degerler": [5, 6, 8, 10, 13]
+        },
+        {
+          "ad": "Basınç Çocukları",
+          "tur": "sefer",
+          "tur_ad": "Sefer / basınç",
+          "yildiz": 3,
+          "aciklama": "Seferde kahraman takımının basınç hasarı yüzde {0} azalır.",
+          "degerler": [10, 12, 15, 18, 22]
+        },
+        {
+          "ad": "Koloni",
+          "tur": "komuta",
+          "tur_ad": "Komuta",
+          "yildiz": 4,
+          "aciklama": "Filodaki üç kahraman da Derindoğan ise bütün birliklerin HP'si ayrıca yüzde {0} artar.",
+          "degerler": [4, 5, 6, 8, 10]
+        },
+        {
+          "ad": "Bin Yıllık Nefes",
+          "tur": "uyanis",
+          "tur_ad": "Uyanış",
+          "yildiz": 5,
+          "aciklama": "Koruyucu Kan, filodaki bütün kahramanların öfke kazanımını 2 tur yüzde {0} artırır.",
+          "degerler": [12, 15, 18, 22, 26]
+        }
+      ],
+      "agaclar": ["destek", "zirhli", "garnizon"],
+      "notlar": "Oksijen tüketimi becerisi kalabalık üslerde Oksijen açığını kapatır; Last Asylum'daki ilaç baskısının Hadal karşılığı olan Oksijen ekonomisinin geç oyun rahatlatıcısıdır. Derindoğan filosunda Koloni ile bütün filonun HP'sini büyütür."
+    }
+  ]
+}

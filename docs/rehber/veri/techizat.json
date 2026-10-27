@@ -1,0 +1,710 @@
+{
+  "surum": "rehber-1",
+  "_not": "17 · Teçhizat verisi. Teçhizatı her kahraman taşıyabilir ama yalnızca Kaptan'ken çalışır. Değerler yüzdedir ve Kaptan'ın filosundaki birliklere uygulanır. Malzemeler kaynak değil eşyadır (K-01); bilimsel arka planları bilim.json 'mineraller' kayıtlarındadır. Atölye seviyesi Reaktör seviyesini geçemez, bu yüzden her nadirliğin açıldığı Atölye seviyesi o reaktörün Titanyum tavanına sığacak biçimde seçildi.",
+  "kurallar": {
+    "yan_oran": 0.5,
+    "birlestirme_oran": 4,
+    "ayristirma_oran": 3,
+    "sokum_malzeme": 50,
+    "sokum_cizim": 100,
+    "pismanlik_saat": 24,
+    "atolye_hiz_seviye_basi": 1,
+    "usta_isi_carpan": 1.2,
+    "yuva_sayisi": 6
+  },
+  "nadirlikler": [
+    {
+      "id": "siradan",
+      "ad": "Sıradan",
+      "renk": "Kırık beyaz",
+      "atolye": 1,
+      "reaktor": 12,
+      "guc": 200,
+      "set": "Setsiz standart parçalar"
+    },
+    {
+      "id": "gelismis",
+      "ad": "Gelişmiş",
+      "renk": "Deniz yeşili",
+      "atolye": 15,
+      "reaktor": 15,
+      "guc": 500,
+      "set": "Setsiz standart parçalar"
+    },
+    {
+      "id": "nadir",
+      "ad": "Nadir",
+      "renk": "Derin mavi",
+      "atolye": 20,
+      "reaktor": 20,
+      "guc": 1200,
+      "set": "Kurtarma Ekibi"
+    },
+    {
+      "id": "destansi",
+      "ad": "Destansı",
+      "renk": "Biyolüminesan mor",
+      "atolye": 25,
+      "reaktor": 25,
+      "guc": 3000,
+      "set": "Sekiz birlik ve rol seti"
+    },
+    {
+      "id": "efsanevi",
+      "ad": "Efsanevi",
+      "renk": "Hadalit altını",
+      "atolye": 35,
+      "reaktor": 35,
+      "guc": 7500,
+      "set": "Dört geç oyun seti"
+    }
+  ],
+  "nadirlikler_sutunlar": [
+    ["ad", "Nadirlik"],
+    ["renk", "Renk"],
+    ["atolye", "Atölye Sv"],
+    ["reaktor", "En erken Reaktör"],
+    ["guc", "Parça gücü"],
+    ["set", "Setler"]
+  ],
+  "malzemeler": [
+    {
+      "id": "kitin",
+      "ad": "Kitin",
+      "doga": "Kabukluların dış iskeleti: kitin-protein lif ağına çökelmiş kalsiyum karbonat. Hayvan her deri değiştirmede iskeleti yeniden kurar.",
+      "oyunda": "Hadal amfipodlarının deri değiştirirken bıraktığı kabuklar ve leş alanlarında biriken kabuk tabakası; canlılara dokunulmadan toplanır.",
+      "rol": "Esnek zırh levhası, conta ve eldiven",
+      "katalog": "Dev Hadal Amfipodu kaydı bilgi kartını açar"
+    },
+    {
+      "id": "bazalt_cami",
+      "ad": "Bazalt camı",
+      "doga": "Su altında püsküren bazalt lavın dış yüzü bir saniyeden kısa sürede cama dönüşür; yastık lavların camsı kabuğu.",
+      "oyunda": "Deniz dağı yamaçlarındaki yastık lavlardan ve fay çatlaklarından kesilen cam kabuk.",
+      "rol": "Basınca dayanıklı vizör, yük taşıyan kaplama, silah gövdesi",
+      "katalog": "—"
+    },
+    {
+      "id": "masif_sulfur",
+      "ad": "Masif sülfür",
+      "doga": "Kara bacalarda kabuktan çözülen metallerin soğuk suyla karşılaşınca çökelmesiyle oluşan bakır, çinko ve demir sülfürleri.",
+      "oyunda": "Sönmüş baca yığınlarından alınan cevher; korunan türlerin yaşadığı aktif bacalar kazı dışıdır.",
+      "rol": "Metal aksam, silah ucu, iletken modül",
+      "katalog": "Pullu Ayaklı Salyangoz kaydı bilgi kartını açar"
+    },
+    {
+      "id": "sintaktik_kopuk",
+      "ad": "Sintaktik köpük",
+      "doga": "İçi boş cam mikrokürelerin epoksi reçineye gömülmesiyle yapılan, sudan hafif ama basınca dayanıklı köpük; derin denizaltıların kaldırma kuvvetini sağlar.",
+      "oyunda": "Teçhizat Atölyesi'nin Köpük Hattı'nda dökülür; eski denizaltı enkazlarının yüzdürme bloklarından da sökülür.",
+      "rol": "Yüzerlik, palet ve gövde dolgusu, modül yuvası",
+      "katalog": "—"
+    }
+  ],
+  "malzemeler_sutunlar": [
+    ["ad", "Malzeme"],
+    ["doga", "Doğada"],
+    ["oyunda", "Oyunda nereden"],
+    ["rol", "Teçhizattaki rolü"],
+    ["katalog", "Tür Kataloğu bağı"]
+  ],
+  "malzeme_kaynaklari": [
+    {
+      "kaynak": "Balina Leşi yatağı",
+      "malzeme": "Kitin",
+      "kural": "Leşçil evrede her tam toplamada %15 şans, 1–2 adet",
+      "sahibi": "09 (öneri)"
+    },
+    {"kaynak": "Uçurum Sürüngenleri", "malzeme": "Kitin", "kural": "Zafer ödülünde", "sahibi": "09 ✓"},
+    {
+      "kaynak": "Kobalt Kabuğu yatağı",
+      "malzeme": "Bazalt camı",
+      "kural": "Her tam toplamada %15 şans, 1–2 adet",
+      "sahibi": "09 (öneri)"
+    },
+    {"kaynak": "Siren Sürüsü", "malzeme": "Bazalt camı", "kural": "Zafer ödülünde", "sahibi": "09 ✓"},
+    {
+      "kaynak": "Masif Sülfür Bacası yatağı",
+      "malzeme": "Masif sülfür",
+      "kural": "Her tam toplamada %15 şans",
+      "sahibi": "09 ✓"
+    },
+    {
+      "kaynak": "Demir Leviathan Yuvası",
+      "malzeme": "Masif sülfür",
+      "kural": "Ralli katılımcısına 2–6 adet",
+      "sahibi": "09 (öneri)"
+    },
+    {
+      "kaynak": "Enkaz Alanı yatağı",
+      "malzeme": "Sintaktik köpük",
+      "kural": "Her tam toplamada %10 şans, 1 adet",
+      "sahibi": "09 (öneri)"
+    },
+    {
+      "kaynak": "Kadim Muhafız Devriyesi",
+      "malzeme": "Sintaktik köpük",
+      "kural": "Zafer ödülünde",
+      "sahibi": "09 ✓"
+    },
+    {
+      "kaynak": "Köpük Hattı (Teçhizat Atölyesi)",
+      "malzeme": "Sintaktik köpük",
+      "kural": "Atölye seviyesine göre (Köpük Hattı tablosu)",
+      "sahibi": "17"
+    },
+    {
+      "kaynak": "Fay Çatlağı II keşfi",
+      "malzeme": "Dördü (rastgele)",
+      "kural": "Dron keşfi ödülü",
+      "sahibi": "09 ✓"
+    },
+    {
+      "kaynak": "Hikâye bölümü 6 (Kadim İz)",
+      "malzeme": "Dördü",
+      "kural": "Atölye açılışında başlangıç paketi",
+      "sahibi": "15 ✓"
+    },
+    {
+      "kaynak": "Muhafız Mahzeni ve Sürü Baskını etkinlikleri",
+      "malzeme": "Dördü",
+      "kural": "Kademe ödülleri; Destansı ve Efsanevi çizim",
+      "sahibi": "13"
+    },
+    {
+      "kaynak": "Batık enkaz (sefer olayı)",
+      "malzeme": "Bölgenin malzemesi",
+      "kural": "Kurtarılan her enkazdan 1 adet; hedefli dron kurtarmasında garanti",
+      "sahibi": "08 ✓"
+    },
+    {
+      "kaynak": "Sefer dükkânı",
+      "malzeme": "Bölümün malzemesi",
+      "kural": "Teçhizat malzemesi kutusu, haftada 5",
+      "sahibi": "08 ✓"
+    },
+    {
+      "kaynak": "Derinlik İzni dükkânı",
+      "malzeme": "Seçmeli",
+      "kural": "Teçhizat malzemesi kutusu, haftada 3",
+      "sahibi": "11 ✓"
+    },
+    {
+      "kaynak": "İttifak Dükkânı",
+      "malzeme": "Seçmeli",
+      "kural": "Haftalık sınırla; Destansı çizim haftada 1",
+      "sahibi": "10"
+    },
+    {"kaynak": "Kalıntı Arşivi", "malzeme": "Dördü", "kural": "Koleksiyon seti tamamlanınca", "sahibi": "16"},
+    {
+      "kaynak": "The Syndicate",
+      "malzeme": "Seçmeli",
+      "kural": "İçeriği yazılı Atölye Sandıkları; rastgele çekiliş yok",
+      "sahibi": "12"
+    }
+  ],
+  "malzeme_kaynaklari_sutunlar": [["kaynak", "Kaynak"], ["malzeme", "Malzeme"], ["kural", "Kural"], ["sahibi", "Bölüm"]],
+  "dusme_nadirligi": [
+    {"kaynak": "Yatak Sv 1–2 · düşman Sv 1–10", "nadirlik": "Sıradan", "yuzde": "%100"},
+    {"kaynak": "Yatak Sv 3–4 · düşman Sv 11–20", "nadirlik": "Gelişmiş (%70) · Sıradan (%30)", "yuzde": "—"},
+    {"kaynak": "Yatak Sv 5 · düşman Sv 21–30", "nadirlik": "Nadir (%60) · Gelişmiş (%40)", "yuzde": "—"},
+    {"kaynak": "Yatak Sv 6–7 · düşman Sv 31–40", "nadirlik": "Destansı (%40) · Nadir (%60)", "yuzde": "—"},
+    {
+      "kaynak": "Yatak Sv 8 · düşman Sv 41–50 · Leviathan 5–6",
+      "nadirlik": "Efsanevi (%15) · Destansı (%50) · Nadir (%35)",
+      "yuzde": "—"
+    }
+  ],
+  "dusme_nadirligi_sutunlar": [["kaynak", "Kaynağın seviyesi"], ["nadirlik", "Düşen malzemenin nadirliği"]],
+  "yuvalar": [
+    {
+      "id": "kask",
+      "ad": "Kask",
+      "ana": "Birlik DEF",
+      "yan": "Birlik HP",
+      "malzeme": "Bazalt camı + Kitin",
+      "siradan": 1,
+      "gelismis": 2,
+      "nadir": 3,
+      "destansi": 5,
+      "efsanevi": 7
+    },
+    {
+      "id": "govde",
+      "ad": "Gövde zırhı",
+      "ana": "Birlik HP",
+      "yan": "Birlik DEF",
+      "malzeme": "Kitin + Sintaktik köpük",
+      "siradan": 1,
+      "gelismis": 2,
+      "nadir": 3,
+      "destansi": 5,
+      "efsanevi": 7
+    },
+    {
+      "id": "eldiven",
+      "ad": "Eldiven",
+      "ana": "Birlik ATK",
+      "yan": "Öfke kazanımı",
+      "malzeme": "Kitin + Masif sülfür",
+      "siradan": 1,
+      "gelismis": 2,
+      "nadir": 3,
+      "destansi": 5,
+      "efsanevi": 7
+    },
+    {
+      "id": "palet",
+      "ad": "Palet",
+      "ana": "Yürüyüş hızı",
+      "yan": "Birlik DEF",
+      "malzeme": "Sintaktik köpük + Bazalt camı",
+      "siradan": 2,
+      "gelismis": 4,
+      "nadir": 6,
+      "destansi": 9,
+      "efsanevi": 12
+    },
+    {
+      "id": "silah",
+      "ad": "Silah",
+      "ana": "Birlik ATK",
+      "yan": "Normal saldırı hasarı",
+      "malzeme": "Masif sülfür + Bazalt camı",
+      "siradan": 1.5,
+      "gelismis": 3,
+      "nadir": 4.5,
+      "destansi": 7,
+      "efsanevi": 10
+    },
+    {
+      "id": "modul",
+      "ad": "Modül",
+      "ana": "Aktif yetenek hasarı",
+      "yan": "Birlik ATK",
+      "malzeme": "Sintaktik köpük + Masif sülfür",
+      "siradan": 2,
+      "gelismis": 4,
+      "nadir": 6,
+      "destansi": 9,
+      "efsanevi": 12
+    }
+  ],
+  "yuvalar_sutunlar": [
+    ["ad", "Yuva"],
+    ["ana", "Ana özellik"],
+    ["yan", "Yan özellik (ana × 0,5)"],
+    ["malzeme", "Ana + yan malzeme"],
+    ["siradan", "Sıradan", "yuzde"],
+    ["gelismis", "Gelişmiş", "yuzde"],
+    ["nadir", "Nadir", "yuzde"],
+    ["destansi", "Destansı", "yuzde"],
+    ["efsanevi", "Efsanevi", "yuzde"]
+  ],
+  "uretim": [
+    {
+      "nadirlik": "Sıradan",
+      "atolye": 1,
+      "ana_adet": 4,
+      "yan_adet": 2,
+      "titanyum": 12000,
+      "alasim": 0,
+      "cizim": "—",
+      "sure": 600
+    },
+    {
+      "nadirlik": "Gelişmiş",
+      "atolye": 15,
+      "ana_adet": 4,
+      "yan_adet": 2,
+      "titanyum": 45000,
+      "alasim": 0,
+      "cizim": "—",
+      "sure": 3600
+    },
+    {
+      "nadirlik": "Nadir",
+      "atolye": 20,
+      "ana_adet": 5,
+      "yan_adet": 3,
+      "titanyum": 180000,
+      "alasim": 0,
+      "cizim": "—",
+      "sure": 14400
+    },
+    {
+      "nadirlik": "Destansı",
+      "atolye": 25,
+      "ana_adet": 6,
+      "yan_adet": 3,
+      "titanyum": 600000,
+      "alasim": 0,
+      "cizim": "Destansı Çizim ×1",
+      "sure": 43200
+    },
+    {
+      "nadirlik": "Efsanevi",
+      "atolye": 35,
+      "ana_adet": 8,
+      "yan_adet": 4,
+      "titanyum": 3000000,
+      "alasim": 150,
+      "cizim": "Efsanevi Çizim ×1",
+      "sure": 86400
+    }
+  ],
+  "uretim_sutunlar": [
+    ["nadirlik", "Parça"],
+    ["atolye", "Atölye Sv"],
+    ["ana_adet", "Ana malzeme"],
+    ["yan_adet", "Yan malzeme"],
+    ["titanyum", "Titanyum"],
+    ["alasim", "Süperalaşım"],
+    ["cizim", "Çizim"],
+    ["sure", "Ham süre", "sure"]
+  ],
+  "set_maliyeti": [
+    {
+      "nadirlik": "Destansı",
+      "parca": 6,
+      "malzeme": 54,
+      "siradan_esdegeri": 3456,
+      "titanyum": 3600000,
+      "alasim": 0,
+      "cizim": 6
+    },
+    {
+      "nadirlik": "Efsanevi",
+      "parca": 6,
+      "malzeme": 72,
+      "siradan_esdegeri": 18432,
+      "titanyum": 18000000,
+      "alasim": 900,
+      "cizim": 6
+    }
+  ],
+  "set_maliyeti_sutunlar": [
+    ["nadirlik", "Tam set"],
+    ["parca", "Parça"],
+    ["malzeme", "Malzeme (o nadirlikte)"],
+    ["siradan_esdegeri", "Sıradan eşdeğeri"],
+    ["titanyum", "Titanyum"],
+    ["alasim", "Süperalaşım"],
+    ["cizim", "Çizim"]
+  ],
+  "birlestirme": [
+    {"gecis": "Sıradan → Gelişmiş", "oran": "4 → 1", "titanyum": 1000, "atolye": 1},
+    {"gecis": "Gelişmiş → Nadir", "oran": "4 → 1", "titanyum": 5000, "atolye": 15},
+    {"gecis": "Nadir → Destansı", "oran": "4 → 1", "titanyum": 25000, "atolye": 20},
+    {"gecis": "Destansı → Efsanevi", "oran": "4 → 1", "titanyum": 100000, "atolye": 25}
+  ],
+  "birlestirme_sutunlar": [
+    ["gecis", "Birleştirme"],
+    ["oran", "Oran"],
+    ["titanyum", "Titanyum (birleştirme başına)"],
+    ["atolye", "Atölye Sv"]
+  ],
+  "sokum": [
+    {
+      "durum": "Normal sökme",
+      "malzeme": "%50 (aşağı yuvarlanır, aynı nadirlik)",
+      "kaynak": "İade yok",
+      "cizim": "%100",
+      "not": "Usta İşi parçasında Usta İşi malzemesinin de yarısı döner"
+    },
+    {
+      "durum": "Pişmanlık penceresi",
+      "malzeme": "%100",
+      "kaynak": "%100 Titanyum ve Süperalaşım",
+      "cizim": "%100",
+      "not": "Üretimden sonraki 24 saat içinde ve parça hiç savaşa girmemişse"
+    },
+    {
+      "durum": "Ayrıştırma (malzeme)",
+      "malzeme": "1 → 3 alt nadirlik",
+      "kaynak": "Bedelsiz",
+      "cizim": "—",
+      "not": "Atölye 15; eksik alt nadirlik malzemesini tamamlamak için"
+    }
+  ],
+  "sokum_sutunlar": [
+    ["durum", "İşlem"],
+    ["malzeme", "Malzeme"],
+    ["kaynak", "Titanyum / Süperalaşım"],
+    ["cizim", "Çizim"],
+    ["not", "Not"]
+  ],
+  "setler": [
+    {
+      "id": "kurtarma_ekibi",
+      "ad": "Kurtarma Ekibi",
+      "nadirlik": "Nadir",
+      "birlik": "Tüm birlikler",
+      "atolye": 20,
+      "iki": "HP +%2",
+      "dort": "DEF +%2",
+      "alti": "ATK +%2"
+    },
+    {
+      "id": "abis_levhasi",
+      "ad": "Abis Levhası",
+      "nadirlik": "Destansı",
+      "birlik": "Zırhlı Dalgıç",
+      "atolye": 25,
+      "iki": "Zırhlı DEF +%3",
+      "dort": "Zırhlı HP +%4",
+      "alti": "Zırhlı Dalgıçların aldığı hasar −%4"
+    },
+    {
+      "id": "akinti_kancasi",
+      "ad": "Akıntı Kancası",
+      "nadirlik": "Destansı",
+      "birlik": "Zıpkıncı",
+      "atolye": 25,
+      "iki": "Zıpkıncı ATK +%3",
+      "dort": "Yürüyüş hızı +%5",
+      "alti": "Zıpkıncı normal saldırı hasarı +%5"
+    },
+    {
+      "id": "firtina_bobini",
+      "ad": "Fırtına Bobini",
+      "nadirlik": "Destansı",
+      "birlik": "Ark Askeri",
+      "atolye": 25,
+      "iki": "Ark ATK +%3",
+      "dort": "Ark HP +%4",
+      "alti": "Aktif yetenek hasarı +%6"
+    },
+    {
+      "id": "kuyu_matkabi",
+      "ad": "Kuyu Matkabı",
+      "nadirlik": "Destansı",
+      "birlik": "Delici",
+      "atolye": 25,
+      "iki": "Delici ATK +%4",
+      "dort": "Yapılara verilen hasar +%6",
+      "alti": "Delici kayıplarının %10'u ölü yerine yaralı"
+    },
+    {
+      "id": "kubbe_nobetcisi",
+      "ad": "Kubbe Nöbetçisi",
+      "nadirlik": "Destansı",
+      "birlik": "Garnizon (tüm birlikler)",
+      "atolye": 25,
+      "iki": "Üs savunmasında DEF +%4",
+      "dort": "Üs savunmasında HP +%5",
+      "alti": "Üs savunmasında alınan hasar −%5"
+    },
+    {
+      "id": "nodul_hasatcisi",
+      "ad": "Nodül Hasatçısı",
+      "nadirlik": "Destansı",
+      "birlik": "Toplama",
+      "atolye": 25,
+      "iki": "Toplama hızı +%5",
+      "dort": "Denizaltı yük kapasitesi +%8",
+      "alti": "Toplamada teçhizat malzemesi şansı +%10"
+    },
+    {
+      "id": "suru_avcisi",
+      "ad": "Sürü Avcısı",
+      "nadirlik": "Destansı",
+      "birlik": "Canavar avı",
+      "atolye": 25,
+      "iki": "Canavarlara verilen hasar +%5",
+      "dort": "Canavar savaşında kayıplar −%5",
+      "alti": "Demir Leviathan ve Hadal Titanı'na hasar +%8"
+    },
+    {
+      "id": "hadal_kasifi",
+      "ad": "Hadal Kâşifi",
+      "nadirlik": "Destansı",
+      "birlik": "Sefer",
+      "atolye": 25,
+      "iki": "Seferde basınç hasarı −%5",
+      "dort": "Sefer ödülleri +%8",
+      "alti": "Bir basınç sınıfı derindeki bölgelerde gövde hasarı −%10"
+    },
+    {
+      "id": "basinc_kalesi",
+      "ad": "Basınç Kalesi",
+      "nadirlik": "Efsanevi",
+      "birlik": "Zırhlı Dalgıç",
+      "atolye": 35,
+      "iki": "Zırhlı DEF +%5",
+      "dort": "Zırhlı HP +%6",
+      "alti": "Her 4 turda bir, Zırhlılar 1 tur %20 daha az hasar alır"
+    },
+    {
+      "id": "karanlik_akinti",
+      "ad": "Karanlık Akıntı",
+      "nadirlik": "Efsanevi",
+      "birlik": "Zıpkıncı",
+      "atolye": 35,
+      "iki": "Zıpkıncı ATK +%5",
+      "dort": "Yürüyüş hızı +%8",
+      "alti": "İlk 3 turda Zıpkıncı hasarı +%10"
+    },
+    {
+      "id": "kadim_rezonans",
+      "ad": "Kadim Rezonans",
+      "nadirlik": "Efsanevi",
+      "birlik": "Ark Askeri",
+      "atolye": 35,
+      "iki": "Ark ATK +%5",
+      "dort": "Öfke kazanımı +%6",
+      "alti": "Aktif yetenek hasarı +%10"
+    },
+    {
+      "id": "muhafiz_kabugu",
+      "ad": "Muhafız Kabuğu",
+      "nadirlik": "Efsanevi",
+      "birlik": "Tüm birlikler",
+      "atolye": 40,
+      "iki": "HP +%3",
+      "dort": "DEF +%3",
+      "alti": "ATK +%3; Kadim Muhafızlar'a hasar +%10"
+    }
+  ],
+  "setler_sutunlar": [
+    ["ad", "Set"],
+    ["nadirlik", "Nadirlik"],
+    ["birlik", "Birlik / rol"],
+    ["atolye", "Atölye Sv"],
+    ["iki", "2 parça"],
+    ["dort", "4 parça"],
+    ["alti", "6 parça"]
+  ],
+  "cizimler": [
+    {
+      "ad": "Destansı Çizim",
+      "nereden": "Kadim Muhafız Devriyesi Sv 25+ (şans), Muhafız Mahzeni etkinliği, İttifak Dükkânı (haftada 1), Kalıntı Arşivi setleri",
+      "not": "Sökmede tam iade"
+    },
+    {
+      "ad": "Efsanevi Çizim",
+      "nereden": "Demir Leviathan Yuvası Sv 3+ (ralli ödülü şansı), Kadim Galeri keşfi, Kronik aşama 8 ve 10, Akıntı Savaşı dükkânı",
+      "not": "Sökmede tam iade; Usta İşi de 1 tane ister"
+    },
+    {
+      "ad": "Kadim parça",
+      "nereden": "Kadim Muhafız Devriyesi, Kadim Galeri (09)",
+      "not": "Yalnızca Muhafız Kabuğu: parça başına 2"
+    }
+  ],
+  "cizimler_sutunlar": [["ad", "Eşya"], ["nereden", "Nereden"], ["not", "Not"]],
+  "kopuk_hatti": [
+    {"atolye": "8–19", "uretim": "4 saatte 1 Sıradan köpük", "depo": 12},
+    {"atolye": "20–29", "uretim": "4 saatte 1 Gelişmiş köpük", "depo": 12},
+    {"atolye": "30–39", "uretim": "4 saatte 1 Nadir köpük", "depo": 12},
+    {"atolye": "40–49", "uretim": "4 saatte 1 Destansı köpük", "depo": 12},
+    {"atolye": "50", "uretim": "3 saatte 1 Destansı köpük", "depo": 16}
+  ],
+  "kopuk_hatti_sutunlar": [["atolye", "Atölye Sv"], ["uretim", "Üretim"], ["depo", "Toplanmadan bekleyen en çok"]],
+  "atolye_kilitleri": [
+    {
+      "seviye": 1,
+      "acilan": "Sıradan parça · Sıradan → Gelişmiş birleştirme · sökme ve pişmanlık penceresi · toplu birleştirme"
+    },
+    {"seviye": 8, "acilan": "Köpük Hattı"},
+    {"seviye": 15, "acilan": "Gelişmiş parça · Gelişmiş → Nadir birleştirme · ayrıştırma"},
+    {
+      "seviye": 20,
+      "acilan": "Nadir parça ve Kurtarma Ekibi seti · Nadir → Destansı birleştirme · Köpük Hattı Gelişmiş üretir"
+    },
+    {"seviye": 25, "acilan": "Destansı parça ve sekiz Destansı set · Destansı → Efsanevi birleştirme"},
+    {"seviye": 30, "acilan": "İkinci üretim kuyruğu · Köpük Hattı Nadir üretir"},
+    {"seviye": 35, "acilan": "Efsanevi parça: Basınç Kalesi, Karanlık Akıntı, Kadim Rezonans"},
+    {"seviye": 40, "acilan": "Muhafız Kabuğu seti · Köpük Hattı Destansı üretir"},
+    {"seviye": 45, "acilan": "Usta İşi"},
+    {"seviye": 50, "acilan": "Usta İşi Titanyum bedeli yarıya iner · Köpük Hattı 3 saatte bir"}
+  ],
+  "atolye_kilitleri_sutunlar": [["seviye", "Atölye Sv"], ["acilan", "Açılan"]],
+  "usta_isi": {
+    "atolye": 45,
+    "carpan": 1.2,
+    "ana_malzeme": 2,
+    "cizim": "Efsanevi Çizim ×1",
+    "titanyum": 1000000,
+    "hedef": "Yalnızca Efsanevi parça; parça başına bir kez"
+  },
+  "malzeme_butcesi": [
+    {"gun": 30, "f2p": 50, "aylik_kart": 80, "balina": 200},
+    {"gun": 90, "f2p": 120, "aylik_kart": 190, "balina": 450},
+    {"gun": 180, "f2p": 220, "aylik_kart": 350, "balina": 800},
+    {"gun": 365, "f2p": 300, "aylik_kart": 480, "balina": 1100}
+  ],
+  "malzeme_butcesi_sutunlar": [["gun", "Sunucu günü"], ["f2p", "F2P"], ["aylik_kart", "Aylık kart + VIP 8"], ["balina", "Balina"]],
+  "tempo": [
+    {
+      "profil": "Ücretsiz oyuncu",
+      "ilk_destansi": "~75. gün",
+      "ilk_efsanevi": "~190. gün",
+      "yil_sonu": "2 Kaptan tam Efsanevi, 2 Kaptan Destansı"
+    },
+    {
+      "profil": "Aylık kart + VIP 8",
+      "ilk_destansi": "~50. gün",
+      "ilk_efsanevi": "~130. gün",
+      "yil_sonu": "3–4 Kaptan tam Efsanevi"
+    },
+    {
+      "profil": "Balina",
+      "ilk_destansi": "~25. gün",
+      "ilk_efsanevi": "~50. gün",
+      "yil_sonu": "4 Kaptan Efsanevi + Usta İşi"
+    }
+  ],
+  "tempo_sutunlar": [
+    ["profil", "Profil"],
+    ["ilk_destansi", "İlk tam Destansı set"],
+    ["ilk_efsanevi", "İlk tam Efsanevi set"],
+    ["yil_sonu", "Yıl sonunda"]
+  ],
+  "durum": [
+    {
+      "konu": "Teçhizat Atölyesi binası",
+      "durum": "⬜",
+      "not": "binalar.json'da tasarım; seviye kilitleri bu bölümde"
+    },
+    {
+      "konu": "Dört malzeme ve beş nadirlik",
+      "durum": "⬜",
+      "not": "Eşya türü yok; catalog items yalnızca sandık ve kart"
+    },
+    {
+      "konu": "Altı yuva, kuşanma, yalnızca Kaptan'da etki",
+      "durum": "⬜",
+      "not": "Kaptan/Subay sistemine bağlı (05)"
+    },
+    {"konu": "Üretim, birleştirme, ayrıştırma, sökme", "durum": "⬜", "not": "—"},
+    {"konu": "Setler 2/4/6", "durum": "⬜", "not": "—"},
+    {"konu": "Köpük Hattı", "durum": "⬜", "not": "—"},
+    {"konu": "Usta İşi", "durum": "⬜", "not": "—"},
+    {
+      "konu": "Haritadan malzeme düşmesi",
+      "durum": "⬜",
+      "not": "09 tabloları masif sülfür, kitin, bazalt camı ve sintaktik köpüğü anıyor"
+    },
+    {"konu": "Teçhizat gücü", "durum": "⬜", "not": "K-14 kahraman gücüne eklenir"}
+  ],
+  "durum_sutunlar": [["konu", "Konu"], ["durum", "Durum"], ["not", "Not"]],
+  "ikinci_kullanim": [
+    {
+      "yer": "Basınç Küresi (denizaltı modülü)",
+      "malzeme": "Titanyum + bazalt camı",
+      "not": "Açıkta gövde kaybını azaltır (08)"
+    },
+    {
+      "yer": "Yüzdürme Bloğu (denizaltı modülü)",
+      "malzeme": "Sintaktik köpük",
+      "not": "Seyir hızı; 5. seviyede bölmeli yapı (08)"
+    },
+    {
+      "yer": "Sonar Dizisi (denizaltı modülü)",
+      "malzeme": "Kitin + masif sülfür",
+      "not": "Sonar aşamasında önceden görüş, tür taraması (08)"
+    }
+  ],
+  "ikinci_kullanim_sutunlar": [["yer", "Nerede"], ["malzeme", "Malzeme"], ["not", "Etki"]]
+}

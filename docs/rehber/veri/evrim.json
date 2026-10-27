@@ -1,0 +1,812 @@
+{
+  "surum": "rehber-1",
+  "_not": "Bina görünüm evrimi. Katman = binanın kendi seviyesinden: 1–9 I, 10–19 II, 20–29 III, 30–39 IV, 40–49 V, 50 VI. Kubbelerde (5 seviye) her seviye kendi görünümüdür ve 'katmanlar' alanındaki katman diliyle çizilir. 'moduller' Sv 5/15/25/35/45 yuvalarına takılan ek modüllerdir. 'ozet' ve 'ek_moduller.kullanan' binalar ile modül matrisinden türetilir; ad değişince birlikte güncelle.",
+  "katmanlar": [
+    {
+      "id": "yama",
+      "roma": "I",
+      "ad": "Yama",
+      "seviyeler": "1–9",
+      "tema": "Konvoy enkazından yamanmış ilk kurulum: ne bulunduysa o. Geç açılan binalarda aynı dil \"deneme / prototip\" okunur.",
+      "malzeme": "Uyumsuz gövde levhaları, tehlike turuncusu boya, açıkta kablo ve hortum, iskele; kehribar çalışma lambaları, hafif titrek ışık.",
+      "yukseklik": 1.0,
+      "taban": 70,
+      "ucgen": 2000,
+      "b_yontemi": "Mesh (I)",
+      "ses": "Gevşek metal tıkırtısı, tek kabarcık patlaması"
+    },
+    {
+      "id": "percin",
+      "roma": "II",
+      "ad": "Perçin",
+      "seviyeler": "10–19",
+      "tema": "Saha montajı: standart panel, perçin ve flanşla düzene giren üs. İlk kez \"plan\" görünür.",
+      "malzeme": "Perçinli titanyum paneller, cıvatalı flanşlar, sarı sintaktik köpük blokları; düzenli camgöbeği LED şeritler, sabit ışık.",
+      "yukseklik": 1.15,
+      "taban": 76,
+      "ucgen": 2600,
+      "b_yontemi": "I + Perçin kiti",
+      "ses": "Cıvata sıkma tıkırtıları, düzenli uğultuya oturan motor"
+    },
+    {
+      "id": "basinc",
+      "roma": "III",
+      "ad": "Basınç",
+      "seviyeler": "20–29",
+      "tema": "Ağır gövde: derinliğin basıncına göre biçimlenen küreler ve silindirler. Yapılar yuvarlaklaşır, ağırlaşır.",
+      "malzeme": "Titanyum basınç küreleri, halka takviyeler, konik akrilik basınç pencereleri; soğuk camgöbeği dış ışık, pencerelerden sıcak iç ışık.",
+      "yukseklik": 1.32,
+      "taban": 82,
+      "ucgen": 3200,
+      "b_yontemi": "Mesh (III)",
+      "ses": "Gövdenin basınca oturduğu derin gıcırtı, ardından sessizlik"
+    },
+    {
+      "id": "alasim",
+      "roma": "IV",
+      "ad": "Alaşım",
+      "seviyeler": "30–39",
+      "tema": "Süperalaşım çağı: yapılar uzar, çevreyi dinler, bacanın ısısını kullanır. Silüet dikeyleşir.",
+      "malzeme": "Nikel-kobalt süperalaşım kaplama (ısıyla mavimsi-bronz), sonar çanakları ve dizileri, ısı eşanjörü kanatları; derin mavi, mor vurgu.",
+      "yukseklik": 1.52,
+      "taban": 88,
+      "ucgen": 3800,
+      "b_yontemi": "III + Alaşım kiti",
+      "ses": "Derin sonar vuruşu, uzaklaşan yankı"
+    },
+    {
+      "id": "biyomekanik",
+      "roma": "V",
+      "ad": "Biyomekanik",
+      "seviyeler": "40–49",
+      "tema": "Kadim uygarlığın dokusuyla kaynaşma: yapı büyür, nefes alır. Mühendislik ile canlı doku arasındaki çizgi silinir.",
+      "malzeme": "Kitin kaburgalar, kadim doku, yastık lav bazalt kaideler, Hadalit damarlar; turkuaz biyolüminesans, yavaş nefes ritmi.",
+      "yukseklik": 1.75,
+      "taban": 94,
+      "ucgen": 4400,
+      "b_yontemi": "Mesh (V)",
+      "ses": "Yavaş bir nefes, organik gerilme sesi"
+    },
+    {
+      "id": "rezonans",
+      "roma": "VI",
+      "ad": "Rezonans",
+      "seviyeler": "50",
+      "tema": "Çekirdek'le aynı ritim: bütün üs tek bir kalp gibi atar. Nabız reaktörden halkalara yayılır.",
+      "malzeme": "Biyomekanik form, ışık saçan zarlar ve Hadalit taç; beyaz-camgöbeği çekirdek ışığı, mor hale, reaktörden dışa yayılan eşzamanlı nabız.",
+      "yukseklik": 2.01,
+      "taban": 100,
+      "ucgen": 5000,
+      "b_yontemi": "V + Rezonans kiti",
+      "ses": "Çekirdek nabzına akort edilmiş tek, alçak ton"
+    }
+  ],
+  "katmanlar_sutunlar": [
+    ["roma", "Katman"],
+    ["ad", "Ad"],
+    ["seviyeler", "Seviye"],
+    ["yukseklik", "Silüet yüksekliği ×"],
+    ["taban", "Taban izi (pad)", "yuzde"],
+    ["ucgen", "Üçgen (LOD0, modülsüz)"],
+    ["b_yontemi", "B sınıfında"],
+    ["ses", "Başkalaşım sesi"]
+  ],
+  "kubbe_katmanlari": ["percin", "basinc", "alasim", "biyomekanik", "rezonans"],
+  "ek_moduller": [
+    {
+      "id": "isik_seridi",
+      "ad": "Işık Şeridi",
+      "seviye": 5,
+      "kategoriler": ["destek", "anit", "sus"],
+      "kullanan": "Destek, Anıt, Süs; hariç Kronik Feneri",
+      "ucgen": 300,
+      "aciklama": "Kenarlar boyunca ince LED şerit; rengi binanın kategori vurgusunu alır. Karanlıkta silüeti okutur."
+    },
+    {
+      "id": "kablo_demeti",
+      "ad": "Kablo Demeti",
+      "seviye": 5,
+      "kategoriler": ["merkez", "uretim", "depo"],
+      "kullanan": "Merkez, Üretim, Depolama",
+      "ucgen": 300,
+      "aciklama": "Zırhlı göbek kabloları reaktör halkasına uzanır; üssün damar ağı ilk kez görünür. Rezonans katmanında nabız bu kablolardan akar."
+    },
+    {
+      "id": "hidrofon_diregi",
+      "ad": "Hidrofon Direği",
+      "seviye": 5,
+      "kategoriler": ["arastirma", "askeri", "ittifak"],
+      "kullanan": "Araştırma, Askeri, İttifak; ayrıca Kronik Feneri",
+      "ucgen": 300,
+      "aciklama": "Anten yerine hidrofon ve akustik modem direği: suda haberleşme radyo dalgasıyla değil sesle yapılır."
+    },
+    {
+      "id": "balast_tanki",
+      "ad": "Balast Tankları",
+      "seviye": 15,
+      "kategoriler": ["merkez", "uretim", "depo", "sus"],
+      "kullanan": "Merkez, Üretim, Depolama, Süs",
+      "ucgen": 300,
+      "aciklama": "Sarı sintaktik köpük blokları ve küçük balast küreleri; yapının kaldırma dengesini gösterir."
+    },
+    {
+      "id": "gozlem_penceresi",
+      "ad": "Gözlem Penceresi",
+      "seviye": 15,
+      "kategoriler": ["arastirma", "anit"],
+      "kullanan": "Araştırma, Anıt",
+      "ucgen": 300,
+      "aciklama": "Kalın, konik akrilik basınç penceresi; içerideki sıcak ışık dışarı taşar. Anıtlarda kaidede küçük bir vitrin."
+    },
+    {
+      "id": "murettebat_iskelesi",
+      "ad": "Mürettebat İskelesi",
+      "seviye": 15,
+      "kategoriler": ["askeri", "destek", "ittifak"],
+      "kullanan": "Askeri, Destek, İttifak",
+      "ucgen": 300,
+      "aciklama": "Korkuluklu dış iskele ve kapak; üzerinde yürüyen mürettebat figürleri ve küçük ışıklar."
+    },
+    {
+      "id": "basinc_payandasi",
+      "ad": "Basınç Payandası",
+      "seviye": 25,
+      "kategoriler": ["merkez", "uretim", "depo", "askeri", "anit", "sus"],
+      "kullanan": "Merkez, Üretim, Depolama, Askeri, Anıt, Süs; hariç Radar Merkezi",
+      "ucgen": 300,
+      "aciklama": "Yapıyı dışarıdan saran titanyum payanda kaburgaları; silüete ağırlık ve güven katar."
+    },
+    {
+      "id": "sonar_dizisi",
+      "ad": "Sonar Dizisi",
+      "seviye": 25,
+      "kategoriler": ["arastirma", "destek", "ittifak"],
+      "kullanan": "Araştırma, Destek, İttifak; ayrıca Radar Merkezi",
+      "ucgen": 300,
+      "aciklama": "Faz dizili sonar panelleri ya da küçük bir çanak; yavaş tarama dönüşü."
+    },
+    {
+      "id": "isi_esanjoru",
+      "ad": "Isı Eşanjörü",
+      "seviye": 35,
+      "kategoriler": ["merkez", "arastirma", "askeri", "destek", "anit", "ittifak", "sus"],
+      "kullanan": "Merkez, Araştırma, Askeri, Destek, Anıt, İttifak, Süs; ayrıca Hidrotermal Santral",
+      "ucgen": 300,
+      "aciklama": "Baca suyunun ısısını alan kanatlı eşanjör; üstünde titreşen sıcak su perdesi (ısı dalgası gölgelendiricisi)."
+    },
+    {
+      "id": "nodul_haznesi",
+      "ad": "Nodül Haznesi",
+      "seviye": 35,
+      "kategoriler": ["uretim", "depo"],
+      "kullanan": "Üretim, Depolama; hariç Hidrotermal Santral",
+      "ucgen": 300,
+      "aciklama": "Polimetalik nodüllerle dolu huni ve kısa konveyör; nodüller yavaşça akar."
+    },
+    {
+      "id": "dron_yuvasi",
+      "ad": "Dron Yuvası",
+      "seviye": 45,
+      "kategoriler": ["merkez", "depo", "askeri", "ittifak"],
+      "kullanan": "Merkez, Depolama, Askeri, İttifak; ayrıca Dron Fabrikası, Takas İstasyonu",
+      "ucgen": 300,
+      "aciklama": "Bakım dronu için yanaşma yuvası; dron binanın çevresinde kısa devriyeler atar."
+    },
+    {
+      "id": "alg_paneli",
+      "ad": "Biyolüminesan Alg Paneli",
+      "seviye": 45,
+      "kategoriler": ["uretim", "arastirma", "destek", "anit", "sus"],
+      "kullanan": "Üretim, Araştırma, Destek, Anıt, Süs; hariç Dron Fabrikası, Takas İstasyonu",
+      "ucgen": 300,
+      "aciklama": "Işıklı kültür panelleri; binaya dokunulduğunda, dalgalanınca parlayan tek hücreli algler gibi bir an parlar."
+    }
+  ],
+  "ek_moduller_sutunlar": [
+    ["seviye", "Sv"],
+    ["ad", "Modül"],
+    ["kullanan", "Kullanan"],
+    ["aciklama", "Görünüm"]
+  ],
+  "modul_matrisi": [
+    {"kategori": "Merkez", "s5": "Kablo Demeti", "s15": "Balast Tankları", "s25": "Basınç Payandası", "s35": "Isı Eşanjörü", "s45": "Dron Yuvası"},
+    {"kategori": "Üretim", "s5": "Kablo Demeti", "s15": "Balast Tankları", "s25": "Basınç Payandası", "s35": "Nodül Haznesi", "s45": "Biyolüminesan Alg Paneli"},
+    {"kategori": "Depolama", "s5": "Kablo Demeti", "s15": "Balast Tankları", "s25": "Basınç Payandası", "s35": "Nodül Haznesi", "s45": "Dron Yuvası"},
+    {"kategori": "Araştırma", "s5": "Hidrofon Direği", "s15": "Gözlem Penceresi", "s25": "Sonar Dizisi", "s35": "Isı Eşanjörü", "s45": "Biyolüminesan Alg Paneli"},
+    {"kategori": "Askeri", "s5": "Hidrofon Direği", "s15": "Mürettebat İskelesi", "s25": "Basınç Payandası", "s35": "Isı Eşanjörü", "s45": "Dron Yuvası"},
+    {"kategori": "Destek", "s5": "Işık Şeridi", "s15": "Mürettebat İskelesi", "s25": "Sonar Dizisi", "s35": "Isı Eşanjörü", "s45": "Biyolüminesan Alg Paneli"},
+    {"kategori": "Anıt", "s5": "Işık Şeridi", "s15": "Gözlem Penceresi", "s25": "Basınç Payandası", "s35": "Isı Eşanjörü", "s45": "Biyolüminesan Alg Paneli"},
+    {"kategori": "İttifak", "s5": "Hidrofon Direği", "s15": "Mürettebat İskelesi", "s25": "Sonar Dizisi", "s35": "Isı Eşanjörü", "s45": "Dron Yuvası"},
+    {"kategori": "Süs", "s5": "Işık Şeridi", "s15": "Balast Tankları", "s25": "Basınç Payandası", "s35": "Isı Eşanjörü", "s45": "Biyolüminesan Alg Paneli"}
+  ],
+  "modul_matrisi_sutunlar": [
+    ["kategori", "Kategori"],
+    ["s5", "Sv 5"],
+    ["s15", "Sv 15"],
+    ["s25", "Sv 25"],
+    ["s35", "Sv 35"],
+    ["s45", "Sv 45"]
+  ],
+  "binalar": {
+    "core_reactor": {
+      "sanat": "A",
+      "adlar": ["Yama Reaktörü", "Perçinli Reaktör", "Basınç Çekirdeği", "Alaşım Çekirdek Kulesi", "Kadim Kalp", "Uyanmış Çekirdek"],
+      "gorunum": [
+        "Basık silindir gövde enkaz levhalarıyla yamalı, cam kubbe bantlı. Kehribar çalışma lambaları; çekirdek düzensiz titrer, yörünge halkası sarsak döner.",
+        "Gövde perçinli titanyum panellerle kaplanır ve yükselir; kanatçıklar cıvatalı flanşla bağlanır. Camgöbeği şeritler sabit yanar, halka akıcı döner.",
+        "Gövde halka takviyeli bir basınç küresine dönüşür; çevresinde konik akrilik pencereli dört yardımcı küre. Soğuk camgöbeği çekirdek, pencerelerden sıcak ışık.",
+        "Süperalaşım kaplı iki katlı kule; tepede sonar çanağı, yanlarda baca ısısını alan kanatlı eşanjörler. Mavimsi-bronz parıltı, mor vurgu ışıkları.",
+        "Kitin kaburgalar gövdeyi sarar, kaide yastık lav bazaltına oturur; Hadalit damarlar çekirdeğe akar. Turkuaz damarlar beş saniyelik nefes ritmiyle yanar.",
+        "Kaburgalar açılıp yarı saydam bir taç kurar; çekirdek beyaz-camgöbeği, çevresinde mor hale. Her atış kablolar boyunca halkalara yayılır; üssün bütün binaları bu nabzı izler."
+      ],
+      "moduller": ["kablo_demeti", "balast_tanki", "basinc_payandasi", "isi_esanjoru", "dron_yuvasi"]
+    },
+    "oxygen_plant": {
+      "sanat": "A",
+      "adlar": ["Yama Elektroliz Tankı", "Perçinli Oksijen İstasyonu", "Basınçlı Elektroliz Kulesi", "Alaşım Ayrıştırma Kulesi", "Kadim Solungaç", "Soluyan Kule"],
+      "gorunum": [
+        "Üç uyumsuz tank, biri eski bir konvoy yakıt tankı; açıkta hortumlar, bantlı göstergeler. Pervane tekleyerek döner, kehribar ışık.",
+        "Tanklar eşitlenir; perçinli bantlar, flanşlı besleme boruları, ızgaralı pervane gövdesi. Camgöbeği gösterge şeritleri, düzenli dönüş.",
+        "Tanklar basınç kürelerine döner, ortada yükselen bir elektroliz sütunu; konik gözetleme pencereleri. Sütunda kabarcıklar yükselir.",
+        "Süperalaşım elektroliz kulesi iki kat boyunda; yanda dinleme halkası ve eşanjör kanatları. Camgöbeği-mor ışık, ince kabarcık perdesi.",
+        "Kule solungaç yarıklı bir kitin zarla sarılır; zar nefes alır gibi kabarır, kabarcıklar yarıklardan süzülür. Turkuaz damarlar, bazalt kaide.",
+        "Solungaçlar tepeye kadar uzanır ve Çekirdek nabzıyla açılıp kapanır; her atışta ışıklı bir kabarcık halkası yükselir. Beyaz-camgöbeği."
+      ],
+      "moduller": ["kablo_demeti", "balast_tanki", "basinc_payandasi", "nodul_haznesi", "alg_paneli"]
+    },
+    "food_lab": {
+      "sanat": "A",
+      "adlar": ["Geçici Kültür Odası", "Perçinli Gıda Laboratuvarı", "Basınçlı Kültür Hücresi", "Alaşım Biyoreaktör", "Yaşayan Mayalık", "Bereket Nabzı"],
+      "gorunum": [
+        "Farklı tonlarda kurtarılmış akrilik levhalardan yarım silindir sera; tepsilerde cılız kültürler. Tek kehribar lamba, zayıf yeşil ışık.",
+        "Sera perçinli kaburgalarla düzenlenir, raflar ikiye çıkar; tepsiler borularla baca suyuna bağlanır. Sabit yeşil büyüme ışığı.",
+        "Kalın akrilik tonoz, iki ucunda basınç küresi kilit odası; üç katlı kültür rafları. Yeşil ışık camı içeriden boyar.",
+        "Tonozun üstüne süperalaşım biyoreaktör kuleleri yükselir; eşanjörlü baca suyu hattı. Protein tanklarında yeşil-mor ışık.",
+        "Tonozu kitin kaburgalar taşır; kültürler duvarlara yayılmış canlı bir mayalık gibi. Turkuaz damarlar yavaşça nefes alır.",
+        "Seranın tepesini ışık saçan bir zar örter; her nabızda kültürler içeriden parlar, yeşil-beyaz bir dalga tonoz boyunca akar."
+      ],
+      "moduller": ["kablo_demeti", "balast_tanki", "basinc_payandasi", "nodul_haznesi", "alg_paneli"]
+    },
+    "bio_lab": {
+      "sanat": "A",
+      "adlar": [
+        "Yama Biyo Tankları",
+        "Perçinli Biyo Laboratuvar",
+        "Basınçlı Biyo Küreler",
+        "Alaşım Fermantasyon Hattı",
+        "Kaynaşık Doku Fıçıları",
+        "Uyanmış Doku Bahçesi"
+      ],
+      "gorunum": [
+        "Merkez gövde ve boyları farklı üç fıçı, biri yamalı bir varil. Yeşil sıvı bulanık, kehribar çalışma lambası.",
+        "Fıçılar aynı boya getirilir; perçinli kapaklar, flanşlı borular, merkez gövde bir kat yükselir. Berrak yeşil sıvı, düzenli nabız.",
+        "Fıçılar basınç kürelerine dönüşür, konik pencerelerden bakteri matları görünür; ortada halka takviyeli kule.",
+        "Küreler süperalaşım kulenin çevresinde sarmal dizilir; eşanjörlü besleme hattı. Yeşil-mor iç ışık.",
+        "Küreler kitin dokuyla birbirine kaynar, doku kürelerin dışına taşar. Turkuaz damarlar, yavaş nefes ritmi.",
+        "Doku bahçesi tepede açılır; ışıklı lifler Çekirdek nabzıyla dalgalanır. Yeşil-beyaz parıltı."
+      ],
+      "moduller": ["kablo_demeti", "balast_tanki", "basinc_payandasi", "nodul_haznesi", "alg_paneli"]
+    },
+    "hydroponic_farm": {
+      "sanat": "A",
+      "adlar": ["Hurda Sera Rafları", "Perçinli Hidroponik Çiftlik", "Basınçlı Sera Sütunları", "Alaşım Dikey Tarla", "Kadim Kök Ağı", "Işıyan Hasat Kulesi"],
+      "gorunum": [
+        "Eski kargo kafesinden tek sıra raf; birkaç bitki bantlı LED altında. Kehribar lamba.",
+        "Üç cam sütun, perçinli kapaklar, flanşlı besleme boruları; boyalı, şeritli rezervuar. Sabit yeşil ışık.",
+        "Sütunlar basınç camına geçer ve uzar, rezervuar basınç küresi olur; raflar dört kata çıkar.",
+        "Süperalaşım çerçeveli dikey tarla: beş sütun yay biçiminde, tepede eşanjör. Yeşil-mor büyüme ışığı.",
+        "Sütunların dibinden kitin kökler bazalt kaideye yayılır ve sütunları birbirine bağlar. Turkuaz damarlı kök ağı.",
+        "Kökler tepede birleşip tek bir kule olur; her nabızda ışık kökten sütunlara yükselir. Yeşil-beyaz."
+      ],
+      "moduller": ["kablo_demeti", "balast_tanki", "basinc_payandasi", "nodul_haznesi", "alg_paneli"]
+    },
+    "drone_factory": {
+      "sanat": "A",
+      "adlar": ["Hurda Dron Atölyesi", "Perçinli Dron Fabrikası", "Basınçlı Dron Hangarı", "Alaşım Montaj Hattı", "Kaynaşık Dron Kovanı", "Sürü Korosu"],
+      "gorunum": [
+        "Kutu hangar, kapısı söküp takılmış bir konteyner; derme vinç kolu, tek dron kehribar yanar.",
+        "Hangar perçinli panellerle düzenlenir, çatıya ikinci vinç gelir; tehlike şeritli kapı. İki dron devriye atar.",
+        "Hangarın arkasına basınç küresi montaj odası, cephede konik pencere sırası; dronlar üçe çıkar.",
+        "Süperalaşım montaj hattı iki kata çıkar, tepede nodül ayıklama haznesi; dronlar sıralı yörüngede döner.",
+        "Hangar kabuğu kitin bir kovan gibi kemerlenir; dronlar kovanın gözeneklerinden çıkar. Turkuaz ışık.",
+        "Kovanın çevresinde dron sürüsü Çekirdek nabzıyla aynı anda ışıldar ve yön değiştirir; hepsi tek bir ses gibi uğuldar."
+      ],
+      "moduller": ["kablo_demeti", "balast_tanki", "basinc_payandasi", "nodul_haznesi", "dron_yuvasi"]
+    },
+    "research_center": {
+      "sanat": "A",
+      "adlar": ["Enkaz Laboratuvarı", "Perçinli Araştırma İstasyonu", "Basınç Gözlemevi", "Alaşım Gözlem Kulesi", "Kadim Bilgi Kulesi", "Uyanmış Akıl Kulesi"],
+      "gorunum": [
+        "Alçak, tek katlı kule; tepede bantlanmış hidrofon, sönük kırmızı fener. Gözlem kubbesi küçük ve yamalı.",
+        "Kule perçinli kaplanır ve uzar; payandalar cıvatalı, tarayıcı halka düzenli döner. Kehribar pencereler.",
+        "Gözlem kubbesi kalın akrilik bir basınç küresine dönüşür; kule halka takviyeli. Camgöbeği tarayıcı.",
+        "Süperalaşım kule iki kat yükselir, yanlarda sonar çanakları; iki tarayıcı halka, mor vurgu.",
+        "Kule kitin kaburgalarla sarılır, gözlem küresine Hadalit damarlar uzanır. Turkuaz nefes ritmi.",
+        "Gözlem küresi ışık saçan bir göze dönüşür; tarayıcı halkalar Çekirdek nabzıyla eşzamanlı döner."
+      ],
+      "moduller": ["hidrofon_diregi", "gozlem_penceresi", "sonar_dizisi", "isi_esanjoru", "alg_paneli"]
+    },
+    "submarine_dock": {
+      "sanat": "A",
+      "adlar": ["Yama Kızağı", "Perçinli Kuru Havuz", "Basınç Tersanesi", "Alaşım Gövde Tezgâhı", "Kadim Ay Havuzu", "Rezonans Limanı"],
+      "gorunum": [
+        "İki derme yan duvar ve sığ bir kızak; ay havuzu bulanık, üstte sallanan iş lambası. Yamalı küçük bir denizaltı.",
+        "Yan duvarlar perçinli, üç kemer cıvatalı; ay havuzu camgöbeği ışıkla çerçevelenir.",
+        "Kemerler halka takviyeli basınç çerçevelerine döner, yükselir; kenarlarda basınç küreli kilit odaları.",
+        "Süperalaşım tersane: gövdeyi taşıyan hareketli vinç köprüsü, yanlarda sonar dizisi. Mor-camgöbeği.",
+        "Kemerler kitin kaburgalara dönüşür, ay havuzunun kenarına bazalt yastıklar dizilir. Turkuaz damarlar.",
+        "Ay havuzu Çekirdek nabzıyla ışıyan bir halkaya dönüşür; kemerler ışık dalgasını tersane boyunca taşır."
+      ],
+      "moduller": ["hidrofon_diregi", "murettebat_iskelesi", "basinc_payandasi", "isi_esanjoru", "dron_yuvasi"]
+    },
+    "radar_center": {
+      "sanat": "A",
+      "adlar": ["Seyyar Dinleme Direği", "Perçinli Sonar İstasyonu", "Basınçlı Sonar Kulesi", "Alaşım Dinleme Çanağı", "Kadim Kulak", "Yankı Tacı"],
+      "gorunum": [
+        "Kulübe ve bantlanmış direk, eğri ikinci el çanak. Kehribar pencere, düzensiz dönüş.",
+        "Kulübe perçinli, direk kafes iskeleye döner; çanak dengeli ve düzenli döner.",
+        "Kulübe basınç küresine dönüşür, direk uzar, ikinci küçük çanak eklenir. Camgöbeği gösterge ışıkları.",
+        "Süperalaşım kule üstünde büyük çanak ve faz dizili sonar panelleri; iki çanak ters yönde döner, mor ışık.",
+        "Çanak kitin bir kulak kepçesi gibi kıvrılır; dinleyen zar hafifçe titreşir. Turkuaz damarlar.",
+        "Çanaklar taç biçiminde dizilir; her sonar atışı görünür bir ışık halkası olarak yayılır."
+      ],
+      "moduller": ["hidrofon_diregi", "murettebat_iskelesi", "sonar_dizisi", "isi_esanjoru", "dron_yuvasi"]
+    },
+    "military_dome": {
+      "sanat": "A",
+      "adlar": ["Yama Kışlası", "Perçinli Kışla Kubbesi", "Zırhlı Basınç Kışlası", "Alaşım Garnizon", "Kitin Garnizon", "Nabız Kalesi"],
+      "gorunum": [
+        "Alçak duvar halkası üstünde yamalı zırh kubbe; atış yarıkları kırmızı ve düzensiz.",
+        "Kubbe perçinli zırh panellerle kaplanır, taret cıvatalı kaideye oturur. Kırmızı yarıklar düzenli.",
+        "Kubbe kalın basınç gövdesine geçer ve yükselir; girişte basınç küresi kilit odası.",
+        "Süperalaşım kaplama, taret ikiye çıkar; yanlarda sonar ve eşanjör. Kırmızı-mor ışık.",
+        "Zırh kitin plakalara dönüşür, kubbe kabuklu bir sırt gibi bölümlenir. Kırmızı-turkuaz damarlar.",
+        "Kabuk plakalar Çekirdek nabzıyla hafifçe aralanır, içeriden kırmızı-beyaz ışık sızar."
+      ],
+      "moduller": ["hidrofon_diregi", "murettebat_iskelesi", "basinc_payandasi", "isi_esanjoru", "dron_yuvasi"]
+    },
+    "shield_generator": {
+      "sanat": "A",
+      "adlar": ["Hurda Kalkan Bobini", "Perçinli Kalkan Jeneratörü", "Basınç Kalkanı Pilonu", "Alaşım Alan Kulesi", "Yaşayan Zar Pilonu", "Rezonans Kalkanı"],
+      "gorunum": [
+        "Altıgen kaide üstünde derme bobin, açıkta kablolar; küre sönük, hale sarsak döner.",
+        "Pilon perçinli, üç yayıcı cıvatalı; küre düzenli nabız atar.",
+        "Pilon basınç gövdesine geçer ve uzar; yayıcıların uçlarında basınç küreleri.",
+        "Süperalaşım alan kulesi, iki hale, tepede sonar halkası. Camgöbeği-mor.",
+        "Pilonu yarı saydam, canlı bir zar sarar; zar kalkan ışığını süzer. Turkuaz.",
+        "Zar üssün kalkanına ince bir ışık ağı yansıtır ve Çekirdek'le aynı ritimde nefes alır."
+      ],
+      "moduller": ["hidrofon_diregi", "murettebat_iskelesi", "basinc_payandasi", "isi_esanjoru", "dron_yuvasi"]
+    },
+    "mega_dome": {
+      "sanat": "A",
+      "adlar": ["Perçinli Yaşam Kubbesi", "Basınç Kubbesi", "Alaşım Kubbe Kenti", "Kadim Kubbe Kenti", "Rezonans Kenti"],
+      "gorunum": [
+        "Halka kaide üstünde perçinli akrilik kubbe, altı çelik kaburga; içeride iki yaşam bloğu. Kehribar iç ışık, camgöbeği tepe feneri.",
+        "Kubbe kalınlaşır, halka takviyeler belirginleşir; çevrede dört basınç küresi kilit odası. İç bloklar üç kata çıkar.",
+        "Süperalaşım kaburgalar, kubbe genişler; içeride küçük bir kent: kuleler, köprüler. Mor-camgöbeği.",
+        "Kubbeyi kadim kitin kaburgalar taşır; iç kent bazalt teraslara yayılır. Turkuaz damarlar.",
+        "Kubbe zarı ışıldar, içerideki kent nabızla aydınlanır. Reaktör 50 olana kadar kendi ritmiyle atar, sonra Çekirdek'e uyar."
+      ],
+      "seviyeler": ["1", "2", "3", "4", "5"],
+      "katmanlar": ["percin", "basinc", "alasim", "biyomekanik", "rezonans"]
+    },
+    "agriculture_dome": {
+      "sanat": "A",
+      "adlar": ["Perçinli Tarım Kubbesi", "Basınçlı Teras Kubbesi", "Alaşım Hasat Kubbesi", "Kaynaşık Bahçe Kubbesi", "Işıyan Bahçe"],
+      "gorunum": [
+        "Basık perçinli tarım kubbesi; üç teras, yeşil büyüme halkası.",
+        "Kalın basınç camı, teraslar dörde çıkar; yanlarda besin küreleri.",
+        "Süperalaşım kaburgalar, ortada hasat kulesi, eşanjörlü sulama. Yeşil-mor.",
+        "Teraslar kitin bir kök ağıyla örülür; kubbenin içi canlı bir bahçe. Turkuaz damarlar.",
+        "Bahçe kendi ışığını üretir; her nabızda teraslardan yukarı bir ışık dalgası yükselir. Reaktör 50'de Çekirdek'e uyar."
+      ],
+      "seviyeler": ["1", "2", "3", "4", "5"],
+      "katmanlar": ["percin", "basinc", "alasim", "biyomekanik", "rezonans"]
+    },
+    "alliance_hub": {
+      "sanat": "A",
+      "adlar": ["Geçici Bağlantı İstasyonu", "Perçinli İttifak Merkezi", "Basınç Buluşma Salonu", "Alaşım Konsey Kulesi", "Kadim Meclis", "Yankı Meclisi"],
+      "gorunum": [
+        "Küçük plaza ve derme direk; tek kehribar küre, flama yerine bantlanmış kumaş şeritler.",
+        "Plaza perçinli; dört sütun, tehlike şeritli flamalar, düzenli dönen amblem halkası.",
+        "Direk basınç gövdeli bir kuleye döner; plaza kenarında konik pencereli toplantı küreleri.",
+        "Süperalaşım konsey kulesi, iki amblem halkası, hidrofon direkleri. Kehribar-mor.",
+        "Sütunlar kitin kemerlere dönüşür, plazayı bazalt yastıklar çevreler. Turkuaz-kehribar.",
+        "Kemerlerin ortasında bir ışık sütunu; ittifak üyelerinin üsleriyle aynı ritimde atar."
+      ],
+      "moduller": ["hidrofon_diregi", "murettebat_iskelesi", "sonar_dizisi", "isi_esanjoru", "dron_yuvasi"]
+    },
+    "decoration_spire": {
+      "sanat": "A",
+      "adlar": ["Yama Işık Direği", "Perçinli Süs Kulesi", "Basınç Işık Kulesi", "Alaşım Işık İğnesi", "Kadim Işık Dalı", "Nabız Sütunu"],
+      "gorunum": [
+        "İnce derme direk, üç destek; tek sönük hale.",
+        "Perçinli altıgen kule, iki düzenli hale.",
+        "Kule uzar, ucunda küçük bir basınç küresi fener; üç hale.",
+        "Süperalaşım iğne kule; mor ve camgöbeği halkalar ters yönlerde döner.",
+        "İğneyi kitin dallar sarar, uçlarda turkuaz ışık tomurcukları.",
+        "Dallardan Çekirdek nabzıyla ışık damlaları süzülür; sütun ışıktan bir ağaç gibi durur."
+      ],
+      "moduller": ["isik_seridi", "balast_tanki", "basinc_payandasi", "isi_esanjoru", "alg_paneli"]
+    },
+    "cryo_hall": {
+      "sanat": "B",
+      "adlar": ["Yama Kapsül Odası", "Perçinli Kriyo Salonu", "Basınç Uyandırma Salonu", "Alaşım Kriyo Galerisi", "Kitin Uyku Galerisi", "Uyanış Salonu"],
+      "gorunum": [
+        "Alçak salon; eski konvoydan sökülmüş kriyo-kapsüller duvara dayalı, camları buğulu. Kehribar ışık.",
+        "Perçin kiti: kapsül sıraları perçinli raylara alınır, camgöbeği durum şeritleri.",
+        "Salon basınç tonozuna dönüşür, kapsüller konik pencereli nişlerde; tabanda soğuk buhar süzülür.",
+        "Alaşım kiti: süperalaşım kaplama, tepede soğutma eşanjörleri, mor uyanma ışığı.",
+        "Kapsüller kitin kozalara dönüşür, tonozu kaburgalar taşır. Turkuaz nefes ritmi.",
+        "Rezonans kiti: kozalar Çekirdek nabzıyla içeriden aydınlanır; bir kahraman uyandığında ışık tepeye yükselir."
+      ],
+      "moduller": ["isik_seridi", "murettebat_iskelesi", "sonar_dizisi", "isi_esanjoru", "alg_paneli"]
+    },
+    "pressure_vault": {
+      "sanat": "B",
+      "adlar": ["Yama Sandık Yığını", "Perçinli Ambar", "Basınç Ambarı", "Alaşım Kasa", "Kadim Mahzen", "Rezonans Mahzeni"],
+      "gorunum": [
+        "Halatla bağlanmış kasa ve konteyner yığını; tehlike boyası, kehribar lamba.",
+        "Perçin kiti: kasalar perçinli raflara dizilir, kapılara flanşlı kilitler gelir.",
+        "Kalın duvarlı basınç küresi ambar, dev bir mühür kapağı ve konik gözetleme penceresi.",
+        "Alaşım kiti: süperalaşım takviye halkaları ve mor kilit ışıkları.",
+        "Küre bazalt yastıklara gömülür, kitin kaburgalarla mühürlenir. Turkuaz damarlar.",
+        "Rezonans kiti: mühür kapağındaki Hadalit kilit nabızla ışıldar; kapak nefes alır gibi."
+      ],
+      "moduller": ["kablo_demeti", "balast_tanki", "basinc_payandasi", "nodul_haznesi", "dron_yuvasi"]
+    },
+    "engineering_bay": {
+      "sanat": "B",
+      "adlar": ["Seyyar Alet Odası", "Perçinli Atölye", "Basınç Bakım Bölmesi", "Alaşım Mühendislik Bölmesi", "Kaynaşık Ustahane", "Uyanmış Ustahane"],
+      "gorunum": [
+        "Alet dolapları ve tezgâh, yamalı levha çatı; kehribar lamba, tek robot kol.",
+        "Perçin kiti: düzenli raf duvarı, cıvatalı vinç rayı, camgöbeği şerit.",
+        "Atölye basınç gövdesine taşınır; iki robot kol, konik pencereli kontrol odası.",
+        "Alaşım kiti: süperalaşım kaplama, eşanjörlü kaynak istasyonu, mor ark ışığı.",
+        "Robot kollar kitin eklemlere kavuşur; atölye canlı bir el gibi çalışır. Turkuaz.",
+        "Rezonans kiti: kollar Çekirdek ritmiyle aynı anda hareket eder; kaynak kıvılcımları beyaz-camgöbeği."
+      ],
+      "moduller": ["isik_seridi", "murettebat_iskelesi", "sonar_dizisi", "isi_esanjoru", "alg_paneli"]
+    },
+    "submarine_hangar": {
+      "sanat": "B",
+      "adlar": ["Yama Bağlama Rıhtımı", "Perçinli Hangar", "Basınç Hangarı", "Alaşım Sefer Hangarı", "Kitin Sefer Yuvası", "Işıyan Sefer Kapısı"],
+      "gorunum": [
+        "Bağlama kazıklarına iple tutturulmuş açık rıhtım; küçük denizaltı, sallanan iş lambası.",
+        "Perçin kiti: rıhtımı perçinli bir iskele çevreler, yükleme vinci eklenir.",
+        "Kapalı basınç hangarı: kemerli tavan, konik pencere sırası, denizaltı içeride.",
+        "Alaşım kiti: süperalaşım kapılar, sonar dizisi, hareketli yükleme köprüsü.",
+        "Hangar kitin bir yuvaya dönüşür, kemerleri kaburga olur. Turkuaz rehber ışıklar.",
+        "Rezonans kiti: denizaltı çıkarken önündeki ışık yolu Çekirdek nabzıyla yanar."
+      ],
+      "moduller": ["hidrofon_diregi", "murettebat_iskelesi", "basinc_payandasi", "isi_esanjoru", "dron_yuvasi"]
+    },
+    "training_grounds": {
+      "sanat": "B",
+      "adlar": ["Geçici Tatbikat Çukuru", "Perçinli Tatbikat Havuzu", "Basınç Odaları", "Alaşım Talim Havzası", "Kitin Talim Havuzu", "Nabız Havuzu"],
+      "gorunum": [
+        "Kazılmış sığ çukur, derme korkuluklar ve hedef panoları; kehribar projektör.",
+        "Perçin kiti: havuz kenarına perçinli platform, izleme iskelesi.",
+        "Havuz yanında sıralı basınç odaları, konik pencerelerden eğitim mankenleri görünür.",
+        "Alaşım kiti: süperalaşım platformlar, hedef dronları, kırmızı-mor ışık.",
+        "Havuzu kitin kaburgalar çevreler, zemin bazalt yastık. Turkuaz-kırmızı.",
+        "Rezonans kiti: havuz suyu nabızla ışıldar; her atışta bir tatbikat halkası yayılır."
+      ],
+      "moduller": ["hidrofon_diregi", "murettebat_iskelesi", "basinc_payandasi", "isi_esanjoru", "dron_yuvasi"]
+    },
+    "crew_quarters": {
+      "sanat": "B",
+      "adlar": ["Yama Ranza Bölmesi", "Perçinli Yatakhane", "Basınç Yaşam Bloğu", "Alaşım Konut Kulesi", "Kadim Konaklar", "Işıyan Mahalle"],
+      "gorunum": [
+        "Üst üste konmuş kargo konteynerleri, merdivenler ve ranzalar; pencerelerde kehribar ışık.",
+        "Perçin kiti: konteynerler perçinli bloklara dönüşür, iskele koridorları eklenir.",
+        "Basınç küresi yaşam blokları, konik pencerelerden sıcak iç ışık.",
+        "Alaşım kiti: süperalaşım kule katları, bağlantı köprüleri, mor sokak ışıkları.",
+        "Bloklar kitin kaburgalarla birbirine bağlanır, bahçeli teraslar açılır. Turkuaz.",
+        "Rezonans kiti: pencereler Çekirdek nabzıyla yumuşakça parlar; mahalle ışıktan bir ağ olur."
+      ],
+      "moduller": ["isik_seridi", "murettebat_iskelesi", "sonar_dizisi", "isi_esanjoru", "alg_paneli"]
+    },
+    "med_bay": {
+      "sanat": "B",
+      "adlar": ["Seyyar Revir", "Perçinli Revir Bölmesi", "Basınçlı Tedavi Bölmesi", "Alaşım Şifa Kulesi", "Yaşayan Şifahane", "Rezonans Şifahanesi"],
+      "gorunum": [
+        "Tek konteyner revir ve iki sedye; kapıda elle boyanmış camgöbeği şifa halkası, kehribar lamba.",
+        "Perçin kiti: perçinli koridor, ışıklı şifa halkası.",
+        "İki tedavi küresi (basınç odası), konik pencereler; sıcak beyaz iç ışık.",
+        "Alaşım kiti: süperalaşım kule katı, iyileştirme tankları, mor-camgöbeği.",
+        "Tedavi kürelerini yaşayan doku sarar. Turkuaz şifa damarları.",
+        "Rezonans kiti: şifa damarları nabızla ışıldar; iyileşen asker arttıkça ışık yoğunlaşır."
+      ],
+      "moduller": ["hidrofon_diregi", "murettebat_iskelesi", "basinc_payandasi", "isi_esanjoru", "dron_yuvasi"]
+    },
+    "cryo_ward": {
+      "sanat": "B",
+      "adlar": ["Yama Soğuk Odası", "Perçinli Kriyo Ünitesi", "Basınçlı Kriyo Dizisi", "Alaşım Kriyo Kulesi", "Kitin Kozalar", "Ninni Kozaları"],
+      "gorunum": [
+        "Soğutucu dolaplar, buz tutmuş borular, buğulu tek pencere.",
+        "Perçin kiti: dolaplar perçinli raflara alınır, camgöbeği sıcaklık şeritleri.",
+        "Basınçlı kriyo kapsül dizisi; konik pencerelerden donmuş silüetler, soğuk buhar.",
+        "Alaşım kiti: süperalaşım soğutma kulesi, ters çalışan eşanjörler, mor ışık.",
+        "Kapsüller kitin kozalara döner; koza zarları soğuk buharla örtülü.",
+        "Rezonans kiti: kozalar ninni temposunda, çok yavaş ışıldar."
+      ],
+      "moduller": ["hidrofon_diregi", "murettebat_iskelesi", "basinc_payandasi", "isi_esanjoru", "dron_yuvasi"]
+    },
+    "hydrothermal_plant": {
+      "sanat": "B",
+      "adlar": ["Yama Isı Hattı", "Perçinli Baca Santrali", "Basınç Türbin Evi", "Alaşım Isı Kulesi", "Kaynaşık Baca", "Rezonans Bacası"],
+      "gorunum": [
+        "Bacaya uzatılmış yamalı bir ısı borusu ve küçük jeneratör kulübesi; borunun ağzında titreyen sıcak su.",
+        "Perçin kiti: boru hatları flanşlı, türbin kulübesi perçinli.",
+        "İki küre türbin odası, bacanın dibinde halka takviyeli ısı toplayıcı.",
+        "Alaşım kiti: süperalaşım ısı kulesi, kanatlı eşanjörler, ısıdan kızaran kenarlar.",
+        "Yapı bacanın mineral sütunuyla kaynaşır; kitin kaburgalar, sülfür kristalleri. Turkuaz.",
+        "Rezonans kiti: bacadan yükselen sıcak su nabızla ışıklı halkalar çizer."
+      ],
+      "moduller": ["kablo_demeti", "balast_tanki", "basinc_payandasi", "isi_esanjoru", "alg_paneli"]
+    },
+    "trade_station": {
+      "sanat": "B",
+      "adlar": ["Hurda Takas İskelesi", "Perçinli Takas İstasyonu", "Basınç Aktarma Rıhtımı", "Alaşım Kervan Limanı", "Kadim Kervansaray", "Yankı Kervansarayı"],
+      "gorunum": [
+        "Derme iskele ve iple bağlı kargo sandıkları; tek kehribar fener.",
+        "Perçin kiti: perçinli rıhtım, yükleme vinci, camgöbeği yanaşma ışıkları.",
+        "Kilit odalı iki küre ve konik pencereli bir pazarlık odası.",
+        "Alaşım kiti: süperalaşım vinç köprüsü, kargo dronları. Kehribar-mor.",
+        "Kervansaray avlusu: kitin kemerler, bazalt yastık zemin, turkuaz fenerler.",
+        "Rezonans kiti: avlunun ortasındaki fener ittifak üslerinin nabzını yansıtır."
+      ],
+      "moduller": ["isik_seridi", "murettebat_iskelesi", "sonar_dizisi", "isi_esanjoru", "dron_yuvasi"]
+    },
+    "science_dome": {
+      "sanat": "B",
+      "adlar": ["Perçinli Bilim Kubbesi", "Basınç Laboratuvar Kubbesi", "Alaşım Deney Kubbesi", "Kadim Bilgelik Kubbesi", "Işıyan Bilgelik Kubbesi"],
+      "gorunum": [
+        "Perçinli yarım küre kubbe, içeride tek laboratuvar kulesi; camgöbeği tepe ışığı.",
+        "Kalın akrilik kubbe, çevrede dört deney küresi; iç kule iki kata çıkar.",
+        "Alaşım kiti: süperalaşım kaburgalar, tepede sonar çanağı, mor deney ışıkları.",
+        "Kitin kaburgalar, içeride asılı bir Hadalit kristali. Turkuaz.",
+        "Rezonans kiti: kristal nabızla atar, kubbe yüzen ışık noktalarıyla dolar. Reaktör 50'de Çekirdek'e uyar."
+      ],
+      "seviyeler": ["1", "2", "3", "4", "5"],
+      "katmanlar": ["percin", "basinc", "alasim", "biyomekanik", "rezonans"]
+    },
+    "war_dome": {
+      "sanat": "B",
+      "adlar": ["Perçinli Komuta Kubbesi", "Basınçlı Harekât Kubbesi", "Alaşım Savaş Kubbesi", "Kitin Harp Kubbesi", "Uyanmış Harp Kubbesi"],
+      "gorunum": [
+        "Basık zırh kubbe; içeride harita masasının ışığı, kırmızı yarıklar.",
+        "Kalın gövde, ortada arena çukuru, basınç küreli girişler.",
+        "Alaşım kiti: süperalaşım zırh, iki taret, ralli sancak direkleri.",
+        "Kabuk plakalar, arenayı kitin kaburgalar çevreler. Kırmızı-turkuaz.",
+        "Rezonans kiti: plakalar nabızla aralanır, arena zemini ışıldar. Reaktör 50'de Çekirdek'e uyar."
+      ],
+      "seviyeler": ["1", "2", "3", "4", "5"],
+      "katmanlar": ["percin", "basinc", "alasim", "biyomekanik", "rezonans"]
+    },
+    "gear_workshop": {
+      "sanat": "B",
+      "adlar": ["Seyyar Demirci Tezgâhı", "Perçinli Teçhizat Atölyesi", "Basınç Dövmehanesi", "Alaşım Zırh Atölyesi", "Kadim Örs", "Rezonans Örsü"],
+      "gorunum": [
+        "Derme tezgâh, örs ve ısıtıcı bobin; kehribar kıvılcımlar.",
+        "Perçin kiti: perçinli ocak davlumbazı, alet rafları.",
+        "Küre biçimli ocak odası, konik gözetleme penceresinden akkor iç ışık.",
+        "Alaşım kiti: süperalaşım ocak, eşanjör, mor ısı parıltısı.",
+        "Örs bazalt bir bloğa gömülür, kitin kollar teçhizatı tutar. Turkuaz-akkor.",
+        "Rezonans kiti: örs her nabızda beyaz bir ışık saçar; dövülen parça havada süzülür."
+      ],
+      "moduller": ["isik_seridi", "murettebat_iskelesi", "sonar_dizisi", "isi_esanjoru", "alg_paneli"]
+    },
+    "armor_monument": {
+      "sanat": "B",
+      "adlar": ["Yama Kask Kaidesi", "Perçinli Dalgıç Anıtı", "Basınç Zırhı Abidesi", "Alaşım Dalgıç Heykeli", "Kitin Dalgıç", "Uyanmış Dalgıç"],
+      "gorunum": [
+        "Bazalt kaide üstünde eski bir dalgıç kaskı; bantlı plaket, kehribar spot.",
+        "Perçin kiti: perçinli kaide, çerçeveli plaket, camgöbeği spot.",
+        "Tam boy ağır dalgıç heykeli, basınç zırhının ayrıntıları; kaide yükselir.",
+        "Alaşım kiti: süperalaşım kaplama, heykelin çevresinde iki sonar halkası.",
+        "Heykel kitin zırha bürünür, kaideyi bazalt yastıklar sarar; turkuaz göz ışığı.",
+        "Rezonans kiti: kask camı nabızla ışıldar; heykel nefes alıyor gibi."
+      ],
+      "moduller": ["isik_seridi", "gozlem_penceresi", "basinc_payandasi", "isi_esanjoru", "alg_paneli"]
+    },
+    "harpoon_monument": {
+      "sanat": "B",
+      "adlar": ["Yama Zıpkın Sehpası", "Perçinli Zıpkın Anıtı", "Basınç Zıpkını Abidesi", "Alaşım Avcı Heykeli", "Kadim Avcı", "Uyanmış Avcı"],
+      "gorunum": [
+        "Bazalt kaideye çakılmış eski bir zıpkın tüfeği ve halat; kehribar spot.",
+        "Perçin kiti: perçinli sehpa, zıpkın yatay asılı.",
+        "Ayakta zıpkın tutan avcı heykeli, basınç kıyafetiyle; kaide yükselir.",
+        "Alaşım kiti: süperalaşım kaplama, zıpkının ucunda mor ışık.",
+        "Avcı kitin kabukla kaplanır, zıpkın kemik gibi. Turkuaz.",
+        "Rezonans kiti: zıpkının ucu nabızla ışıldar, ışık halat boyunca kaideye iner."
+      ],
+      "moduller": ["isik_seridi", "gozlem_penceresi", "basinc_payandasi", "isi_esanjoru", "alg_paneli"]
+    },
+    "arc_monument": {
+      "sanat": "B",
+      "adlar": ["Yama Ark Bobini", "Perçinli Ark Anıtı", "Basınç Arkı Abidesi", "Alaşım Ark Kulesi", "Kaynaşık Ark Ağacı", "Uyanmış Ark"],
+      "gorunum": [
+        "Bazalt kaide üstünde yamalı bir bobin ve iki elektrot; arada ara sıra kıvılcım.",
+        "Perçin kiti: perçinli bobin gövdesi, düzenli ark.",
+        "Basınç küreli iki kule, aralarında kararlı mor-beyaz bir ark.",
+        "Alaşım kiti: süperalaşım kuleler, ark üç kola ayrılır.",
+        "Ark dallanıp kitin bir ağaca dönüşür (Lichtenberg deseni). Turkuaz-mor.",
+        "Rezonans kiti: ark ağacı nabızla bütünüyle yanar, sonra sessizce söner."
+      ],
+      "moduller": ["isik_seridi", "gozlem_penceresi", "basinc_payandasi", "isi_esanjoru", "alg_paneli"]
+    },
+    "relic_archive": {
+      "sanat": "B",
+      "adlar": ["Geçici Buluntu Rafları", "Perçinli Kalıntı Arşivi", "Basınç Sergi Salonu", "Alaşım Arşiv Kulesi", "Kadim Hafıza", "Yankı Hafızası"],
+      "gorunum": [
+        "Derme raflar, buluntular branda altında; kehribar lamba.",
+        "Perçin kiti: perçinli vitrin rafları, etiket şeritleri.",
+        "Konik akrilik vitrin küreleri içinde kalıntılar; sıcak iç ışık.",
+        "Alaşım kiti: süperalaşım arşiv kulesi, tarayıcı sonar halkası.",
+        "Kalıntılar kitin duvarla kaynaşır, arşiv canlı bir hafızaya döner. Turkuaz.",
+        "Rezonans kiti: vitrinler nabızla sırayla yanar; arşiv bir koro gibi ışıldar."
+      ],
+      "moduller": ["isik_seridi", "murettebat_iskelesi", "sonar_dizisi", "isi_esanjoru", "alg_paneli"]
+    },
+    "alloy_foundry": {
+      "sanat": "B",
+      "adlar": ["Deneme Ocağı", "Perçinli Döküm Ocağı", "Basınç Potası", "Alaşım Dökümhanesi", "Kaynaşık Pota", "Rezonans Dökümhanesi"],
+      "gorunum": [
+        "Bazalt bloklar arasında küçük bir pota, akkor ağız, açıkta borular; ilk deneme dökümü.",
+        "Perçin kiti: perçinli davlumbaz, nodül besleme rampası.",
+        "Küre ocak gövdesi; konik gözetleme penceresinden akkor metal görünür.",
+        "Alaşım kiti: süperalaşım kuleler, döküm kalıpları. Turuncu-mor ısı.",
+        "Ocak bazalt yastıklara gömülür, kitin kollar potayı taşır. Turkuaz-akkor.",
+        "Rezonans kiti: döküm akışı nabızla parlar; mor-beyaz alaşım ışığı."
+      ],
+      "moduller": ["kablo_demeti", "balast_tanki", "basinc_payandasi", "nodul_haznesi", "alg_paneli"]
+    },
+    "chronicle_beacon": {
+      "sanat": "B",
+      "adlar": ["Enkaz Yayın Direği", "Perçinli Kronik Feneri", "Basınç Feneri", "Alaşım Yayın Kulesi", "Kadim Fener", "Kronik Korosu"],
+      "gorunum": [
+        "Derme yayın direği, bantlı bir hidrofon ve tek fener; kehribar.",
+        "Perçin kiti: perçinli direk, akustik modem halkası.",
+        "Küre fener kafası, konik pencereler, camgöbeği ışık.",
+        "Alaşım kiti: süperalaşım kule, faz dizili yayın panelleri, mor.",
+        "Fener kitin bir taca bürünür, kaide kadim yazıtlı bazalt. Turkuaz.",
+        "Rezonans kiti: kronik bir aşama açıldığında fener bütün üslere aynı anda ışık yollar."
+      ],
+      "moduller": ["hidrofon_diregi", "murettebat_iskelesi", "sonar_dizisi", "isi_esanjoru", "alg_paneli"]
+    }
+  },
+  "ozet": [
+    {"bina": "[Çekirdek Reaktör](binalar/core_reactor.md)", "sanat": "A", "t1": "Yama Reaktörü", "t2": "Perçinli Reaktör", "t3": "Basınç Çekirdeği", "t4": "Alaşım Çekirdek Kulesi", "t5": "Kadim Kalp", "t6": "Uyanmış Çekirdek"},
+    {"bina": "[Oksijen Tesisi](binalar/oxygen_plant.md)", "sanat": "A", "t1": "Yama Elektroliz Tankı", "t2": "Perçinli Oksijen İstasyonu", "t3": "Basınçlı Elektroliz Kulesi", "t4": "Alaşım Ayrıştırma Kulesi", "t5": "Kadim Solungaç", "t6": "Soluyan Kule"},
+    {"bina": "[Gıda Laboratuvarı](binalar/food_lab.md)", "sanat": "A", "t1": "Geçici Kültür Odası", "t2": "Perçinli Gıda Laboratuvarı", "t3": "Basınçlı Kültür Hücresi", "t4": "Alaşım Biyoreaktör", "t5": "Yaşayan Mayalık", "t6": "Bereket Nabzı"},
+    {"bina": "[Biyo Laboratuvar](binalar/bio_lab.md)", "sanat": "A", "t1": "Yama Biyo Tankları", "t2": "Perçinli Biyo Laboratuvar", "t3": "Basınçlı Biyo Küreler", "t4": "Alaşım Fermantasyon Hattı", "t5": "Kaynaşık Doku Fıçıları", "t6": "Uyanmış Doku Bahçesi"},
+    {"bina": "[Hidroponik Çiftlik](binalar/hydroponic_farm.md)", "sanat": "A", "t1": "Hurda Sera Rafları", "t2": "Perçinli Hidroponik Çiftlik", "t3": "Basınçlı Sera Sütunları", "t4": "Alaşım Dikey Tarla", "t5": "Kadim Kök Ağı", "t6": "Işıyan Hasat Kulesi"},
+    {"bina": "[Dron Fabrikası](binalar/drone_factory.md)", "sanat": "A", "t1": "Hurda Dron Atölyesi", "t2": "Perçinli Dron Fabrikası", "t3": "Basınçlı Dron Hangarı", "t4": "Alaşım Montaj Hattı", "t5": "Kaynaşık Dron Kovanı", "t6": "Sürü Korosu"},
+    {"bina": "[Araştırma Merkezi](binalar/research_center.md)", "sanat": "A", "t1": "Enkaz Laboratuvarı", "t2": "Perçinli Araştırma İstasyonu", "t3": "Basınç Gözlemevi", "t4": "Alaşım Gözlem Kulesi", "t5": "Kadim Bilgi Kulesi", "t6": "Uyanmış Akıl Kulesi"},
+    {"bina": "[Denizaltı İskelesi](binalar/submarine_dock.md)", "sanat": "A", "t1": "Yama Kızağı", "t2": "Perçinli Kuru Havuz", "t3": "Basınç Tersanesi", "t4": "Alaşım Gövde Tezgâhı", "t5": "Kadim Ay Havuzu", "t6": "Rezonans Limanı"},
+    {"bina": "[Radar Merkezi](binalar/radar_center.md)", "sanat": "A", "t1": "Seyyar Dinleme Direği", "t2": "Perçinli Sonar İstasyonu", "t3": "Basınçlı Sonar Kulesi", "t4": "Alaşım Dinleme Çanağı", "t5": "Kadim Kulak", "t6": "Yankı Tacı"},
+    {"bina": "[Askeri Kubbe](binalar/military_dome.md)", "sanat": "A", "t1": "Yama Kışlası", "t2": "Perçinli Kışla Kubbesi", "t3": "Zırhlı Basınç Kışlası", "t4": "Alaşım Garnizon", "t5": "Kitin Garnizon", "t6": "Nabız Kalesi"},
+    {"bina": "[Kalkan Jeneratörü](binalar/shield_generator.md)", "sanat": "A", "t1": "Hurda Kalkan Bobini", "t2": "Perçinli Kalkan Jeneratörü", "t3": "Basınç Kalkanı Pilonu", "t4": "Alaşım Alan Kulesi", "t5": "Yaşayan Zar Pilonu", "t6": "Rezonans Kalkanı"},
+    {"bina": "[Mega Kubbe](binalar/mega_dome.md)", "sanat": "A", "t2": "Perçinli Yaşam Kubbesi", "t3": "Basınç Kubbesi", "t4": "Alaşım Kubbe Kenti", "t5": "Kadim Kubbe Kenti", "t6": "Rezonans Kenti"},
+    {"bina": "[Tarım Kubbesi](binalar/agriculture_dome.md)", "sanat": "A", "t2": "Perçinli Tarım Kubbesi", "t3": "Basınçlı Teras Kubbesi", "t4": "Alaşım Hasat Kubbesi", "t5": "Kaynaşık Bahçe Kubbesi", "t6": "Işıyan Bahçe"},
+    {"bina": "[İttifak Merkezi](binalar/alliance_hub.md)", "sanat": "A", "t1": "Geçici Bağlantı İstasyonu", "t2": "Perçinli İttifak Merkezi", "t3": "Basınç Buluşma Salonu", "t4": "Alaşım Konsey Kulesi", "t5": "Kadim Meclis", "t6": "Yankı Meclisi"},
+    {"bina": "[Süs Kulesi](binalar/decoration_spire.md)", "sanat": "A", "t1": "Yama Işık Direği", "t2": "Perçinli Süs Kulesi", "t3": "Basınç Işık Kulesi", "t4": "Alaşım Işık İğnesi", "t5": "Kadim Işık Dalı", "t6": "Nabız Sütunu"},
+    {"bina": "[Kriyo Salonu](binalar/cryo_hall.md)", "sanat": "B", "t1": "Yama Kapsül Odası", "t2": "Perçinli Kriyo Salonu", "t3": "Basınç Uyandırma Salonu", "t4": "Alaşım Kriyo Galerisi", "t5": "Kitin Uyku Galerisi", "t6": "Uyanış Salonu"},
+    {"bina": "[Basınç Ambarı](binalar/pressure_vault.md)", "sanat": "B", "t1": "Yama Sandık Yığını", "t2": "Perçinli Ambar", "t3": "Basınç Ambarı", "t4": "Alaşım Kasa", "t5": "Kadim Mahzen", "t6": "Rezonans Mahzeni"},
+    {"bina": "[Mühendislik Bölmesi](binalar/engineering_bay.md)", "sanat": "B", "t1": "Seyyar Alet Odası", "t2": "Perçinli Atölye", "t3": "Basınç Bakım Bölmesi", "t4": "Alaşım Mühendislik Bölmesi", "t5": "Kaynaşık Ustahane", "t6": "Uyanmış Ustahane"},
+    {"bina": "[Denizaltı Hangarı](binalar/submarine_hangar.md)", "sanat": "B", "t1": "Yama Bağlama Rıhtımı", "t2": "Perçinli Hangar", "t3": "Basınç Hangarı", "t4": "Alaşım Sefer Hangarı", "t5": "Kitin Sefer Yuvası", "t6": "Işıyan Sefer Kapısı"},
+    {"bina": "[Tatbikat Havuzu](binalar/training_grounds.md)", "sanat": "B", "t1": "Geçici Tatbikat Çukuru", "t2": "Perçinli Tatbikat Havuzu", "t3": "Basınç Odaları", "t4": "Alaşım Talim Havzası", "t5": "Kitin Talim Havuzu", "t6": "Nabız Havuzu"},
+    {"bina": "[Mürettebat Yatakhanesi](binalar/crew_quarters.md)", "sanat": "B", "t1": "Yama Ranza Bölmesi", "t2": "Perçinli Yatakhane", "t3": "Basınç Yaşam Bloğu", "t4": "Alaşım Konut Kulesi", "t5": "Kadim Konaklar", "t6": "Işıyan Mahalle"},
+    {"bina": "[Revir](binalar/med_bay.md)", "sanat": "B", "t1": "Seyyar Revir", "t2": "Perçinli Revir Bölmesi", "t3": "Basınçlı Tedavi Bölmesi", "t4": "Alaşım Şifa Kulesi", "t5": "Yaşayan Şifahane", "t6": "Rezonans Şifahanesi"},
+    {"bina": "[Kriyo Bakım Ünitesi](binalar/cryo_ward.md)", "sanat": "B", "t1": "Yama Soğuk Odası", "t2": "Perçinli Kriyo Ünitesi", "t3": "Basınçlı Kriyo Dizisi", "t4": "Alaşım Kriyo Kulesi", "t5": "Kitin Kozalar", "t6": "Ninni Kozaları"},
+    {"bina": "[Hidrotermal Santral](binalar/hydrothermal_plant.md)", "sanat": "B", "t1": "Yama Isı Hattı", "t2": "Perçinli Baca Santrali", "t3": "Basınç Türbin Evi", "t4": "Alaşım Isı Kulesi", "t5": "Kaynaşık Baca", "t6": "Rezonans Bacası"},
+    {"bina": "[Takas İstasyonu](binalar/trade_station.md)", "sanat": "B", "t1": "Hurda Takas İskelesi", "t2": "Perçinli Takas İstasyonu", "t3": "Basınç Aktarma Rıhtımı", "t4": "Alaşım Kervan Limanı", "t5": "Kadim Kervansaray", "t6": "Yankı Kervansarayı"},
+    {"bina": "[Bilim Kubbesi](binalar/science_dome.md)", "sanat": "B", "t2": "Perçinli Bilim Kubbesi", "t3": "Basınç Laboratuvar Kubbesi", "t4": "Alaşım Deney Kubbesi", "t5": "Kadim Bilgelik Kubbesi", "t6": "Işıyan Bilgelik Kubbesi"},
+    {"bina": "[Savaş Kubbesi](binalar/war_dome.md)", "sanat": "B", "t2": "Perçinli Komuta Kubbesi", "t3": "Basınçlı Harekât Kubbesi", "t4": "Alaşım Savaş Kubbesi", "t5": "Kitin Harp Kubbesi", "t6": "Uyanmış Harp Kubbesi"},
+    {"bina": "[Teçhizat Atölyesi](binalar/gear_workshop.md)", "sanat": "B", "t1": "Seyyar Demirci Tezgâhı", "t2": "Perçinli Teçhizat Atölyesi", "t3": "Basınç Dövmehanesi", "t4": "Alaşım Zırh Atölyesi", "t5": "Kadim Örs", "t6": "Rezonans Örsü"},
+    {"bina": "[Dalgıç Anıtı](binalar/armor_monument.md)", "sanat": "B", "t1": "Yama Kask Kaidesi", "t2": "Perçinli Dalgıç Anıtı", "t3": "Basınç Zırhı Abidesi", "t4": "Alaşım Dalgıç Heykeli", "t5": "Kitin Dalgıç", "t6": "Uyanmış Dalgıç"},
+    {"bina": "[Zıpkın Anıtı](binalar/harpoon_monument.md)", "sanat": "B", "t1": "Yama Zıpkın Sehpası", "t2": "Perçinli Zıpkın Anıtı", "t3": "Basınç Zıpkını Abidesi", "t4": "Alaşım Avcı Heykeli", "t5": "Kadim Avcı", "t6": "Uyanmış Avcı"},
+    {"bina": "[Ark Anıtı](binalar/arc_monument.md)", "sanat": "B", "t1": "Yama Ark Bobini", "t2": "Perçinli Ark Anıtı", "t3": "Basınç Arkı Abidesi", "t4": "Alaşım Ark Kulesi", "t5": "Kaynaşık Ark Ağacı", "t6": "Uyanmış Ark"},
+    {"bina": "[Kalıntı Arşivi](binalar/relic_archive.md)", "sanat": "B", "t1": "Geçici Buluntu Rafları", "t2": "Perçinli Kalıntı Arşivi", "t3": "Basınç Sergi Salonu", "t4": "Alaşım Arşiv Kulesi", "t5": "Kadim Hafıza", "t6": "Yankı Hafızası"},
+    {"bina": "[Alaşım Dökümhanesi](binalar/alloy_foundry.md)", "sanat": "B", "t1": "Deneme Ocağı", "t2": "Perçinli Döküm Ocağı", "t3": "Basınç Potası", "t4": "Alaşım Dökümhanesi", "t5": "Kaynaşık Pota", "t6": "Rezonans Dökümhanesi"},
+    {"bina": "[Kronik Feneri](binalar/chronicle_beacon.md)", "sanat": "B", "t1": "Enkaz Yayın Direği", "t2": "Perçinli Kronik Feneri", "t3": "Basınç Feneri", "t4": "Alaşım Yayın Kulesi", "t5": "Kadim Fener", "t6": "Kronik Korosu"}
+  ],
+  "ozet_sutunlar": [
+    ["bina", "Bina"],
+    ["sanat", "Sınıf"],
+    ["t1", "I · Yama"],
+    ["t2", "II · Perçin"],
+    ["t3", "III · Basınç"],
+    ["t4", "IV · Alaşım"],
+    ["t5", "V · Biyomekanik"],
+    ["t6", "VI · Rezonans"]
+  ],
+  "butce": [
+    {"id": "a_bina", "sinif": "A", "kapsam": "Kodda olan binalar (kubbe dışı)", "bina": 13, "gorunum": 6, "mesh": 78, "kit": null, "modul": null, "not": "Her katman ayrı mesh; bugünkü Blender tasarımı I. katmanın temeli"},
+    {"id": "a_kubbe", "sinif": "A", "kapsam": "Kodda olan kubbeler", "bina": 2, "gorunum": 5, "mesh": 10, "kit": null, "modul": null, "not": "Her kubbe seviyesi ayrı mesh"},
+    {"id": "b_bina", "sinif": "B", "kapsam": "Yeni binalar (kubbe dışı)", "bina": 17, "gorunum": 6, "mesh": 51, "kit": null, "modul": null, "not": "I, III, V mesh; II, IV, VI ortak kitle"},
+    {"id": "b_kubbe", "sinif": "B", "kapsam": "Yeni kubbeler", "bina": 2, "gorunum": 5, "mesh": 6, "kit": null, "modul": null, "not": "Sv 1, 2, 4 mesh; Sv 3 Alaşım kiti, Sv 5 Rezonans kiti"},
+    {"id": "kitler", "sinif": "Ortak", "kapsam": "Katman kitleri (Perçin, Alaşım, Rezonans)", "bina": 19, "gorunum": null, "mesh": null, "kit": 3, "modul": null, "not": "Soketlere takılan parça setleri ve malzeme takası"},
+    {"id": "moduller", "sinif": "Ortak", "kapsam": "Ek modüller (Sv 5, 15, 25, 35, 45)", "bina": 30, "gorunum": null, "mesh": null, "kit": null, "modul": 12, "not": "Kubbelerde modül yok"},
+    {"id": "toplam", "sinif": "Toplam", "kapsam": "Bina sanatı", "bina": 34, "gorunum": null, "mesh": 145, "kit": 3, "modul": 12, "not": "Elle ya da üreticiyle yapılan parçalar"},
+    {"id": "harita", "sinif": "Ortak", "kapsam": "Dünya haritası üs maketi", "bina": null, "gorunum": 6, "mesh": 6, "kit": null, "modul": null, "not": "Reaktör ve uydu binaların LOD2'sinden otomatik birleştirme"},
+    {"id": "genel", "sinif": "Genel toplam", "kapsam": "Bina sanatı + harita maketi", "bina": 34, "gorunum": null, "mesh": 151, "kit": 3, "modul": 12, "not": "LOD1 ve LOD2 otomatik; sayıya girmez"}
+  ],
+  "butce_sutunlar": [
+    ["sinif", "Sınıf"],
+    ["kapsam", "Kapsam"],
+    ["bina", "Bina"],
+    ["gorunum", "Görünüm / bina"],
+    ["mesh", "Mesh"],
+    ["kit", "Kit"],
+    ["modul", "Modül"],
+    ["not", "Not"]
+  ],
+  "butce_ozet": {
+    "mesh": 145,
+    "kit": 3,
+    "modul": 12,
+    "harita": 6,
+    "genel_mesh": 151,
+    "a_bina": 15,
+    "b_bina": 19,
+    "lod_dosyasi": 453,
+    "en_kotu_ucgen": 6500,
+    "ornek_50": 67,
+    "sahne_lod1_50": 217750
+  },
+  "dunya_haritasi": [
+    {"reaktor": "1–2", "katman": "I · Yama", "kume": "Yalnızca Yama Reaktörü; çevrede enkaz yığını", "yukseklik": 1.0, "isik": "Kehribar çalışma ışığı"},
+    {"reaktor": "3–9", "katman": "I · Yama", "kume": "+ Oksijen Tesisi (3), + Mega Kubbe (6, ilk görünümü); parçalar Yama dilinde", "yukseklik": 1.0, "isik": "Kehribar"},
+    {"reaktor": "10–19", "katman": "II · Perçin", "kume": "+ Kalkan Jeneratörü, + Radar Merkezi; bütün parçalar Perçin LOD2", "yukseklik": 1.15, "isik": "Camgöbeği şeritler"},
+    {"reaktor": "20–29", "katman": "III · Basınç", "kume": "+ Askeri Kubbe; Mega Kubbe ikinci görünümüne geçer, parçalar basınç küreli", "yukseklik": 1.32, "isik": "Camgöbeği, sıcak pencereler"},
+    {"reaktor": "30–39", "katman": "IV · Alaşım", "kume": "+ Alaşım Dökümhanesi; reaktörün tepesinde sonar çanağı, kubbe içinde kent", "yukseklik": 1.52, "isik": "Mavi, mor vurgu"},
+    {"reaktor": "40–49", "katman": "V · Biyomekanik", "kume": "+ Bilim ve Savaş Kubbesi; kitin kaburgalar kümeyi sarar", "yukseklik": 1.75, "isik": "Turkuaz, yavaş nefes"},
+    {"reaktor": "50", "katman": "VI · Rezonans", "kume": "Tam küme; maketin çevresinde yavaş bir nabız halkası", "yukseklik": 2.01, "isik": "Beyaz-camgöbeği nabız, mor hale"}
+  ],
+  "dunya_haritasi_sutunlar": [
+    ["reaktor", "Reaktör"],
+    ["katman", "Katman"],
+    ["kume", "Haritadaki küme"],
+    ["yukseklik", "Yükseklik ×"],
+    ["isik", "Işık"]
+  ],
+  "lod": [
+    {"id": "lod0", "ad": "LOD0", "mesafe": "Yakın: bina kartı, başkalaşım anı, yakın zoom", "oran": 100, "not": "Katman üçgen bütçesi + modüller"},
+    {"id": "lod1", "ad": "LOD1", "mesafe": "Orta: varsayılan üs kamerası", "oran": 50, "not": "Modüller tek parçaya birleşir"},
+    {"id": "lod2", "ad": "LOD2", "mesafe": "Uzak zoom ve dünya haritası maketi", "oran": 15, "not": "Silüet ve ışık kalır, ayrıntı gider"}
+  ],
+  "lod_sutunlar": [
+    ["ad", "Düzey"],
+    ["mesafe", "Ne zaman"],
+    ["oran", "Üçgen oranı", "yuzde"],
+    ["not", "Not"]
+  ],
+  "kancalar": [
+    {"id": "koken_kaplamasi", "ad": "Köken kaplaması", "degisir": "Boya paleti, trim rengi, amblem soketi; ışığa hafif köken tonu", "degismez": "Silüet, katman, modüller", "sahibi": "Köken (16)"},
+    {"id": "izin_isik_imzasi", "ad": "Derinlik İzni ışık imzası", "degisir": "Reaktör çekirdeğinde yerinde duran soluk nabız; kubbe tabanında biyolüminesan halka", "degismez": "Silüet, katman, Rezonans dalgası", "sahibi": "Derinlik İzni (11)"},
+    {"id": "us_kaplamasi", "ad": "Üs kaplaması", "degisir": "Bütün üste malzeme paleti, trim ve dekor seti (sezon bileti, İzin dükkânı, etkinlik)", "degismez": "Silüet, katman, başkalaşım anı", "sahibi": "The Syndicate (12), Derinlik İzni (11)"},
+    {"id": "ittifak_amblemi", "ad": "İttifak amblemi", "degisir": "İttifak Merkezi flamaları ve amblem halkası", "degismez": "Silüet, katman", "sahibi": "İttifak (10)"}
+  ],
+  "kancalar_sutunlar": [
+    ["ad", "Kanca"],
+    ["degisir", "Ne değişir"],
+    ["degismez", "Ne değişmez"],
+    ["sahibi", "Ayrıntı"]
+  ],
+  "istemler": [
+    {"katman": "I · Yama", "istem": "makeshift outpost built from salvaged convoy parts, mismatched hull plates, hazard orange paint, exposed cables and hoses, scaffolding, amber work lamps"},
+    {"katman": "II · Perçin", "istem": "riveted titanium panels, bolted flanges, yellow syntactic foam blocks, tidy cyan LED strips, orderly field assembly"},
+    {"katman": "III · Basınç", "istem": "heavy titanium pressure spheres, thick conical acrylic viewports, ring stiffeners, rounded massive hull, warm light inside"},
+    {"katman": "IV · Alaşım", "istem": "dark bronze superalloy plating with heat-blued tint, sonar dishes, finned heat exchangers, tall vertical silhouette, violet accent lights"},
+    {"katman": "V · Biyomekanik", "istem": "biomechanical, ancient chitin ribs grown over a metal hull, pillow basalt foundation, glowing teal veins, violet crystal inlays"},
+    {"katman": "VI · Rezonans", "istem": "radiant bioluminescent pulse, translucent glowing membranes, crystal crown, cyan-white core light with violet halo"}
+  ],
+  "istemler_sutunlar": [
+    ["katman", "Katman"],
+    ["istem", "SDXL istem anahtarları (İngilizce)"]
+  ]
+}

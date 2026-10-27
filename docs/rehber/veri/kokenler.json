@@ -1,0 +1,165 @@
+{
+  "surum": "rehber-1",
+  "_not": "16 · Oyuncu kökenleri (K-19). Pasifler küçük ve kalıcıdır; özel birlik o türün T8–T10'unun yerini alır, bedeli ve eğitim süresi standart birlikle aynıdır, farklar standart birliğe göre yüzdedir (07). Köken kahramanının başlangıç yıldızı nadirliğe göre eşitlenir: Sıradan 3★, Nadir 2★, Destansı 1★.",
+  "kokenler_sutunlar": [
+    ["ad", "Köken"],
+    ["slogan", "Söz"],
+    ["kahraman_ad", "Köken kahramanı"],
+    ["kahraman_yildiz", "Başlangıç ★"],
+    ["pasif1", "Pasif 1"],
+    ["pasif2", "Pasif 2"],
+    ["pasif3", "Pasif 3"]
+  ],
+  "kokenler": [
+    {
+      "id": "AtlanticUnion",
+      "ad": "Atlantik Birliği",
+      "slogan": "Kimse geride kalmaz.",
+      "kahraman": "mara",
+      "kahraman_ad": "Komutan Elias Rourke",
+      "kahraman_yildiz": 3,
+      "pasif1": "+%5 Titanyum üretimi",
+      "pasif2": "+%3 Zırhlı Dalgıç savunması",
+      "pasif3": "+%5 üs dayanıklılığı",
+      "lore": "Kuzey Atlantik'in son tersanelerinden çıkan konvoyların torunlarıdır. Yüzey yaşanmaz hâle geldiğinde ilk inenler onlardı: ağır gövdeler, sıkı vardiyalar ve tek bir yemin, kimse geride kalmaz. Basınç küresini, kaynağı ve perçini iyi bilirler; bir üssü kurmak kadar onu tutmayı da. Komutan Elias Rourke son konvoyun komutanıdır ve hâlâ her gece kayıp gövdelerin listesini okur."
+    },
+    {
+      "id": "PacificOrder",
+      "ad": "Pasifik Tarikatı",
+      "slogan": "Ölç, anla, iyileştir.",
+      "kahraman": "lyra",
+      "kahraman_ad": "Dr. Lyra Moss",
+      "kahraman_yildiz": 3,
+      "pasif1": "+%5 iyileştirme hızı",
+      "pasif2": "+%5 Oksijen üretimi",
+      "pasif3": "+%2 araştırma hızı",
+      "lore": "Pasifik'in derin araştırma istasyonlarında doğan, bilimi bir yemin gibi taşıyan topluluktur. Kemosentezi ilk kez gören dalışların defterlerini kutsal metin gibi saklar, her ölçümü bir dua sabrıyla tekrarlarlar. Şifa, gözlem ve sabır onların silahıdır; gerçek canlılara dokunmazlar, yalnızca kaydederler. Dr. Lyra Moss tarikatın hekimidir."
+    },
+    {
+      "id": "Deepborn",
+      "ad": "Derindoğanlar",
+      "slogan": "Karanlık bizim evimiz.",
+      "kahraman": "kael",
+      "kahraman_ad": "Kael",
+      "kahraman_yildiz": 2,
+      "pasif1": "+%5 toplama hızı",
+      "pasif2": "+%5 Gıda üretimi",
+      "pasif3": "+%3 PvE düşmanlarına hasar",
+      "lore": "Üslerde doğan üçüncü kuşaktır; hiçbiri güneşi görmedi. Gözleri biyoışıldamaya, kulakları sonarın tıkırtısına alışıktır. Derinin kurallarını en iyi onlar bilir: Uçurum Sürüngenleri avlanır, gerçek canlılara dokunulmaz. Avcıdırlar, iz sürerler, susmayı bilirler. Kael bu kuşağın en iyi iz sürücüsüdür."
+    },
+    {
+      "id": "ForgottenOnes",
+      "ad": "Unutulanlar",
+      "slogan": "Enkaz da bir yoldur.",
+      "kahraman": "juno",
+      "kahraman_ad": "Juno Vega",
+      "kahraman_yildiz": 1,
+      "pasif1": "+%5 taşıma kapasitesi",
+      "pasif2": "+%5 kurtarma görevi ödülü",
+      "pasif3": "+%3 yürüyüş hızı",
+      "lore": "Kubbeler mühürlendiğinde dışarıda kalanlardır. Kimse onları kurtarmaya gelmedi; onlar da enkazdan bir hayat örmeyi öğrendi. Pilot, hurdacı ve kaçakçıdırlar; her batık gövde onlar için bir hazine, her kapalı kapı bir bilmecedir. Juno Vega, akıntıları ezbere bilen bir pilottur ve hiçbir konvoya borcu yoktur."
+    },
+    {
+      "id": "AbyssCult",
+      "ad": "Uçurum Tarikatı",
+      "slogan": "Dip bizi çağırıyor.",
+      "kahraman": "sable",
+      "kahraman_ad": "Sable",
+      "kahraman_yildiz": 1,
+      "pasif1": "+%4 Kadim Muhafız ve Leviathan'lara hasar",
+      "pasif2": "+%5 Sonar Enerjisi yenilenmesi",
+      "pasif3": "+%5 Basınç Ambarı koruması",
+      "lore": "Çukurun dibinden gelen düzenli titreşimi bir çağrı olarak duyanlardır. Hadalit'in yalnızca karanlıkta yanan ışığını kutsal sayar, kadim makinelerin dilini çözmeye çalışırlar. Başkaları Çekirdek'ten korkar; onlar ona doğru yürür. Sable, kadim kabukları söküp yeniden kurabilen tek mühendistir; ne bulduğunu kimseye tam anlatmaz."
+    }
+  ],
+  "birlikler_sutunlar": [
+    ["ad", "Köken"],
+    ["birlik", "Özel birlik (T8–T10)"],
+    ["birlik_tur_ad", "Yerini aldığı tür"],
+    ["birlik_fark", "Fark (standarda göre)"]
+  ],
+  "birlikler": [
+    {
+      "koken": "AtlanticUnion",
+      "ad": "Atlantik Birliği",
+      "birlik": "Konvoy Muhafızı",
+      "birlik_tur": "armored",
+      "birlik_tur_ad": "Zırhlı Dalgıç",
+      "birlik_fark": "+%4 can, −%3 hız; üs ve garnizon savunmasında +%3 savunma"
+    },
+    {
+      "koken": "PacificOrder",
+      "ad": "Pasifik Tarikatı",
+      "birlik": "Biyoark Askeri",
+      "birlik_tur": "arc",
+      "birlik_tur_ad": "Ark Askeri",
+      "birlik_fark": "Savaşın ilk 3 turunda düşman saldırısı −%3; −%2 can"
+    },
+    {
+      "koken": "Deepborn",
+      "ad": "Derindoğanlar",
+      "birlik": "Dip Avcısı",
+      "birlik_tur": "harpoon",
+      "birlik_tur_ad": "Zıpkıncı",
+      "birlik_fark": "+%3 saldırı, PvE'de +%5 hasar; −%2 savunma"
+    },
+    {
+      "koken": "ForgottenOnes",
+      "ad": "Unutulanlar",
+      "birlik": "Hurda Delicisi",
+      "birlik_tur": "driller",
+      "birlik_tur_ad": "Delici",
+      "birlik_fark": "+%15 taşıma, geçit ve yapılara +%5 hasar; −%2 saldırı"
+    },
+    {
+      "koken": "AbyssCult",
+      "ad": "Uçurum Tarikatı",
+      "birlik": "Rezonans Müridi",
+      "birlik_tur": "arc",
+      "birlik_tur_ad": "Ark Askeri",
+      "birlik_fark": "+%5 saldırı, Kadim Muhafız ve Leviathan'a +%5; −%4 can"
+    }
+  ],
+  "mimariler_sutunlar": [["ad", "Köken"], ["mimari", "Mimari"], ["mimari_tarif", "Görünüm"]],
+  "mimariler": [
+    {
+      "koken": "AtlanticUnion",
+      "ad": "Atlantik Birliği",
+      "mimari": "Konvoy Çeliği",
+      "mimari_tarif": "Perçinli gri çelik plakalar, turuncu ikaz şeritleri, kalın lumbozlar, gövdeye boyanmış konvoy numaraları."
+    },
+    {
+      "koken": "PacificOrder",
+      "ad": "Pasifik Tarikatı",
+      "mimari": "Mercan Laboratuvarı",
+      "mimari_tarif": "Beyaz kompozit kubbeler, ince camgöbeği biyoışıldayan hatlar, cam seralar ve ölçüm direkleri."
+    },
+    {
+      "koken": "Deepborn",
+      "ad": "Derindoğanlar",
+      "mimari": "Bazalt Oyma",
+      "mimari_tarif": "Yastık lav ve bazalt bloklara gömülü yapılar, karanlığa alışmış gözler için kırmızı düşük ışık, sintaktik köpük şamandıralar."
+    },
+    {
+      "koken": "ForgottenOnes",
+      "ad": "Unutulanlar",
+      "mimari": "Hurda Örgü",
+      "mimari_tarif": "Eski gövde parçalarından yamalı yapılar, açıkta kablo demetleri, sarı sodyum lambalar, elle boyanmış işaretler."
+    },
+    {
+      "koken": "AbyssCult",
+      "ad": "Uçurum Tarikatı",
+      "mimari": "Kadim Kabuk",
+      "mimari_tarif": "Hadalit damarlı biyomekanik kabuklar, organik kıvrımlar, karanlıkta yavaşça nabız atan camgöbeği parıltı."
+    }
+  ],
+  "degisim": {
+    "ucretsiz": "İlk 7 gün ve Reaktör ≤ 15 iken 1 kez",
+    "bedel": 3000,
+    "bekleme_gun": 30,
+    "kosul": "Tüm yürüyüşler evde; savaş bildirisi altında değil",
+    "birlik": "Yeni kökenin özel birliği aynı türdense var olan özel askerler ona dönüşür; değilse aynı türün standart T8–T10'una döner",
+    "kahraman": "Köken kahramanı kalır; yeni kökenin kahramanı verilmez",
+    "mimari": "Yeni mimari açılır; eski mimari kozmetik olarak seçilebilir kalır"
+  }
+}

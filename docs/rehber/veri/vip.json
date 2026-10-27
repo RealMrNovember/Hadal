@@ -1,0 +1,785 @@
+{
+  "surum": "rehber-1",
+  "_not": "Derinlik İzni (VIP). Kalıcı; etkinleştirme süresi yok, puan hiç azalmaz (tek istisna: iade edilen satın almanın puanı). Listelerde sıra numarası = İzin seviyesi (seviyeler.7 = İzin 7). Yüzdeler hız formülüne (K-13) bölen olarak girer. Gün sütunları tasarim betiğinin puan modelinden gelir: F2P = her gün giriş + yılda 12.000 olay puanı; aylık kart = F2P + Sözleşme giriş eki + ≈27,5 $/ay + Reaktör Fonu; balina = F2P + Sözleşme eki + ≈1.665 $/ay (ilk ay +300 $). '—' = ilk 480 günde ulaşılmaz. sim_denetimi: profil 'ek' hızı yerine bu eğriyle yeniden oynatılan simülasyon (a: VIP tabana eklenir; b: F2P'nin kendi VIP'i tabandan düşülür).",
+  "ad": "Derinlik İzni",
+  "kisa_ad": "İzin",
+  "kurallar": {
+    "kalici": true,
+    "etkinlestirme": false,
+    "maks_seviye": 15,
+    "puan_dolar": 100,
+    "giris": {
+      "baslangic": 30,
+      "artis": 10,
+      "tavan": 150,
+      "tavan_gunu": 13,
+      "kacirma": "Girilmeyen her gün seri sayacı yarıya iner (aşağı yuvarlanır); sıfırlanmaz."
+    },
+    "olay_puani_yil": 12000,
+    "sozlesme_giris_eki": 150,
+    "kurulus_puani": 1000,
+    "sozlesme_hizi": 5,
+    "f2p_yil_puani": 66000,
+    "f2p_67_yil_puani": 44400,
+    "gun_sinir": 480
+  },
+  "seviyeler": [
+    {
+      "id": "izin_0",
+      "seviye": 0,
+      "derinlik": 6000,
+      "puan": 0,
+      "dolar": null,
+      "f2p_gun": null,
+      "f2p_67_gun": null,
+      "kart_gun": null,
+      "balina_gun": null,
+      "ozel": "Giriş serisi başlar"
+    },
+    {
+      "id": "izin_1",
+      "seviye": 1,
+      "derinlik": 6300,
+      "puan": 100,
+      "dolar": 1,
+      "f2p_gun": 2,
+      "f2p_67_gun": 2,
+      "kart_gun": 1,
+      "balina_gun": 1,
+      "ozel": "Derinlik İzni sandığı (günlük)"
+    },
+    {
+      "id": "izin_2",
+      "seviye": 2,
+      "derinlik": 6650,
+      "puan": 500,
+      "dolar": 5,
+      "f2p_gun": 6,
+      "f2p_67_gun": 6,
+      "kart_gun": 1,
+      "balina_gun": 1,
+      "ozel": "Tek dokunuşla toplama (tüm üretim binaları)"
+    },
+    {
+      "id": "izin_3",
+      "seviye": 3,
+      "derinlik": 7000,
+      "puan": 1500,
+      "dolar": 15,
+      "f2p_gun": 13,
+      "f2p_67_gun": 16,
+      "kart_gun": 1,
+      "balina_gun": 1,
+      "ozel": "Haftalık ek Kriyo-Kapsül çekimi başlar"
+    },
+    {
+      "id": "izin_4",
+      "seviye": 4,
+      "derinlik": 7300,
+      "puan": 4000,
+      "dolar": 40,
+      "f2p_gun": 27,
+      "f2p_67_gun": 37,
+      "kart_gun": 4,
+      "balina_gun": 1,
+      "ozel": "Derinlik İzni dükkânı açılır"
+    },
+    {
+      "id": "izin_5",
+      "seviye": 5,
+      "derinlik": 7650,
+      "puan": 10000,
+      "dolar": 100,
+      "f2p_gun": 59,
+      "f2p_67_gun": 86,
+      "kart_gun": 19,
+      "balina_gun": 2,
+      "ozel": "Otomatik ittifak yardımı isteği"
+    },
+    {
+      "id": "izin_6",
+      "seviye": 6,
+      "derinlik": 8000,
+      "puan": 22000,
+      "dolar": 220,
+      "f2p_gun": 125,
+      "f2p_67_gun": 184,
+      "kart_gun": 47,
+      "balina_gun": 4,
+      "ozel": "Kurtarma görevleri %10 daha kısa sürer"
+    },
+    {
+      "id": "izin_7",
+      "seviye": 7,
+      "derinlik": 8300,
+      "puan": 45000,
+      "dolar": 450,
+      "f2p_gun": 251,
+      "f2p_67_gun": 370,
+      "kart_gun": 102,
+      "balina_gun": 7,
+      "ozel": "Reaktör ışığı (yalnız kendi üssünde)"
+    },
+    {
+      "id": "izin_8",
+      "seviye": 8,
+      "derinlik": 8650,
+      "puan": 75000,
+      "dolar": 750,
+      "f2p_gun": 415,
+      "f2p_67_gun": null,
+      "kart_gun": 172,
+      "balina_gun": 12,
+      "ozel": "İnşaat sırası: bir sonraki yükseltme sıraya alınır"
+    },
+    {
+      "id": "izin_9",
+      "seviye": 9,
+      "derinlik": 9000,
+      "puan": 125000,
+      "dolar": 1250,
+      "f2p_gun": null,
+      "f2p_67_gun": null,
+      "kart_gun": 291,
+      "balina_gun": 19,
+      "ozel": "Araştırma sırası"
+    },
+    {
+      "id": "izin_10",
+      "seviye": 10,
+      "derinlik": 9300,
+      "puan": 185000,
+      "dolar": 1850,
+      "f2p_gun": null,
+      "f2p_67_gun": null,
+      "kart_gun": 432,
+      "balina_gun": 28,
+      "ozel": "Reaktör ışığı dünya haritasında da görünür"
+    },
+    {
+      "id": "izin_11",
+      "seviye": 11,
+      "derinlik": 9650,
+      "puan": 270000,
+      "dolar": 2700,
+      "f2p_gun": null,
+      "f2p_67_gun": null,
+      "kart_gun": null,
+      "balina_gun": 42,
+      "ozel": "Eğitim sırası"
+    },
+    {
+      "id": "izin_12",
+      "seviye": 12,
+      "derinlik": 10000,
+      "puan": 400000,
+      "dolar": 4000,
+      "f2p_gun": null,
+      "f2p_67_gun": null,
+      "kart_gun": null,
+      "balina_gun": 64,
+      "ozel": "Küçük savaş ayrıcalıkları başlar"
+    },
+    {
+      "id": "izin_13",
+      "seviye": 13,
+      "derinlik": 10300,
+      "puan": 600000,
+      "dolar": 6000,
+      "f2p_gun": null,
+      "f2p_67_gun": null,
+      "kart_gun": null,
+      "balina_gun": 99,
+      "ozel": "Kubbe tabanında biyolüminesan halka"
+    },
+    {
+      "id": "izin_14",
+      "seviye": 14,
+      "derinlik": 10650,
+      "puan": 850000,
+      "dolar": 8500,
+      "f2p_gun": null,
+      "f2p_67_gun": null,
+      "kart_gun": null,
+      "balina_gun": 142,
+      "ozel": "Profil kartında derinlik çizgisi (isteğe bağlı)"
+    },
+    {
+      "id": "izin_15",
+      "seviye": 15,
+      "derinlik": 10935,
+      "puan": 1200000,
+      "dolar": 12000,
+      "f2p_gun": null,
+      "f2p_67_gun": null,
+      "kart_gun": null,
+      "balina_gun": 202,
+      "ozel": "Dip ışığı: halka Challenger lacivertine döner"
+    }
+  ],
+  "seviyeler_sutunlar": [
+    ["seviye", "İzin"],
+    ["derinlik", "Derinlik (m)"],
+    ["puan", "Puan"],
+    ["dolar", "Yalnız harcamayla", "para"],
+    ["f2p_gun", "F2P her gün (gün)"],
+    ["f2p_67_gun", "F2P 6/7 (gün)"],
+    ["kart_gun", "Aylık kart (gün)"],
+    ["balina_gun", "Balina (gün)"],
+    ["ozel", "Açılan"]
+  ],
+  "ekonomi": [
+    {
+      "seviye": 0,
+      "insa": null,
+      "arastirma": null,
+      "egitim": null,
+      "uretim": null,
+      "toplama": null,
+      "ucretsiz_dk": null,
+      "yardim": null
+    },
+    {
+      "seviye": 1,
+      "insa": null,
+      "arastirma": null,
+      "egitim": null,
+      "uretim": 1,
+      "toplama": null,
+      "ucretsiz_dk": null,
+      "yardim": null
+    },
+    {
+      "seviye": 2,
+      "insa": 1,
+      "arastirma": 1,
+      "egitim": null,
+      "uretim": 2,
+      "toplama": null,
+      "ucretsiz_dk": 1,
+      "yardim": null
+    },
+    {
+      "seviye": 3,
+      "insa": 2,
+      "arastirma": 2,
+      "egitim": 2,
+      "uretim": 3,
+      "toplama": 3,
+      "ucretsiz_dk": 1,
+      "yardim": null
+    },
+    {
+      "seviye": 4,
+      "insa": 3,
+      "arastirma": 3,
+      "egitim": 3,
+      "uretim": 4,
+      "toplama": 4,
+      "ucretsiz_dk": 2,
+      "yardim": 1
+    },
+    {
+      "seviye": 5,
+      "insa": 4,
+      "arastirma": 4,
+      "egitim": 5,
+      "uretim": 5,
+      "toplama": 5,
+      "ucretsiz_dk": 2,
+      "yardim": 1
+    },
+    {
+      "seviye": 6,
+      "insa": 5,
+      "arastirma": 5,
+      "egitim": 6,
+      "uretim": 6,
+      "toplama": 6,
+      "ucretsiz_dk": 3,
+      "yardim": 1
+    },
+    {
+      "seviye": 7,
+      "insa": 7,
+      "arastirma": 7,
+      "egitim": 8,
+      "uretim": 8,
+      "toplama": 8,
+      "ucretsiz_dk": 3,
+      "yardim": 1
+    },
+    {
+      "seviye": 8,
+      "insa": 12,
+      "arastirma": 12,
+      "egitim": 10,
+      "uretim": 10,
+      "toplama": 10,
+      "ucretsiz_dk": 5,
+      "yardim": 2
+    },
+    {
+      "seviye": 9,
+      "insa": 13,
+      "arastirma": 13,
+      "egitim": 12,
+      "uretim": 11,
+      "toplama": 12,
+      "ucretsiz_dk": 5,
+      "yardim": 2
+    },
+    {
+      "seviye": 10,
+      "insa": 15,
+      "arastirma": 15,
+      "egitim": 14,
+      "uretim": 12,
+      "toplama": 14,
+      "ucretsiz_dk": 6,
+      "yardim": 2
+    },
+    {
+      "seviye": 11,
+      "insa": 17,
+      "arastirma": 17,
+      "egitim": 16,
+      "uretim": 13,
+      "toplama": 16,
+      "ucretsiz_dk": 7,
+      "yardim": 3
+    },
+    {
+      "seviye": 12,
+      "insa": 19,
+      "arastirma": 19,
+      "egitim": 18,
+      "uretim": 14,
+      "toplama": 18,
+      "ucretsiz_dk": 8,
+      "yardim": 3
+    },
+    {
+      "seviye": 13,
+      "insa": 21,
+      "arastirma": 21,
+      "egitim": 20,
+      "uretim": 16,
+      "toplama": 20,
+      "ucretsiz_dk": 9,
+      "yardim": 4
+    },
+    {
+      "seviye": 14,
+      "insa": 23,
+      "arastirma": 23,
+      "egitim": 22,
+      "uretim": 18,
+      "toplama": 22,
+      "ucretsiz_dk": 10,
+      "yardim": 4
+    },
+    {
+      "seviye": 15,
+      "insa": 25,
+      "arastirma": 25,
+      "egitim": 25,
+      "uretim": 20,
+      "toplama": 25,
+      "ucretsiz_dk": 10,
+      "yardim": 5
+    }
+  ],
+  "ekonomi_sutunlar": [
+    ["seviye", "İzin"],
+    ["insa", "İnşa hızı", "yuzde"],
+    ["arastirma", "Araştırma hızı", "yuzde"],
+    ["egitim", "Eğitim hızı", "yuzde"],
+    ["uretim", "Üretim", "yuzde"],
+    ["toplama", "Toplama", "yuzde"],
+    ["ucretsiz_dk", "Ücretsiz bitirme (+dk)"],
+    ["yardim", "İttifak yardımı (+)"]
+  ],
+  "harita": [
+    {
+      "seviye": 0,
+      "yuruyus": null,
+      "sonar": null,
+      "saldiri": null,
+      "savunma": null,
+      "can": null,
+      "ek_cekim": null
+    },
+    {
+      "seviye": 1,
+      "yuruyus": null,
+      "sonar": null,
+      "saldiri": null,
+      "savunma": null,
+      "can": null,
+      "ek_cekim": null
+    },
+    {
+      "seviye": 2,
+      "yuruyus": null,
+      "sonar": null,
+      "saldiri": null,
+      "savunma": null,
+      "can": null,
+      "ek_cekim": null
+    },
+    {
+      "seviye": 3,
+      "yuruyus": null,
+      "sonar": null,
+      "saldiri": null,
+      "savunma": null,
+      "can": null,
+      "ek_cekim": 1
+    },
+    {"seviye": 4, "yuruyus": null, "sonar": 5, "saldiri": null, "savunma": null, "can": null, "ek_cekim": 1},
+    {"seviye": 5, "yuruyus": null, "sonar": 5, "saldiri": null, "savunma": null, "can": null, "ek_cekim": 1},
+    {"seviye": 6, "yuruyus": 3, "sonar": 8, "saldiri": null, "savunma": null, "can": null, "ek_cekim": 2},
+    {"seviye": 7, "yuruyus": 3, "sonar": 10, "saldiri": null, "savunma": null, "can": null, "ek_cekim": 2},
+    {"seviye": 8, "yuruyus": 5, "sonar": 12, "saldiri": null, "savunma": null, "can": null, "ek_cekim": 3},
+    {"seviye": 9, "yuruyus": 5, "sonar": 14, "saldiri": null, "savunma": null, "can": null, "ek_cekim": 3},
+    {"seviye": 10, "yuruyus": 6, "sonar": 16, "saldiri": null, "savunma": null, "can": null, "ek_cekim": 4},
+    {"seviye": 11, "yuruyus": 7, "sonar": 18, "saldiri": null, "savunma": null, "can": null, "ek_cekim": 4},
+    {"seviye": 12, "yuruyus": 8, "sonar": 20, "saldiri": 1, "savunma": null, "can": null, "ek_cekim": 5},
+    {"seviye": 13, "yuruyus": 9, "sonar": 22, "saldiri": 1, "savunma": 1, "can": null, "ek_cekim": 5},
+    {"seviye": 14, "yuruyus": 10, "sonar": 24, "saldiri": 2, "savunma": 1, "can": 1, "ek_cekim": 6},
+    {"seviye": 15, "yuruyus": 12, "sonar": 25, "saldiri": 2, "savunma": 2, "can": 2, "ek_cekim": 7}
+  ],
+  "harita_sutunlar": [
+    ["seviye", "İzin"],
+    ["yuruyus", "Yürüyüş hızı", "yuzde"],
+    ["sonar", "Sonar Enerjisi yenilenme", "yuzde"],
+    ["saldiri", "Saldırı", "yuzde"],
+    ["savunma", "Savunma", "yuzde"],
+    ["can", "Can", "yuzde"],
+    ["ek_cekim", "Ek ücretsiz Kriyo çekimi / hafta"]
+  ],
+  "sandik": [
+    {"seviye": 0, "hd": null, "arastirma_dk": null, "hiz_dk": null, "gelir_sa": null},
+    {"seviye": 1, "hd": 10, "arastirma_dk": 5, "hiz_dk": null, "gelir_sa": 0.5},
+    {"seviye": 2, "hd": 15, "arastirma_dk": 5, "hiz_dk": null, "gelir_sa": 0.5},
+    {"seviye": 3, "hd": 20, "arastirma_dk": 10, "hiz_dk": null, "gelir_sa": 1},
+    {"seviye": 4, "hd": 25, "arastirma_dk": 15, "hiz_dk": null, "gelir_sa": 1},
+    {"seviye": 5, "hd": 30, "arastirma_dk": 15, "hiz_dk": null, "gelir_sa": 1.5},
+    {"seviye": 6, "hd": 40, "arastirma_dk": 20, "hiz_dk": null, "gelir_sa": 2},
+    {"seviye": 7, "hd": 50, "arastirma_dk": 25, "hiz_dk": null, "gelir_sa": 2},
+    {"seviye": 8, "hd": 70, "arastirma_dk": 30, "hiz_dk": 45, "gelir_sa": 3},
+    {"seviye": 9, "hd": 80, "arastirma_dk": 30, "hiz_dk": 60, "gelir_sa": 3},
+    {"seviye": 10, "hd": 100, "arastirma_dk": 40, "hiz_dk": 75, "gelir_sa": 4},
+    {"seviye": 11, "hd": 120, "arastirma_dk": 40, "hiz_dk": 90, "gelir_sa": 4},
+    {"seviye": 12, "hd": 140, "arastirma_dk": 50, "hiz_dk": 105, "gelir_sa": 5},
+    {"seviye": 13, "hd": 160, "arastirma_dk": 50, "hiz_dk": 120, "gelir_sa": 5},
+    {"seviye": 14, "hd": 180, "arastirma_dk": 60, "hiz_dk": 135, "gelir_sa": 6},
+    {"seviye": 15, "hd": 200, "arastirma_dk": 60, "hiz_dk": 150, "gelir_sa": 6}
+  ],
+  "sandik_sutunlar": [
+    ["seviye", "İzin"],
+    ["hd", "Hadalit"],
+    ["arastirma_dk", "Araştırma hızlandırma (dk)"],
+    ["hiz_dk", "Genel hızlandırma (dk)"],
+    ["gelir_sa", "Kaynak kapsülü (GS)"]
+  ],
+  "f2p_reaktor": [
+    {"reaktor": 10, "gun": 0.3, "izin": 0, "uretim": null, "insa": null, "toplama": null},
+    {"reaktor": 20, "gun": 4.5, "izin": 1, "uretim": 1, "insa": null, "toplama": null},
+    {"reaktor": 30, "gun": 28.6, "izin": 4, "uretim": 4, "insa": 3, "toplama": 4},
+    {"reaktor": 40, "gun": 128.4, "izin": 6, "uretim": 6, "insa": 5, "toplama": 6},
+    {"reaktor": 50, "gun": 368.1, "izin": 7, "uretim": 8, "insa": 7, "toplama": 8}
+  ],
+  "f2p_reaktor_sutunlar": [
+    ["reaktor", "Reaktör"],
+    ["gun", "F2P ulaşır", "gun"],
+    ["izin", "İzin"],
+    ["uretim", "Üretim", "yuzde"],
+    ["insa", "İnşa hızı", "yuzde"],
+    ["toplama", "Toplama", "yuzde"]
+  ],
+  "giris_serisi": [
+    {"gun": "1", "puan": 30},
+    {"gun": "2", "puan": 40},
+    {"gun": "3", "puan": 50},
+    {"gun": "4", "puan": 60},
+    {"gun": "5", "puan": 70},
+    {"gun": "6", "puan": 80},
+    {"gun": "7", "puan": 90},
+    {"gun": "8", "puan": 100},
+    {"gun": "9", "puan": 110},
+    {"gun": "10", "puan": 120},
+    {"gun": "11", "puan": 130},
+    {"gun": "12", "puan": 140},
+    {"gun": "13 ve sonrası", "puan": 150}
+  ],
+  "giris_serisi_sutunlar": [["gun", "Seri günü"], ["puan", "Puan"]],
+  "kacirma_ornekleri": [
+    {"durum": "Seri 8. gününde, 1 gün girmedi", "once": 100, "sayac": 4, "ertesi": 70, "kayip": 410},
+    {"durum": "Seri 20. gününde, 1 gün girmedi", "once": 150, "sayac": 10, "ertesi": 130, "kayip": 180},
+    {"durum": "Seri 40. gününde, 1 gün girmedi", "once": 150, "sayac": 20, "ertesi": 150, "kayip": 150},
+    {"durum": "Seri 40. gününde, 3 gün girmedi", "once": 150, "sayac": 5, "ertesi": 80, "kayip": 730},
+    {"durum": "Seri 120. gününde, 2 gün girmedi", "once": 150, "sayac": 30, "ertesi": 150, "kayip": 300}
+  ],
+  "kacirma_ornekleri_sutunlar": [
+    ["durum", "Durum"],
+    ["once", "Önceki günlük puan"],
+    ["sayac", "Yeni sayaç"],
+    ["ertesi", "Dönüş günü puanı"],
+    ["kayip", "Toplam kayıp puan"]
+  ],
+  "f2p_kaynaklari": [
+    {
+      "kaynak": "Günlük giriş serisi",
+      "puan_yil": 53970,
+      "aciklama": "30 puandan başlar, her gün +10, 13. günden itibaren 150"
+    },
+    {"kaynak": "Günlük görev sandığı (100 puan)", "puan_yil": 3650, "aciklama": "Her gün 10 puan"},
+    {"kaynak": "Haftalık etkinlikler", "puan_yil": 5200, "aciklama": "Haftada ~100 puan (katılım ödülü)"},
+    {"kaynak": "Bölüm görevleri ve Derinlik Kroniği", "puan_yil": 1200, "aciklama": "Çoğu ilk üç ayda"},
+    {
+      "kaynak": "Derin Akıntı Bileti ücretsiz yolu",
+      "puan_yil": 975,
+      "aciklama": "Sezonda 150 puan, yılda ~6,5 sezon"
+    },
+    {
+      "kaynak": "İttifak hediye sandıkları",
+      "puan_yil": 975,
+      "aciklama": "Seyrek İzin puanı öğesi (ortanca ittifak)"
+    }
+  ],
+  "f2p_kaynaklari_sutunlar": [["kaynak", "Kaynak"], ["puan_yil", "Puan / yıl"], ["aciklama", "Açıklama"]],
+  "ucretli_kaynaklar": [
+    {
+      "kaynak": "Her satın alma",
+      "puan": "100 puan / $",
+      "not": "Fiyat yuvarlanır: 0,99 $ → 100, 4,99 $ → 500, 99,99 $ → 10.000"
+    },
+    {"kaynak": "Kuruluş Hediyesi", "puan": "1.000 puan", "not": "İlk satın almayla bir kez"},
+    {
+      "kaynak": "Sendika Sözleşmesi süresince",
+      "puan": "+150 / giriş günü",
+      "not": "Giriş serisi puanına eklenir (tavanda 300)"
+    },
+    {
+      "kaynak": "Ayrı İzin puanı paketi",
+      "puan": "yok",
+      "not": "Puan yalnız satın almanın yan ürünüdür; puan satılmaz"
+    }
+  ],
+  "ucretli_kaynaklar_sutunlar": [["kaynak", "Kaynak"], ["puan", "Puan"], ["not", "Not"]],
+  "ilerleme": [
+    {
+      "profil": "Ücretsiz · her gün",
+      "g30": "İzin 4 · 4.700",
+      "g90": "İzin 5 · 15.700",
+      "g180": "İzin 6 · 32.100",
+      "g270": "İzin 7 · 48.600",
+      "g365": "İzin 7 · 66.000"
+    },
+    {
+      "profil": "Ücretsiz · haftada 6 gün",
+      "g30": "İzin 3 · 3.200",
+      "g90": "İzin 5 · 10.700",
+      "g180": "İzin 5 · 21.700",
+      "g270": "İzin 6 · 32.700",
+      "g365": "İzin 6 · 44.400"
+    },
+    {
+      "profil": "Ücretsiz · haftada 5 gün",
+      "g30": "İzin 3 · 2.200",
+      "g90": "İzin 4 · 6.800",
+      "g180": "İzin 5 · 13.700",
+      "g270": "İzin 5 · 20.400",
+      "g365": "İzin 6 · 27.600"
+    },
+    {
+      "profil": "Aylık kart · ≈27,5 $/ay",
+      "g30": "İzin 5 · 14.900",
+      "g90": "İzin 6 · 40.300",
+      "g180": "İzin 8 · 78.400",
+      "g270": "İzin 8 · 116.500",
+      "g365": "İzin 9 · 156.700"
+    },
+    {
+      "profil": "Balina · ≈1.665 $/ay",
+      "g30": "İzin 10 · 204.100",
+      "g90": "İzin 12 · 552.700",
+      "g180": "İzin 14 · 1.075.600",
+      "g270": "İzin 15 · 1.598.500",
+      "g365": "İzin 15 · 2.150.400"
+    }
+  ],
+  "ilerleme_sutunlar": [
+    ["profil", "Profil"],
+    ["g30", "30. gün"],
+    ["g90", "90. gün"],
+    ["g180", "180. gün"],
+    ["g270", "270. gün"],
+    ["g365", "365. gün"]
+  ],
+  "sim_denetimi": [
+    {
+      "profil": "Ücretsiz oyuncu",
+      "varsayim": 0,
+      "ort_a": 4.9,
+      "ort_b": 0.0,
+      "r50_profil": 368.1,
+      "r50_a": 357.8,
+      "r50_b": 368.1,
+      "hedef": "340–390"
+    },
+    {
+      "profil": "Aylık kart + VIP 8",
+      "varsayim": 15,
+      "ort_a": 12.4,
+      "ort_b": 8.4,
+      "r50_profil": 267.2,
+      "r50_a": 267.2,
+      "r50_b": 273.8,
+      "hedef": "235–295"
+    },
+    {
+      "profil": "Balina",
+      "varsayim": 30,
+      "ort_a": 22.0,
+      "ort_b": 18.7,
+      "r50_profil": 147.1,
+      "r50_a": 148.1,
+      "r50_b": 151.1,
+      "hedef": "140–190"
+    }
+  ],
+  "sim_denetimi_sutunlar": [
+    ["profil", "Profil"],
+    ["varsayim", "Profil ek hızı", "yuzde"],
+    ["ort_a", "İzin + Sözleşme (ort.)", "yuzde"],
+    ["ort_b", "F2P payı düşülünce (ort.)", "yuzde"],
+    ["r50_profil", "R50 · profil", "gun"],
+    ["r50_a", "R50 · (a)", "gun"],
+    ["r50_b", "R50 · (b)", "gun"],
+    ["hedef", "Hedef aralık (gün)"]
+  ],
+  "dukkan": [
+    {
+      "id": "izin_hiz_1sa",
+      "urun": "1 sa genel hızlandırma (4 × 15 dk)",
+      "acilis": 4,
+      "fiyat": 90,
+      "liste": 120,
+      "sinir": "haftada 5 · 10 · 15 (İzin 4 · 8 · 12)"
+    },
+    {
+      "id": "izin_gelir",
+      "urun": "Titanyum Kapsülü 8 GS",
+      "acilis": 4,
+      "fiyat": 400,
+      "liste": 480,
+      "sinir": "haftada 3"
+    },
+    {
+      "id": "izin_bilet",
+      "urun": "Kriyo-Kapsül bileti",
+      "acilis": 5,
+      "fiyat": 180,
+      "liste": 200,
+      "sinir": "haftada 5"
+    },
+    {
+      "id": "izin_sonar",
+      "urun": "Sonar Pili · orta (+200 Sonar Enerjisi)",
+      "acilis": 5,
+      "fiyat": 100,
+      "liste": null,
+      "sinir": "haftada 3"
+    },
+    {
+      "id": "izin_insaat_3sa",
+      "urun": "3 sa inşaat hızlandırma",
+      "acilis": 6,
+      "fiyat": 220,
+      "liste": 270,
+      "sinir": "haftada 3 · 6 (İzin 6 · 10)"
+    },
+    {
+      "id": "izin_arastirma_3sa",
+      "urun": "3 sa araştırma hızlandırma",
+      "acilis": 6,
+      "fiyat": 220,
+      "liste": 270,
+      "sinir": "haftada 3 · 6 (İzin 6 · 10)"
+    },
+    {
+      "id": "izin_destansi",
+      "urun": "Destansı kahraman kartı (seçmeli)",
+      "acilis": 7,
+      "fiyat": 1500,
+      "liste": 1500,
+      "sinir": "haftada 1"
+    },
+    {
+      "id": "izin_hiz_8sa",
+      "urun": "8 sa genel hızlandırma",
+      "acilis": 8,
+      "fiyat": 700,
+      "liste": 960,
+      "sinir": "haftada 2"
+    },
+    {
+      "id": "izin_malzeme",
+      "urun": "Teçhizat malzemesi kutusu",
+      "acilis": 9,
+      "fiyat": 300,
+      "liste": null,
+      "sinir": "haftada 3"
+    },
+    {
+      "id": "izin_kaplama",
+      "urun": "Üs kaplaması · Derin İz",
+      "acilis": 10,
+      "fiyat": 5000,
+      "liste": null,
+      "sinir": "tek sefer"
+    },
+    {
+      "id": "izin_bilet_10",
+      "urun": "Kriyo-Kapsül bileti × 10",
+      "acilis": 12,
+      "fiyat": 1620,
+      "liste": 1800,
+      "sinir": "ayda 2"
+    }
+  ],
+  "dukkan_sutunlar": [
+    ["urun", "Ürün"],
+    ["acilis", "İzin"],
+    ["fiyat", "Fiyat (HD)"],
+    ["liste", "Liste değeri (HD)"],
+    ["sinir", "Sınır"]
+  ],
+  "gorunum": [
+    {"aralik": "İzin 0–6", "gorunum": "Görsel fark yok", "nerede": "—"},
+    {
+      "aralik": "İzin 7–9",
+      "gorunum": "Reaktör çekirdeğinde soluk camgöbeği nabız (8 saniyede bir)",
+      "nerede": "Yalnız kendi üs görünümün"
+    },
+    {
+      "aralik": "İzin 10–12",
+      "gorunum": "Aynı nabız, yakınlaştırınca dünya haritasındaki üs modelinde de",
+      "nerede": "Üs ve harita"
+    },
+    {
+      "aralik": "İzin 13–14",
+      "gorunum": "Kubbe tabanında yavaş dönen biyolüminesan halka",
+      "nerede": "Üs ve harita"
+    },
+    {
+      "aralik": "İzin 15",
+      "gorunum": "Halka Challenger lacivertine döner; profil kartında 10.935 m çizgisi",
+      "nerede": "Üs, harita, profil"
+    }
+  ],
+  "gorunum_sutunlar": [["aralik", "Seviye"], ["gorunum", "Görünüm"], ["nerede", "Nerede"]]
+}

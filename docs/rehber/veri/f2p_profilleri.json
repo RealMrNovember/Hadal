@@ -1,0 +1,84 @@
+{
+  "surum": "rehber-1",
+  "_not": "Tempo simülasyonunun oyuncu profilleri. Simülasyon reaktörün kritik yolunu (reaktör + önkoşul binaları) inşaatçı inşaatçı oynatır. Seviyeye bağlı değerler [reaktör seviyesi, değer] çapalarıyla verilir ve log-doğrusal enterpolasyonla okunur (0 içeren listeler doğrusal okunur). 'kritik_pay': kaynak gelirinin kritik yola ayrılan kısmı (geri kalanı diğer binalara, araştırmaya, askere gider). 'bekleme': oyuncu çevrimdışıyken biten inşaatın boşta beklediği süre = min(oran × süre, tavan); 1 saatten kısa inşaatlarda bekleme yoktur.",
+  "hedefler": {
+    "f2p": {"gun": 365, "tolerans": [340, 390]},
+    "aylik_kart": {"gun": 265, "tolerans": [235, 295]},
+    "balina": {"gun": 165, "tolerans": [140, 190]}
+  },
+  "kilometre_taslari": {
+    "_not": "F2P için hedef kümülatif gün; tolerans ±%15 (Reaktör 20'den önce mutlak ±1 gün).",
+    "15": 1.5,
+    "20": 4.5,
+    "25": 13,
+    "30": 29,
+    "35": 70,
+    "40": 128,
+    "45": 225,
+    "50": 365
+  },
+  "profiller": [
+    {
+      "id": "f2p",
+      "ad": "Ücretsiz oyuncu",
+      "aciklama": "Hiç ödeme yapmayan, günde birkaç kez giren düzenli oyuncu. VIP'i yalnızca günlük giriş ve etkinliklerle yükselir (12 ayda ~VIP 7).",
+      "insaatci": [[1, 1], [5, 2]],
+      "hiz_yuzde": {"carpan": 1.5, "tavan": 50},
+      "yardim_orani": 0.8,
+      "hizlandirma_saat_gun": [[1, 0.5], [15, 1], [16, 2], [50, 2]],
+      "bekleme": {"oran": 0.3, "tavan_sa": 5},
+      "gelir_carpani": 1.0,
+      "alasim_carpani": 1.0,
+      "kritik_pay": 0.35,
+      "alasim_kritik_pay": 0.6
+    },
+    {
+      "id": "aylik_kart",
+      "ad": "Aylık kart + VIP 8",
+      "aciklama": "Sendika Sözleşmesi'ni (aylık kart) sürekli alan, ayda ~20–30 $ harcayan oyuncu. 3. inşaatçı açık, VIP 8 hız bonusları.",
+      "insaatci": [[1, 2], [5, 3]],
+      "hiz_yuzde": {"carpan": 1.5, "tavan": 50, "ek": 15},
+      "yardim_orani": 0.9,
+      "hizlandirma_saat_gun": [[1, 2], [15, 4], [16, 6], [50, 6]],
+      "bekleme": {"oran": 0.25, "tavan_sa": 4},
+      "gelir_carpani": 1.5,
+      "alasim_carpani": 2.0,
+      "kritik_pay": 0.4,
+      "alasim_kritik_pay": 0.65
+    },
+    {
+      "id": "balina",
+      "ad": "Balina",
+      "aciklama": "Paketleri ve hızlandırmayı düzenli alan yüksek harcamalı oyuncu.",
+      "insaatci": [[1, 3]],
+      "hiz_yuzde": {"carpan": 1.5, "tavan": 50, "ek": 30},
+      "yardim_orani": 1.0,
+      "hizlandirma_saat_gun": [[1, 6], [15, 14], [16, 24], [50, 24]],
+      "bekleme": {"oran": 0.15, "tavan_sa": 2},
+      "gelir_carpani": 4.0,
+      "alasim_carpani": 5.0,
+      "kritik_pay": 0.45,
+      "alasim_kritik_pay": 0.7
+    }
+  ],
+  "gelir": {
+    "_not": "Ücretsiz oyuncunun tüm kaynaklardan (binalar ~%45, toplama/kurtarma/sefer ~%35, görev/etkinlik ~%20) saatlik geliri. Biyokütle geliri Titanyumun 'biyokutle_orani' katıdır. Süperalaşım günlük gelir, Reaktör 30'a ulaşıldığı günden itibaren gün sayısına bağlıdır.",
+    "titanyum_saat": [
+      [1, 1200],
+      [5, 3500],
+      [10, 9000],
+      [15, 20000],
+      [20, 38000],
+      [25, 62000],
+      [30, 90000],
+      [35, 125000],
+      [40, 170000],
+      [45, 230000],
+      [50, 300000]
+    ],
+    "biyokutle_orani": 0.4,
+    "baslangic_stok": {"Titanium": 500, "Biomass": 200},
+    "gorev_odulu_payi": [[2, 0.8], [12, 0.6], [20, 0.25], [21, 0.0]],
+    "alasim_gun": [[0, 40], [90, 90], [180, 140], [337, 220]]
+  }
+}

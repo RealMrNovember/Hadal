@@ -1,0 +1,66 @@
+{
+  "surum": "rehber-1",
+  "_not": "Üs ilerleme kuralları: halka açılışları, reaktör önkoşul zinciri, inşaatçı, ücretsiz bitirme, ittifak yardımı ve hız formülü.",
+  "kurallar": {
+    "maks_seviye": 50,
+    "reaktor_tavani": "Reaktör dışındaki hiçbir bina reaktörün seviyesini geçemez.",
+    "insaatci": {"baslangic": 1, "arastirma": 1, "aylik_kart": 1},
+    "ucretsiz_bitirme_sn": 300,
+    "yardim": {"taban": 10, "her_hub_seviyesi": 5, "maks": 20, "yuzde": 1, "min_sn": 60},
+    "hiz_formulu": "süre = ham süre / (1 + Σhız% / 100)",
+    "kaldirma_iadesi_yuzde": 50
+  },
+  "halkalar": {
+    "_not": "Sektör sayıları catalog v8 ızgarasıyla aynı. Açılış maliyeti = olcek × reaktör maliyeti (o reaktör seviyesinde).",
+    "baslangic_acik": 4,
+    "bedel_olcek": 0.5,
+    "listesi": [
+      {"halka": 0, "sektor": 1, "reaktor": 0},
+      {"halka": 1, "sektor": 3, "reaktor": 0, "tip": "Üretim"},
+      {"halka": 2, "sektor": 3, "reaktor": 0, "tip": "Araştırma"},
+      {"halka": 3, "sektor": 3, "reaktor": 0, "tip": "Askeri"},
+      {"halka": 4, "sektor": 6, "reaktor": 0},
+      {"halka": 5, "sektor": 8, "reaktor": 3},
+      {"halka": 6, "sektor": 10, "reaktor": 5},
+      {"halka": 7, "sektor": 12, "reaktor": 8, "gerekli": "mega_dome"},
+      {"halka": 8, "sektor": 14, "reaktor": 12, "gerekli": "mega_dome"},
+      {"halka": 9, "sektor": 16, "reaktor": 16, "gerekli": "mega_dome"},
+      {"halka": 10, "sektor": 16, "reaktor": 20, "gerekli": "mega_dome"},
+      {"halka": 11, "sektor": 16, "reaktor": 25, "gerekli": "mega_dome"},
+      {"halka": 12, "sektor": 16, "reaktor": 30, "gerekli": "mega_dome"}
+    ],
+    "v8": [
+      {"halka": 5, "reaktor": 3, "bedel": {"Titanium": 400, "Biomass": 100}},
+      {"halka": 6, "reaktor": 4, "bedel": {"Titanium": 800, "Biomass": 200}},
+      {"halka": 7, "reaktor": 6, "bedel": {"Titanium": 1500, "Biomass": 400}},
+      {"halka": 8, "reaktor": 7, "bedel": {"Titanium": 2500, "Biomass": 700}},
+      {"halka": 9, "reaktor": 8, "bedel": {"Titanium": 4000, "Biomass": 1100}},
+      {"halka": 10, "reaktor": 9, "bedel": {"Titanium": 6000, "Biomass": 1600}},
+      {"halka": 11, "reaktor": 10, "bedel": {"Titanium": 8000, "Biomass": 2200}},
+      {"halka": 12, "reaktor": 10, "bedel": {"Titanium": 9500, "Biomass": 2800}}
+    ]
+  },
+  "reaktor_on_kosul": {
+    "_not": "Reaktörü L seviyesine çıkarmak için gereken binalar. 'sabit' ve 'kubbe' listeleri [bina, seviye] verir; 'kalici' ve 'donusumlu' binalar L−1 seviyesinde olmalıdır.",
+    "sabit": {
+      "3": [["oxygen_plant", 2]],
+      "4": [["drone_factory", 3]],
+      "5": [["research_center", 4]],
+      "6": [["food_lab", 5]]
+    },
+    "kalici": {"baslangic": 7, "bina": "shield_generator"},
+    "donusumlu": {
+      "baslangic": 7,
+      "binalar": ["research_center", "military_dome", "submarine_dock", "training_grounds", "med_bay", "alliance_hub"]
+    },
+    "kubbe": {
+      "21": [["mega_dome", 2]],
+      "22": [["agriculture_dome", 2]],
+      "31": [["mega_dome", 3]],
+      "32": [["science_dome", 3]],
+      "41": [["mega_dome", 4]],
+      "42": [["war_dome", 4]],
+      "46": [["mega_dome", 5]]
+    }
+  }
+}

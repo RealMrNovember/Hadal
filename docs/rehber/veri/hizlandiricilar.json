@@ -1,0 +1,357 @@
+{
+  "surum": "rehber-1",
+  "_not": "Hızlandırıcılar ve Hadalit'in zaman fiyatı. Tempo simülasyonu (f2p_profilleri 'hizlandirma_saat_gun') yalnız genel + inşaat hızlandırmalarını sayar ve hepsini reaktör yoluna harcar; araştırma, eğitim ve iyileştirme hızlandırmaları bunun dışındadır. F2P'nin genel + inşaat dökümü oduller.json'dadır (15); f2p_tipli bu bölümün önerisidir. profil_hesabi R16 sonrası kararlı ayı gösterir (30,4 gün); İzin sandığı sütunu R50'ye kadarki ortalamadır.",
+  "turler": [
+    {
+      "id": "genel",
+      "ad": "Genel",
+      "gecerli": "Her kuyruk: inşaat, araştırma, eğitim, iyileştirme, kurtarma görevi",
+      "sim": true,
+      "hd_dk": 2
+    },
+    {"id": "insaat", "ad": "İnşaat", "gecerli": "Bina yükseltme ve halka açma", "sim": true, "hd_dk": 1.5},
+    {
+      "id": "arastirma",
+      "ad": "Araştırma",
+      "gecerli": "Araştırma Merkezi ve Bilim Kubbesi kuyrukları",
+      "sim": false,
+      "hd_dk": 1.5
+    },
+    {
+      "id": "egitim",
+      "ad": "Eğitim",
+      "gecerli": "Askeri Kubbe eğitimi, Tatbikat Havuzu",
+      "sim": false,
+      "hd_dk": 1.5
+    },
+    {
+      "id": "iyilestirme",
+      "ad": "İyileştirme",
+      "gecerli": "Revir ve Kriyo Bakım Ünitesi",
+      "sim": false,
+      "hd_dk": 1.5
+    }
+  ],
+  "turler_sutunlar": [
+    ["ad", "Tür"],
+    ["gecerli", "Geçtiği yer"],
+    ["sim", "Simülasyonda sayılır"],
+    ["hd_dk", "Liste değeri (HD / dk)"]
+  ],
+  "sureler": [
+    {
+      "id": "1dk",
+      "ad": "1 dk",
+      "dk": 1,
+      "tipli": false,
+      "genel_hd": 2,
+      "tipli_hd": null,
+      "nereden": "Görev ve sandıklar"
+    },
+    {
+      "id": "5dk",
+      "ad": "5 dk",
+      "dk": 5,
+      "tipli": true,
+      "genel_hd": 10,
+      "tipli_hd": 7.5,
+      "nereden": "Görev, sandık, ittifak hediyesi"
+    },
+    {
+      "id": "15dk",
+      "ad": "15 dk",
+      "dk": 15,
+      "tipli": true,
+      "genel_hd": 30,
+      "tipli_hd": 22.5,
+      "nereden": "Görev, sandık, İzin sandığı"
+    },
+    {
+      "id": "30dk",
+      "ad": "30 dk",
+      "dk": 30,
+      "tipli": true,
+      "genel_hd": 60,
+      "tipli_hd": 45.0,
+      "nereden": "Etkinlik, bilet"
+    },
+    {
+      "id": "1sa",
+      "ad": "1 sa",
+      "dk": 60,
+      "tipli": true,
+      "genel_hd": 120,
+      "tipli_hd": 90.0,
+      "nereden": "Etkinlik, bilet, paket"
+    },
+    {
+      "id": "3sa",
+      "ad": "3 sa",
+      "dk": 180,
+      "tipli": true,
+      "genel_hd": 360,
+      "tipli_hd": 270.0,
+      "nereden": "Etkinlik, paket, İzin dükkânı"
+    },
+    {
+      "id": "8sa",
+      "ad": "8 sa",
+      "dk": 480,
+      "tipli": true,
+      "genel_hd": 960,
+      "tipli_hd": 720.0,
+      "nereden": "Bilet, paket, İzin dükkânı"
+    },
+    {
+      "id": "24sa",
+      "ad": "24 sa",
+      "dk": 1440,
+      "tipli": true,
+      "genel_hd": 2880,
+      "tipli_hd": 2160.0,
+      "nereden": "Paket, sıralama ödülü"
+    },
+    {
+      "id": "3g",
+      "ad": "3 g",
+      "dk": 4320,
+      "tipli": false,
+      "genel_hd": 8640,
+      "tipli_hd": null,
+      "nereden": "Yalnız sezon sonu ödülü"
+    }
+  ],
+  "sureler_sutunlar": [
+    ["ad", "Süre"],
+    ["dk", "Dakika"],
+    ["tipli", "Tipli sürümü var"],
+    ["genel_hd", "Genel liste değeri (HD)"],
+    ["tipli_hd", "Tipli liste değeri (HD)"],
+    ["nereden", "Başlıca kaynak"]
+  ],
+  "kurallar": [
+    {
+      "kural": "Uygulama sırası",
+      "aciklama": "Önce hız bonusları (K-13 bölen formülü), sonra ittifak yardımı, sonra hızlandırma; kalan süre ücretsiz bitirme eşiğine inince iş bedavaya biter."
+    },
+    {
+      "kural": "Artan süre",
+      "aciklama": "Hızlandırma işi bitirdikten sonra artan süre kaybolur. Arayüz israfsız birleşimi önerir ve fazlayı önceden gösterir."
+    },
+    {
+      "kural": "Öncelik",
+      "aciklama": "Oyuncu seçmezse önce tipli, sonra genel hızlandırma; önce kısa, sonra uzun süreler kullanılır."
+    },
+    {
+      "kural": "Hadalit yedeği",
+      "aciklama": "Hızlandırma yetmezse kalan dakika Şimdi bitir fiyatından tamamlanabilir; hiçbir zaman otomatik değil."
+    },
+    {"kural": "Kurtarma görevi", "aciklama": "Yalnız genel hızlandırma geçer; Hadalit şansı değişmez."}
+  ],
+  "kurallar_sutunlar": [["kural", "Kural"], ["aciklama", "Açıklama"]],
+  "simdi_bitir": {
+    "hd_dk": 2,
+    "en_az": 2,
+    "yuvarlama": "kalan süre yukarı, tam dakikaya",
+    "onay": "Her zaman tek dokunuşluk onay; 1.000 HD üstünde iki adım"
+  },
+  "simdi_bitir_ornekleri": [
+    {"is": "5 dk (ücretsiz bitirme eşiğinde)", "dk": 5, "hd": null, "dolar": null, "dolar_paket": null},
+    {"is": "30 dk", "dk": 30, "hd": 60, "dolar": 0.86, "dolar_paket": 0.1},
+    {"is": "1 sa", "dk": 60, "hd": 120, "dolar": 1.71, "dolar_paket": 0.2},
+    {"is": "8 sa", "dk": 480, "hd": 960, "dolar": 13.71, "dolar_paket": 1.62},
+    {"is": "24 sa", "dk": 1440, "hd": 2880, "dolar": 41.14, "dolar_paket": 4.85},
+    {"is": "Reaktör 40, F2P etkin süresi", "dk": 14089, "hd": 28178, "dolar": 402.54, "dolar_paket": 47.49},
+    {"is": "Reaktör 50, F2P etkin süresi", "dk": 34178, "hd": 68356, "dolar": 976.51, "dolar_paket": 115.21}
+  ],
+  "simdi_bitir_ornekleri_sutunlar": [
+    ["is", "İş"],
+    ["dk", "Kalan dakika"],
+    ["hd", "Şimdi bitir (HD)"],
+    ["dolar", "En iyi Hadalit kademesiyle", "para"],
+    ["dolar_paket", "İnşaat Hattı I değeriyle", "para"]
+  ],
+  "f2p_genel_insaat_dk": 120,
+  "f2p_tipli": [
+    {
+      "kaynak": "Günlük görev sandıkları",
+      "arastirma": 15,
+      "egitim": 10,
+      "iyilestirme": 0,
+      "not": "40 ve 80 puan sandıklarına eklenir"
+    },
+    {
+      "kaynak": "Derinlik Ligi ve haftalık etkinlikler",
+      "arastirma": 20,
+      "egitim": 15,
+      "iyilestirme": 10,
+      "not": "Kademe ödülleri"
+    },
+    {
+      "kaynak": "Madalya Vitrini ve seferler",
+      "arastirma": 0,
+      "egitim": 10,
+      "iyilestirme": 10,
+      "not": "08 · Seferler"
+    },
+    {
+      "kaynak": "İttifak (hediyeler, dükkân)",
+      "arastirma": 10,
+      "egitim": 5,
+      "iyilestirme": 5,
+      "not": "10 · İttifak"
+    },
+    {
+      "kaynak": "Derinlik İzni sandığı (İzin 1–7)",
+      "arastirma": 15,
+      "egitim": 0,
+      "iyilestirme": 0,
+      "not": "Yıl içinde İzin 4–7 ortalaması"
+    },
+    {
+      "kaynak": "Toplam (dk / gün)",
+      "arastirma": 60,
+      "egitim": 40,
+      "iyilestirme": 25,
+      "not": "Simülasyon dışı; kendi kuyruklarına gider"
+    }
+  ],
+  "f2p_tipli_sutunlar": [
+    ["kaynak", "Kaynak"],
+    ["arastirma", "Araştırma (dk / gün)"],
+    ["egitim", "Eğitim (dk / gün)"],
+    ["iyilestirme", "İyileştirme (dk / gün)"],
+    ["not", "Not"]
+  ],
+  "profil_hesabi": [
+    {
+      "profil": "Ücretsiz oyuncu",
+      "dolar": 0,
+      "hd": 0,
+      "f2p_sa": 60.8,
+      "vip_sa": null,
+      "paket_sa": null,
+      "hd_sa": null,
+      "sa_gun": 2.0,
+      "sim_sa_gun": 2
+    },
+    {
+      "profil": "Aylık kart + VIP 8",
+      "dolar": 27.56,
+      "hd": 7014,
+      "f2p_sa": 60.8,
+      "vip_sa": 8.1,
+      "paket_sa": 101.0,
+      "hd_sa": 5.8,
+      "sa_gun": 5.8,
+      "sim_sa_gun": 6
+    },
+    {
+      "profil": "Balina",
+      "dolar": 1664.41,
+      "hd": 79873,
+      "f2p_sa": 60.8,
+      "vip_sa": 46.6,
+      "paket_sa": 608.1,
+      "hd_sa": 25.0,
+      "sa_gun": 24.4,
+      "sim_sa_gun": 24
+    }
+  ],
+  "profil_hesabi_sutunlar": [
+    ["profil", "Profil"],
+    ["dolar", "$ / ay", "para"],
+    ["hd", "Satın alınan HD / ay"],
+    ["f2p_sa", "Ücretsiz kaynaklar (sa)"],
+    ["vip_sa", "İzin sandığı (sa)"],
+    ["paket_sa", "Sözleşme, bilet, paketler (sa)"],
+    ["hd_sa", "Hadalit ile (sa)"],
+    ["sa_gun", "Toplam sa / gün"],
+    ["sim_sa_gun", "Simülasyon sa / gün"]
+  ],
+  "saat_fiyati": [
+    {"yol": "Sendika Sözleşmesi", "dolar_sa": 0.06, "not": "HD değeri / $ = 1.924"},
+    {"yol": "Derin Akıntı Bileti · Akıntı", "dolar_sa": 0.1, "not": "HD değeri / $ = 1.231"},
+    {"yol": "İnşaat Hattı I (inşaat saati)", "dolar_sa": 0.2, "not": "HD değeri / $ = 445"},
+    {"yol": "İnşaat Hattı V (inşaat saati)", "dolar_sa": 0.36, "not": "HD değeri / $ = 249"},
+    {"yol": "Günlük seçki · Vardiya Payı", "dolar_sa": 0.28, "not": "HD değeri / $ = 424"},
+    {"yol": "İzin dükkânı (90 HD) · en iyi Hadalit kademesiyle", "dolar_sa": 1.29, "not": "Haftalık sınırlı"},
+    {
+      "yol": "Şimdi bitir · en iyi Hadalit kademesi (70 HD / $)",
+      "dolar_sa": 1.71,
+      "not": "Sınırsız, en pahalı yol"
+    },
+    {"yol": "Şimdi bitir · 0,99 $ kademesi", "dolar_sa": 2.38, "not": "En küçük paket"}
+  ],
+  "saat_fiyati_sutunlar": [["yol", "Yol"], ["dolar_sa", "1 saatin bedeli", "para"], ["not", "Not"]],
+  "batiklar": [
+    {
+      "batik": "Kriyo-Kapsül",
+      "fiyat": "200 HD tekli · 1.800 HD onluk",
+      "sinir": "Sınırsız",
+      "bolum": "05 · Kahramanlar"
+    },
+    {"batik": "Şimdi bitir", "fiyat": "2 HD / dk", "sinir": "Sınırsız", "bolum": "12 · The Syndicate"},
+    {
+      "batik": "Derinlik İzni dükkânı",
+      "fiyat": "90–6.000 HD",
+      "sinir": "Haftalık",
+      "bolum": "11 · Derinlik İzni"
+    },
+    {
+      "batik": "Sonar Çarkı",
+      "fiyat": "300 HD · 10 çevirme 2.700 HD",
+      "sinir": "Etkinlik başına 100 çevirme",
+      "bolum": "13 · Etkinlikler ve Sezonlar"
+    },
+    {
+      "batik": "Kaçakçı rafları ve yenileme",
+      "fiyat": "Liste değerinin %20 altı · yenileme 50 / 100 / 200 HD",
+      "sinir": "Raf başına 1, günde 3 yenileme",
+      "bolum": "13 · Etkinlikler ve Sezonlar"
+    },
+    {
+      "batik": "Kadim Şema Parçası (Kaçakçı)",
+      "fiyat": "1.500 HD (10 parça = 1 Şema)",
+      "sinir": "Haftada 1",
+      "bolum": "14 · Son Oyun"
+    },
+    {
+      "batik": "Sessizlik Kalkanı 8 sa · 24 sa · 3 g",
+      "fiyat": "400 · 1.000 · 2.500 HD",
+      "sinir": "Saldırı kalkanı kırar",
+      "bolum": "09 · Dünya Haritası ve PvP"
+    },
+    {
+      "batik": "Konuşlanma: Akıntı Şamandırası · İttifak Rotası · Hassas",
+      "fiyat": "200 · 600 · 1.500 HD",
+      "sinir": "Ortak konuşlanma koşulları",
+      "bolum": "09 · Dünya Haritası ve PvP"
+    },
+    {
+      "batik": "Bilet seviyesi atlama",
+      "fiyat": "200 HD / seviye",
+      "sinir": "Sezonda 10 seviye",
+      "bolum": "12 · The Syndicate"
+    },
+    {
+      "batik": "Köken değişimi",
+      "fiyat": "5.000 HD (öneri)",
+      "sinir": "30 günde 1",
+      "bolum": "16 · Kronik, Köken, Profil"
+    },
+    {
+      "batik": "Kaplamalar ve çerçeveler",
+      "fiyat": "500–8.000 HD",
+      "sinir": "—",
+      "bolum": "12 · The Syndicate"
+    },
+    {
+      "batik": "Ad değişikliği",
+      "fiyat": "500 HD (ilki ücretsiz)",
+      "sinir": "30 günde 1",
+      "bolum": "16 · Kronik, Köken, Profil"
+    }
+  ],
+  "batiklar_sutunlar": [["batik", "Harcama yeri"], ["fiyat", "Fiyat"], ["sinir", "Sınır"], ["bolum", "Bölüm"]]
+}

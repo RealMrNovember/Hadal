@@ -1,0 +1,139 @@
+{
+  "surum": "rehber-1",
+  "_not": "Son oyun: Çekirdek açığa çıkış yayı, Derinlik Kroniği'ne (kronik.json) bağlı sunucu zaman çizelgesi, Çekirdek kuşağına eklenen son oyun katmanı (kuşak ve yapılar harita.json'da), haftalık Hadal Titanı, Kadim Şema yolları, Reaktör 50 sonrası döngüler, Çekirdek Rezonansı (yer tutucu), sunucu yaşam döngüsü ve birleşmeler. Günler sunucunun açılışından sayılır; profil reaktör sütunları tempo simülasyonundan okunmuştur (uretilen/simulasyon.md).",
+  "zaman_cizelgesi_sutunlar": [["gun", "Sunucu günü"], ["kronik", "Kronik aşaması (16)"], ["olay", "Son oyun için ne olur"], ["f2p", "F2P reaktörü"], ["aylik", "Aylık kart"], ["balina", "Balina"]],
+  "zaman_cizelgesi": [
+    {"gun": "1", "kronik": "1 · İniş", "olay": "Sunucu açılır; hikâye bölümleri 1–10, İlk Dalış Haftası", "f2p": "R1", "aylik": "R1", "balina": "R1"},
+    {"gun": "~4,5", "kronik": "2 · İlk Yankı", "olay": "Bölüm 10 'Kapıdaki Ses' biter; sonar ilk düzenli yankıyı duyar (Perde I)", "f2p": "R20", "aylik": "R22", "balina": "R26"},
+    {"gun": "~90", "kronik": "7 · Akıntı Çağrısı", "olay": "İlk Akıntı Savaşı sezonu (13)", "f2p": "R37", "aylik": "R40", "balina": "R45"},
+    {"gun": "~120", "kronik": "8 · Eksen", "olay": "Büyük Rezonans Alanları uyanır; Hadalit damarları aynı ritimle parıldar (Perde II); Leviathan Sv 4 ile ilk Kadim Şema şansı", "f2p": "R39", "aylik": "R43", "balina": "R48"},
+    {"gun": "~150", "kronik": "9 · Çekirdek Kapıları", "olay": "Dört kapının bekçileri uyanır; Muhafızlar kazıyı kapatmaya gelir (Perde III)", "f2p": "R41", "aylik": "R45", "balina": "R50"},
+    {"gun": "~180", "kronik": "10 · Çekirdek", "olay": "Dip açılır: Çukur Kalbi, ilk Egemen, Hadalit Damarları; Kronik kişisel hedefi 1 Kadim Şema verir (Perde IV)", "f2p": "R43", "aylik": "R46", "balina": "R50"},
+    {"gun": "~240", "kronik": "11 · Titan'ın Uyanışı", "olay": "Hadal Titanı her Pazar Titan Yatağı'ndan yükselir (Perde V)", "f2p": "R45–46", "aylik": "R49", "balina": "R50"},
+    {"gun": "~300", "kronik": "12 · Derin Döngü", "olay": "Uyanış: açığa çıkış, Sinaps Kuleleri ve Sinir Kapısı; Kronik 60 günlük sezonlara geçer (Perde VI)", "f2p": "R48", "aylik": "R50", "balina": "R50"},
+    {"gun": "~365", "kronik": "12 · Derin Döngü (2. sezon)", "olay": "F2P Reaktör 50; Çekirdek Rezonansı'nın ilk ipuçları (⬜)", "f2p": "R50", "aylik": "R50", "balina": "R50"}
+  ],
+  "acilis_yayi_sutunlar": [["perde", "Perde"], ["gun", "Gün"], ["gorulen", "Oyuncunun gördüğü"], ["yapilan", "Oyuncunun yaptığı"], ["ipucu", "Bırakılan ipucu"]],
+  "acilis_yayi": [
+    {"perde": "I · Yankı", "gun": "~4,5", "gorulen": "Bölüm 10'un sonunda sonar ekranında çok yavaş, düzenli bir titreşim", "yapilan": "Radar Merkezi ile kaynağı tarar; iz çukurun en derin noktasını gösterir", "ipucu": "Titreşimin ritmi Hadalit'in parıldama ritmiyle aynı"},
+    {"perde": "II · Sinyal", "gun": "~120", "gorulen": "Haritadaki bütün Hadalit damarları ve Rezonans Alanları birlikte söner ve yanar", "yapilan": "Sunucu ortak hedefi: Sinyal ölçümleri; Kalıntı Arşivi'nde ilk kadim yazıt çevirisi", "ipucu": "Yazıt: 'Uyuyanı uyutan taşlar'"},
+    {"perde": "III · Nöbet", "gun": "~150", "gorulen": "Kadim Muhafızlar Hadalit kazılan yerlere daha sık gelir; Çekirdek Kapıları'nın bekçileri uyanır", "yapilan": "Kapı bekçilerini rallilerle yener, Mahzen V'i dener", "ipucu": "Muhafızlar saldırmıyor, kazıyı kapatıyor: bir yarayı kapatan bağışıklık gibi"},
+    {"perde": "IV · Kalp", "gun": "~180", "gorulen": "Dipte insan eliyle yapılmamış bir kalp atıyor; Çukur Kalbi'nin çevresinde dikilmemiş, büyümüş duvarlar", "yapilan": "İttifaklar Çukur Kalbi için Taht Savaşı yapar (09); kaptanlar Hadalit Damarlarından toplar", "ipucu": "Kalbin atışı Leviathan'ların yuva değiştirme saatleriyle aynı"},
+    {"perde": "V · Titan", "gun": "~240", "gorulen": "3 km'lik Hadal Titanı her hafta Titan Yatağı'ndan yükselir ve geri çekilir", "yapilan": "Sunucu birlikte Titan'ı püskürtür; Kadim Şema Parçası ve Titan Kalıntısı toplar", "ipucu": "Titan üslere yürümez; yalnız Çekirdek'teki kazıcıları uzaklaştırır"},
+    {"perde": "VI · Uyanış", "gun": "~300", "gorulen": "Titan'ın son evresinde Sinir Kapısı açılır: şehrin tamamı gezegen büyüklüğünde, uyuyan tek bir canlının sinir sistemidir", "yapilan": "Sunucu ortak son görevi: Kapı'dan ilk geçen ittifak sinir ağının merkezine iner; Sinaps Kuleleri görünür olur", "ipucu": "Oyunun açılışındaki dev göz bu canlının gözüdür. İnsanlık okyanusun altında değil, bir canlının içinde yaşamaktadır"}
+  ],
+  "lore_sutunlar": [["unsur", "Unsur"], ["anlam", "Açığa çıkıştan sonra anlamı"]],
+  "lore": [
+    {"unsur": "Çekirdek", "anlam": "Uyuyan organizmanın sinir merkezi; çukurun en derin noktasında, kabuğa gömülü"},
+    {"unsur": "Hadalit", "anlam": "Kadim uygarlığın sinir hatlarına yerleştirdiği kristaller: sinyali sönümler, uykuyu sürdürür. Yalnız karanlıkta parıldaması, içinden sinyal geçtikçe ışımasındandır"},
+    {"unsur": "Kadim uygarlık", "anlam": "Canlının bakıcıları: onun uykusunu korumak için üzerinde bir şehir büyüttüler"},
+    {"unsur": "Kadim Muhafızlar", "anlam": "Uygarlığın biyomekanik bekçileri; kazılan her Hadalit damarına bir yarayı kapatır gibi gelirler"},
+    {"unsur": "Demir Leviathan'lar", "anlam": "Uygarlığın sinir hatlarını dolaşan bakım gövdeleriydi; sahipsiz kalınca yabanileşti"},
+    {"unsur": "Hadal Titanı", "anlam": "Uyanış refleksi: canlının en derindeki bekçisi; uyanmayı değil, uyanmamayı korur"},
+    {"unsur": "Rezonans Alanları", "anlam": "Sinir ağının yüzeye yakın düğümleri; sonarın duyduğu titreşim buralardan sızar"},
+    {"unsur": "İnsanlık", "anlam": "Yüzeyden kaçıp sığındığı yerin bir canlının içi olduğunu en son öğrenen tür"}
+  ],
+  "cekirdek_kusagi": {
+    "kurallar_sutunlar": [["kural", "Kural"], ["deger", "Değer"]],
+    "kurallar": [
+      {"kural": "Kuşak", "deger": "Dip ve Çekirdek (uzaklık 0–11): Dip P9, Çekirdek P10 gövde ister; üs kurulamaz (09)"},
+      {"kural": "Açılış", "deger": "Kronik aşama 10 · Çekirdek (~180. gün)"},
+      {"kural": "09'un içeriği", "deger": "Çukur Kalbi ve Egemenlik, Hadalit Damarları, Demir Leviathan Yuvası Sv 5–6, Masif Sülfür Bacası Sv 6–8"},
+      {"kural": "14'ün eklediği", "deger": "Titan Yatağı (~240. gün); Uyanış'tan sonra Sinaps Kuleleri ve Sinir Kapısı"},
+      {"kural": "Sis", "deger": "Sürekli sonar sisi; Sinaps Kulesi tutan ittifak kulenin çevresini görür"},
+      {"kural": "Sezon", "deger": "Akıntı Savaşı sürerken Çekirdek kuşağına yalnız kendi sunucusunun kaptanları girer"}
+    ],
+    "yapilar_sutunlar": [["yapi", "Yapı"], ["adet", "Adet"], ["acilis", "Açılış"], ["kim", "Kim tutar"], ["kazanc", "Kazanç"], ["sahibi", "Bölüm"]],
+    "yapilar": [
+      {"yapi": "Çukur Kalbi", "adet": "1", "acilis": "~180", "kim": "Taht Savaşı'nı kazanan ittifak", "kazanc": "Egemenlik, fermanlar, unvanlar", "sahibi": "09"},
+      {"yapi": "Hadalit Damarı", "adet": "en çok 12", "acilis": "~180", "kim": "Herkes (toplama)", "kazanc": "Süperalaşım + Hadalit (kaptan başına günlük sınır)", "sahibi": "09"},
+      {"yapi": "Demir Leviathan Yuvası Sv 5–6", "adet": "6", "acilis": "~180", "kim": "Ralli", "kazanc": "Kadim Şema (Sv 6 kesin), Süperalaşım, Hadalit", "sahibi": "09"},
+      {"yapi": "Titan Yatağı", "adet": "1", "acilis": "~240", "kim": "—", "kazanc": "Hadal Titanı'nın haftalık yükseldiği yer", "sahibi": "14"},
+      {"yapi": "Sinaps Kulesi", "adet": "8", "acilis": "~300 (Uyanış)", "kim": "İttifak garnizonu", "kazanc": "Çekirdek'te toplama +%10; kule başına günlük ittifak hediyesi; Rezonans Özü (⬜)", "sahibi": "14"},
+      {"yapi": "Sinir Kapısı", "adet": "1", "acilis": "~300 (Uyanış)", "kim": "Açığa çıkış görevi", "kazanc": "Sinir ağının merkezine iniş; Çekirdek Rezonansı içeriğinin girişi (⬜)", "sahibi": "14"}
+    ]
+  },
+  "titan": {
+    "kurallar_sutunlar": [["kural", "Kural"], ["deger", "Değer"]],
+    "kurallar": [
+      {"kural": "Zaman", "deger": "Her Pazar 12:00 ve 20:00 UTC, 45'er dk (Kronik aşama 11'den)"},
+      {"kural": "Can havuzu", "deger": "Sunucu ortak; bir sonraki haftanın canı bu haftanın sonucuna göre ±%15 ayarlanır"},
+      {"kural": "Saldırı", "deger": "İttifak rallisi ya da tek sefer; sefer başına 3 dk bekleme. Titan tarafsızdır: tür üstünlüğü işlemez (07)"},
+      {"kural": "Yenilgi", "deger": "Uyanış'tan önce Titan ölmez: can havuzu biterse 'püskürtüldü' sayılır ve tam ödül verilir"},
+      {"kural": "Kayıp", "deger": "PvE kuralı (07): askerler yalnız yaralanır; Basınç Dalgası yaralı oranını artırır"},
+      {"kural": "Uyanış sonrası", "deger": "Titan haftalık kalır; 'püskürtme' 'yatıştırma'ya döner, ödüller Rezonans malzemelerine geçer (⬜)"}
+    ],
+    "evreler_sutunlar": [["evre", "Evre"], ["can", "Can"], ["davranis", "Davranış"], ["karsi", "Karşılık"]],
+    "evreler": [
+      {"evre": "1 · Kabuk", "can": "%100 – %70", "davranis": "Zırh: alınan hasar −%40; 5 dk'da bir Basınç Dalgası", "karsi": "Savunması yüksek kaptanlar önde; ralliler dalga arasına zamanlanır"},
+      {"evre": "2 · Akıntı", "can": "%70 – %35", "davranis": "Titan Yatağı çevresinde akıntı: yürüyüş hızı −%30; 2 Demir Leviathan çağırır", "karsi": "Leviathan'lara ayrı Zıpkıncı ralli (07); Akıntı Kristali (09)"},
+      {"evre": "3 · Çekirdek Işığı", "can": "%35 – %0", "davranis": "Göğsündeki Hadalit kalbi açılır: alınan hasar ×1,5; 5 dk'da bir bütün seferleri geri iter", "karsi": "Kısa, eşzamanlı ralli dalgaları"}
+    ],
+    "odul_sutunlar": [["kademe", "Haftalık kişisel hasar payı"], ["odul", "Ödül"]],
+    "odul": [
+      {"kademe": "Katılım (en az 1 saldırı)", "odul": "Kadim Şema Parçası ×1 + Titan Kalıntısı ×2 + Titanyum 0,5 GS"},
+      {"kademe": "≥ %0,1", "odul": "+ Titan Kalıntısı ×3 + Süperalaşım 20"},
+      {"kademe": "≥ %0,5", "odul": "+ Titan Kalıntısı ×5 + 100 Hadalit"},
+      {"kademe": "≥ %1", "odul": "+ Kadim Şema Parçası ×1 + Süperalaşım 50"},
+      {"kademe": "≥ %3", "odul": "+ efsanevi parça ×10 + 'Titan Avcısı' unvanı (7 gün)"},
+      {"kademe": "Sunucu püskürttü", "odul": "Herkese (katılmayanlar dahil) 30 dk genel hızlandırma + Titanyum 0,3 GS"}
+    ]
+  },
+  "kadim_sema": {
+    "kaynaklar_sutunlar": [["kaynak", "Kaynak"], ["acilis", "Açılış"], ["miktar", "Ne verir"], ["sahibi", "Bölüm"]],
+    "kaynaklar": [
+      {"kaynak": "Kronik aşama 10 kişisel hedefi", "acilis": "~180. gün", "miktar": "1 Kadim Şema (kesin, bir kez)", "sahibi": "16"},
+      {"kaynak": "Demir Leviathan Yuvası Sv 4–5", "acilis": "~120. gün (Eksen)", "miktar": "%10 / %25 şansla 1 Kadim Şema", "sahibi": "09"},
+      {"kaynak": "Demir Leviathan Yuvası Sv 6", "acilis": "~180. gün", "miktar": "1 Kadim Şema (kesin)", "sahibi": "09"},
+      {"kaynak": "Hadal Titanı", "acilis": "~240. gün", "miktar": "Haftada 1 parça (hasar ≥ %1: 2)", "sahibi": "14"},
+      {"kaynak": "Muhafız Mahzeni V · Kadim", "acilis": "R45", "miktar": "Ödül hakkı başına %10 parça (haftada ~0,4)", "sahibi": "13"},
+      {"kaynak": "Kaçakçı", "acilis": "R40", "miktar": "Rafta çıkarsa haftada en çok 1 parça (1.500 HD)", "sahibi": "13, 12"},
+      {"kaynak": "Akıntı Savaşı dükkânı", "acilis": "R40", "miktar": "Sezonda 2 parça (5.000 Mühür)", "sahibi": "13"},
+      {"kaynak": "The Syndicate", "acilis": "—", "miktar": "1 Kadim Şema (öneri: 10.000 HD)", "sahibi": "12"}
+    ],
+    "yollar_sutunlar": [["profil", "Profil"], ["r49", "Reaktör 49 (gün)"], ["yol", "İlk Kadim Şema'ya tipik yol"]],
+    "yollar": [
+      {"profil": "Ücretsiz oyuncu", "r49": "~337", "yol": "Kronik aşama 10 hedefi (~180. gün) ilk Şema'yı verir; Titan parçaları sonraki binaların 49 → 50 kilitlerine birikir"},
+      {"profil": "Aylık kart + VIP 8", "r49": "~243", "yol": "Kronik aşama 10 (~180. gün) yeter; ek Şema'lar Leviathan Sv 5–6 ve Titan'dan"},
+      {"profil": "Balina", "r49": "~135", "yol": "Kronik 10'dan önce: Leviathan Sv 4 şansı (~120. gün), Kaçakçı parçaları (R40, ~46. günden) ya da The Syndicate"}
+    ]
+  },
+  "donguler_sutunlar": [["dongu", "Döngü"], ["ne", "Reaktör 50'den sonra ne yapılır"], ["kaynak", "Ana kaynak"], ["bolum", "Bölüm"]],
+  "donguler": [
+    {"dongu": "Araştırma", "ne": "13 dalın son seviyeleri ve Kadim Teknoloji; ikinci kuyruk sürekli dolu kalır", "kaynak": "Titanyum, Süperalaşım", "bolum": "06"},
+    {"dongu": "Teçhizat", "ne": "Efsanevi setler, Titan Kalıntısı ile mükemmelleştirme", "kaynak": "Titan Kalıntısı, Mahzen Çekirdeği, malzemeler", "bolum": "17"},
+    {"dongu": "Kahramanlar", "ne": "5 yıldız, yetenek ağaçları, denizaltı subay kadrosu", "kaynak": "Kart, Kriyo-Kapsül, etkinlik dükkânları", "bolum": "05"},
+    {"dongu": "Ordu", "ne": "T10 askerler, Revir ve Kriyo Bakım kapasitesi, sezon için yedek ordu", "kaynak": "Gıda, Süperalaşım", "bolum": "07"},
+    {"dongu": "Binaların 50. seviyesi", "ne": "Kadim Şema isteyen binaların 49 → 50 adımları", "kaynak": "Kadim Şema", "bolum": "03, 14"},
+    {"dongu": "Sezonlar", "ne": "Akıntı Savaşı, sezon teknolojisi, sancak yarışı", "kaynak": "Akıntı Özü, Mühür", "bolum": "13"},
+    {"dongu": "Taht ve bölge", "ne": "Çukur Kalbi, Egemenlik, Sinaps Kuleleri, ittifak teknolojisi", "kaynak": "İttifak kredisi", "bolum": "09, 10"},
+    {"dongu": "Kronik ve koleksiyon", "ne": "Derin Döngü'nün 60 günlük sezon hedefleri, Tür Kataloğu ve Kalıntı Arşivi setleri", "kaynak": "Tarama, sefer", "bolum": "16, 18"},
+    {"dongu": "Çekirdek Rezonansı", "ne": "Reaktör 50'nin üstünde yatay ilerleme (yer tutucu)", "kaynak": "⬜", "bolum": "14"}
+  ],
+  "rezonans_sutunlar": [["konu", "Konu"], ["niyet", "Niyet"], ["durum", "Durum"]],
+  "rezonans": [
+    {"konu": "Ne zaman", "niyet": "Uyanış'tan sonra, Derin Döngü'nün en erken 2. sezonunda", "durum": "⬜"},
+    {"konu": "Ne ilerler", "niyet": "Reaktör seviyesi değil; reaktörün Çekirdek'le 'uyumu' (Rezonans 1–10). Her seviye küçük ve yatay bonus verir", "durum": "⬜"},
+    {"konu": "Neyle", "niyet": "Rezonans Özü: Sinaps Kuleleri, uyanış sonrası Titan, sezon ödülleri", "durum": "⬜"},
+    {"konu": "Sınır", "niyet": "Bir sezonda en çok 2 Rezonans seviyesi; F2P ile balina arasındaki farkı büyütmemesi şart", "durum": "⬜"},
+    {"konu": "Hikâye", "niyet": "İnsanlığın seçimi: canlıyı uyutmaya devam etmek mi, onunla konuşmayı öğrenmek mi (sunucu oylaması)", "durum": "⬜"},
+    {"konu": "Ad", "niyet": "09'daki Rezonans Alanları'yla aynı kökten gelir: alanlar sinir ağının yüzey düğümleridir", "durum": "⬜"}
+  ],
+  "sunucu_yasami_sutunlar": [["donem", "Dönem"], ["gun", "Gün"], ["ne_olur", "Ne olur"], ["goc", "Göç (kurallar 16)"]],
+  "sunucu_yasami": [
+    {"donem": "Açılış", "gun": "1–30", "ne_olur": "Yeni kaptanlar, İlk Dalış Haftası, ittifakların kuruluşu; Kronik 1–4", "goc": "Hedef sunucu en az 30 günlük olmalı: bu dönemde gelen göç yok"},
+    {"donem": "Büyüme", "gun": "30–180", "ne_olur": "Akıntı Savaşı 1–2, Eksen ve Çekirdek Kapıları; Perde II–III", "goc": "Sezon dışında açık"},
+    {"donem": "Derinlik", "gun": "180–300", "ne_olur": "Çekirdek, ilk Egemen, Titan; Perde IV–V", "goc": "Sezon dışında açık"},
+    {"donem": "Derin Döngü", "gun": "300+", "ne_olur": "Uyanış, 60 günlük Kronik sezonları, Rezonans (⬜), birleşme adaylığı", "goc": "Göç pencereleri; birleşmeden önce 14 gün serbest göç"}
+  ],
+  "birlesme_sutunlar": [["kural", "Kural"], ["deger", "Değer"]],
+  "birlesme": [
+    {"kural": "Tetik", "deger": "Kronik Derin Döngü'deki bir sunucuda 4 hafta üst üste günlük aktif kaptan sayısı hedefin %35'inin altında (Overseer telemetrisi)"},
+    {"kural": "Eş", "deger": "Açılış günü ±30 gün ve benzer Kronik aşamasındaki bir çukur sunucusu; ilerideki sunucunun Kronik'i geçerli olur"},
+    {"kural": "Duyuru", "deger": "En az 14 gün önce; birleşme bir Akıntı Savaşı arasına denk getirilir"},
+    {"kural": "Adlar", "deger": "Çakışan kaptan ve ittifak adlarına ücretsiz ad değişikliği hakkı"},
+    {"kural": "Harita", "deger": "Üsler Hadal Eşiği'ne yeniden yerleşir; Çukur Kalbi ve Sinaps Kuleleri tarafsız başlar, ilk Taht Savaşı birleşmeden 24 saat sonra"},
+    {"kural": "Sıralama", "deger": "Lig, Arena ve Egemen Yarışı sıralamaları birleşmeden sonraki ilk haftada yeniden kurulur"},
+    {"kural": "Sunucu adı", "deger": "İki çukurun adı birlikte anılır (ör. 'Tonga-Kermadec'); aynı dalma-batma sistemindeki çukurlar önceliklidir"}
+  ]
+}

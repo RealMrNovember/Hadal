@@ -1,0 +1,11 @@
+{
+  "surum": "rehber-1",
+  "_not": "Kılavuzda ve veride geçmemesi gereken isimler: başka oyunların kahraman/etkinlik adları ve Bolt taslağının uydurduğu öğeler. Türkçede sıradan kelime olan adlar (ör. Gölge, Kafa, Soytarı) yanlış alarm vermesin diye listede yok; yine de kahraman adı olarak kullanılmazlar. Kontrol büyük/küçük harf duyarsız, tam kelime eşleşmesiyle yapılır.",
+  "isimler": [
+    "Daskal", "Arthur", "Louis", "Brian", "Billy", "Harper", "Bell", "Nicole", "Zoya", "Annie", "Cynthia",
+    "Marlena", "Kızıl Hanım", "Lucius", "Bella", "Griffith", "Hastar", "Stellar", "Celia", "Grenwald", "Kesso",
+    "Ash", "Bestar", "Sivir", "Claire", "Durant", "William", "Robin",
+    "Abyssal Crystal", "Abyssborn", "Leviathan Cult", "The Drift", "Founders",
+    "Ceroli", "Lohar", "Osiris", "Constance", "Aethelflaed", "Lyceum", "Sunset Canyon"
+  ]
+}

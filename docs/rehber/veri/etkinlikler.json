@@ -1,0 +1,1261 @@
+{
+  "surum": "rehber-1",
+  "_not": "Etkinlik takvimi ve her etkinliğin kuralları, puanları, ödül kademeleri. Saatler UTC; hafta Pazartesi 00:00'da başlar. Titanyum ödülleri GS (Gelir Saati; bkz. oduller.json) ile yazılır ve verildiği anın reaktör seviyesiyle damgalanır. Gerçek okyanus bilgisine dayanan her içerik bilim.json kimliğiyle bağlanır.",
+  "genel": {
+    "saat_dilimi": "UTC",
+    "hafta_baslangic": "Pazartesi 00:00",
+    "posta_saklama_gun": 14,
+    "siralama_esitlik": "Eşit puanda puana önce ulaşan öndedir",
+    "dongu_hafta": 4,
+    "sezon_gun": 50,
+    "sezon_arasi_gun": 10,
+    "sezon_dongu_gun": 60
+  },
+  "takvim_sutunlar": [
+    ["ad", "Etkinlik"],
+    ["kategori", "Tür"],
+    ["siklus", "Ne sıklıkla"],
+    ["sure", "Süre"],
+    ["katilim", "Katılım"],
+    ["acilis", "Açılış"],
+    ["odul", "Başlıca ödül"],
+    ["durum", "Durum"]
+  ],
+  "takvim": [
+    {
+      "id": "ilk_dalis_haftasi",
+      "ad": "İlk Dalış Haftası",
+      "kategori": "Yeni kaptan",
+      "siklus": "Hesap başına bir kez",
+      "sure": "7 gün",
+      "katilim": "Kişisel",
+      "acilis": "R1",
+      "odul": "Titanyum, hızlandırma, kahraman kartı",
+      "durum": "⬜"
+    },
+    {
+      "id": "derinlik_ligi",
+      "ad": "Derinlik Ligi",
+      "kategori": "Kişisel lig",
+      "siklus": "Her hafta",
+      "sure": "6 tema günü + Pazar sonuç",
+      "katilim": "30 kişilik lig grubu + ittifak ligi",
+      "acilis": "R16",
+      "odul": "Titanyum, hızlandırma, Hadalit, lig rozeti",
+      "durum": "⬜"
+    },
+    {
+      "id": "suru_baskini",
+      "ad": "Sürü Baskını",
+      "kategori": "Kişisel kule savunması",
+      "siklus": "Haftada 2 (Salı, Cuma)",
+      "sure": "24 sa pencere, 20 dalga",
+      "katilim": "Kişisel + 3 müttefik takviyesi",
+      "acilis": "R16",
+      "odul": "Titanyum, kart parçası, Hadalit",
+      "durum": "⬜"
+    },
+    {
+      "id": "basinc_arenasi",
+      "ad": "Basınç Arenası",
+      "kategori": "Eşit birlikli asenkron PvP",
+      "siklus": "Her gün; 14 günlük sezon",
+      "sure": "5 deneme/gün",
+      "katilim": "Sunucu geneli",
+      "acilis": "Savaş Kubbesi (R16)",
+      "odul": "Hadalit, Kubbe Nişanı",
+      "durum": "⬜"
+    },
+    {
+      "id": "leviathan_avi",
+      "ad": "Leviathan Avı",
+      "kategori": "İttifak PvE",
+      "siklus": "Her hafta (Çar–Per)",
+      "sure": "~35 dk, 15 dalga",
+      "katilim": "En az 20 üye",
+      "acilis": "R18 + ittifak",
+      "odul": "Titanyum, Av Sandığı, Leviathan Pulu",
+      "durum": "⬜"
+    },
+    {
+      "id": "muhafiz_mahzeni",
+      "ad": "Muhafız Mahzeni",
+      "kategori": "4 kişilik ortak boss",
+      "siklus": "Sürekli; haftada 4 ödül hakkı",
+      "sure": "10 dk koşu",
+      "katilim": "4 oyuncu",
+      "acilis": "R20",
+      "odul": "Mahzen Çekirdeği, Titanyum, Hadalit",
+      "durum": "⬜"
+    },
+    {
+      "id": "leviathan_konvoyu",
+      "ad": "Leviathan Konvoyu",
+      "kategori": "İttifak 30'a 30 savaş alanı",
+      "siklus": "2 haftada bir (Cumartesi)",
+      "sure": "60 dk",
+      "katilim": "30 asıl + 10 yedek",
+      "acilis": "R18, İttifak Merkezi 10",
+      "odul": "Konvoy Madalyası, Hadalit, hızlandırma",
+      "durum": "⬜"
+    },
+    {
+      "id": "egemen_yarisi",
+      "ad": "Egemen Yarışı",
+      "kategori": "Tek kaptan sıralaması",
+      "siklus": "4 haftada bir (3. hafta)",
+      "sure": "6 aşama × 24 sa",
+      "katilim": "Sunucu geneli",
+      "acilis": "R16",
+      "odul": "Kart, hızlandırma, Hadalit, Yarış Birincisi çerçevesi",
+      "durum": "⬜"
+    },
+    {
+      "id": "sonar_carki",
+      "ad": "Sonar Çarkı",
+      "kategori": "Ücretli çark",
+      "siklus": "2 haftada bir (1. ve 3. hafta)",
+      "sure": "Cuma–Pazar, 3 gün",
+      "katilim": "Herkes",
+      "acilis": "R10",
+      "odul": "Öne çıkan kahraman kartları",
+      "durum": "⬜"
+    },
+    {
+      "id": "okyanus_sinavi",
+      "ad": "Okyanus Bilimi Sınavı",
+      "kategori": "Bilgi yarışması",
+      "siklus": "Her ay (ilk hafta sonu)",
+      "sure": "Ön tur 36 sa + final 20 dk",
+      "katilim": "Herkes; final ilk 100",
+      "acilis": "R10",
+      "odul": "Hadalit, Bilim Rozeti, Tür Kataloğu kaydı",
+      "durum": "⬜"
+    },
+    {
+      "id": "kacakci",
+      "ad": "Kaçakçı",
+      "kategori": "Gezgin tüccar",
+      "siklus": "6 saatte bir yeni stok",
+      "sure": "6 sa",
+      "katilim": "Herkes",
+      "acilis": "Takas İstasyonu (R10)",
+      "odul": "Takas",
+      "durum": "⬜"
+    },
+    {
+      "id": "doga_olaylari",
+      "ad": "Doğa olayları",
+      "kategori": "Dünya olayı",
+      "siklus": "Haftada 2–3",
+      "sure": "3 sa – 7 gün",
+      "katilim": "Bölge ya da sunucu",
+      "acilis": "R10",
+      "odul": "Geçici yataklar, Tür Kataloğu",
+      "durum": "⬜"
+    },
+    {
+      "id": "akinti_savasi",
+      "ad": "Akıntı Savaşı",
+      "kategori": "Sunucular arası sezon",
+      "siklus": "60 günde bir",
+      "sure": "50 gün + 10 gün ara",
+      "katilim": "4 çukur sunucusu",
+      "acilis": "Kronik 7 · Akıntı Çağrısı (~90. gün)",
+      "odul": "Akıntı Mührü, sancak, Kurtarma Kapsülü",
+      "durum": "⬜"
+    },
+    {
+      "id": "hadal_titani",
+      "ad": "Hadal Titanı",
+      "kategori": "Haftalık dünya boss'u",
+      "siklus": "Her Pazar",
+      "sure": "2 pencere × 45 dk",
+      "katilim": "Sunucu geneli",
+      "acilis": "Kronik 11 · Titan'ın Uyanışı (~240. gün)",
+      "odul": "Kadim Şema Parçası, Titan Kalıntısı",
+      "durum": "⬜"
+    },
+    {
+      "id": "ozel_gunler",
+      "ad": "Okyanus günleri",
+      "kategori": "Tematik",
+      "siklus": "Yılda ~6",
+      "sure": "3–7 gün",
+      "katilim": "Herkes",
+      "acilis": "R5",
+      "odul": "Kozmetik, Tür Kataloğu, sınav sorusu",
+      "durum": "⬜"
+    }
+  ],
+  "haftalik_sutunlar": [
+    ["gun", "Gün"],
+    ["lig", "Derinlik Ligi teması"],
+    ["ittifak", "İttifak"],
+    ["kisisel", "Kişisel"],
+    ["diger", "Diğer"]
+  ],
+  "haftalik": [
+    {
+      "gun": "Pazartesi",
+      "lig": "İnşa",
+      "ittifak": "Konvoy kaydı açılır (çift haftalar)",
+      "kisisel": "Mahzen hakları yenilenir",
+      "diger": "Egemen Yarışı 1. aşama (3. hafta)"
+    },
+    {"gun": "Salı", "lig": "Araştırma", "ittifak": "—", "kisisel": "Sürü Baskını penceresi", "diger": "—"},
+    {
+      "gun": "Çarşamba",
+      "lig": "Kahraman",
+      "ittifak": "Leviathan Avı penceresi açılır",
+      "kisisel": "—",
+      "diger": "—"
+    },
+    {
+      "gun": "Perşembe",
+      "lig": "Toplama",
+      "ittifak": "Avı penceresi ve Konvoy kaydı kapanır",
+      "kisisel": "—",
+      "diger": "—"
+    },
+    {
+      "gun": "Cuma",
+      "lig": "Eğitim",
+      "ittifak": "Konvoy eşleşmeleri ilan edilir",
+      "kisisel": "Sürü Baskını penceresi",
+      "diger": "Sonar Çarkı açılır (tek haftalar)"
+    },
+    {
+      "gun": "Cumartesi",
+      "lig": "Av",
+      "ittifak": "Leviathan Konvoyu 12:00 ve 20:00 (çift haftalar)",
+      "kisisel": "—",
+      "diger": "Sınav ön turu (ayın ilk hafta sonu)"
+    },
+    {
+      "gun": "Pazar",
+      "lig": "Sonuç, terfi ve düşme",
+      "ittifak": "—",
+      "kisisel": "Arena sezonu her 2. Pazar biter",
+      "diger": "Hadal Titanı (Kronik ~240+), Sınav finali 18:00"
+    }
+  ],
+  "dongu_sutunlar": [["hafta", "Hafta"], ["haftaici", "Hafta içi"], ["haftasonu", "Hafta sonu"], ["not", "Not"]],
+  "dongu": [
+    {
+      "hafta": "1",
+      "haftaici": "Lig · Sürü ×2 · Leviathan Avı",
+      "haftasonu": "Sonar Çarkı",
+      "not": "Ayın ilk hafta sonuysa Sınav da bu hafta"
+    },
+    {
+      "hafta": "2",
+      "haftaici": "Lig · Sürü ×2 · Leviathan Avı · Konvoy kaydı",
+      "haftasonu": "Leviathan Konvoyu",
+      "not": "—"
+    },
+    {
+      "hafta": "3",
+      "haftaici": "Lig · Egemen Yarışı · Sürü ×2 · Leviathan Avı",
+      "haftasonu": "Sonar Çarkı",
+      "not": "Lig ve Egemen aynı eylemlerden puan alabilir"
+    },
+    {
+      "hafta": "4",
+      "haftaici": "Lig · Sürü ×2 · Leviathan Avı · Konvoy kaydı",
+      "haftasonu": "Leviathan Konvoyu",
+      "not": "Akıntı Savaşı sürerken Konvoy durur"
+    }
+  ],
+  "ilk_dalis_haftasi": {
+    "gunler_sutunlar": [["gun", "Gün"], ["hedef", "Hedef"], ["odul", "Ödül"]],
+    "gunler": [
+      {"gun": 1, "hedef": "Çekirdek Reaktör 8", "odul": "Titanyum 1 GS + Nadir kart ×1"},
+      {"gun": 2, "hedef": "3 kahramanı eğit", "odul": "Titanyum 1 GS + 30 dk hızlandırma"},
+      {"gun": 3, "hedef": "İttifaka katıl, 10 yardım", "odul": "Titanyum 1 GS + Gümüş Sandık"},
+      {"gun": 4, "hedef": "Çekirdek Reaktör 16", "odul": "Titanyum 1 GS + 60 dk hızlandırma"},
+      {"gun": 5, "hedef": "Derinlik Ligi'nde Kademe I", "odul": "Titanyum 1 GS + destansı parça ×5"},
+      {"gun": 6, "hedef": "5 sefer dalışı", "odul": "Titanyum 1 GS + Sonar Pili ×3"},
+      {
+        "gun": 7,
+        "hedef": "Çekirdek Reaktör 20",
+        "odul": "Titanyum 1 GS + efsanevi parça ×10 + 'İlk Dalış' rozeti"
+      }
+    ]
+  },
+  "derinlik_ligi": {
+    "kademe_esikleri": [1000, 3000, 6000],
+    "gunler_sutunlar": [["gun", "Gün"], ["tema", "Tema"], ["puan", "Puan kaynakları"]],
+    "gunler": [
+      {
+        "gun": "Pazartesi",
+        "tema": "İnşa",
+        "puan": "Biten inşaat dakikası 1 (hızlandırma dahil) · her yükseltme 30 · verilen ittifak yardımı 5"
+      },
+      {"gun": "Salı", "tema": "Araştırma", "puan": "Biten araştırma dakikası 1 · her araştırma seviyesi 30"},
+      {
+        "gun": "Çarşamba",
+        "tema": "Kahraman",
+        "puan": "Kriyo-Kapsül çekimi 300 · kahraman eğitimi (seviye başına) 60 · yıldız 1.500 · teçhizat üretimi 400"
+      },
+      {
+        "gun": "Perşembe",
+        "tema": "Toplama",
+        "puan": "Toplanan kaynak 1 GS = 400 · kurtarma görevi 100 · sefer dalışı 150"
+      },
+      {"gun": "Cuma", "tema": "Eğitim", "puan": "Biten asker eğitimi dakikası 2 · iyileştirme dakikası 1"},
+      {
+        "gun": "Cumartesi",
+        "tema": "Av",
+        "puan": "PvE düşman avı (seviye × 10) · ralli katılımı 400 · Demir Leviathan yuvası rallisi 1.000"
+      }
+    ],
+    "kademeler_sutunlar": [["kademe", "Günlük kademe"], ["esik", "Puan"], ["odul", "Ödül"], ["not", "Not"]],
+    "kademeler": [
+      {
+        "kademe": "I",
+        "esik": 1000,
+        "odul": "Titanyum 0,35 GS + 10 dk genel hızlandırma",
+        "not": "F2P her gün"
+      },
+      {
+        "kademe": "II",
+        "esik": 3000,
+        "odul": "Titanyum 0,6 GS + 10 dk inşaat hızlandırma + 10 Hadalit",
+        "not": "F2P çoğu gün"
+      },
+      {
+        "kademe": "III",
+        "esik": 6000,
+        "odul": "30 dk araştırma + 30 dk eğitim hızlandırma + 30 Hadalit + destansı parça ×5",
+        "not": "Titanyum ve genel hızlandırma vermez"
+      }
+    ],
+    "ligler_sutunlar": [["lig", "Lig"], ["kim", "Kimler"], ["terfi", "Terfi"], ["dusme", "Düşme"], ["carpan", "Hadalit çarpanı"]],
+    "ligler": [
+      {
+        "lig": "Alacakaranlık",
+        "kim": "Yeni katılanlar",
+        "terfi": "Grubun ilk 5'i",
+        "dusme": "—",
+        "carpan": 1.0
+      },
+      {"lig": "Gece Yarısı", "kim": "Bir terfi alanlar", "terfi": "İlk 5", "dusme": "Son 5", "carpan": 1.25},
+      {"lig": "Abis", "kim": "İki terfi alanlar", "terfi": "İlk 5", "dusme": "Son 5", "carpan": 1.5},
+      {"lig": "Hadal", "kim": "En üst lig", "terfi": "—", "dusme": "Son 5", "carpan": 2.0}
+    ],
+    "haftalik_odul_sutunlar": [["sira", "Grup sırası"], ["odul", "Haftalık ödül (Hadalit lig çarpanıyla)"]],
+    "haftalik_odul": [
+      {"sira": "1", "odul": "150 Hadalit + 1 sa genel hızlandırma + lig rozeti"},
+      {"sira": "2–3", "odul": "100 Hadalit + 45 dk genel hızlandırma"},
+      {"sira": "4–10", "odul": "60 Hadalit + 30 dk genel hızlandırma"},
+      {"sira": "11–20", "odul": "30 Hadalit + 30 dk genel hızlandırma"},
+      {"sira": "21–30", "odul": "15 Hadalit + 15 dk genel hızlandırma"}
+    ],
+    "ittifak_sutunlar": [["sira", "İttifak ligi sırası (haftalık)"], ["odul", "İttifaka ve her üyeye"]],
+    "ittifak": [
+      {
+        "sira": "1",
+        "odul": "3.000 İttifak Kredisi + Lig Hediyesi (her üyeye 30 dk araştırma hızlandırma + 20 Hadalit)"
+      },
+      {"sira": "2–3", "odul": "2.000 İttifak Kredisi + Lig Hediyesi (20 dk araştırma + 15 Hadalit)"},
+      {"sira": "4–10", "odul": "1.000 İttifak Kredisi + Lig Hediyesi (10 dk araştırma + 10 Hadalit)"},
+      {"sira": "11+", "odul": "500 İttifak Kredisi"}
+    ],
+    "ittifak_kural": "İttifak puanı = üyelerin en iyi 30 haftalık kişisel puanının toplamı; ittifaklar da aynı dört ligde 10'arlı gruplarla yarışır"
+  },
+  "egemen_yarisi": {
+    "asamalar_sutunlar": [["asama", "Aşama"], ["ad", "Ad"], ["puan", "Puan"]],
+    "asamalar": [
+      {"asama": 1, "ad": "Eğitim", "puan": "Eğitilen askerin gücü (1 güç = 1 puan)"},
+      {"asama": 2, "ad": "Av", "puan": "PvE düşmanı (seviye × 100) · Leviathan rallisi 5.000"},
+      {
+        "asama": 3,
+        "ad": "Toplama",
+        "puan": "Titanyum 1 = 1 · Biyokütle 1 = 2,5 · Gıda ve Oksijen 1 = 0,2 · Süperalaşım 1 = 2.000"
+      },
+      {"asama": 4, "ad": "Teknoloji", "puan": "Araştırma gücü artışı (1 güç = 1 puan)"},
+      {"asama": 5, "ad": "Güç", "puan": "Bina, araştırma ve kahraman gücü artışı (asker hariç)"},
+      {
+        "asama": 6,
+        "ad": "Çatışma",
+        "puan": "Yenilen rakip asker gücü × 1 · yenilen PvE düşman gücü × 0,5"
+      }
+    ],
+    "kilometre_sutunlar": [["kademe", "Aşama kademesi"], ["esik", "Eşik"], ["odul", "Ödül"]],
+    "kilometre": [
+      {"kademe": "K1", "esik": "0,5 × aşama referansı", "odul": "15 dk genel hızlandırma + 10 Hadalit"},
+      {"kademe": "K2", "esik": "1 × aşama referansı", "odul": "30 dk araştırma hızlandırma + 20 Hadalit"},
+      {
+        "kademe": "K3",
+        "esik": "2 × aşama referansı",
+        "odul": "60 dk eğitim hızlandırma + kahraman parçası ×5"
+      }
+    ],
+    "siralama_sutunlar": [
+      ["sira", "Sıra"],
+      ["asama_odulu", "Aşama sıralaması"],
+      ["genel_odul", "Genel sıralama (6 aşama toplamı)"]
+    ],
+    "siralama": [
+      {
+        "sira": "1",
+        "asama_odulu": "1.000 Hadalit + destansı kart ×1",
+        "genel_odul": "Efsanevi kart ×1 + 2.000 Hadalit + Yarış Birincisi çerçevesi (28 gün)"
+      },
+      {"sira": "2–3", "asama_odulu": "600 Hadalit", "genel_odul": "Destansı kart ×2 + 1.200 Hadalit"},
+      {"sira": "4–10", "asama_odulu": "400 Hadalit", "genel_odul": "Destansı kart ×1 + 800 Hadalit"},
+      {"sira": "11–30", "asama_odulu": "200 Hadalit", "genel_odul": "400 Hadalit"},
+      {"sira": "31–100", "asama_odulu": "100 Hadalit", "genel_odul": "200 Hadalit"}
+    ]
+  },
+  "leviathan_konvoyu": {
+    "kurallar_sutunlar": [["kural", "Kural"], ["deger", "Değer"]],
+    "kurallar": [
+      {
+        "kural": "Kayıt",
+        "deger": "Pazartesi–Perşembe; R4–R5 rütbeli üye 30 asıl + 10 yedek seçer, iki saatten birini oylar"
+      },
+      {
+        "kural": "Eşleşme",
+        "deger": "Seçilen 30 üyenin toplam gücü + ittifakın Konvoy derecesi (Elo); önce aynı sunucu, Akıntı Savaşı'ndan sonra çapraz sunucu"
+      },
+      {
+        "kural": "Harita",
+        "deger": "Konvoy Hendeği: iki uçta Tersane Kapısı, 6 Röle Şamandırası, ortada Sönmüş Leviathan Çekirdeği"
+      },
+      {"kural": "Süre", "deger": "60 dk; 15.000 puana önce ulaşan ya da süre bitiminde önde olan kazanır"},
+      {
+        "kural": "Çekirdek",
+        "deger": "15. dakikada uyanır; çevresinde daha fazla asker gücü olan taraf onu 5 bölümlük hendek boyunca rakip kapıya doğru çeker (bölüm başına 3 dk)"
+      },
+      {
+        "kural": "Kayıp",
+        "deger": "Konvoy'da asker ölmez; ağır yaralılar maç sonunda iyileşmiş döner. Yenilen yürüyüş 60 sn sonra kendi Tersane'sinden yeniden çıkar"
+      },
+      {
+        "kural": "Hızlandırma",
+        "deger": "Maç içinde hızlandırma ve kalkan kullanılamaz; yalnız Saha Revir'i yaralıları yavaşça döndürür"
+      }
+    ],
+    "puanlar_sutunlar": [["eylem", "Eylem"], ["puan", "Puan"]],
+    "puanlar": [
+      {"eylem": "Röle Şamandırası ele geçirme", "puan": "200 (maçta ilk kez: +300)"},
+      {"eylem": "Tutulan şamandıra", "puan": "Dakikada 20"},
+      {"eylem": "Çekirdeği bir bölüm ilerletme", "puan": "600"},
+      {
+        "eylem": "Çekirdeği rakip Tersane Kapısı'na ulaştırma",
+        "puan": "3.000 (çekirdek 3 dk sonra merkezde yeniden uyanır)"
+      },
+      {"eylem": "Yaralanan rakip asker", "puan": "10.000 güç başına 10"}
+    ],
+    "odul_sutunlar": [["sonuc", "Sonuç"], ["odul", "Her katılımcıya"]],
+    "odul": [
+      {
+        "sonuc": "Galibiyet",
+        "odul": "600 Konvoy Madalyası + 150 Hadalit + 1 sa genel + 1 sa iyileştirme hızlandırma"
+      },
+      {
+        "sonuc": "Mağlubiyet",
+        "odul": "300 Konvoy Madalyası + 75 Hadalit + 30 dk genel + 30 dk iyileştirme hızlandırma"
+      },
+      {"sonuc": "Bireysel liyakat (ilk 10)", "odul": "+200 Konvoy Madalyası"},
+      {
+        "sonuc": "İttifakın katılmayan üyeleri",
+        "odul": "Konvoy Zafer Payı (galibiyette): 15 dk iyileştirme hızlandırma + 15 Hadalit"
+      }
+    ]
+  },
+  "leviathan_avi": {
+    "kurallar_sutunlar": [["kural", "Kural"], ["deger", "Değer"]],
+    "kurallar": [
+      {
+        "kural": "Pencere",
+        "deger": "Çarşamba 00:00 – Perşembe 23:59; R4+ rütbeli üye başlangıç saatini seçer"
+      },
+      {"kural": "Asgari katılım", "deger": "20 kayıtlı üye; daha azıyla başlatılamaz"},
+      {
+        "kural": "Alan",
+        "deger": "İttifak bölgesindeki Av Halkası: Sol Kanyon, Orta Geçit, Sağ Kanyon ve ortada Av Feneri"
+      },
+      {"kural": "Akış", "deger": "15 dalga, 2 dk arayla; Av Feneri'nin canı biterse av o dalgada biter"},
+      {
+        "kural": "Katkı",
+        "deger": "Üye en çok 2 seferi hatlara yerleştirir; kahraman öfke yeteneği elle kullanılabilir. Dalga ödüllerine araştırma ve eğitim hızlandırması eklenir"
+      },
+      {
+        "kural": "Kayıp",
+        "deger": "PvE kuralı: askerler yalnız yaralanır, iyileştirme %50 indirimli; Revir doluysa taşanlar Askeri Kubbe'de dinlenip ücretsiz iyileşir (07)"
+      },
+      {"kural": "Geç katılım", "deger": "Av sürerken katılan üye kalan dalgalardan ödül alır"}
+    ],
+    "dalgalar_sutunlar": [["dalga", "Dalga"], ["dusman", "Düşman"], ["ozellik", "Özellik"], ["odul", "Kişisel ödül"]],
+    "dalgalar": [
+      {
+        "dalga": "1–2",
+        "dusman": "Uçurum Sürüngenleri",
+        "ozellik": "Hızlı kalabalık sürü, üç hattan aynı anda (karşı: Zıpkıncı)",
+        "odul": "Titanyum 0,08 GS / dalga"
+      },
+      {
+        "dalga": "3–4",
+        "dusman": "Uçurum Sürüngenleri + Kum Kazıcıları",
+        "ozellik": "Kazıcılar Av Feneri'ne tırmanır, sızma ×3 (karşı: Basınç Topu tareti)",
+        "odul": "0,08 GS / dalga"
+      },
+      {
+        "dalga": "5",
+        "dusman": "Sürüngen Anası",
+        "ozellik": "Dev Uçurum Sürüngeni; ön safı ezer",
+        "odul": "0,08 GS + Av Sandığı I (ittifak)"
+      },
+      {
+        "dalga": "6–9",
+        "dusman": "Siren Sürüsü + Basınç Hayaletleri",
+        "ozellik": "Zincir ark; Hayaletler ilk tur hedef alınamaz (karşı: Zırhlı Dalgıç, Ark Askeri)",
+        "odul": "0,12 GS / dalga"
+      },
+      {
+        "dalga": "10",
+        "dusman": "Siren Kraliçesi",
+        "ozellik": "Her 3 turda sürü çağırır; ralliyle karşılanmalı",
+        "odul": "0,12 GS + Av Sandığı II"
+      },
+      {
+        "dalga": "11–14",
+        "dusman": "Basınç Hayaletleri + Kum Kazıcıları",
+        "ozellik": "Hızlanan akış; Fener'e sızma artar",
+        "odul": "0,16 GS / dalga"
+      },
+      {
+        "dalga": "15",
+        "dusman": "Demir Leviathan",
+        "ozellik": "Her 4 turda ön safın %3'ünü yutar; üç evre (zırh, kuyruk süpürmesi, çekirdek açığı)",
+        "odul": "0,16 GS + Av Sandığı III + Leviathan Pulu"
+      }
+    ]
+  },
+  "muhafiz_mahzeni": {
+    "kurallar_sutunlar": [["kural", "Kural"], ["deger", "Değer"]],
+    "kurallar": [
+      {"kural": "Takım", "deger": "4 oyuncu; ittifak içinden ya da sunucu geneli eşleşmeyle"},
+      {
+        "kural": "Yürüyüş",
+        "deger": "Her oyuncu 1 yürüyüş (kaptan + subay kahraman ve kendi askerleri; zorluğun asker tavanına kadar)"
+      },
+      {"kural": "Süre", "deger": "10 dk; Mahzen Bekçisi'nin canı bitince ya da süre dolunca biter"},
+      {
+        "kural": "Ödül hakkı",
+        "deger": "Haftada 4 (Pazartesi yenilenir); hakkı biten oyuncu yardım koşusuna katılır, Yardım Nişanı kazanır"
+      },
+      {"kural": "Kayıp", "deger": "PvE kuralı (07): askerler yalnız yaralanır, iyileştirme %50 indirimli"}
+    ],
+    "zorluklar_sutunlar": [
+      ["zorluk", "Zorluk"],
+      ["onerilen", "Önerilen reaktör"],
+      ["can", "Bekçi canı (× Sığ)"],
+      ["odul", "Hak başına ödül"],
+      ["ilk", "İlk temizleme"]
+    ],
+    "zorluklar": [
+      {
+        "zorluk": "I · Sığ",
+        "onerilen": "R20",
+        "can": 1.0,
+        "odul": "Titanyum 0,3 GS + 10 Hadalit + Mahzen Çekirdeği ×2",
+        "ilk": "Altın Sandık"
+      },
+      {
+        "zorluk": "II · Derin",
+        "onerilen": "R25",
+        "can": 2.5,
+        "odul": "0,3 GS + 15 Hadalit + Çekirdek ×4",
+        "ilk": "Destansı kart ×1"
+      },
+      {
+        "zorluk": "III · Abisal",
+        "onerilen": "R30",
+        "can": 6.0,
+        "odul": "0,3 GS + 20 Hadalit + Çekirdek ×7 + Süperalaşım 10",
+        "ilk": "Destansı kart ×2"
+      },
+      {
+        "zorluk": "IV · Hadal",
+        "onerilen": "R38",
+        "can": 14.0,
+        "odul": "0,3 GS + 30 Hadalit + Çekirdek ×11 + Süperalaşım 20",
+        "ilk": "Efsanevi parça ×10"
+      },
+      {
+        "zorluk": "V · Kadim",
+        "onerilen": "R45",
+        "can": 32.0,
+        "odul": "0,3 GS + 40 Hadalit + Çekirdek ×16 + Süperalaşım 30 + %10 Kadim Şema Parçası",
+        "ilk": "Efsanevi kart ×1"
+      }
+    ],
+    "yetenekler_sutunlar": [["yetenek", "Bekçinin yeteneği"], ["zaman", "Ne zaman"], ["karsi", "Karşılık"]],
+    "yetenekler": [
+      {
+        "yetenek": "Basınç Darbesi",
+        "zaman": "45 sn'de bir",
+        "karsi": "Alan hasarı; birbirinden uzak duran yürüyüşler az etkilenir"
+      },
+      {
+        "yetenek": "Hadalit Kalkanı",
+        "zaman": "%70 canda",
+        "karsi": "Kalkan kırılana kadar hasar %80 azalır; Ark Askerleri kalkana ×3 vurur"
+      },
+      {
+        "yetenek": "Yankı Çağrısı",
+        "zaman": "%35 canda",
+        "karsi": "4 Muhafız Nöbetçisi çıkar; 30 sn'de yenilmezlerse Bekçi'yi iyileştirir"
+      },
+      {
+        "yetenek": "Uyanış",
+        "zaman": "Son 60 sn",
+        "karsi": "Bekçi'nin hasarı ×2; savunma kahramanı öne alınır"
+      }
+    ]
+  },
+  "basinc_arenasi": {
+    "kurallar_sutunlar": [["kural", "Kural"], ["deger", "Değer"]],
+    "kurallar": [
+      {
+        "kural": "Yer",
+        "deger": "Savaş Kubbesi (Reaktör 16); kubbe seviyesi arena kadrosunu 3 koldan 5 kola çıkarır"
+      },
+      {
+        "kural": "Eşit birlik",
+        "deger": "Her kol aynı kademede ve aynı sayıda arena askeri taşır; yalnız tür seçimi oyuncunundur"
+      },
+      {"kural": "Sayılan", "deger": "Kahraman seviyesi, yıldızı, yetenekleri, yetenek ağacı ve teçhizatı"},
+      {"kural": "Sayılmayan", "deger": "Araştırma, VIP, ittifak teknolojisi, köken pasifleri, asker kademesi"},
+      {
+        "kural": "Deneme",
+        "deger": "Günde 5 ücretsiz; etkinliklerden gelen Arena Bileti ile +3. Hadalitle deneme satılmaz"
+      },
+      {
+        "kural": "Rakip",
+        "deger": "Dereceye yakın 3 rakipten biri seçilir; savunma dizilişi her zaman açıktır"
+      },
+      {"kural": "Sezon", "deger": "14 gün; günlük ödül 21:00'de, sezon ödülü Pazar 21:00'de"}
+    ],
+    "gunluk_odul_sutunlar": [["sira", "Günlük sıra"], ["hadalit", "Hadalit"], ["nisan", "Kubbe Nişanı"]],
+    "gunluk_odul": [
+      {"sira": "1", "hadalit": 100, "nisan": 200},
+      {"sira": "2–10", "hadalit": 80, "nisan": 160},
+      {"sira": "11–50", "hadalit": 60, "nisan": 120},
+      {"sira": "51–200", "hadalit": 40, "nisan": 80},
+      {"sira": "201–1.000", "hadalit": 25, "nisan": 50},
+      {"sira": "1.001+", "hadalit": 15, "nisan": 30}
+    ],
+    "dukkan_sutunlar": [["urun", "Kubbe Dükkânı"], ["bedel", "Kubbe Nişanı"], ["sinir", "Sınır"]],
+    "dukkan": [
+      {"urun": "Seçilebilir destansı kahraman kartı ×10", "bedel": 3000, "sinir": "Sezonda 1"},
+      {"urun": "Nadir kahraman kartı ×10", "bedel": 800, "sinir": "Haftada 2"},
+      {"urun": "Teçhizat malzemesi (destansı)", "bedel": 600, "sinir": "Haftada 3"},
+      {"urun": "Arena çerçevesi ve unvanı", "bedel": 5000, "sinir": "Kalıcı"}
+    ]
+  },
+  "suru_baskini": {
+    "kurallar_sutunlar": [["kural", "Kural"], ["deger", "Değer"]],
+    "kurallar": [
+      {"kural": "Pencere", "deger": "Salı ve Cuma, 00:00–23:59; oyuncu istediği an başlatır"},
+      {
+        "kural": "Akış",
+        "deger": "20 dalga; dayanıklılık 0'a inince koşu biter, geçilen dalgaların ödülü kalır. Dalgalar arasında taret türü değişir, iyileştirme yapılmaz"
+      },
+      {
+        "kural": "Savunma",
+        "deger": "Kalkan Jeneratörü dayanıklılığı, taret yuvaları ve garnizon; dalgada hayatta kalan her düşman sızar ve dayanıklılıktan düşer. Savunma matematiği 07 §4.7'dedir"
+      },
+      {
+        "kural": "Takviye",
+        "deger": "En çok 3 müttefik garnizon gönderebilir; gönderen Savunma Nişanı (ittifak kredisi) kazanır"
+      },
+      {
+        "kural": "Kayıp",
+        "deger": "PvE kuralı: askerler yalnız yaralanır; kaynak kaybı yoktur, üs hasarı görseldir"
+      },
+      {"kural": "Ödül", "deger": "Her dalganın ödülü pencere başına bir kez alınır"}
+    ],
+    "dalgalar_sutunlar": [["dalga", "Dalga"], ["dusman", "Düşman"], ["ozellik", "Özellik"], ["odul", "Ödül (dalga başına)"]],
+    "dalgalar": [
+      {
+        "dalga": "1–4",
+        "dusman": "Uçurum Sürüngenleri",
+        "ozellik": "Hızlı sürüler (karşı: Zıpkın Bataryası)",
+        "odul": "Titanyum 0,05 GS"
+      },
+      {
+        "dalga": "5",
+        "dusman": "Sürüngen Anası",
+        "ozellik": "Dev Sürüngen; dayanıklılığı hızla eritir",
+        "odul": "0,05 GS + 10 Hadalit"
+      },
+      {
+        "dalga": "6–9",
+        "dusman": "Uçurum Sürüngenleri + Kum Kazıcıları",
+        "ozellik": "Kazıcılar yapıya tırmanır, sızma ×3 (karşı: Basınç Topu)",
+        "odul": "0,05 GS"
+      },
+      {
+        "dalga": "10",
+        "dusman": "Siren Sürüsü",
+        "ozellik": "Zincir ark; arka safı vurur (karşı: Zırhlı Dalgıç)",
+        "odul": "0,05 GS + 15 Hadalit + 15 dk genel hızlandırma"
+      },
+      {
+        "dalga": "11–14",
+        "dusman": "Siren Sürüsü + Kum Kazıcıları",
+        "ozellik": "İki tehdit aynı anda; taret seçimi kararı",
+        "odul": "0,125 GS"
+      },
+      {
+        "dalga": "15",
+        "dusman": "Siren Kraliçesi",
+        "ozellik": "Her 3 turda sürü çağırır",
+        "odul": "0,15 GS + 25 Hadalit + kahraman parçası ×5"
+      },
+      {
+        "dalga": "16–19",
+        "dusman": "Basınç Hayaletleri + karışık",
+        "ozellik": "İlk tur hedef alınamaz (karşı: Ark Bobini)",
+        "odul": "0,15 GS"
+      },
+      {
+        "dalga": "20",
+        "dusman": "Demir Leviathan",
+        "ozellik": "Tek gövde, dev can; her 4 turda ön safı yutar",
+        "odul": "0,15 GS + 40 Hadalit + 30 dk genel hızlandırma + Altın Sandık"
+      }
+    ]
+  },
+  "sonar_carki": {
+    "fiyat_sutunlar": [["kalem", "Kalem"], ["deger", "Değer"]],
+    "fiyat": [
+      {"kalem": "Ücretsiz çevirme", "deger": "Günde 1"},
+      {"kalem": "Tek çevirme", "deger": "300 Hadalit"},
+      {"kalem": "10 çevirme", "deger": "2.700 Hadalit"},
+      {
+        "kalem": "Etkinlik başına sınır",
+        "deger": "100 çevirme; oyuncu ayarlardan daha düşük bir günlük sınır koyabilir"
+      },
+      {
+        "kalem": "Garanti",
+        "deger": "Büyük ödül (1. dilim) 50 çevirmede çıkmazsa 50. çevirmede verilir; sayaç etkinlik sonunda sıfırlanır"
+      }
+    ],
+    "dilimler_sutunlar": [["dilim", "Dilim"], ["odul", "Ödül"], ["olasilik", "Olasılık", "yuzde"]],
+    "dilimler": [
+      {"dilim": 1, "odul": "Öne çıkan kahramanın kartı ×10", "olasilik": 1},
+      {"dilim": 2, "odul": "Öne çıkan kahramanın kartı ×3", "olasilik": 4},
+      {"dilim": 3, "odul": "Altın Sandık", "olasilik": 5},
+      {"dilim": 4, "odul": "8 sa genel hızlandırma", "olasilik": 3},
+      {"dilim": 5, "odul": "3 sa genel hızlandırma", "olasilik": 8},
+      {"dilim": 6, "odul": "60 dk genel hızlandırma", "olasilik": 15},
+      {"dilim": 7, "odul": "Destansı kart parçası ×5", "olasilik": 8},
+      {"dilim": 8, "odul": "Teçhizat malzemesi (nadir)", "olasilik": 10},
+      {"dilim": 9, "odul": "Sonar Pili ×2", "olasilik": 12},
+      {"dilim": 10, "odul": "Titanyum Kapsülü 1 GS", "olasilik": 14},
+      {"dilim": 11, "odul": "Gümüş Sandık", "olasilik": 12},
+      {"dilim": 12, "odul": "150 Hadalit", "olasilik": 8}
+    ],
+    "kilometre_sutunlar": [["cevirme", "Toplam çevirme"], ["odul", "Kilometre sandığı"]],
+    "kilometre": [
+      {"cevirme": 10, "odul": "Altın Sandık"},
+      {"cevirme": 30, "odul": "Öne çıkan kahramanın kartı ×10"},
+      {"cevirme": 60, "odul": "Öne çıkan kahramanın kartı ×20"},
+      {"cevirme": 100, "odul": "Öne çıkan kahramanın kartı ×30 + Sonar Halkası çerçevesi"}
+    ]
+  },
+  "okyanus_sinavi": {
+    "asamalar_sutunlar": [["asama", "Aşama"], ["zaman", "Zaman (UTC)"], ["kural", "Kural"]],
+    "asamalar": [
+      {
+        "asama": "Ön tur",
+        "zaman": "Ayın ilk Cumartesi 00:00 – Pazar 12:00",
+        "kural": "20 soru, soru başına 20 sn, 4 şık; doğru 100 puan + kalan saniye × 5; 2 Sonar İpucu (iki yanlış şıkkı eler)"
+      },
+      {
+        "asama": "Final",
+        "zaman": "Pazar 18:00",
+        "kural": "Ön turun ilk 100'ü; 15 soru herkese aynı anda; ipucu yok"
+      }
+    ],
+    "odul_sutunlar": [["kademe", "Kademe"], ["odul", "Ödül"]],
+    "odul": [
+      {"kademe": "Ön tur 5 doğru", "odul": "30 Hadalit"},
+      {"kademe": "Ön tur 10 doğru", "odul": "60 Hadalit + Tür Kataloğu kaydı"},
+      {"kademe": "Ön tur 15 doğru", "odul": "100 Hadalit + Bilim Rozeti"},
+      {"kademe": "Ön tur 20 doğru", "odul": "150 Hadalit + Bilim Rozeti (altın)"},
+      {"kademe": "Final 1.", "odul": "1.500 Hadalit + 'Okyanus Bilgini' unvanı (30 gün)"},
+      {"kademe": "Final 2.–10.", "odul": "800 Hadalit"},
+      {"kademe": "Final 11.–100.", "odul": "300 Hadalit"}
+    ],
+    "sorular_sutunlar": [["no", "No"], ["soru", "Soru"], ["secenekler", "Şıklar"], ["cevap", "Cevap"], ["bilim", "bilim.json"]],
+    "sorular": [
+      {
+        "no": 1,
+        "soru": "Dünyanın en derin noktası Challenger Deep hangi çukurdadır?",
+        "secenekler": "Mariana · Tonga · Kermadec · Java",
+        "cevap": "Mariana Çukuru (~10.935 m)",
+        "bilim": "cukurlar.mariana"
+      },
+      {
+        "no": 2,
+        "soru": "Deniz suyunda her ~10 m inişte basınç yaklaşık ne kadar artar?",
+        "secenekler": "1 atmosfer · 10 atmosfer · 0,1 atmosfer · 100 atmosfer",
+        "cevap": "~1 atmosfer (≈1 bar)",
+        "bilim": "basinc"
+      },
+      {
+        "no": 3,
+        "soru": "Okyanusta hangi derinliğin altında hiç güneş ışığı kalmaz?",
+        "secenekler": "200 m · 1.000 m · 4.000 m · 6.000 m",
+        "cevap": "1.000 m",
+        "bilim": "kurallar.isik_siniri"
+      },
+      {
+        "no": 4,
+        "soru": "Pullu ayaklı salyangozun ayak pullarını ve kabuğunu ne kaplar?",
+        "secenekler": "Demir sülfür · Kalsiyum karbonat · Kitin · Silika",
+        "cevap": "Demir sülfür nanoparçacıkları",
+        "bilim": "turler.scaly_foot_snail"
+      },
+      {
+        "no": 5,
+        "soru": "Ağzı ve sindirim sistemi olmayan dev tüp kurdu enerjisini nereden alır?",
+        "secenekler": "Vücudundaki bakterilerden · Deniz karından · Güneş ışığından · Avladığı kabuklulardan",
+        "cevap": "Hidrojen sülfürü kullanan, vücudunda taşıdığı bakterilerden",
+        "bilim": "turler.giant_tube_worm"
+      },
+      {
+        "no": 6,
+        "soru": "Hidrotermal baca toplulukları ilk kez hangi yıl gözlendi?",
+        "secenekler": "1951 · 1960 · 1977 · 2012",
+        "cevap": "1977 (Galápagos Yarığı, Alvin)",
+        "bilim": "kesifler.hidrotermal_baca_kesfi"
+      },
+      {
+        "no": 7,
+        "soru": "Bilinen en büyük tek hücreli canlılar hangileridir?",
+        "secenekler": "Ksenofiyoforlar · Amfipodlar · Sifonoforlar · Deniz hıyarları",
+        "cevap": "Ksenofiyoforlar (10 cm'yi aşabilir)",
+        "bilim": "turler.xenophyophore"
+      },
+      {
+        "no": 8,
+        "soru": "Vampir kalamar neyle beslenir?",
+        "secenekler": "Deniz karı ve organik kırıntı · Balık · Karides · Baca bakterisi",
+        "cevap": "Deniz karı ve organik kırıntılar; avcı değildir",
+        "bilim": "turler.vampire_squid"
+      },
+      {
+        "no": 9,
+        "soru": "Polimetalik nodüller ne hızla büyür?",
+        "secenekler": "Milyon yılda birkaç milimetre · Yılda 1 cm · Yüzyılda 1 cm · Haftada 1 mm",
+        "cevap": "Milyon yılda yalnızca birkaç milimetre",
+        "bilim": "mineraller.polimetalik_nodul"
+      },
+      {
+        "no": 10,
+        "soru": "Balina düşüşünün en uzun süren aşaması hangisidir?",
+        "secenekler": "Kükürt sevenler · Hareketli çöpçüler · Zenginleşme fırsatçıları · Hiçbiri",
+        "cevap": "Kükürt sevenler (~50 yıla, belki bir yüzyıla kadar)",
+        "bilim": "kurallar.balina_dususu"
+      }
+    ]
+  },
+  "kacakci": {
+    "kurallar_sutunlar": [["kural", "Kural"], ["deger", "Değer"]],
+    "kurallar": [
+      {"kural": "Geliş", "deger": "00:00, 06:00, 12:00, 18:00'de 6 raflık yeni stokla gelir; 6 saat kalır"},
+      {"kural": "Yenileme", "deger": "Günde 1 ücretsiz; ek yenileme 50 / 100 / 200 Hadalit, günde en çok 3"},
+      {
+        "kural": "Fiyat",
+        "deger": "Hadalitli ürünler The Syndicate eşdeğerinin %20 altında; kaynakla alınanlar kayıplı kurla"
+      },
+      {
+        "kural": "Sınır",
+        "deger": "Her raf bir kez satın alınır; Süperalaşım ve Kadim Şema Parçası rafları haftada en çok 1"
+      }
+    ],
+    "stok_sutunlar": [["urun", "Ürün"], ["bedel", "Bedel"], ["olasilik", "Rafa çıkma", "yuzde"], ["acilis", "Açılış"]],
+    "stok": [
+      {"urun": "Titanyum Kapsülü 1 GS", "bedel": "6 × o miktar Gıda", "olasilik": 16, "acilis": "R10"},
+      {"urun": "Titanyum Kapsülü 1 GS", "bedel": "5 × o miktar Oksijen", "olasilik": 10, "acilis": "R10"},
+      {"urun": "Biyokütle Kapsülü 1 GS", "bedel": "1,5 × o miktar Titanyum", "olasilik": 8, "acilis": "R10"},
+      {"urun": "Sonar Pili ×3", "bedel": "Titanyum 0,5 GS", "olasilik": 10, "acilis": "R10"},
+      {"urun": "Gümüş Sandık", "bedel": "Titanyum 1 GS", "olasilik": 8, "acilis": "R10"},
+      {"urun": "Teçhizat malzemesi (nadir)", "bedel": "Titanyum 0,8 GS", "olasilik": 10, "acilis": "R12"},
+      {
+        "urun": "60 dk genel hızlandırma",
+        "bedel": "Hadalit (Syndicate −%20)",
+        "olasilik": 12,
+        "acilis": "R10"
+      },
+      {"urun": "8 sa inşaat hızlandırma", "bedel": "Hadalit (Syndicate −%20)", "olasilik": 5, "acilis": "R16"},
+      {"urun": "Nadir kahraman kartı ×10", "bedel": "400 Hadalit", "olasilik": 8, "acilis": "R10"},
+      {"urun": "Destansı kart parçası ×5", "bedel": "600 Hadalit", "olasilik": 5, "acilis": "R16"},
+      {"urun": "Süperalaşım 20", "bedel": "Titanyum 2 GS", "olasilik": 5, "acilis": "R30, haftada 1"},
+      {"urun": "Kadim Şema Parçası", "bedel": "1.500 Hadalit", "olasilik": 1, "acilis": "R40"},
+      {"urun": "Nadir üs kaplaması", "bedel": "2.000 Hadalit", "olasilik": 2, "acilis": "R10"}
+    ]
+  },
+  "doga_olaylari": {
+    "kurallar_sutunlar": [["kural", "Kural"], ["deger", "Değer"]],
+    "kurallar": [
+      {
+        "kural": "Sıklık",
+        "deger": "Haftada 2–3 olay; aynı tür 7 gün içinde tekrarlanmaz; Overseer elle de tetikler"
+      },
+      {
+        "kural": "Uyarı",
+        "deger": "Radar Merkezi bölgesel olayları seviyesine göre 10–60 dk önceden bildirir (Kronik Feneri'nde de görünür)"
+      },
+      {
+        "kural": "Kayıp",
+        "deger": "Hiçbir olay asker öldürmez ya da bina yıkmaz; en kötü etki yaralı, yavaşlama ve kısa süreli verim kaybıdır"
+      },
+      {
+        "kural": "Dil",
+        "deger": "Olay metni süreci anlatır; gerçek bir afetin adı, tarihi ya da kayıpları anılmaz (bilim.json hassas konular)"
+      }
+    ],
+    "olaylar_sutunlar": [["ad", "Olay"], ["alan", "Alan · süre"], ["etki", "Etki"], ["firsat", "Fırsat"], ["bilim", "bilim.json"]],
+    "olaylar": [
+      {
+        "id": "bulaniklik_akintisi",
+        "ad": "Bulanıklık Akıntısı",
+        "alan": "Bir kanyon koridoru (~20 × 60 kare) · 3 sa",
+        "etki": "Koridordaki yürüyüşler −%50 hız; görüş düşer; koridordaki yataklar gömülür (toplayan yükünü alıp döner); kanyon ağzındaki üslerde 1 boru bağlantısı kopar (Takas gönderimi 3 sa durur)",
+        "firsat": "Bitince Taze Tortu Yatakları (Titanyum ve Biyokütle, +%50 verim, 24 sa) ve 'Hattı Onar' görevi",
+        "bilim": "olaylar.bulaniklik_akintisi"
+      },
+      {
+        "id": "megathrust_deprem",
+        "ad": "Çukur Depremi",
+        "alan": "Dalma-batma kuşağı · anlık + 12 sa",
+        "etki": "1 sa boyunca tüm yürüyüşler −%20 hız; kuşaktaki bazı yataklar çöker (toplayanlar yükleriyle döner); Kalkan Jeneratörü düşük üslerde 1 bina 2 sa Takviye alamaz",
+        "firsat": "Kırık Hattı: 12 sa boyunca yeni kaya yüzlerinde Hadalit ve Süperalaşım damarları (çekişmeli PvP noktası)",
+        "bilim": "olaylar.megathrust_deprem"
+      },
+      {
+        "id": "denizalti_patlamasi",
+        "ad": "Denizaltı Volkanı",
+        "alan": "Volkanik yay yakını, 5 karelik Sıcak Bölge · 12 sa",
+        "etki": "Sıcak Bölge'ye giren yürüyüşte her 10 dk %1 yaralı; basınç dalgası ve kül sisi bölgede sonar görüşünü yarıya indirir",
+        "firsat": "Çevredeki sönmüş baca yığınlarında (Masif Sülfür Bacası, 09) Enerji verimi +%100, 48 sa",
+        "bilim": "olaylar.denizalti_patlamasi"
+      },
+      {
+        "id": "soguk_sizinti",
+        "ad": "Soğuk Sızıntı",
+        "alan": "Kıta kenarı bölgesi · 48 sa",
+        "etki": "Kabarcık sütunları sonar sisini artırır (görüş −%30)",
+        "firsat": "Bölgede Metan Hidrat Sızıntısı yatakları (09) +%60 verim; Radar ile Tür Kataloğu taraması",
+        "bilim": "olaylar.soguk_sizinti"
+      },
+      {
+        "id": "tuzlu_su_havuzu",
+        "ad": "Tuzlu Su Gölü",
+        "alan": "Tek nesne, 3 × 3 kare · 72 sa",
+        "etki": "Göle giren dron ve yürüyüş hasar alır, Oksijen maliyeti ×2",
+        "firsat": "Kıyıdaki bakteri matları Biyokütle; göl tortusunda teçhizat malzemesi (R30+ Süperalaşım)",
+        "bilim": "olaylar.tuzlu_su_havuzu"
+      },
+      {
+        "id": "deniz_kari_olayi",
+        "ad": "Deniz Karı Yağışı",
+        "alan": "Sunucu geneli · 24 sa",
+        "etki": "Görsel kar yağışı; olumsuz etki yok",
+        "firsat": "Tüm üslerde Gıda ve Biyokütle üretimi +%20; Biyokütle yatakları +%30; deniz karıyla beslenen canlılar taranabilir",
+        "bilim": "olaylar.deniz_kari_olayi"
+      },
+      {
+        "id": "balina_dususu_olayi",
+        "ad": "Balina Düşüşü",
+        "alan": "Haritada 1–3 Balina Leşi yatağı · 72 sa (09)",
+        "etki": "Yok; leş korunan bir araştırma alanıdır, saldırı hedefi değildir",
+        "firsat": "Yatak 09'daki üç evreden geçer (leşçil, zenginleşme, sülfofilik); ittifaklar Araştırma İstasyonu kurup Biyokütle ve Tür Kataloğu kayıtları toplar",
+        "bilim": "olaylar.balina_dususu_olayi"
+      }
+    ]
+  },
+  "akinti_savasi": {
+    "kurallar_sutunlar": [["kural", "Kural"], ["deger", "Değer"]],
+    "kurallar": [
+      {
+        "kural": "Açılış",
+        "deger": "Derinlik Kroniği aşama 7 · Akıntı Çağrısı (~90. gün); sonra 60 günde bir, Kronik'in Derin Döngü ritmiyle"
+      },
+      {
+        "kural": "Eşleşme",
+        "deger": "4 çukur sunucusu bir Havza'da buluşur: açılış günü ±15 gün, ilk 300 oyuncunun toplam gücü ±%15"
+      },
+      {
+        "kural": "Katılım",
+        "deger": "İsteğe bağlı. Havza'ya geçen üsler sezon haritasına taşınır; geçmeyenler kendi sunucusunda kalır ve Arka Cephe görevleriyle Mühür kazanır"
+      },
+      {
+        "kural": "Güvenli bölge",
+        "deger": "Her sunucunun Çukur Ağzı çevresi Sığınak Kuşağı'dır: orada sunucular arası saldırı yoktur"
+      },
+      {
+        "kural": "Kayıp",
+        "deger": "Yaralılar normal iyileşir; ölen askerlerin %50'si sezon sonunda Kurtarma Kapsülü olarak geri verilir (K-21)"
+      },
+      {"kural": "Göç", "deger": "Sezon boyunca sunucu göçü kapalıdır"}
+    ],
+    "asamalar_sutunlar": [["gun", "Gün"], ["asama", "Aşama"], ["ne_olur", "Ne olur"]],
+    "asamalar": [
+      {
+        "gun": "−7 → 0",
+        "asama": "Hazırlık",
+        "ne_olur": "Eşleşme ilan edilir; sezon teknolojisi ve dükkân önizlenir; Havza'ya geçiş açılır"
+      },
+      {
+        "gun": "1–7",
+        "asama": "Keşif",
+        "ne_olur": "Havza açılır; Öz Damarları ve Muhafız Karakolları; sunucular arası PvP kapalı"
+      },
+      {
+        "gun": "8–17",
+        "asama": "Geçitler",
+        "ne_olur": "Sunucuları ayıran 4 Akıntı Geçidi açılır; ilk sunucular arası çatışmalar"
+      },
+      {
+        "gun": "18–20",
+        "asama": "Antlaşma",
+        "ne_olur": "4 sunucu 2 koalisyon kurar; teklifi her çukurun Egemeni (sancaktar, 09) yapar. Anlaşma yoksa güç sırasıyla 1+4 ve 2+3"
+      },
+      {
+        "gun": "21–40",
+        "asama": "Derin Akıntı",
+        "ne_olur": "Akıntı Kapıları, Yankı Kuleleri ve Kadim Pompa İstasyonları için koalisyon savaşı"
+      },
+      {
+        "gun": "41–47",
+        "asama": "Akıntının Kalbi",
+        "ne_olur": "Merkezdeki Akıntı Kalbi açılır; tutan koalisyon dakikada en yüksek puanı alır"
+      },
+      {
+        "gun": "48–50",
+        "asama": "Durgun Su",
+        "ne_olur": "Ateşkes; puanlar sabitlenir, ödüller ve Kurtarma Kapsülü dağıtılır, üsler evine döner; ardından 10 gün ara"
+      }
+    ],
+    "puanlar_sutunlar": [["eylem", "Eylem"], ["puan", "Koalisyon puanı"], ["kisisel", "Kişisel puan"]],
+    "puanlar": [
+      {"eylem": "Akıntı Kapısı tutmak", "puan": "Dakikada 20", "kisisel": "Garnizondakilere dakikada 1"},
+      {"eylem": "Yankı Kulesi tutmak", "puan": "Dakikada 10", "kisisel": "Dakikada 1"},
+      {"eylem": "Kadim Pompa İstasyonu tutmak", "puan": "Dakikada 40", "kisisel": "Dakikada 2"},
+      {"eylem": "Akıntı Kalbi tutmak", "puan": "Dakikada 150", "kisisel": "Dakikada 5"},
+      {"eylem": "Akıntı Özü teslimi (Pompa'ya)", "puan": "1 Öz = 1", "kisisel": "1 Öz = 1"},
+      {"eylem": "Muhafız Karakolu temizliği", "puan": "2.000", "kisisel": "Katkı oranında"},
+      {"eylem": "Rakip asker", "puan": "Yaralanan güç × 0,5 · ölen güç × 1 (÷ 1.000)", "kisisel": "Aynı"},
+      {"eylem": "Arka Cephe görevi", "puan": "—", "kisisel": "Görev başına 50–200"}
+    ],
+    "teknoloji_sutunlar": [
+      ["dal", "Dal"],
+      ["dugum", "Düğüm"],
+      ["etki", "Etki (seviye başına, yalnız Havza'da)"],
+      ["maks", "Seviye"],
+      ["bedel", "Akıntı Özü (1→5)"]
+    ],
+    "teknoloji": [
+      {
+        "dal": "Akıntı Okuma",
+        "dugum": "Akıntıya Bin",
+        "etki": "Yürüyüş hızı +%3",
+        "maks": 5,
+        "bedel": "100 · 200 · 300 · 400 · 500"
+      },
+      {
+        "dal": "Akıntı Okuma",
+        "dugum": "Derin Sonar",
+        "etki": "Sis görüş yarıçapı +1 kare",
+        "maks": 5,
+        "bedel": "100 · 200 · 300 · 400 · 500"
+      },
+      {
+        "dal": "Akıntı Okuma",
+        "dugum": "Geçit Bilgisi",
+        "etki": "Geçit ve Kapı'ya saldırıda hasar +%2",
+        "maks": 5,
+        "bedel": "150 · 300 · 450 · 600 · 750"
+      },
+      {
+        "dal": "Akıntı Okuma",
+        "dugum": "Akıntı Kapısı Işınlaması",
+        "etki": "Koalisyon kapıları arası ışınlanma bekleme süresi −%10",
+        "maks": 5,
+        "bedel": "150 · 300 · 450 · 600 · 750"
+      },
+      {
+        "dal": "Öz Rafinerisi",
+        "dugum": "Öz Toplama",
+        "etki": "Akıntı Özü toplama hızı +%6",
+        "maks": 5,
+        "bedel": "100 · 200 · 300 · 400 · 500"
+      },
+      {
+        "dal": "Öz Rafinerisi",
+        "dugum": "Yük Bölmesi",
+        "etki": "Öz yükü +%6",
+        "maks": 5,
+        "bedel": "100 · 200 · 300 · 400 · 500"
+      },
+      {
+        "dal": "Öz Rafinerisi",
+        "dugum": "Pompa Verimi",
+        "etki": "Pompa'ya teslimde puan +%4",
+        "maks": 5,
+        "bedel": "150 · 300 · 450 · 600 · 750"
+      },
+      {
+        "dal": "Öz Rafinerisi",
+        "dugum": "Damar Koruma",
+        "etki": "Damarda toplarken savunma +%3",
+        "maks": 5,
+        "bedel": "150 · 300 · 450 · 600 · 750"
+      },
+      {
+        "dal": "Basınç Zırhı",
+        "dugum": "Gövde Kaplaması",
+        "etki": "Askerlerin savunması +%1",
+        "maks": 5,
+        "bedel": "150 · 300 · 450 · 600 · 750"
+      },
+      {
+        "dal": "Basınç Zırhı",
+        "dugum": "Bölmeli Gövde",
+        "etki": "Ölü yerine yaralı sayılan pay +%2",
+        "maks": 5,
+        "bedel": "200 · 400 · 600 · 800 · 1.000"
+      },
+      {
+        "dal": "Basınç Zırhı",
+        "dugum": "Garnizon Kalkanı",
+        "etki": "Yapı garnizonunun savunması +%2",
+        "maks": 5,
+        "bedel": "150 · 300 · 450 · 600 · 750"
+      },
+      {
+        "dal": "Basınç Zırhı",
+        "dugum": "Sığınak Dönüşü",
+        "etki": "Üs ışınlama bekleme süresi −%10",
+        "maks": 5,
+        "bedel": "100 · 200 · 300 · 400 · 500"
+      },
+      {
+        "dal": "Saha Revir'i",
+        "dugum": "Hızlı Bakım",
+        "etki": "İyileştirme hızı +%5",
+        "maks": 5,
+        "bedel": "100 · 200 · 300 · 400 · 500"
+      },
+      {
+        "dal": "Saha Revir'i",
+        "dugum": "Sedye Bölmesi",
+        "etki": "Revir kapasitesi +%3",
+        "maks": 5,
+        "bedel": "150 · 300 · 450 · 600 · 750"
+      },
+      {
+        "dal": "Saha Revir'i",
+        "dugum": "Erzak Hattı",
+        "etki": "İyileştirme Gıda maliyeti −%4",
+        "maks": 5,
+        "bedel": "100 · 200 · 300 · 400 · 500"
+      },
+      {
+        "dal": "Saha Revir'i",
+        "dugum": "Sedye Konvoyu",
+        "etki": "Yaralıların üsse dönüş süresi −%10",
+        "maks": 5,
+        "bedel": "200 · 400 · 600 · 800 · 1.000"
+      }
+    ],
+    "oz": {
+      "f2p_gunluk": 600,
+      "f2p_sezon": 27000,
+      "agac_toplam": 32250,
+      "not": "F2P 1 yürüyüşle günde ~600 Öz toplar; 45 günde ağacın ~%85'ini bitirir"
+    },
+    "dukkan_sutunlar": [["urun", "Sezon Dükkânı"], ["bedel", "Akıntı Mührü"], ["sinir", "Sınır"]],
+    "dukkan": [
+      {"urun": "Destansı kahraman kartı ×10 (seçilebilir)", "bedel": 2000, "sinir": "Sezonda 3"},
+      {"urun": "Efsanevi kahraman kartı ×10 (sezonun kahramanı)", "bedel": 12000, "sinir": "Sezonda 1"},
+      {"urun": "Süperalaşım 50", "bedel": 600, "sinir": "Haftada 5 (R30+)"},
+      {"urun": "8 sa genel hızlandırma", "bedel": 900, "sinir": "Haftada 5"},
+      {"urun": "Teçhizat malzemesi (efsanevi)", "bedel": 1500, "sinir": "Haftada 2"},
+      {"urun": "Kadim Şema Parçası", "bedel": 5000, "sinir": "Sezonda 2 (R40+)"},
+      {"urun": "Sessizlik Kalkanı · 3 g (09)", "bedel": 3000, "sinir": "Sezonda 2"},
+      {"urun": "Sezon üs kaplaması ve sancak", "bedel": 8000, "sinir": "Kalıcı"}
+    ],
+    "muhur": {"tasima_yuzde": 20, "tasima_ust": 10000, "kisisel_puan_basina": 100},
+    "odul_sutunlar": [["kademe", "Kademe"], ["odul", "Ödül"]],
+    "odul": [
+      {"kademe": "Koalisyon zaferi", "odul": "Her katılımcıya 3.000 Akıntı Mührü + sezon çerçevesi"},
+      {"kademe": "Koalisyon yenilgisi", "odul": "Her katılımcıya 1.500 Akıntı Mührü"},
+      {
+        "kademe": "Sunucu 1. (Havza)",
+        "odul": "Çukur Sancağı: sunucu haritasında bir sezon boyunca altın sancak (kozmetik)"
+      },
+      {
+        "kademe": "Kişisel puan kademeleri (10)",
+        "odul": "Mühür, hızlandırma, kart; son kademe efsanevi parça ×20"
+      },
+      {"kademe": "İttifak sıralaması (ilk 10)", "odul": "İttifak kaplaması + üyelere 1.000 Mühür"},
+      {"kademe": "Kurtarma Kapsülü", "odul": "Sezonda ölen askerlerin %50'si, tür ve kademesiyle"}
+    ]
+  },
+  "ozel_gunler_sutunlar": [["ad", "Etkinlik"], ["zaman", "Zaman"], ["konu", "Konu"], ["icerik", "İçerik"], ["bilim", "bilim.json"]],
+  "ozel_gunler": [
+    {
+      "ad": "Trieste Yıldönümü",
+      "zaman": "23 Ocak, 3 gün",
+      "konu": "Challenger Deep'e ilk iniş (1960)",
+      "icerik": "Batiskaf temalı denizaltı kaplaması; sınavda iniş mühendisliği soruları",
+      "bilim": "araclar.trieste"
+    },
+    {
+      "ad": "Baca Ayı",
+      "zaman": "Şubat, 7 gün",
+      "konu": "Hidrotermal bacaların keşfi (1977)",
+      "icerik": "Baca biyomu Tür Kataloğu haftası; Hidrotermal Santral Takviye maliyeti −%50",
+      "bilim": "kesifler.hidrotermal_baca_kesfi"
+    },
+    {
+      "ad": "Dikey İniş Günü",
+      "zaman": "26 Mart, 3 gün",
+      "konu": "Tek kişilik tam derinlik dalışı (2012)",
+      "icerik": "Sefer dalışı süresi −%20; sintaktik köpük malzeme bonusu",
+      "bilim": "araclar.deepsea_challenger"
+    },
+    {
+      "ad": "Okyanuslar Günü",
+      "zaman": "Haziran, 7 gün (tarih bilim.json'a eklenecek)",
+      "konu": "Dünya okyanusları",
+      "icerik": "Sunucular arası ortak Kronik hedefi; Tür Kataloğu kayıtları ×2",
+      "bilim": "⬜"
+    },
+    {
+      "ad": "Beş Derinlik Haftası",
+      "zaman": "Aralık, 7 gün",
+      "konu": "Beş okyanusun en derin noktalarına insanlı inişler (2018–2019)",
+      "icerik": "Porto Riko, Güney Sandwich, Java ve Mariana sunucularına ortak görev; sunucu sancakları",
+      "bilim": "kesifler.bes_derinlik"
+    },
+    {
+      "ad": "Çukur Yıldönümü",
+      "zaman": "Her sunucunun açılış günü",
+      "konu": "Sunucunun kendi tarihi",
+      "icerik": "Kronik özeti, sunucu anıt kaplaması, yıl rozeti",
+      "bilim": "—"
+    }
+  ]
+}

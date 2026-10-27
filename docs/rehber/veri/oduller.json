@@ -1,0 +1,1576 @@
+{
+  "surum": "rehber-1",
+  "_not": "F2P ödül ekonomisi. Titanyum ödülleri 'Gelir Saati' (GS) ile tanımlanır: 1 GS = f2p_profilleri titanyum_saat(R) Titanyum (+ biyokutle_orani × o kadar Biyokütle). Ödül verildiği anın reaktör seviyesiyle damgalanır ve Kaynak Kapsülü olarak çantaya düşer. Tablolar aşağıdan yukarı hesaplanır; yatak hızları harita.json, kurtarma görevleri denizaltilar.json, İzin sandığı vip.json, R16+ hızlandırma kaynakları hizlandiricilar.json'dan okunur. f2p_gelir_ozeti döküm toplamıdır ve üretici bunu profille (±%20) karşılaştırır.",
+  "birim": {
+    "gs_aciklama": "1 GS = o reaktör seviyesindeki F2P saatlik Titanyum geliri",
+    "biyokutle_orani": 0.4,
+    "cevrimdisi_saat": 12,
+    "kurtarma_gs_gun_r10": 1.4,
+    "kurtarma_gs_gun_r20": 3.0,
+    "kurtarma_gs_gun_r30": 2.8,
+    "sefer_gs_gun_erken": 1.65,
+    "sefer_gs_gun_gec": 1.0,
+    "gorev_gs_gun_once": 1.46,
+    "gorev_gs_gun_sonra": 2.06,
+    "etkinlik_gs_gun_r30": 1.81,
+    "toplama_saat": 12,
+    "toplama_ti_payi": 50,
+    "hikaye_ti_toplam": 168000,
+    "hikaye_bk_toplam": 58600,
+    "hikaye_hd_toplam": 6900,
+    "hadalit_erken": 303,
+    "hadalit_orta": 354,
+    "hadalit_gec": 374,
+    "hadalit_son": 389,
+    "hadalit_ay_orta": 10620,
+    "hadalit_ay_gec": 11220
+  },
+  "f2p_gelir_ozeti": {
+    "titanyum_saat": [
+      [10, 8740],
+      [15, 19400],
+      [20, 37890],
+      [25, 59600],
+      [30, 85990],
+      [35, 123770],
+      [40, 173990],
+      [45, 233050],
+      [50, 307590]
+    ],
+    "alasim_gun": [[0, 40], [30, 55], [90, 84], [180, 144], [270, 183], [337, 219]]
+  },
+  "gelir_dokumu_sutunlar": [
+    ["reaktor", "Reaktör"],
+    ["gun", "F2P günü", "gun"],
+    ["binalar", "Binalar"],
+    ["toplama", "Toplama"],
+    ["kurtarma", "Kurtarma"],
+    ["sefer", "Sefer"],
+    ["gorev", "Görev"],
+    ["etkinlik", "Etkinlik + ittifak"],
+    ["izin", "İzin sandığı"],
+    ["toplam", "**Toplam Ti/sa**"],
+    ["profil", "Profil Ti/sa"],
+    ["sapma", "Sapma", "yuzde"]
+  ],
+  "gelir_dokumu": [
+    {
+      "reaktor": 10,
+      "gun": 0.3,
+      "binalar": 3780.0,
+      "toplama": 2700.0,
+      "kurtarma": 530.0,
+      "sefer": 620.0,
+      "gorev": 550.0,
+      "etkinlik": 570.0,
+      "izin": 0.0,
+      "toplam": 8740.0,
+      "profil": 9000,
+      "sapma": -2.9
+    },
+    {
+      "reaktor": 15,
+      "gun": 1.4,
+      "binalar": 7440.0,
+      "toplama": 5600.0,
+      "kurtarma": 2500.0,
+      "sefer": 1380.0,
+      "gorev": 1220.0,
+      "etkinlik": 1260.0,
+      "izin": 0.0,
+      "toplam": 19400.0,
+      "profil": 20000,
+      "sapma": -3.0
+    },
+    {
+      "reaktor": 20,
+      "gun": 4.5,
+      "binalar": 14650.0,
+      "toplama": 8400.0,
+      "kurtarma": 4750.0,
+      "sefer": 1580.0,
+      "gorev": 3260.0,
+      "etkinlik": 4460.0,
+      "izin": 790.0,
+      "toplam": 37890.0,
+      "profil": 38000,
+      "sapma": -0.3
+    },
+    {
+      "reaktor": 25,
+      "gun": 13.4,
+      "binalar": 22500.0,
+      "toplama": 14180.0,
+      "kurtarma": 7750.0,
+      "sefer": 2580.0,
+      "gorev": 5320.0,
+      "etkinlik": 4690.0,
+      "izin": 2580.0,
+      "toplam": 59600.0,
+      "profil": 62000,
+      "sapma": -3.9
+    },
+    {
+      "reaktor": 30,
+      "gun": 28.6,
+      "binalar": 34560.0,
+      "toplama": 18900.0,
+      "kurtarma": 10500.0,
+      "sefer": 3750.0,
+      "gorev": 7720.0,
+      "etkinlik": 6800.0,
+      "izin": 3750.0,
+      "toplam": 85990.0,
+      "profil": 90000,
+      "sapma": -4.5
+    },
+    {
+      "reaktor": 35,
+      "gun": 68.7,
+      "binalar": 51150.0,
+      "toplama": 24840.0,
+      "kurtarma": 14580.0,
+      "sefer": 5210.0,
+      "gorev": 10730.0,
+      "etkinlik": 9450.0,
+      "izin": 7810.0,
+      "toplam": 123770.0,
+      "profil": 125000,
+      "sapma": -1.0
+    },
+    {
+      "reaktor": 40,
+      "gun": 128.4,
+      "binalar": 75700.0,
+      "toplama": 29760.0,
+      "kurtarma": 19830.0,
+      "sefer": 7080.0,
+      "gorev": 14590.0,
+      "etkinlik": 12850.0,
+      "izin": 14170.0,
+      "toplam": 173990.0,
+      "profil": 170000,
+      "sapma": 2.3
+    },
+    {
+      "reaktor": 45,
+      "gun": 224.9,
+      "binalar": 102100.0,
+      "toplama": 38240.0,
+      "kurtarma": 26830.0,
+      "sefer": 9580.0,
+      "gorev": 19740.0,
+      "etkinlik": 17390.0,
+      "izin": 19170.0,
+      "toplam": 233050.0,
+      "profil": 230000,
+      "sapma": 1.3
+    },
+    {
+      "reaktor": 50,
+      "gun": 368.1,
+      "binalar": 137700.0,
+      "toplama": 48960.0,
+      "kurtarma": 35000.0,
+      "sefer": 12500.0,
+      "gorev": 25750.0,
+      "etkinlik": 22680.0,
+      "izin": 25000.0,
+      "toplam": 307590.0,
+      "profil": 300000,
+      "sapma": 2.5
+    }
+  ],
+  "gelir_paylari_sutunlar": [
+    ["reaktor", "Reaktör"],
+    ["binalar", "Binalar", "yuzde"],
+    ["toplama", "Toplama", "yuzde"],
+    ["kurtarma", "Kurtarma", "yuzde"],
+    ["sefer", "Sefer", "yuzde"],
+    ["gorev", "Görev", "yuzde"],
+    ["etkinlik", "Etkinlik + ittifak", "yuzde"],
+    ["izin", "İzin sandığı", "yuzde"],
+    ["uclu", "Bina / harita / görev-etkinlik-İzin"]
+  ],
+  "gelir_paylari": [
+    {
+      "reaktor": 10,
+      "binalar": 43.3,
+      "toplama": 30.9,
+      "kurtarma": 6.0,
+      "sefer": 7.1,
+      "gorev": 6.3,
+      "etkinlik": 6.5,
+      "izin": 0.0,
+      "uclu": "43 / 44 / 13"
+    },
+    {
+      "reaktor": 15,
+      "binalar": 38.4,
+      "toplama": 28.9,
+      "kurtarma": 12.9,
+      "sefer": 7.1,
+      "gorev": 6.3,
+      "etkinlik": 6.5,
+      "izin": 0.0,
+      "uclu": "38 / 49 / 13"
+    },
+    {
+      "reaktor": 20,
+      "binalar": 38.7,
+      "toplama": 22.2,
+      "kurtarma": 12.5,
+      "sefer": 4.2,
+      "gorev": 8.6,
+      "etkinlik": 11.8,
+      "izin": 2.1,
+      "uclu": "39 / 39 / 22"
+    },
+    {
+      "reaktor": 25,
+      "binalar": 37.7,
+      "toplama": 23.8,
+      "kurtarma": 13.0,
+      "sefer": 4.3,
+      "gorev": 8.9,
+      "etkinlik": 7.9,
+      "izin": 4.3,
+      "uclu": "38 / 41 / 21"
+    },
+    {
+      "reaktor": 30,
+      "binalar": 40.2,
+      "toplama": 22.0,
+      "kurtarma": 12.2,
+      "sefer": 4.4,
+      "gorev": 9.0,
+      "etkinlik": 7.9,
+      "izin": 4.4,
+      "uclu": "40 / 39 / 21"
+    },
+    {
+      "reaktor": 35,
+      "binalar": 41.3,
+      "toplama": 20.1,
+      "kurtarma": 11.8,
+      "sefer": 4.2,
+      "gorev": 8.7,
+      "etkinlik": 7.6,
+      "izin": 6.3,
+      "uclu": "41 / 36 / 23"
+    },
+    {
+      "reaktor": 40,
+      "binalar": 43.5,
+      "toplama": 17.1,
+      "kurtarma": 11.4,
+      "sefer": 4.1,
+      "gorev": 8.4,
+      "etkinlik": 7.4,
+      "izin": 8.1,
+      "uclu": "44 / 33 / 24"
+    },
+    {
+      "reaktor": 45,
+      "binalar": 43.8,
+      "toplama": 16.4,
+      "kurtarma": 11.5,
+      "sefer": 4.1,
+      "gorev": 8.5,
+      "etkinlik": 7.5,
+      "izin": 8.2,
+      "uclu": "44 / 32 / 24"
+    },
+    {
+      "reaktor": 50,
+      "binalar": 44.8,
+      "toplama": 15.9,
+      "kurtarma": 11.4,
+      "sefer": 4.1,
+      "gorev": 8.4,
+      "etkinlik": 7.4,
+      "izin": 8.1,
+      "uclu": "45 / 31 / 24"
+    }
+  ],
+  "bina_uretimi_sutunlar": [
+    ["reaktor", "Reaktör"],
+    ["adet", "Dron Fabrikası"],
+    ["seviye", "Seviye"],
+    ["ham", "Ham Ti/sa (toplam)"],
+    ["carpan", "Verim çarpanı"],
+    ["net", "Net Ti/sa"]
+  ],
+  "bina_uretimi": [
+    {"reaktor": 10, "adet": 3, "seviye": 10, "ham": 2700, "carpan": 1.4, "net": 3780.0},
+    {"reaktor": 15, "adet": 3, "seviye": 15, "ham": 5052, "carpan": 1.47, "net": 7440.0},
+    {"reaktor": 20, "adet": 3, "seviye": 20, "ham": 9450, "carpan": 1.55, "net": 14650.0},
+    {"reaktor": 25, "adet": 3, "seviye": 25, "ham": 14286, "carpan": 1.57, "net": 22500.0},
+    {"reaktor": 30, "adet": 3, "seviye": 30, "ham": 21600, "carpan": 1.6, "net": 34560.0},
+    {"reaktor": 35, "adet": 3, "seviye": 35, "ham": 31488, "carpan": 1.62, "net": 51150.0},
+    {"reaktor": 40, "adet": 3, "seviye": 40, "ham": 45900, "carpan": 1.65, "net": 75700.0},
+    {"reaktor": 45, "adet": 3, "seviye": 45, "ham": 60975, "carpan": 1.67, "net": 102100.0},
+    {"reaktor": 50, "adet": 3, "seviye": 50, "ham": 81000, "carpan": 1.7, "net": 137700.0}
+  ],
+  "carpan_bilesenleri_sutunlar": [
+    ["bilesen", "Bileşen"],
+    ["r10", "R10", "yuzde"],
+    ["r20", "R20", "yuzde"],
+    ["r30", "R30", "yuzde"],
+    ["r50", "R50", "yuzde"]
+  ],
+  "carpan_bilesenleri": [
+    {
+      "bilesen": "Araştırma: Titanyum Geri Kazanımı + Kobalt Kabuğu Kazıma (06)",
+      "r10": 12,
+      "r20": 24,
+      "r30": 32,
+      "r50": 44
+    },
+    {"bilesen": "Mürettebat ataması (Yatakhane)", "r10": 10, "r20": 12, "r30": 12, "r50": 10},
+    {"bilesen": "İttifak teknolojisi (10)", "r10": 5, "r20": 8, "r30": 8, "r50": 8},
+    {"bilesen": "Derinlik İzni üretimi (11)", "r10": 0, "r20": 1, "r30": 4, "r50": 8},
+    {"bilesen": "Takviye ortalaması", "r10": 13, "r20": 10, "r30": 4, "r50": 0},
+    {"bilesen": "**Toplam (çarpan − 1)**", "r10": 40, "r20": 55, "r30": 60, "r50": 70}
+  ],
+  "toplama_sutunlar": [
+    ["reaktor", "Reaktör"],
+    ["gun", "F2P günü", "gun"],
+    ["yuruyus", "Yürüyüş (hangar)"],
+    ["yatak", "Tipik yatak Sv"],
+    ["hiz", "Yürüyüş başına Ti/sa (09 'etkin')"],
+    ["saat", "Günlük toplama saati"],
+    ["pay", "Titanyuma giden pay", "yuzde"],
+    ["ti_gun", "Ti/gün"],
+    ["ti_saat", "Ortalama Ti/sa"]
+  ],
+  "toplama": [
+    {
+      "reaktor": 10,
+      "gun": 0.3,
+      "yuruyus": 2,
+      "yatak": 2,
+      "hiz": 5400,
+      "saat": 12,
+      "pay": 50,
+      "ti_gun": 64800.0,
+      "ti_saat": 2700.0
+    },
+    {
+      "reaktor": 15,
+      "gun": 1.4,
+      "yuruyus": 2,
+      "yatak": 3,
+      "hiz": 11200,
+      "saat": 12,
+      "pay": 50,
+      "ti_gun": 134400.0,
+      "ti_saat": 5600.0
+    },
+    {
+      "reaktor": 20,
+      "gun": 4.5,
+      "yuruyus": 3,
+      "yatak": 3,
+      "hiz": 11200,
+      "saat": 12,
+      "pay": 50,
+      "ti_gun": 201600.0,
+      "ti_saat": 8400.0
+    },
+    {
+      "reaktor": 25,
+      "gun": 13.4,
+      "yuruyus": 3,
+      "yatak": 4,
+      "hiz": 18900,
+      "saat": 12,
+      "pay": 50,
+      "ti_gun": 340200.0,
+      "ti_saat": 14180.0
+    },
+    {
+      "reaktor": 30,
+      "gun": 28.6,
+      "yuruyus": 4,
+      "yatak": 4,
+      "hiz": 18900,
+      "saat": 12,
+      "pay": 50,
+      "ti_gun": 453600.0,
+      "ti_saat": 18900.0
+    },
+    {
+      "reaktor": 35,
+      "gun": 68.7,
+      "yuruyus": 4,
+      "yatak": 5,
+      "hiz": 27600,
+      "saat": 12,
+      "pay": 45,
+      "ti_gun": 596200.0,
+      "ti_saat": 24840.0
+    },
+    {
+      "reaktor": 40,
+      "gun": 128.4,
+      "yuruyus": 4,
+      "yatak": 6,
+      "hiz": 37200,
+      "saat": 12,
+      "pay": 40,
+      "ti_gun": 714200.0,
+      "ti_saat": 29760.0
+    },
+    {
+      "reaktor": 45,
+      "gun": 224.9,
+      "yuruyus": 4,
+      "yatak": 7,
+      "hiz": 47800,
+      "saat": 12,
+      "pay": 40,
+      "ti_gun": 917800.0,
+      "ti_saat": 38240.0
+    },
+    {
+      "reaktor": 50,
+      "gun": 368.1,
+      "yuruyus": 4,
+      "yatak": 8,
+      "hiz": 61200,
+      "saat": 12,
+      "pay": 40,
+      "ti_gun": 1175000.0,
+      "ti_saat": 48960.0
+    }
+  ],
+  "kurtarma_sutunlar": [
+    ["reaktor", "Reaktör"],
+    ["duzen", "F2P'nin günlük düzeni (08 görevleri)"],
+    ["gs", "GS/gün"],
+    ["ti_gun", "Ti/gün"],
+    ["hd_ham", "Beklenen Hadalit/gün"],
+    ["hd_gun", "Günlük 60 sınırıyla"],
+    ["ti_saat", "Ortalama Ti/sa"]
+  ],
+  "kurtarma": [
+    {
+      "reaktor": 10,
+      "duzen": "3 × Hızlı + 1 × Standart + 1 × Derin",
+      "gs": 1.4,
+      "ti_gun": 12600,
+      "hd_ham": 44,
+      "hd_gun": 44,
+      "ti_saat": 530.0
+    },
+    {
+      "reaktor": 15,
+      "duzen": "2 × Derin + 1 × Gece Kurtarması",
+      "gs": 3.0,
+      "ti_gun": 60000,
+      "hd_ham": 135,
+      "hd_gun": 60,
+      "ti_saat": 2500.0
+    },
+    {
+      "reaktor": 20,
+      "duzen": "2 × Derin + 1 × Gece Kurtarması",
+      "gs": 3.0,
+      "ti_gun": 114000,
+      "hd_ham": 135,
+      "hd_gun": 60,
+      "ti_saat": 4750.0
+    },
+    {
+      "reaktor": 25,
+      "duzen": "2 × Derin + 1 × Gece Kurtarması",
+      "gs": 3.0,
+      "ti_gun": 186000,
+      "hd_ham": 135,
+      "hd_gun": 60,
+      "ti_saat": 7750.0
+    },
+    {
+      "reaktor": 30,
+      "duzen": "1 × Derin + 1 × Çukur Kurtarması",
+      "gs": 2.8,
+      "ti_gun": 252000,
+      "hd_ham": 132,
+      "hd_gun": 60,
+      "ti_saat": 10500.0
+    },
+    {
+      "reaktor": 35,
+      "duzen": "1 × Derin + 1 × Çukur Kurtarması",
+      "gs": 2.8,
+      "ti_gun": 350000,
+      "hd_ham": 132,
+      "hd_gun": 60,
+      "ti_saat": 14580.0
+    },
+    {
+      "reaktor": 40,
+      "duzen": "1 × Derin + 1 × Çukur Kurtarması",
+      "gs": 2.8,
+      "ti_gun": 476000,
+      "hd_ham": 132,
+      "hd_gun": 60,
+      "ti_saat": 19830.0
+    },
+    {
+      "reaktor": 45,
+      "duzen": "1 × Derin + 1 × Çukur Kurtarması",
+      "gs": 2.8,
+      "ti_gun": 644000,
+      "hd_ham": 132,
+      "hd_gun": 60,
+      "ti_saat": 26830.0
+    },
+    {
+      "reaktor": 50,
+      "duzen": "1 × Derin + 1 × Çukur Kurtarması",
+      "gs": 2.8,
+      "ti_gun": 840000,
+      "hd_ham": 132,
+      "hd_gun": 60,
+      "ti_saat": 35000.0
+    }
+  ],
+  "sefer_sutunlar": [
+    ["reaktor", "Reaktör"],
+    ["gs", "GS/gün"],
+    ["ti_gun", "Ti/gün"],
+    ["bk_gun", "BK/gün"],
+    ["ti_saat", "Ortalama Ti/sa"]
+  ],
+  "sefer": [
+    {"reaktor": 10, "gs": 1.65, "ti_gun": 14800, "bk_gun": 5940, "ti_saat": 620.0},
+    {"reaktor": 15, "gs": 1.65, "ti_gun": 33000, "bk_gun": 13200, "ti_saat": 1380.0},
+    {"reaktor": 20, "gs": 1.0, "ti_gun": 38000, "bk_gun": 15200, "ti_saat": 1580.0},
+    {"reaktor": 25, "gs": 1.0, "ti_gun": 62000, "bk_gun": 24800, "ti_saat": 2580.0},
+    {"reaktor": 30, "gs": 1.0, "ti_gun": 90000, "bk_gun": 36000, "ti_saat": 3750.0},
+    {"reaktor": 35, "gs": 1.0, "ti_gun": 125000, "bk_gun": 50000, "ti_saat": 5210.0},
+    {"reaktor": 40, "gs": 1.0, "ti_gun": 170000, "bk_gun": 68000, "ti_saat": 7080.0},
+    {"reaktor": 45, "gs": 1.0, "ti_gun": 230000, "bk_gun": 92000, "ti_saat": 9580.0},
+    {"reaktor": 50, "gs": 1.0, "ti_gun": 300000, "bk_gun": 120000, "ti_saat": 12500.0}
+  ],
+  "izin_sandigi_sutunlar": [
+    ["reaktor", "Reaktör"],
+    ["gun", "F2P günü", "gun"],
+    ["izin", "F2P İzin seviyesi"],
+    ["gs", "Sandıktaki gelir saati"],
+    ["ti_gun", "Ti/gün"]
+  ],
+  "izin_sandigi": [
+    {"reaktor": 10, "gun": 0.3, "izin": 0, "gs": 0, "ti_gun": 0},
+    {"reaktor": 15, "gun": 1.4, "izin": 0, "gs": 0, "ti_gun": 0},
+    {"reaktor": 20, "gun": 4.5, "izin": 1, "gs": 0.5, "ti_gun": 19000},
+    {"reaktor": 25, "gun": 13.4, "izin": 3, "gs": 1, "ti_gun": 62000},
+    {"reaktor": 30, "gun": 28.6, "izin": 4, "gs": 1, "ti_gun": 90000},
+    {"reaktor": 35, "gun": 68.7, "izin": 5, "gs": 1.5, "ti_gun": 188000},
+    {"reaktor": 40, "gun": 128.4, "izin": 6, "gs": 2, "ti_gun": 340000},
+    {"reaktor": 45, "gun": 224.9, "izin": 6, "gs": 2, "ti_gun": 460000},
+    {"reaktor": 50, "gun": 368.1, "izin": 7, "gs": 2, "ti_gun": 600000}
+  ],
+  "gunluk_gorevler_sutunlar": [
+    ["id", "Kimlik"],
+    ["gorev", "Görev"],
+    ["puan", "Puan"],
+    ["odul", "Ödül"],
+    ["acilis", "Açılış"],
+    ["durum", "Durum"]
+  ],
+  "gunluk_gorevler": [
+    {
+      "id": "d_upgrade",
+      "gorev": "2 yükseltme başlat",
+      "puan": 20,
+      "odul": "Titanyum Kapsülü 0,1 GS",
+      "acilis": "R1",
+      "durum": "kodda"
+    },
+    {
+      "id": "d_research",
+      "gorev": "1 araştırma başlat",
+      "puan": 20,
+      "odul": "Titanyum Kapsülü 0,05 GS + Biyokütle",
+      "acilis": "R3",
+      "durum": "kodda"
+    },
+    {
+      "id": "d_salvage",
+      "gorev": "2 kurtarma görevi gönder",
+      "puan": 20,
+      "odul": "Titanyum Kapsülü 0,05 GS",
+      "acilis": "R2",
+      "durum": "kodda"
+    },
+    {
+      "id": "d_boost",
+      "gorev": "1 Takviye kullan",
+      "puan": 10,
+      "odul": "Titanyum Kapsülü 0,05 GS",
+      "acilis": "R1",
+      "durum": "kodda"
+    },
+    {
+      "id": "d_help",
+      "gorev": "3 ittifak yardımı yap",
+      "puan": 20,
+      "odul": "Titanyum Kapsülü 0,05 GS",
+      "acilis": "İttifak",
+      "durum": "kodda"
+    },
+    {
+      "id": "d_train",
+      "gorev": "2 kez kahraman eğit",
+      "puan": 20,
+      "odul": "Gıda Kapsülü + Titanyum 0,05 GS",
+      "acilis": "R2",
+      "durum": "kodda"
+    },
+    {
+      "id": "d_pod",
+      "gorev": "1 Kriyo-Kapsül çekimi (ücretsiz sayılır)",
+      "puan": 10,
+      "odul": "5 sıradan kart parçası",
+      "acilis": "R2",
+      "durum": "kodda"
+    },
+    {
+      "id": "d_chat",
+      "gorev": "Sohbete 1 mesaj yaz",
+      "puan": 10,
+      "odul": "—",
+      "acilis": "R1",
+      "durum": "kodda"
+    },
+    {
+      "id": "d_dive",
+      "gorev": "1 sefer dalışı tamamla",
+      "puan": 10,
+      "odul": "Titanyum Kapsülü 0,05 GS + küçük Sonar Pili",
+      "acilis": "R4",
+      "durum": "tasarim"
+    },
+    {
+      "id": "d_arena",
+      "gorev": "1 Basınç Arenası maçı yap",
+      "puan": 10,
+      "odul": "20 Kubbe Nişanı",
+      "acilis": "R16",
+      "durum": "tasarim"
+    }
+  ],
+  "etkinlik_sandiklari_sutunlar": [
+    ["puan", "Puan"],
+    ["ad", "Sandık"],
+    ["icerik", "İçerik"],
+    ["ti_gs", "Beklenen Ti (GS)"],
+    ["hiz", "Hızlandırma"],
+    ["hadalit", "Beklenen Hadalit"],
+    ["durum", "Bugün"]
+  ],
+  "etkinlik_sandiklari": [
+    {
+      "puan": 20,
+      "ad": "Titanyum Kapsülü",
+      "icerik": "Titanyum 0,25 GS",
+      "ti_gs": 0.25,
+      "hiz": "—",
+      "hadalit": 0,
+      "durum": "kodda (1.000 Ti sabit)"
+    },
+    {
+      "puan": 40,
+      "ad": "Bronz Sandık",
+      "icerik": "2 çekiliş (Ti 0,3 GS %35 · BK %25 · Gıda %20 · 5 sıradan parça %15 · 100 HD %5)",
+      "ti_gs": 0.21,
+      "hiz": "5 dk inşaat + 10 dk araştırma",
+      "hadalit": 10,
+      "durum": "kodda (hızlandırmasız)"
+    },
+    {
+      "puan": 60,
+      "ad": "Sıradan Kahraman Kartı",
+      "icerik": "10 sıradan kart + Biyokütle Kapsülü 0,25 GS",
+      "ti_gs": 0,
+      "hiz": "—",
+      "hadalit": 0,
+      "durum": "kodda (kapsülsüz)"
+    },
+    {
+      "puan": 80,
+      "ad": "Gümüş Sandık",
+      "icerik": "Ti 0,3 GS + 2 çekiliş (Ti 0,5 GS %30 · BK %25 · sıradan ×10 %20 · nadir ×5 %20 · 200 HD %5)",
+      "ti_gs": 0.6,
+      "hiz": "5 dk genel + 5 dk araştırma + 10 dk eğitim",
+      "hadalit": 20,
+      "durum": "kodda (hızlandırmasız)"
+    },
+    {
+      "puan": 100,
+      "ad": "Nadir Kahraman Kartı",
+      "icerik": "10 nadir kart + 200 Hadalit + 10 İzin puanı",
+      "ti_gs": 0,
+      "hiz": "10 dk genel",
+      "hadalit": 200,
+      "durum": "kodda (20 HD; K-12 ile ×10)"
+    },
+    {
+      "puan": 150,
+      "ad": "Derinlik Sandığı",
+      "icerik": "Ti 0,6 GS + küçük Sonar Pili + 1 çekiliş (50 HD %20 · destansı parça ×5 %40 · teçhizat malzemesi %40; R30+ Süperalaşım 10)",
+      "ti_gs": 0.6,
+      "hiz": "—",
+      "hadalit": 10,
+      "durum": "tasarim"
+    }
+  ],
+  "hikaye_bolumleri_sutunlar": [
+    ["bolum", "Bölüm"],
+    ["ad", "Ad"],
+    ["reaktor", "Reaktör"],
+    ["gorev", "Görev"],
+    ["titanyum", "Titanyum"],
+    ["biyokutle", "Biyokütle"],
+    ["pay", "Reaktör maliyetinin karşılanan payı", "yuzde"],
+    ["hadalit", "Hadalit"],
+    ["hizlandirma_dk", "Genel hızlandırma (dk)"],
+    ["ozel", "Özel ödül"]
+  ],
+  "hikaye_bolumleri": [
+    {
+      "bolum": 1,
+      "ad": "Son Konvoy",
+      "reaktor": "2–3",
+      "gorev": 6,
+      "tema": "İniş: ilk ışıklar, Oksijen ve Gıda; Komutan Elias Rourke üssü kurar.",
+      "titanyum": 220,
+      "biyokutle": 0,
+      "pay": 79,
+      "hadalit": 300,
+      "hizlandirma_dk": 0,
+      "ozel": "Lyra Moss ×10 kart (çağırmaya yeter)"
+    },
+    {
+      "bolum": 2,
+      "ad": "Enkaz Tarlası",
+      "reaktor": "4–5",
+      "gorev": 7,
+      "tema": "Dron Fabrikası, ilk kurtarma, Biyo Laboratuvar; Tess Ruiz ×10 kart.",
+      "titanyum": 780,
+      "biyokutle": 270,
+      "pay": 74,
+      "hadalit": 300,
+      "hizlandirma_dk": 10,
+      "ozel": "Tess Ruiz ×10 kart, Bronz Sandık ×2"
+    },
+    {
+      "bolum": 3,
+      "ad": "Kriyo Salonundaki Uyuyanlar",
+      "reaktor": "6–8",
+      "gorev": 8,
+      "tema": "Kriyo Salonu, ilk çekiliş, ittifaka katılma, Kalkan Jeneratörü.",
+      "titanyum": 3340,
+      "biyokutle": 1170,
+      "pay": 69,
+      "hadalit": 500,
+      "hizlandirma_dk": 20,
+      "ozel": "Nadir kart ×2, Altın Sandık"
+    },
+    {
+      "bolum": 4,
+      "ad": "Fenerin Işığı",
+      "reaktor": "9–10",
+      "gorev": 7,
+      "tema": "Kronik Feneri kurulur; sunucunun ortak hikâyesi görünür olur.",
+      "titanyum": 5380,
+      "biyokutle": 1880,
+      "pay": 64,
+      "hadalit": 500,
+      "hizlandirma_dk": 20,
+      "ozel": "Efsanevi kart ×1 (bugünkü R8 ödülü buraya kayar)"
+    },
+    {
+      "bolum": 5,
+      "ad": "Soğuk Sızıntı",
+      "reaktor": "11–12",
+      "gorev": 8,
+      "tema": "Bilim Kubbesi, ikinci araştırma kuyruğu; ilk soğuk sızıntı taraması.",
+      "titanyum": 10500,
+      "biyokutle": 3690,
+      "pay": 61,
+      "hadalit": 600,
+      "hizlandirma_dk": 30,
+      "ozel": "Destansı kart ×1, Gümüş Sandık ×2"
+    },
+    {
+      "bolum": 6,
+      "ad": "Kadim İz",
+      "reaktor": "13–14",
+      "gorev": 8,
+      "tema": "Teçhizat Atölyesi ve anıtlar; bir enkazda ilk kadim yazıt.",
+      "titanyum": 18000,
+      "biyokutle": 6300,
+      "pay": 51,
+      "hadalit": 600,
+      "hizlandirma_dk": 30,
+      "ozel": "Destansı kart ×1, teçhizat malzemesi"
+    },
+    {
+      "bolum": 7,
+      "ad": "Savaş Kubbesi",
+      "reaktor": "15–16",
+      "gorev": 8,
+      "tema": "Kalıntı Arşivi ve Savaş Kubbesi; Basınç Arenası ve Derinlik Ligi açılır.",
+      "titanyum": 28500,
+      "biyokutle": 10000,
+      "pay": 41,
+      "hadalit": 800,
+      "hizlandirma_dk": 30,
+      "ozel": "Altın Sandık, 50 Kubbe Nişanı"
+    },
+    {
+      "bolum": 8,
+      "ad": "Sürü",
+      "reaktor": "17–18",
+      "gorev": 8,
+      "tema": "Uçurum Sürüngenleri üssü yoklar; ilk Sürü Baskını; ikinci hangar.",
+      "titanyum": 41200,
+      "biyokutle": 14400,
+      "pay": 33,
+      "hadalit": 800,
+      "hizlandirma_dk": 30,
+      "ozel": "Destansı kart ×1, orta Sonar Pili ×2"
+    },
+    {
+      "bolum": 9,
+      "ad": "Demir Gövde",
+      "reaktor": "19",
+      "gorev": 6,
+      "tema": "Sonarda bir Demir Leviathan'ın yankısı; Leviathan Avı'na hazırlık.",
+      "titanyum": 27100,
+      "biyokutle": 9460,
+      "pay": 28,
+      "hadalit": 1000,
+      "hizlandirma_dk": 30,
+      "ozel": "Efsanevi kart ×1"
+    },
+    {
+      "bolum": 10,
+      "ad": "Kapıdaki Ses",
+      "reaktor": "20",
+      "gorev": 6,
+      "tema": "Çukurun dibinden düzenli bir titreşim: Kronik'in İlk Yankı'sı.",
+      "titanyum": 32500,
+      "biyokutle": 11400,
+      "pay": 25,
+      "hadalit": 1500,
+      "hizlandirma_dk": 30,
+      "ozel": "Altın Sandık ×2, 'Kapıdaki Ses' profil çerçevesi"
+    }
+  ],
+  "hikaye_temalari_sutunlar": [["bolum", "Bölüm"], ["ad", "Ad"], ["tema", "Konu"]],
+  "hikaye_temalari": [
+    {
+      "bolum": 1,
+      "ad": "Son Konvoy",
+      "tema": "İniş: ilk ışıklar, Oksijen ve Gıda; Komutan Elias Rourke üssü kurar."
+    },
+    {
+      "bolum": 2,
+      "ad": "Enkaz Tarlası",
+      "tema": "Dron Fabrikası, ilk kurtarma, Biyo Laboratuvar; Tess Ruiz ×10 kart."
+    },
+    {
+      "bolum": 3,
+      "ad": "Kriyo Salonundaki Uyuyanlar",
+      "tema": "Kriyo Salonu, ilk çekiliş, ittifaka katılma, Kalkan Jeneratörü."
+    },
+    {
+      "bolum": 4,
+      "ad": "Fenerin Işığı",
+      "tema": "Kronik Feneri kurulur; sunucunun ortak hikâyesi görünür olur."
+    },
+    {
+      "bolum": 5,
+      "ad": "Soğuk Sızıntı",
+      "tema": "Bilim Kubbesi, ikinci araştırma kuyruğu; ilk soğuk sızıntı taraması."
+    },
+    {"bolum": 6, "ad": "Kadim İz", "tema": "Teçhizat Atölyesi ve anıtlar; bir enkazda ilk kadim yazıt."},
+    {
+      "bolum": 7,
+      "ad": "Savaş Kubbesi",
+      "tema": "Kalıntı Arşivi ve Savaş Kubbesi; Basınç Arenası ve Derinlik Ligi açılır."
+    },
+    {"bolum": 8, "ad": "Sürü", "tema": "Uçurum Sürüngenleri üssü yoklar; ilk Sürü Baskını; ikinci hangar."},
+    {
+      "bolum": 9,
+      "ad": "Demir Gövde",
+      "tema": "Sonarda bir Demir Leviathan'ın yankısı; Leviathan Avı'na hazırlık."
+    },
+    {
+      "bolum": 10,
+      "ad": "Kapıdaki Ses",
+      "tema": "Çukurun dibinden düzenli bir titreşim: Kronik'in İlk Yankı'sı."
+    }
+  ],
+  "ornek_bolum_sutunlar": [["id", "Kimlik"], ["gorev", "Görev"], ["tur", "Tür · hedef"], ["odul", "Ödül"]],
+  "ornek_bolum": [
+    {
+      "id": "q5_dome",
+      "gorev": "Bilim Kubbesi'ni kur",
+      "tur": "count · science_dome",
+      "odul": "Bölüm Titanyumunun %10'u + 60 HD"
+    },
+    {
+      "id": "q5_queue2",
+      "gorev": "İki araştırmayı aynı anda yürüt",
+      "tur": "counter · research_parallel",
+      "odul": "30 dk araştırma hızlandırma"
+    },
+    {
+      "id": "q5_seep",
+      "gorev": "Radar Merkezi ile bir soğuk sızıntıyı tara",
+      "tur": "counter · scan",
+      "odul": "Tür Kataloğu kaydı + 60 HD"
+    },
+    {
+      "id": "q5_dive3",
+      "gorev": "3 sefer dalışı tamamla",
+      "tur": "counter · dive",
+      "odul": "Küçük Sonar Pili ×2"
+    },
+    {
+      "id": "q5_hero20",
+      "gorev": "Bir kahramanı 20. seviyeye çıkar",
+      "tur": "heroLevel · 20",
+      "odul": "Destansı kart ×1"
+    },
+    {
+      "id": "q5_oxy11",
+      "gorev": "Oksijen Tesisi'ni 11'e çıkar",
+      "tur": "level · oxygen_plant",
+      "odul": "Bölüm Titanyumunun %15'i"
+    },
+    {
+      "id": "q5_help10",
+      "gorev": "10 ittifak yardımı yap",
+      "tur": "counter · help",
+      "odul": "Gümüş Sandık + 15 dk genel hızlandırma"
+    },
+    {
+      "id": "q5_reactor12",
+      "gorev": "Çekirdek Reaktör'ü 12'ye çıkar",
+      "tur": "level · core_reactor",
+      "odul": "Bölüm sandığı: kalan Titanyum + Biyokütle + 300 HD + Gümüş Sandık + 15 dk genel"
+    }
+  ],
+  "etkinlik_geliri_sutunlar": [
+    ["etkinlik", "Kaynak"],
+    ["acilis", "Açılış"],
+    ["hafta_gs", "GS/hafta"],
+    ["gun_gs", "GS/gün"],
+    ["ti_r30", "R30'da Ti/hafta"]
+  ],
+  "etkinlik_geliri": [
+    {
+      "etkinlik": "İlk Dalış Haftası (yeni kaptan, 7 gün)",
+      "acilis": "R1, ilk 7 gün",
+      "hafta_gs": 7.0,
+      "gun_gs": 1.0,
+      "ti_r30": 630000
+    },
+    {
+      "etkinlik": "Derinlik Ligi (günlük kademe I–II)",
+      "acilis": "R16",
+      "hafta_gs": 5.1,
+      "gun_gs": 0.73,
+      "ti_r30": 459000
+    },
+    {
+      "etkinlik": "Sürü Baskını (dalga ödülleri, 2 pencere)",
+      "acilis": "R16",
+      "hafta_gs": 1.5,
+      "gun_gs": 0.21,
+      "ti_r30": 135000
+    },
+    {
+      "etkinlik": "Leviathan Avı (dalga ödülleri)",
+      "acilis": "R18 + ittifak",
+      "hafta_gs": 1.3,
+      "gun_gs": 0.19,
+      "ti_r30": 117000
+    },
+    {
+      "etkinlik": "Muhafız Mahzeni (4 ödül hakkı)",
+      "acilis": "R20",
+      "hafta_gs": 1.2,
+      "gun_gs": 0.17,
+      "ti_r30": 108000
+    },
+    {
+      "etkinlik": "Doğa olayları (geçici yataklar)",
+      "acilis": "R10",
+      "hafta_gs": 1.0,
+      "gun_gs": 0.14,
+      "ti_r30": 90000
+    },
+    {
+      "etkinlik": "Derinlik Kroniği hedefleri (16)",
+      "acilis": "Kronik Feneri (R8)",
+      "hafta_gs": 0.5,
+      "gun_gs": 0.07,
+      "ti_r30": 45000
+    },
+    {
+      "etkinlik": "İttifak hediyeleri (10)",
+      "acilis": "İttifak",
+      "hafta_gs": 2.1,
+      "gun_gs": 0.3,
+      "ti_r30": 189000
+    },
+    {
+      "etkinlik": "Konvoy, Egemen Yarışı, Arena, Akıntı Savaşı",
+      "acilis": "R16–Kronik 7",
+      "hafta_gs": 0,
+      "gun_gs": 0.0,
+      "ti_r30": 0
+    }
+  ],
+  "alasim_dokumu_sutunlar": [
+    ["gun_r30", "R30'dan sonra gün"],
+    ["gun", "Oyun günü", "gun"],
+    ["reaktor", "Reaktör (F2P)"],
+    ["dokumhane_adet", "Dökümhane"],
+    ["dokumhane", "Dökümhane SA/gün"],
+    ["nodul", "Nodül sahası"],
+    ["sefer", "Sefer + kurtarma"],
+    ["etkinlik", "Etkinlik + sezon"],
+    ["toplam", "**Toplam SA/gün**"],
+    ["profil", "Profil"],
+    ["sapma", "Sapma", "yuzde"]
+  ],
+  "alasim_dokumu": [
+    {
+      "gun_r30": 0,
+      "gun": 28.6,
+      "reaktor": 30.0,
+      "dokumhane_adet": 1,
+      "dokumhane": 12,
+      "nodul": 16,
+      "sefer": 6,
+      "etkinlik": 6,
+      "toplam": 40,
+      "profil": 40,
+      "sapma": 0.0
+    },
+    {
+      "gun_r30": 30,
+      "gun": 58.6,
+      "reaktor": 34.0,
+      "dokumhane_adet": 1,
+      "dokumhane": 16,
+      "nodul": 21,
+      "sefer": 9,
+      "etkinlik": 10,
+      "toplam": 55,
+      "profil": 52,
+      "sapma": 5.1
+    },
+    {
+      "gun_r30": 90,
+      "gun": 118.6,
+      "reaktor": 39.3,
+      "dokumhane_adet": 1,
+      "dokumhane": 27,
+      "nodul": 29,
+      "sefer": 13,
+      "etkinlik": 15,
+      "toplam": 84,
+      "profil": 90,
+      "sapma": -6.2
+    },
+    {
+      "gun_r30": 180,
+      "gun": 208.6,
+      "reaktor": 44.2,
+      "dokumhane_adet": 2,
+      "dokumhane": 79,
+      "nodul": 32,
+      "sefer": 16,
+      "etkinlik": 18,
+      "toplam": 144,
+      "profil": 140,
+      "sapma": 3.0
+    },
+    {
+      "gun_r30": 270,
+      "gun": 298.6,
+      "reaktor": 47.7,
+      "dokumhane_adet": 2,
+      "dokumhane": 97,
+      "nodul": 41,
+      "sefer": 21,
+      "etkinlik": 24,
+      "toplam": 183,
+      "profil": 181,
+      "sapma": 1.0
+    },
+    {
+      "gun_r30": 337,
+      "gun": 365.6,
+      "reaktor": 49.9,
+      "dokumhane_adet": 2,
+      "dokumhane": 112,
+      "nodul": 50,
+      "sefer": 26,
+      "etkinlik": 32,
+      "toplam": 219,
+      "profil": 220,
+      "sapma": -0.4
+    }
+  ],
+  "hadalit_sutunlar": [
+    ["kaynak", "Kaynak"],
+    ["acilis", "Açılış"],
+    ["erken", "R1–R15"],
+    ["orta", "R16–R29"],
+    ["gec", "R30+ (180. güne kadar)"],
+    ["son", "180. günden sonra"],
+    ["not", "Not"]
+  ],
+  "hadalit": [
+    {
+      "kaynak": "Günlük sandık (100 puan)",
+      "acilis": "R1",
+      "erken": 200,
+      "orta": 200,
+      "gec": 200,
+      "son": 200,
+      "not": "Bugün 20; K-12 ile ×10"
+    },
+    {
+      "kaynak": "Derinlik Sandığı çekilişi (150 puan)",
+      "acilis": "R16",
+      "erken": 0,
+      "orta": 10,
+      "gec": 10,
+      "son": 10,
+      "not": "%20 × 50 HD"
+    },
+    {
+      "kaynak": "Bronz ve Gümüş Sandık çekilişleri",
+      "acilis": "R1",
+      "erken": 30,
+      "orta": 30,
+      "gec": 30,
+      "son": 30,
+      "not": "Bronz %5 × 100, Gümüş %5 × 200; 2'şer çekiliş"
+    },
+    {
+      "kaynak": "Kurtarma görevleri (08)",
+      "acilis": "R2",
+      "erken": 44,
+      "orta": 60,
+      "gec": 60,
+      "son": 60,
+      "not": "Günlük 60 sınırıyla (kurtarma tablosu)"
+    },
+    {
+      "kaynak": "Basınç Arenası günlük sıralaması",
+      "acilis": "R16",
+      "erken": 0,
+      "orta": 15,
+      "gec": 15,
+      "son": 15,
+      "not": "Orta ve alt sıralar (201–1.000: 25; 1.001+: 15)"
+    },
+    {
+      "kaynak": "Etkinlikler (Lig, Sürü, Av, Mahzen, Sınav, olaylar)",
+      "acilis": "R10",
+      "erken": 15,
+      "orta": 25,
+      "gec": 30,
+      "son": 30,
+      "not": "Haftalık ortalamanın günlüğü"
+    },
+    {
+      "kaynak": "Kronik ve Tür Kataloğu başarımları (16)",
+      "acilis": "R8",
+      "erken": 14,
+      "orta": 14,
+      "gec": 14,
+      "son": 14,
+      "not": "Yılda ~5.000"
+    },
+    {
+      "kaynak": "Akıntı Savaşı (sezon ödülü ve dükkânı)",
+      "acilis": "Kronik 7",
+      "erken": 0,
+      "orta": 0,
+      "gec": 15,
+      "son": 15,
+      "not": "60 günlük döngünün günlük ortalaması"
+    },
+    {
+      "kaynak": "Hadalit Damarı (09)",
+      "acilis": "Kronik 10",
+      "erken": 0,
+      "orta": 0,
+      "gec": 0,
+      "son": 15,
+      "not": "Kaptan başına günde en çok 60; sunucuda 12 damar, çekişmeli"
+    },
+    {
+      "kaynak": "**Toplam (İzin sandığı hariç)**",
+      "acilis": "",
+      "erken": 303,
+      "orta": 354,
+      "gec": 374,
+      "son": 389,
+      "not": "≈ günde 1,5 · 1,8 · 1,9 · 1,9 Kriyo-Kapsül çekimi"
+    },
+    {
+      "kaynak": "Derinlik İzni sandığı (11, ayrı tutulur)",
+      "acilis": "İzin 1",
+      "erken": 0,
+      "orta": 15,
+      "gec": 30,
+      "son": 50,
+      "not": "F2P'nin o dönemdeki İzin seviyesi"
+    }
+  ],
+  "hizlandirma_sutunlar": [
+    ["bant", "Bant"],
+    ["sandik", "Günlük sandıklar"],
+    ["hikaye", "Hikâye"],
+    ["caylak", "İlk Dalış Haftası"],
+    ["etkinlik", "Etkinlik + Kronik"],
+    ["sezon", "Akıntı Savaşı"],
+    ["ittifak", "İttifak"],
+    ["bilet", "Bilet (ücretsiz yol)"],
+    ["kurtarma", "Kurtarma ve sefer"],
+    ["toplam", "**Toplam sa/gün**"],
+    ["sim", "Simülasyon"],
+    ["sapma", "Sapma", "yuzde"]
+  ],
+  "hizlandirma": [
+    {
+      "bant": "R1–R5",
+      "sandik": 0.33,
+      "hikaye": 0.25,
+      "caylak": 0,
+      "etkinlik": 0,
+      "sezon": 0,
+      "ittifak": 0,
+      "bilet": 0,
+      "kurtarma": 0,
+      "toplam": 0.58,
+      "sim": 0.61,
+      "sapma": -4.9
+    },
+    {
+      "bant": "R6–R10",
+      "sandik": 0.33,
+      "hikaye": 0.33,
+      "caylak": 0,
+      "etkinlik": 0,
+      "sezon": 0,
+      "ittifak": 0.08,
+      "bilet": 0,
+      "kurtarma": 0.04,
+      "toplam": 0.78,
+      "sim": 0.78,
+      "sapma": 0.0
+    },
+    {
+      "bant": "R11–R15",
+      "sandik": 0.33,
+      "hikaye": 0.33,
+      "caylak": 0.17,
+      "etkinlik": 0,
+      "sezon": 0,
+      "ittifak": 0.1,
+      "bilet": 0,
+      "kurtarma": 0.07,
+      "toplam": 1.0,
+      "sim": 1.0,
+      "sapma": 0.0
+    },
+    {
+      "bant": "R16–R50",
+      "sandik": 0.33,
+      "hikaye": 0,
+      "caylak": 0,
+      "etkinlik": 0.75,
+      "sezon": 0.25,
+      "ittifak": 0.25,
+      "bilet": 0.17,
+      "kurtarma": 0.25,
+      "toplam": 2.0,
+      "sim": 2.0,
+      "sapma": 0.0
+    }
+  ],
+  "ittifak_hediyeleri_sutunlar": [["hediye", "Hediye (sahibi)"], ["tetik", "Ne zaman"], ["f2p", "F2P günlük ortalaması"]],
+  "ittifak_hediyeleri": [
+    {
+      "hediye": "Kıyı, Derin ve Hadal Hediyesi (10, 12)",
+      "tetik": "Bir üye The Syndicate'ten alım yaptığında tüm üyelere",
+      "f2p": "Titanyum 0,15 GS · 8 dk genel hızlandırma · 10 HD"
+    },
+    {
+      "hediye": "Av Hediyesi (10)",
+      "tetik": "İttifak bir Demir Leviathan yuvasını yendiğinde",
+      "f2p": "Titanyum 0,05 GS · 3 dk hızlandırma"
+    },
+    {
+      "hediye": "Kronik Hediyesi ve Derin Hazine (10)",
+      "tetik": "İttifak Kronik hedefi; hediye puanı çubuğu her 2.000 puanda",
+      "f2p": "Titanyum 0,05 GS · 2 dk hızlandırma"
+    },
+    {
+      "hediye": "Av Sandığı (13 · Leviathan Avı)",
+      "tetik": "Haftalık avda 5., 10. ve 15. dalga temizlenince",
+      "f2p": "Titanyum 0,05 GS · 2 dk hızlandırma"
+    },
+    {
+      "hediye": "**Toplam**",
+      "tetik": "Aktif bir ittifakta",
+      "f2p": "**Titanyum 0,3 GS · 15 dk hızlandırma** (hizlandiricilar.json ile aynı)"
+    }
+  ],
+  "kaynak_dengesi_sutunlar": [
+    ["kaynak", "Kaynak"],
+    ["kaynaklar", "Nereden gelir"],
+    ["harcamalar", "Nereye gider"],
+    ["tavan", "Tavan ve koruma"],
+    ["denge", "Denge aracı"]
+  ],
+  "kaynak_dengesi": [
+    {
+      "kaynak": "Oksijen",
+      "kaynaklar": "Oksijen Tesisi, Mega Kubbe; Oksijen Kapsülü (sandık, etkinlik); haritada oksijen yatakları; geç oyunda nodül sahalarında karanlık oksijen hücreleri",
+      "harcamalar": "Mürettebat ve asker bakımı (saatlik), sefer dalışı, iyileştirme",
+      "tavan": "0,5 × sonraki reaktör maliyeti; kritik kaynak",
+      "denge": "Biterse üretim durur; Kaçakçı fazlasını kayıplı kurla alır"
+    },
+    {
+      "kaynak": "Enerji",
+      "kaynaklar": "Çekirdek Reaktör, Hidrotermal Santral, Aşırı Yük; denizaltı volkanı olayının baca yatakları",
+      "harcamalar": "Bina bakımı, Takviye (150), Kalkan Jeneratörü, Alaşım Dökümhanesi",
+      "tavan": "0,4 × sonraki reaktör maliyeti",
+      "denge": "Ödül olarak neredeyse hiç verilmez; dengesi binalarla kurulur (02 · Enerji dengesi)"
+    },
+    {
+      "kaynak": "Gıda",
+      "kaynaklar": "Gıda Laboratuvarı, Hidroponik Çiftlik, Tarım Kubbesi hasadı; Deniz Karı Yağışı; Gıda Kapsülü",
+      "harcamalar": "Asker eğitimi ve bakımı, iyileştirme, kahraman eğitimi",
+      "tavan": "0,6 × sonraki reaktör maliyeti",
+      "denge": "Ordunun saatlik bakımı ana yutaktır (07); Kaçakçı fazlayı Titanyuma çevirir"
+    },
+    {
+      "kaynak": "Biyokütle",
+      "kaynaklar": "Biyo Laboratuvar, Tarım Kubbesi; metan sızıntısı ve balina leşi olayları; her Titanyum ödülünün 0,4 katı",
+      "harcamalar": "İnşaat (reaktörde 0,35 × Ti), araştırma, Hidroponik Çiftlik",
+      "tavan": "0,6 × sonraki reaktör maliyeti",
+      "denge": "Titanyuma bağlı oranla verilir; ayrı enflasyon yaratmaz"
+    },
+    {
+      "kaynak": "Titanyum",
+      "kaynaklar": "Dron Fabrikası, toplama, kurtarma, sefer, görev, etkinlik, ittifak hediyesi (gelir dökümü)",
+      "harcamalar": "Her bina, araştırma, asker, denizaltı, onarım; ittifak bağışı (10: tipik bağışçı günlük gelirin ~%10'u); Kaçakçı",
+      "tavan": "1,5 × sonraki reaktör maliyeti; Basınç Ambarı bir kısmını yağmadan korur",
+      "denge": "GS damgası, rekabet etkinliklerinde Titanyum yok, yağma"
+    },
+    {
+      "kaynak": "Süperalaşım",
+      "kaynaklar": "Alaşım Dökümhanesi (en çok 2), nodül sahaları, P7+ seferler, etkinlik ve sezon dükkânı",
+      "harcamalar": "Reaktör 31–50 ve önkoşulları, T9–T10 askerler, Kadim Teknoloji, efsanevi teçhizat",
+      "tavan": "Tavansız; yağmalanmaz, takas edilmez",
+      "denge": "Üretim 2 dökümhane ve olay payıyla sınırlı; Reaktör 31–40 arası bilinçli darboğaz"
+    },
+    {
+      "kaynak": "Hadalit",
+      "kaynaklar": "Günlük sandık, kurtarma, Arena, etkinlikler, Kronik, sezon, Hadalit Damarı; The Syndicate; Derinlik İzni sandığı",
+      "harcamalar": "Kriyo-Kapsül (200 / 1.800), hızlandırma, Kaçakçı, Sonar Çarkı, köken değişimi, Kadim Şema, kozmetik",
+      "tavan": "Tavansız (K-12)",
+      "denge": "Ücretli ve kazanılmış kayıt ayrı tutulur; artan yenileme fiyatları; çark ve Kaçakçı günlük sınırlı"
+    },
+    {
+      "kaynak": "Sonar Enerjisi",
+      "kaynaklar": "Doğal yenilenme (09); Sonar Pili (Derinlik Sandığı, dalış görevi, etkinlikler, Kaçakçı)",
+      "harcamalar": "Haritadaki PvE saldırıları, ralli katılımı, Leviathan yuvaları",
+      "tavan": "Doğal tavan ve pille çıkılabilen eşya tavanı 09'da",
+      "denge": "Pil boyları 09'da (küçük, orta, büyük); etkinlikler çoğunlukla küçük pil verir"
+    },
+    {
+      "kaynak": "Hızlandırma",
+      "kaynaklar": "Günlük sandıklar, hikâye bölümleri, Derinlik Ligi, etkinlikler, ittifak hediyesi; The Syndicate",
+      "harcamalar": "İnşaat, araştırma, eğitim, iyileştirme (genel ya da türe özel)",
+      "tavan": "Yok (çantada)",
+      "denge": "F2P için inşaata harcanabilen 0,5 → 2 sa/gün; türe özel hızlandırma başka kuyruğa geçmez"
+    },
+    {
+      "kaynak": "İzin puanı (VIP)",
+      "kaynaklar": "Günlük giriş serisi, günlük 100 puan sandığı (10), haftalık etkinlikler, Kronik, bilet, ittifak hediyesi; satın alma (100 / $)",
+      "harcamalar": "Harcanmaz; kalıcı Derinlik İzni seviyesi biriktirir",
+      "tavan": "İzin 15 (11)",
+      "denge": "Puan satılmaz; F2P her gün girerse ~251. günde İzin 7 (11)"
+    },
+    {
+      "kaynak": "Etkinlik paraları",
+      "kaynaklar": "Konvoy Madalyası, Kubbe Nişanı, Akıntı Mührü, Mahzen Çekirdeği, Savunma Nişanı",
+      "harcamalar": "Kendi dükkânları (kahraman kartı, teçhizat, kozmetik, hızlandırma)",
+      "tavan": "Dükkânlarda haftalık alım sınırı",
+      "denge": "Akıntı Mührü'nün %20'si sezona taşınır; Akıntı Özü sezon sonunda sıfırlanır"
+    }
+  ],
+  "kapsuller_sutunlar": [["id", "Kimlik"], ["ad", "Eşya"], ["icerik", "İçerik"], ["nereden", "Nereden"], ["durum", "Durum"]],
+  "kapsuller": [
+    {
+      "id": "crate_titanium",
+      "ad": "Titanyum Kapsülü",
+      "icerik": "Verildiği anın reaktör seviyesinde x GS Titanyum; miktar üzerinde yazar",
+      "nereden": "Görev, sandık, etkinlik, kurtarma, sefer, posta",
+      "durum": "⬜"
+    },
+    {
+      "id": "crate_biomass",
+      "ad": "Biyokütle Kapsülü",
+      "icerik": "x GS × 0,4 Biyokütle",
+      "nereden": "Aynı kaynaklar (Titanyumla eşli)",
+      "durum": "⬜"
+    },
+    {
+      "id": "crate_food",
+      "ad": "Gıda Kapsülü",
+      "icerik": "x GS × 1,5 Gıda",
+      "nereden": "Kahraman eğitimi görevi, Deniz Karı Yağışı, sandık",
+      "durum": "⬜"
+    },
+    {
+      "id": "crate_oxygen",
+      "ad": "Oksijen Kapsülü",
+      "icerik": "x GS × 1,2 Oksijen",
+      "nereden": "Sefer, etkinlik",
+      "durum": "⬜"
+    },
+    {
+      "id": "crate_alloy",
+      "ad": "Süperalaşım Kapsülü",
+      "icerik": "Sabit miktar (10 / 50 / 100); GS'ye bağlı değil",
+      "nereden": "Derinlik Sandığı (R30+), sezon dükkânı, Titan",
+      "durum": "⬜"
+    },
+    {
+      "id": "crate_overflow",
+      "ad": "Taşma Kapsülü",
+      "icerik": "Yürüyüş dönüşünde tavanı aşan yük",
+      "nereden": "Toplama, yağma ganimeti",
+      "durum": "⬜"
+    },
+    {
+      "id": "sonar_cell",
+      "ad": "Sonar Pili",
+      "icerik": "Küçük, orta, büyük pil; Sonar Enerjisi miktarları 09'da",
+      "nereden": "Derinlik Sandığı, dalış görevi, etkinlikler, Kaçakçı",
+      "durum": "⬜"
+    },
+    {
+      "id": "rescue_capsule",
+      "ad": "Kurtarma Kapsülü",
+      "icerik": "Sezonda ölen askerlerin %50'si, tür ve kademesiyle",
+      "nereden": "Akıntı Savaşı sonu (K-21)",
+      "durum": "⬜"
+    },
+    {
+      "id": "ancient_schema_shard",
+      "ad": "Kadim Şema Parçası",
+      "icerik": "10 parça = 1 Kadim Şema (Reaktör 49 → 50 kilidi)",
+      "nereden": "Hadal Titanı, Muhafız Mahzeni V, Kaçakçı, sezon dükkânı (14)",
+      "durum": "⬜"
+    },
+    {
+      "id": "chest_depth",
+      "ad": "Derinlik Sandığı",
+      "icerik": "150 puan sandığı (etkinlik sandıkları tablosu)",
+      "nereden": "Günlük görevler",
+      "durum": "⬜"
+    }
+  ],
+  "enflasyon_sutunlar": [["arac", "Araç"], ["nasil", "Nasıl çalışır"], ["neden", "Neyi önler"]],
+  "enflasyon": [
+    {
+      "arac": "GS damgası",
+      "nasil": "Kapsülün değeri verildiği anın reaktör seviyesiyle sabitlenir",
+      "neden": "Düşük seviyede biriktirip yüksek seviyede açma kazancı"
+    },
+    {
+      "arac": "Rekabette Titanyum yok",
+      "nasil": "Konvoy, Egemen Yarışı, Arena ve Akıntı Savaşı para birimi, kart, hızlandırma ve kozmetik verir",
+      "neden": "Sıralama gücünün kaynak gelirine dönüşmesi"
+    },
+    {
+      "arac": "Sabit günlük haklar",
+      "nasil": "Kurtarma kuyruğu 1, Arena 5 deneme, Mahzen 4 ödül/hafta; Lig'de Titanyum yalnız ilk 2 günlük kademede",
+      "neden": "Oynama süresiyle sınırsız büyüyen gelir"
+    },
+    {
+      "arac": "Kaçakçı kuru",
+      "nasil": "Fazla Gıda, Oksijen, Biyokütle Titanyuma ya da eşyaya kayıplı kurla çevrilir",
+      "neden": "Tavanda boşa dönen üretim ve yan kaynak şişmesi"
+    },
+    {
+      "arac": "Takas vergisi",
+      "nasil": "İttifak içi gönderimde %30 → %10 (Takas İstasyonu) ve günlük gönderim sınırı",
+      "neden": "Yan hesaplarla kaynak besleme"
+    },
+    {
+      "arac": "Yağma ve koruma",
+      "nasil": "Cüzdandaki korumasız kaynak saldırıda alınabilir; çantadaki kapsül korunur",
+      "neden": "Açıp bekletme; aktif harcamayı ödüllendirir"
+    },
+    {
+      "arac": "Ordu bakımı",
+      "nasil": "Asker sayısıyla artan saatlik Gıda ve Oksijen tüketimi; iyileştirme maliyeti",
+      "neden": "Gıda ve Oksijen birikimi"
+    },
+    {
+      "arac": "Süperalaşım darboğazı",
+      "nasil": "En fazla 2 dökümhane; yağma ve takas yok; Kaçakçı rafı Titanyumla ve haftada 1",
+      "neden": "Geç oyun kapısının satın alınarak delinmesi"
+    },
+    {
+      "arac": "Günlük Hadalit sınırları",
+      "nasil": "Kurtarma görevlerinden günde en çok 60, Hadalit Damarı'ndan günde en çok 60 Hadalit (09)",
+      "neden": "Uzun görev ve toplama zinciriyle sınırsız Hadalit"
+    },
+    {
+      "arac": "Sezon sıfırı",
+      "nasil": "Akıntı Özü ve sezon teknolojisi sıfırlanır; Akıntı Mührü'nün %20'si (en çok 10.000) taşınır",
+      "neden": "Sezondan sezona katlanan avantaj"
+    },
+    {
+      "arac": "Telemetri alarmı",
+      "nasil": "Overseer, reaktör bandına göre medyan günlük GS ve Hadalit kazancını profille karşılaştırır (±%20)",
+      "neden": "Fark edilmeden kayan ekonomi"
+    }
+  ],
+  "odeme_sutunlar": [
+    ["ad", "Profil"],
+    ["gelir", "Gelir çarpanı"],
+    ["alasim", "Süperalaşım çarpanı"],
+    ["hiz", "Hızlandırma R16+ (sa/gün)"],
+    ["insaatci", "İnşaatçı"],
+    ["r50", "Reaktör 50", "gun"]
+  ],
+  "odeme": [
+    {"ad": "Ücretsiz oyuncu", "gelir": 1.0, "alasim": 1.0, "hiz": 2.0, "insaatci": 2, "r50": 368.1},
+    {"ad": "Aylık kart + VIP 8", "gelir": 1.5, "alasim": 2.0, "hiz": 6.0, "insaatci": 3, "r50": 267.2},
+    {"ad": "Balina", "gelir": 4.0, "alasim": 5.0, "hiz": 24.0, "insaatci": 3, "r50": 147.1}
+  ]
+}

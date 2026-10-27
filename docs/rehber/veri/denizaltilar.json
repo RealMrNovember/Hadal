@@ -1,0 +1,987 @@
+{
+  "surum": "rehber-1",
+  "_not": "Denizaltılar, basınç sınıfları, Derinlik Haritası kampanyası, sonar dronları ve kurtarma görevleri. Basınç sınıfı = 1 + ⌊(İskele Sv − 1) / 5⌋ (binalar.json). Derinlik ve bar değerleri sınıfların tasarım eşikleridir (≈ derinlik / 10 bar); gerçek ölçümler ve kaynakça bilim.json'dadır. Önerilen güç ve ödül tabloları hangar kapasitesi, kademe gücü ve F2P gelir eğrisinden hesaplanmıştır.",
+  "hangarlar": [
+    {"hangar": 1, "reaktor": 4, "not": "İlk yürüyüş kuyruğu; Derinlik Haritası"},
+    {"hangar": 2, "reaktor": 10, "not": "İkinci kuyruk: toplama ve sefer aynı anda"},
+    {"hangar": 3, "reaktor": 18, "not": "Üçüncü kuyruk"},
+    {"hangar": 4, "reaktor": 26, "not": "Dördüncü kuyruk: tüm ordu sahaya çıkabilir"}
+  ],
+  "hangarlar_sutunlar": [["hangar", "Hangar"], ["reaktor", "Açıldığı reaktör"], ["not", "Ne getirir"]],
+  "hangar_kapasite": {
+    "sutunlar": [
+      ["seviye", "Hangar Sv"],
+      ["kapasite", "Denizaltı asker kapasitesi"],
+      ["dort_hangar", "Dört hangar toplamı"]
+    ],
+    "satirlar": [
+      {"seviye": 1, "kapasite": 100, "dort_hangar": 400},
+      {"seviye": 5, "kapasite": 300, "dort_hangar": 1200},
+      {"seviye": 10, "kapasite": 900, "dort_hangar": 3600},
+      {"seviye": 15, "kapasite": 2000, "dort_hangar": 8000},
+      {"seviye": 20, "kapasite": 3800, "dort_hangar": 15200},
+      {"seviye": 25, "kapasite": 6000, "dort_hangar": 24000},
+      {"seviye": 30, "kapasite": 8500, "dort_hangar": 34000},
+      {"seviye": 35, "kapasite": 11500, "dort_hangar": 46000},
+      {"seviye": 40, "kapasite": 15000, "dort_hangar": 60000},
+      {"seviye": 45, "kapasite": 19000, "dort_hangar": 76000},
+      {"seviye": 50, "kapasite": 24000, "dort_hangar": 96000}
+    ],
+    "capalar": [
+      [1, 100],
+      [5, 300],
+      [10, 900],
+      [15, 2000],
+      [20, 3800],
+      [25, 6000],
+      [30, 8500],
+      [35, 11500],
+      [40, 15000],
+      [45, 19000],
+      [50, 24000]
+    ]
+  },
+  "govdeler": [
+    {
+      "id": "squid",
+      "ad": "Mürekkepbalığı",
+      "rol": "Hız",
+      "hiz": 1.3,
+      "kapasite": 0.85,
+      "yuk": 0.8,
+      "atk": 0,
+      "def": 0,
+      "o2": 0.9,
+      "ozel": "Geri çağırma süresi yarıya iner; takviye ve ralliye katılmada ilk sırada"
+    },
+    {
+      "id": "walrus",
+      "ad": "Mors",
+      "rol": "Taşıma",
+      "hiz": 0.85,
+      "kapasite": 1.0,
+      "yuk": 1.6,
+      "atk": 0,
+      "def": 0,
+      "o2": 1.0,
+      "ozel": "Toplama hızı +%20; enkaz kurtarma süresi −%33"
+    },
+    {
+      "id": "shark",
+      "ad": "Köpekbalığı",
+      "rol": "Savaş",
+      "hiz": 1.0,
+      "kapasite": 1.1,
+      "yuk": 0.9,
+      "atk": 5,
+      "def": 5,
+      "o2": 1.1,
+      "ozel": "+%5 ATK/DEF ralli ve takviyede de işler"
+    },
+    {
+      "id": "anglerfish",
+      "ad": "Fenerbalığı",
+      "rol": "Keşif",
+      "hiz": 1.1,
+      "kapasite": 0.7,
+      "yuk": 0.7,
+      "atk": 0,
+      "def": 0,
+      "o2": 0.8,
+      "ozel": "Sonar aşamalarında düşman dizilimini önceden görür; dalış O₂ maliyeti −%20; Tür Kataloğu taraması iki kat puan"
+    }
+  ],
+  "govdeler_sutunlar": [
+    ["ad", "Gövde"],
+    ["id", "Kimlik", "ham"],
+    ["rol", "Rol"],
+    ["hiz", "Hız ×"],
+    ["kapasite", "Kapasite ×"],
+    ["yuk", "Yük ×"],
+    ["atk", "ATK +%"],
+    ["def", "DEF +%"],
+    ["o2", "O₂ ×"],
+    ["ozel", "Özel"]
+  ],
+  "rol_degisimi": [
+    {"kural": "Nerede", "deger": "Denizaltı İskelesi; denizaltı hangarda ve boşta olmalı"},
+    {"kural": "Süre", "deger": "30 dk × basınç sınıfı (hızlandırılabilir)"},
+    {"kural": "Bedel", "deger": "Titanyum, sınıfa göre (onarım tablosu)"},
+    {"kural": "Bekleme", "deger": "Aynı denizaltı 24 saatte bir kez"},
+    {"kural": "İlk seçim", "deger": "Ücretsiz ve anında"},
+    {"kural": "Askerler", "deger": "Değişmez; kapasite düşerse fazlası Askeri Kubbe'ye iner"}
+  ],
+  "rol_degisimi_sutunlar": [["kural", "Kural"], ["deger", "Değer"]],
+  "murettebat": [
+    {
+      "koltuk": "Kaptan",
+      "sayi": 1,
+      "isler": "Komuta bonusu tam; bütün yetenekleri; yetenek ağacı ve teçhizat; sınıf yatkınlığı ve fraksiyon sinerjisi"
+    },
+    {
+      "koltuk": "Subay",
+      "sayi": 2,
+      "isler": "Komuta bonusu Subay çarpanıyla; aktif, pasif ve sefer yetenekleri; Komuta, Uyanış, ağaç ve teçhizat işlemez; boş bırakılabilir"
+    },
+    {
+      "koltuk": "Askerler",
+      "sayi": "Hangar kapasitesine kadar",
+      "isler": "Dört türden herhangi bir karışım; kademe serbest"
+    }
+  ],
+  "murettebat_sutunlar": [["koltuk", "Koltuk"], ["sayi", "Sayı"], ["isler", "Savaşta ne işler"]],
+  "uyum": [
+    {"sinif": "Komutan, Hekim", "tur": "Zırhlı Dalgıç"},
+    {"sinif": "Avcı, Pilot", "tur": "Zıpkıncı"},
+    {"sinif": "Mühendis, Bilim insanı", "tur": "Ark Askeri"},
+    {"sinif": "—", "tur": "Delici (uyumu yok)"}
+  ],
+  "uyum_sutunlar": [["sinif", "Kaptanın sınıfı"], ["tur", "Uyumlu asker türü"]],
+  "basinc_siniflari": [
+    {"sinif": "P1", "iskele": "1–5", "reaktor": 4, "bolum": 1, "bilim_indeks": 0},
+    {"sinif": "P2", "iskele": "6–10", "reaktor": 6, "bolum": 2, "bilim_indeks": 1},
+    {"sinif": "P3", "iskele": "11–15", "reaktor": 11, "bolum": 3, "bilim_indeks": 2},
+    {"sinif": "P4", "iskele": "16–20", "reaktor": 16, "bolum": 4, "bilim_indeks": 3},
+    {"sinif": "P5", "iskele": "21–25", "reaktor": 21, "bolum": 5, "bilim_indeks": 4},
+    {"sinif": "P6", "iskele": "26–30", "reaktor": 26, "bolum": 6, "bilim_indeks": 5},
+    {"sinif": "P7", "iskele": "31–35", "reaktor": 31, "bolum": 7, "bilim_indeks": 6},
+    {"sinif": "P8", "iskele": "36–40", "reaktor": 36, "bolum": 8, "bilim_indeks": 7},
+    {"sinif": "P9", "iskele": "41–45", "reaktor": 41, "bolum": 9, "bilim_indeks": 8},
+    {"sinif": "P10", "iskele": "46–50", "reaktor": 46, "bolum": 10, "bilim_indeks": 9}
+  ],
+  "basinc_siniflari_sutunlar": [
+    ["sinif", "Sınıf"],
+    ["iskele", "İskele Sv"],
+    ["reaktor", "En erken R"],
+    ["bolum", "Derinlik Haritası bölümü"]
+  ],
+  "acik": [
+    {"acik": "0 (sınıf yeterli)", "giris": "Serbest", "etki": "Yok"},
+    {
+      "acik": "1 sınıf",
+      "giris": "Serbest, uyarıyla",
+      "etki": "Gövde bütünlüğü dakikada −%2; askerler −%15 DEF"
+    },
+    {"acik": "2 sınıf ve üstü", "giris": "Engelli", "etki": "Rota bu bölgeden geçemez"}
+  ],
+  "acik_sutunlar": [["acik", "Sınıf açığı"], ["giris", "Giriş"], ["etki", "Etki"]],
+  "govde": {"acik_kaybi": 2, "acik_def_cezasi": 15, "pasif_onarim": 20, "tahliye_esigi": 0},
+  "onarim": [
+    {"sinif": "P1", "pasif": 20, "hizli_ti": 1, "govde_o2": 50, "rol_ti": 18, "rol_sure": 1800},
+    {"sinif": "P2", "pasif": 20, "hizli_ti": 2, "govde_o2": 120, "rol_ti": 115, "rol_sure": 3600},
+    {"sinif": "P3", "pasif": 20, "hizli_ti": 15, "govde_o2": 250, "rol_ti": 735, "rol_sure": 5400},
+    {"sinif": "P4", "pasif": 20, "hizli_ti": 70, "govde_o2": 450, "rol_ti": 3620, "rol_sure": 7200},
+    {"sinif": "P5", "pasif": 20, "hizli_ti": 265, "govde_o2": 800, "rol_ti": 13100, "rol_sure": 9000},
+    {"sinif": "P6", "pasif": 20, "hizli_ti": 750, "govde_o2": 1300, "rol_ti": 37400, "rol_sure": 10800},
+    {"sinif": "P7", "pasif": 20, "hizli_ti": 1800, "govde_o2": 2000, "rol_ti": 90000, "rol_sure": 12600},
+    {"sinif": "P8", "pasif": 20, "hizli_ti": 3790, "govde_o2": 3000, "rol_ti": 189000, "rol_sure": 14400},
+    {"sinif": "P9", "pasif": 20, "hizli_ti": 7580, "govde_o2": 4300, "rol_ti": 379000, "rol_sure": 16200},
+    {"sinif": "P10", "pasif": 20, "hizli_ti": 15200, "govde_o2": 6000, "rol_ti": 758000, "rol_sure": 18000}
+  ],
+  "onarim_sutunlar": [
+    ["sinif", "Sınıf"],
+    ["pasif", "Hangarda onarım %/sa"],
+    ["hizli_ti", "Hızlı onarım Ti / %1"],
+    ["rol_ti", "Rol değişimi Ti"],
+    ["rol_sure", "Rol değişimi süresi", "sure"],
+    ["govde_o2", "Seyir O₂/sa (gövde)"]
+  ],
+  "seyir": {
+    "taban_sn_kare": 60,
+    "asker_o2_carpani": 2,
+    "formul": "seyir süresi (sn) = mesafe (kare) × 60 / (en yavaş tür hızı / 100 × gövde hız çarpanı × (1 + Σhız%))"
+  },
+  "seyir_ornekleri": [
+    {"durum": "Zıpkıncı + Mürekkepbalığı", "hiz": 1.56, "sure_50": 1923},
+    {"durum": "Ark Askeri + Köpekbalığı", "hiz": 1.0, "sure_50": 3000},
+    {"durum": "Zırhlı Dalgıç + Köpekbalığı", "hiz": 0.8, "sure_50": 3750},
+    {"durum": "Delici + Mors", "hiz": 0.595, "sure_50": 5042}
+  ],
+  "seyir_ornekleri_sutunlar": [["durum", "Denizaltı"], ["hiz", "Hız çarpanı"], ["sure_50", "50 kare (bonussuz)", "sure"]],
+  "kampanya": {
+    "bolumler": [
+      {
+        "no": 1,
+        "id": "hadal_esigi",
+        "ad": "Hadal Eşiği",
+        "sinif": "P1",
+        "iskele": 1,
+        "reaktor": "5–7",
+        "dusmanlar": "Uçurum Sürüngenleri",
+        "boss": "Sürüngen Anası",
+        "boss_tur": "Uçurum Sürüngenleri (dev)",
+        "dalis_o2": 150,
+        "onerilen_ilk": 810,
+        "onerilen_son": 1610,
+        "onerilen_boss": 2710,
+        "madalya": 30
+      },
+      {
+        "no": 2,
+        "id": "dalan_levha",
+        "ad": "Dalan Levha",
+        "sinif": "P2",
+        "iskele": 6,
+        "reaktor": "7–10",
+        "dusmanlar": "Uçurum Sürüngenleri, Kum Kazıcıları",
+        "boss": "Burgu Ağzı",
+        "boss_tur": "Kum Kazıcıları (dev)",
+        "dalis_o2": 300,
+        "onerilen_ilk": 1270,
+        "onerilen_son": 4450,
+        "onerilen_boss": 7490,
+        "madalya": 30
+      },
+      {
+        "no": 3,
+        "id": "fay_basamaklari",
+        "ad": "Fay Basamakları",
+        "sinif": "P3",
+        "iskele": 11,
+        "reaktor": "11–15",
+        "dusmanlar": "Kum Kazıcıları, Uçurum Sürüngenleri",
+        "boss": "Demir Leviathan",
+        "boss_tur": "Demir Leviathan",
+        "dalis_o2": 1000,
+        "onerilen_ilk": 4090,
+        "onerilen_son": 14800,
+        "onerilen_boss": 25000,
+        "madalya": 30
+      },
+      {
+        "no": 4,
+        "id": "soluk_suruler",
+        "ad": "Soluk Sürüler",
+        "sinif": "P4",
+        "iskele": 16,
+        "reaktor": "16–20",
+        "dusmanlar": "Basınç Hayaletleri, Uçurum Sürüngenleri",
+        "boss": "Hayalet Filo",
+        "boss_tur": "Basınç Hayaletleri (filo)",
+        "dalis_o2": 2000,
+        "onerilen_ilk": 13200,
+        "onerilen_son": 41200,
+        "onerilen_boss": 69300,
+        "madalya": 30
+      },
+      {
+        "no": 5,
+        "id": "balik_siniri",
+        "ad": "Balık Sınırı",
+        "sinif": "P5",
+        "iskele": 21,
+        "reaktor": "21–25",
+        "dusmanlar": "Siren Sürüsü, Basınç Hayaletleri",
+        "boss": "Siren Kraliçesi",
+        "boss_tur": "Siren Kraliçesi",
+        "dalis_o2": 4000,
+        "onerilen_ilk": 35500,
+        "onerilen_son": 91200,
+        "onerilen_boss": 154000,
+        "madalya": 30
+      },
+      {
+        "no": 6,
+        "id": "sessiz_derinlik",
+        "ad": "Sessiz Derinlik",
+        "sinif": "P6",
+        "iskele": 26,
+        "reaktor": "26–30",
+        "dusmanlar": "Siren Sürüsü, Uçurum Sürüngenleri",
+        "boss": "Kabuk Devi",
+        "boss_tur": "Uçurum Sürüngenleri (kolos)",
+        "dalis_o2": 6000,
+        "onerilen_ilk": 77400,
+        "onerilen_son": 179000,
+        "onerilen_boss": 302000,
+        "madalya": 30
+      },
+      {
+        "no": 7,
+        "id": "huni_tabani",
+        "ad": "Huni Tabanı",
+        "sinif": "P7",
+        "iskele": 31,
+        "reaktor": "31–35",
+        "dusmanlar": "Kadim Muhafızlar, Basınç Hayaletleri",
+        "boss": "Kadim Muhafız",
+        "boss_tur": "Kadim Muhafızlar (kapı bekçisi)",
+        "dalis_o2": 10000,
+        "onerilen_ilk": 151000,
+        "onerilen_son": 332000,
+        "onerilen_boss": 559000,
+        "madalya": 30
+      },
+      {
+        "no": 8,
+        "id": "soguk_sizinti",
+        "ad": "Soğuk Sızıntılar",
+        "sinif": "P8",
+        "iskele": 36,
+        "reaktor": "36–40",
+        "dusmanlar": "Kadim Muhafızlar, Siren Sürüsü",
+        "boss": "İkiz Leviathan",
+        "boss_tur": "Demir Leviathan ×2",
+        "dalis_o2": 15000,
+        "onerilen_ilk": 274000,
+        "onerilen_son": 579000,
+        "onerilen_boss": 974000,
+        "madalya": 30
+      },
+      {
+        "no": 9,
+        "id": "dip_tortulu",
+        "ad": "Dip Tortulu",
+        "sinif": "P9",
+        "iskele": 41,
+        "reaktor": "41–45",
+        "dusmanlar": "Kadim Muhafızlar, Uçurum Sürüngenleri, Siren Sürüsü",
+        "boss": "Muhafız Konseyi",
+        "boss_tur": "Kadim Muhafızlar (üçlü)",
+        "dalis_o2": 22000,
+        "onerilen_ilk": 472000,
+        "onerilen_son": 975000,
+        "onerilen_boss": 1640000,
+        "madalya": 30
+      },
+      {
+        "no": 10,
+        "id": "cukurun_dibi",
+        "ad": "Çukurun Dibi",
+        "sinif": "P10",
+        "iskele": 46,
+        "reaktor": "46–50",
+        "dusmanlar": "Tüm düşmanlar",
+        "boss": "Titan'ın Yavrusu",
+        "boss_tur": "Titan'ın Yavrusu",
+        "dalis_o2": 30000,
+        "onerilen_ilk": 810000,
+        "onerilen_son": 1230000,
+        "onerilen_boss": 2070000,
+        "madalya": 30
+      }
+    ],
+    "bolumler_sutunlar": [
+      ["no", "Bölüm"],
+      ["ad", "Ad"],
+      ["sinif", "Sınıf"],
+      ["iskele", "İskele Sv"],
+      ["reaktor", "Hedef R"],
+      ["dusmanlar", "Düşmanlar"],
+      ["boss", "Boss (10. aşama)"],
+      ["dalis_o2", "Dalış O₂"],
+      ["onerilen_ilk", "Önerilen güç: 1. aşama"],
+      ["onerilen_son", "9. aşama"],
+      ["onerilen_boss", "Boss (2 denizaltı)"]
+    ],
+    "bolum_tanim": {
+      "sutunlar": [["no", "Bölüm"], ["ad", "Ad"], ["sinif", "Sınıf"], ["aciklama", "Yer"]],
+      "satirlar": [
+        {
+          "no": 1,
+          "ad": "Hadal Eşiği",
+          "sinif": "P1",
+          "aciklama": "Abisal düzlüğün bittiği, çukurun ilk basamaklarının başladığı geçiş kuşağı."
+        },
+        {
+          "no": 2,
+          "ad": "Dalan Levha",
+          "sinif": "P2",
+          "aciklama": "Okyanus levhasının çukura doğru büküldüğü dış yamaç; düz tortul tabakalar ve ilk faylar."
+        },
+        {
+          "no": 3,
+          "ad": "Fay Basamakları",
+          "sinif": "P3",
+          "aciklama": "Bükülen levhanın kırılmasıyla oluşan basamaklı sırtlar ve çukurlar (horst ve graben)."
+        },
+        {
+          "no": 4,
+          "ad": "Soluk Sürüler",
+          "sinif": "P4",
+          "aciklama": "Salyangoz balıklarının en kalabalık olduğu kuşak; düşen her leşin çevresinde soluk sürüler toplanır."
+        },
+        {
+          "no": 5,
+          "ad": "Balık Sınırı",
+          "sinif": "P5",
+          "aciklama": "Balıkların yaşayabildiği en derin kuşak; bunun altında omurgalı görülmez."
+        },
+        {
+          "no": 6,
+          "ad": "Sessiz Derinlik",
+          "sinif": "P6",
+          "aciklama": "Balıksız derinlik: amfipodlar, deniz hıyarları ve tortul canlıları; sonarda yalnızca küçük yankılar."
+        },
+        {
+          "no": 7,
+          "ad": "Huni Tabanı",
+          "sinif": "P7",
+          "aciklama": "Çukur duvarlarından kayan tortunun ve organik maddenin toplandığı derin havza."
+        },
+        {
+          "no": 8,
+          "ad": "Soğuk Sızıntılar",
+          "sinif": "P8",
+          "aciklama": "Tortudan metan ve sülfür sızan noktalar; güneşsiz, kemosentetik yaşam adaları."
+        },
+        {
+          "no": 9,
+          "ad": "Dip Tortulu",
+          "sinif": "P9",
+          "aciklama": "Çukurun en derin havzalarını kaplayan ince çamur; dev tek hücrelilerin bahçeleri."
+        },
+        {
+          "no": 10,
+          "ad": "Çukurun Dibi",
+          "sinif": "P10",
+          "aciklama": "Çukurun en derin noktası; Mariana sunucusunda Challenger Derinliği. Çekirdek'in kapısı."
+        }
+      ]
+    },
+    "asamalar": [
+      {"asama": 1, "tur": "Savaş", "isik": "Açık", "not": "Bölümün düşmanlarıyla tanışma"},
+      {"asama": 2, "tur": "Savaş", "isik": "Açık", "not": "Karşı türü öğreten düşman dizilimi"},
+      {
+        "asama": 3,
+        "tur": "Karşılaşma",
+        "isik": "Açık",
+        "not": "Bölümün derinliğinde yaşayan bir tür: tara, gözle ya da kaçın"
+      },
+      {"asama": 4, "tur": "Savaş", "isik": "Açık", "not": "İki dalga"},
+      {"asama": 5, "tur": "Sonar", "isik": "Kapalı", "not": "Düşman dizilimi gizli; yalnızca sonar yankıları"},
+      {"asama": 6, "tur": "Enkaz", "isik": "Açık", "not": "Savaşsız kurtarma; bir kerelik malzeme ödülü"},
+      {"asama": 7, "tur": "Savaş", "isik": "Açık", "not": "Seçkin düşman (boss'un muhafızları)"},
+      {
+        "asama": 8,
+        "tur": "Sonar",
+        "isik": "Kapalı",
+        "not": "Gizli dizilim + karşılaşma: savaş alanındaki bir canlıyı rahatsız etmemek"
+      },
+      {
+        "asama": 9,
+        "tur": "Karşılaşma",
+        "isik": "Kapalı",
+        "not": "Işıksız gözlem; Fenerbalığı gövdesiyle kolaylaşır"
+      },
+      {"asama": 10, "tur": "Boss", "isik": "Açık", "not": "En çok iki denizaltı, 15 tur"}
+    ],
+    "asamalar_sutunlar": [["asama", "Aşama"], ["tur", "Tür"], ["isik", "Işık"], ["not", "Ne olur"]],
+    "madalyalar": [
+      {"tur": "Savaş", "m1": "Kazan", "m2": "Kayıp %20'nin altında", "m3": "6 turda bitir"},
+      {"tur": "Sonar", "m1": "Kazan", "m2": "Işık açmadan kazan", "m3": "Kayıp %20'nin altında"},
+      {"tur": "Karşılaşma", "m1": "Tamamla", "m2": "Türü tara", "m3": "Hiç rahatsız etmeden gözle"},
+      {
+        "tur": "Enkaz",
+        "m1": "Kurtar",
+        "m2": "Mors ile kurtar ya da kurtarmayı süre dolmadan bitir",
+        "m3": "Kalıntı izini işaretle"
+      },
+      {"tur": "Boss", "m1": "Yen", "m2": "Tek denizaltıyla yen", "m3": "10 turda yen"}
+    ],
+    "madalyalar_sutunlar": [["tur", "Aşama türü"], ["m1", "1. madalya"], ["m2", "2. madalya"], ["m3", "3. madalya"]],
+    "madalya_kaynaklari": [
+      {"kaynak": "Aşama madalyaları (ilk kez)", "miktar": "Aşama başına 3, toplam 300"},
+      {"kaynak": "Bölüm tamamlama", "miktar": "Bölüm başına 10"},
+      {"kaynak": "Haftalık Derin Tekrar (geçilmiş boss'ları yeniden yen)", "miktar": "Boss başına haftada 3"},
+      {"kaynak": "Etkinlik görevleri (13)", "miktar": "Değişken"}
+    ],
+    "madalya_kaynaklari_sutunlar": [["kaynak", "Kaynak"], ["miktar", "Miktar"]],
+    "dukkan": [
+      {"urun": "Seçmeli nadir kahraman parçası ×5", "bedel": 20, "sinir": "Haftada 4", "acilis": "Bölüm 1"},
+      {"urun": "Seçmeli destansı kahraman parçası ×5", "bedel": 60, "sinir": "Haftada 2", "acilis": "Bölüm 5"},
+      {"urun": "Anı Kristali ×1", "bedel": 25, "sinir": "Haftada 3", "acilis": "Bölüm 3"},
+      {
+        "urun": "Teçhizat malzemesi kutusu (bölümün malzemesi)",
+        "bedel": 15,
+        "sinir": "Haftada 5",
+        "acilis": "Bölüm 2"
+      },
+      {"urun": "Eğitim hızlandırma 1 sa", "bedel": 10, "sinir": "Haftada 10", "acilis": "Bölüm 1"},
+      {"urun": "İyileştirme hızlandırma 1 sa", "bedel": 8, "sinir": "Haftada 10", "acilis": "Bölüm 1"},
+      {
+        "urun": "Gövde kaplaması (bölüme özel, kozmetik)",
+        "bedel": 150,
+        "sinir": "Bir kez",
+        "acilis": "Bölümü bitir"
+      },
+      {"urun": "Madalya profili rozeti", "bedel": 300, "sinir": "Bir kez", "acilis": "Bölüm 10"}
+    ],
+    "dukkan_sutunlar": [["urun", "Ürün"], ["bedel", "Madalya"], ["sinir", "Sınır"], ["acilis", "Açılış"]],
+    "oduller": [
+      {
+        "bolum": 1,
+        "ad": "Hadal Eşiği",
+        "dalis_sa": null,
+        "boss_hd": 100,
+        "boss_sa": null,
+        "boss_parca": "Nadir ×10"
+      },
+      {
+        "bolum": 2,
+        "ad": "Dalan Levha",
+        "dalis_sa": null,
+        "boss_hd": 100,
+        "boss_sa": null,
+        "boss_parca": "Nadir ×10"
+      },
+      {
+        "bolum": 3,
+        "ad": "Fay Basamakları",
+        "dalis_sa": null,
+        "boss_hd": 150,
+        "boss_sa": null,
+        "boss_parca": "Nadir ×15"
+      },
+      {
+        "bolum": 4,
+        "ad": "Soluk Sürüler",
+        "dalis_sa": null,
+        "boss_hd": 150,
+        "boss_sa": null,
+        "boss_parca": "Nadir ×15"
+      },
+      {
+        "bolum": 5,
+        "ad": "Balık Sınırı",
+        "dalis_sa": null,
+        "boss_hd": 200,
+        "boss_sa": null,
+        "boss_parca": "Destansı ×10"
+      },
+      {
+        "bolum": 6,
+        "ad": "Sessiz Derinlik",
+        "dalis_sa": null,
+        "boss_hd": 200,
+        "boss_sa": null,
+        "boss_parca": "Destansı ×10"
+      },
+      {
+        "bolum": 7,
+        "ad": "Huni Tabanı",
+        "dalis_sa": "Var",
+        "boss_hd": 250,
+        "boss_sa": 60,
+        "boss_parca": "Destansı ×15"
+      },
+      {
+        "bolum": 8,
+        "ad": "Soğuk Sızıntılar",
+        "dalis_sa": "Var",
+        "boss_hd": 300,
+        "boss_sa": 100,
+        "boss_parca": "Destansı ×15"
+      },
+      {
+        "bolum": 9,
+        "ad": "Dip Tortulu",
+        "dalis_sa": "Var",
+        "boss_hd": 350,
+        "boss_sa": 150,
+        "boss_parca": "Efsanevi ×5"
+      },
+      {
+        "bolum": 10,
+        "ad": "Çukurun Dibi",
+        "dalis_sa": "Var",
+        "boss_hd": 500,
+        "boss_sa": 250,
+        "boss_parca": "Efsanevi ×10"
+      }
+    ],
+    "oduller_sutunlar": [
+      ["bolum", "Bölüm"],
+      ["ad", "Ad"],
+      ["dalis_sa", "Ödüllü dalışta SA"],
+      ["boss_hd", "Boss Hadalit"],
+      ["boss_sa", "Boss Süperalaşım"],
+      ["boss_parca", "Boss kahraman parçası (seçmeli)"]
+    ],
+    "giris": {
+      "sutunlar": [
+        ["asama", "Aşama"],
+        ["ad", "Ad"],
+        ["bolge", "Bölge"],
+        ["turler", "Karşılaşılan türler"],
+        ["not", "Ne öğretir"]
+      ],
+      "satirlar": [
+        {
+          "asama": "0.1",
+          "ad": "Alacakaranlık",
+          "bolge": "Mezopelajik Bölge (Alacakaranlık Bölgesi)",
+          "turler": "Fıçı Göz, Dev Sifonofor, Fırfırlı Köpekbalığı",
+          "not": "Son ışık; biyoışıldama ilk kez görünür. Işık kullanımı ve sonar öğretilir."
+        },
+        {
+          "asama": "0.2",
+          "ad": "Kalamarların Derinliği",
+          "bolge": "Mezopelajik Bölge (Alacakaranlık Bölgesi)",
+          "turler": "Dev Kalamar, Koloss Kalamar, Vampir Kalamar",
+          "not": "Karşılaşma eylemleri (Tara, Gözle, Kaçın) öğretilir; hiçbir canlı hedef değildir."
+        },
+        {
+          "asama": "0.3",
+          "ad": "Gece Yarısı",
+          "bolge": "Batipelajik Bölge (Gece Yarısı Bölgesi)",
+          "turler": "Kambur Fener Balığı, Dev İzopod",
+          "not": "Kalıcı karanlık; basınç göstergesi ve gövde bütünlüğü öğretilir."
+        },
+        {
+          "asama": "0.4",
+          "ad": "Baca Sahası",
+          "bolge": "Batipelajik Bölge (Gece Yarısı Bölgesi)",
+          "turler": "Dev Tüp Kurdu, Pompeii Kurdu, Pullu Ayaklı Salyangoz, Yeti Yengeci",
+          "not": "Kemosentez ve üssün enerji fikri; baca canlıları yalnızca gözlenir."
+        },
+        {
+          "asama": "0.5",
+          "ad": "Abisal Düzlük",
+          "bolge": "Abisopelajik Bölge (Abisal Bölge)",
+          "turler": "Süperdev Amfipod, Ksenofiyofor (dev tek hücreli), Galathea Kusk Yılanbalığı",
+          "not": "Üssün kurulacağı Hadal Eşiği'ne varış; Derinlik Haritası'nın 1. bölümü görünür olur."
+        }
+      ]
+    },
+    "boss_hd_toplam": 2300,
+    "boss_sa_toplam": 560,
+    "odullu_dalis": 3
+  },
+  "fauna": [
+    {
+      "id": "bigfin_squid",
+      "ad": "Büyük Yüzgeçli Kalamar",
+      "bolum": "1",
+      "eylem": "Işıksız gözlem",
+      "not": "Uzun kolları akıntıda asılı durur; ışık açılırsa uzaklaşır."
+    },
+    {
+      "id": "dumbo_octopus",
+      "ad": "Dumbo Ahtapot",
+      "bolum": "1, 2",
+      "eylem": "Gözle",
+      "not": "Kulak benzeri yüzgeçleriyle süzülür; 2. bölüm, ahtapotların görüldüğü en derin kuşaktır."
+    },
+    {
+      "id": "supergiant_amphipod",
+      "ad": "Süperdev Amfipod",
+      "bolum": "1, 4, 6",
+      "eylem": "Tara",
+      "not": "Leşe toplanan iri amfipodlar; 6. bölümde türün en derin kaydına yakın."
+    },
+    {
+      "id": "galathea_cusk_eel",
+      "ad": "Galathea Kusk Yılanbalığı",
+      "bolum": "2",
+      "eylem": "Tara",
+      "not": "Kaydı tartışmalı bir tür; tarama Katalog'a 'doğrulanmamış' notuyla düşer."
+    },
+    {
+      "id": "kermadec_snailfish",
+      "ad": "Kermadec Salyangoz Balığı",
+      "bolum": "2, 3",
+      "eylem": "Gözle",
+      "not": "Yemli kameraların etrafında toplanan soluk, jelatinimsi balıklar."
+    },
+    {
+      "id": "mariana_snailfish",
+      "ad": "Mariana Salyangoz Balığı",
+      "bolum": "3, 5",
+      "eylem": "Gözle",
+      "not": "Hadal çukurların en bol balığı; 5. bölümde menzilinin dibindedir."
+    },
+    {
+      "id": "deep_prawn",
+      "ad": "Derin Deniz Karidesi",
+      "bolum": "3, 4",
+      "eylem": "Tara",
+      "not": "Dekapodların ulaştığı en derin kuşak 4. bölümdedir."
+    },
+    {
+      "id": "japan_trench_snailfish",
+      "ad": "Japon Çukuru Salyangoz Balığı",
+      "bolum": "4, 5",
+      "eylem": "Işıksız gözlem",
+      "not": "5. bölümde balık sınırına en yakın gözlem."
+    },
+    {
+      "id": "hadal_amphipod",
+      "ad": "Dev Hadal Amfipodu",
+      "bolum": "5, 7, 8, 9, 10",
+      "eylem": "Tara",
+      "not": "Balık sınırının altındaki çöpçü kabuklu; Çukurun Dibi'ne kadar iner."
+    },
+    {
+      "id": "hadal_sea_cucumbers",
+      "ad": "Hadal Deniz Hıyarları",
+      "bolum": "6, 7, 8, 9, 10",
+      "eylem": "Gözle",
+      "not": "Tortuyu yavaşça eleyen deniz hıyarları; sessiz derinliğin baskın hayvanı."
+    },
+    {
+      "id": "xenophyophore",
+      "ad": "Ksenofiyofor (dev tek hücreli)",
+      "bolum": "7, 8, 9, 10",
+      "eylem": "Işıksız gözlem",
+      "not": "Tek hücreli ama avuç büyüklüğünde; dokunulmaz, yalnızca gözlenir."
+    }
+  ],
+  "fauna_sutunlar": [
+    ["ad", "Tür"],
+    ["id", "bilim.json", "ham"],
+    ["bolum", "Bölüm"],
+    ["eylem", "Önerilen karşılaşma"],
+    ["not", "Not"]
+  ],
+  "karsilasma_eylemleri": [
+    {
+      "eylem": "Tara",
+      "kosul": "Herhangi bir denizaltı",
+      "sonuc": "Tür Kataloğu kaydı; 1 madalya",
+      "maliyet": "Dalış O₂"
+    },
+    {
+      "eylem": "Gözle",
+      "kosul": "Işıklar kapalı, 3 tur hareketsiz",
+      "sonuc": "Katalog notu + davranış kaydı; 1 madalya",
+      "maliyet": "Dalış O₂ ×1,5"
+    },
+    {
+      "eylem": "Kaçın",
+      "kosul": "Rota değiştir",
+      "sonuc": "Aşama geçilir, madalya yok",
+      "maliyet": "Dalış O₂ ×0,5"
+    }
+  ],
+  "karsilasma_eylemleri_sutunlar": [["eylem", "Eylem"], ["kosul", "Koşul"], ["sonuc", "Sonuç"], ["maliyet", "Maliyet"]],
+  "sonar_dronlari": [
+    {"radar": 1, "dron": 1, "menzil": 10, "yaricap": 2, "bekleme": 1800, "enerji": 50},
+    {"radar": 10, "dron": 1, "menzil": 18, "yaricap": 3, "bekleme": 1620, "enerji": 500},
+    {"radar": 15, "dron": 2, "menzil": 22, "yaricap": 3, "bekleme": 1530, "enerji": 1000},
+    {"radar": 20, "dron": 2, "menzil": 26, "yaricap": 4, "bekleme": 1440, "enerji": 2000},
+    {"radar": 30, "dron": 3, "menzil": 34, "yaricap": 5, "bekleme": 1260, "enerji": 5000},
+    {"radar": 40, "dron": 3, "menzil": 42, "yaricap": 6, "bekleme": 1080, "enerji": 9000},
+    {"radar": 50, "dron": 3, "menzil": 50, "yaricap": 7, "bekleme": 900, "enerji": 15000}
+  ],
+  "sonar_dronlari_sutunlar": [
+    ["radar", "Radar Sv"],
+    ["dron", "Dron"],
+    ["menzil", "Menzil (kare)"],
+    ["yaricap", "Tarama yarıçapı (kare)"],
+    ["bekleme", "Dron başına bekleme", "sure"],
+    ["enerji", "Ping bedeli (Enerji)"]
+  ],
+  "sis": {
+    "canli_sure": 600,
+    "kalici": "Arazi ve sabit buluntular kalıcı açılır; yürüyüşler ve canavarlar yalnızca ping sonrası 10 dakika görünür."
+  },
+  "buluntular": [
+    {
+      "ad": "Batık enkaz",
+      "bulunur": "Her kuşak",
+      "nasil": "Bir denizaltı gidip kurtarır (10–30 dk; Mors −%33)",
+      "odul": "Bir kerelik 0,3–1 GS Titanyum ve bir teçhizat malzemesi; hedefli dron kurtarmasının hedefi"
+    },
+    {
+      "ad": "Paslı Kriyo-Kapsül (I)",
+      "bulunur": "P1–P3 basamakları",
+      "nasil": "Denizaltıyla getirilir, Kriyo Salonu'nda açılır",
+      "odul": "Sıradan/nadir kahraman parçası ×5–10"
+    },
+    {
+      "ad": "Mühürlü Kriyo-Kapsül (II)",
+      "bulunur": "P4–P7 basamakları",
+      "nasil": "Getirilir; açılması 8 saat",
+      "odul": "Nadir/destansı parça ×10–15, %10 şansla Anı Kristali"
+    },
+    {
+      "ad": "Kadim Kriyo-Kapsül (III)",
+      "bulunur": "P8–P10 basamakları",
+      "nasil": "Getirilir; açılması 24 saat, ittifak yardımı alır",
+      "odul": "Destansı parça ×20, %5 şansla efsanevi parça ×5"
+    },
+    {
+      "ad": "Tür yankısı",
+      "bulunur": "Türün bilinen derinlik aralığında",
+      "nasil": "Ping alanına düşünce kendiliğinden kaydolur",
+      "odul": "Tür Kataloğu kaydı (Fenerbalığı ile iki kat puan)"
+    },
+    {
+      "ad": "Kalıntı izi",
+      "bulunur": "Derin Yamaç ve içerisi",
+      "nasil": "İşaretlenir; hikâye ve sefer içeriği açar",
+      "odul": "Bkz. 14 · Son Oyun"
+    }
+  ],
+  "buluntular_sutunlar": [["ad", "Buluntu"], ["bulunur", "Nerede"], ["nasil", "Nasıl alınır"], ["odul", "Ödül"]],
+  "kurtarma_v8": [
+    {"id": "quick", "ad": "Hızlı", "sure": 900, "odul": "1.500 Titanyum", "hadalit": "—"},
+    {
+      "id": "standard",
+      "ad": "Standart",
+      "sure": 3600,
+      "odul": "5.000 Titanyum + 400 Biyokütle",
+      "hadalit": "%25 şansla 2–4"
+    },
+    {
+      "id": "deep",
+      "ad": "Derin",
+      "sure": 14400,
+      "odul": "15.000 Titanyum + 1.500 Biyokütle",
+      "hadalit": "%60 şansla 4–8"
+    }
+  ],
+  "kurtarma_v8_sutunlar": [
+    ["ad", "Görev"],
+    ["id", "Kimlik", "ham"],
+    ["sure", "Süre", "sure"],
+    ["odul", "Ödül (Sv 1)"],
+    ["hadalit", "Hadalit"]
+  ],
+  "kurtarma_hedef": [
+    {
+      "ad": "Hızlı",
+      "sure": 900,
+      "acilis": "Dron Fabrikası 1",
+      "saat": 0.1,
+      "hadalit": "—",
+      "r10": 900,
+      "r20": 3800,
+      "r30": 9000,
+      "r40": 17000,
+      "r50": 30000
+    },
+    {
+      "ad": "Standart",
+      "sure": 3600,
+      "acilis": "Dron Fabrikası 1",
+      "saat": 0.3,
+      "hadalit": "%25 şansla 20–40",
+      "r10": 2700,
+      "r20": 11400,
+      "r30": 27000,
+      "r40": 51000,
+      "r50": 90000
+    },
+    {
+      "ad": "Derin",
+      "sure": 14400,
+      "acilis": "Dron Fabrikası 1",
+      "saat": 0.8,
+      "hadalit": "%60 şansla 40–80",
+      "r10": 7200,
+      "r20": 30400,
+      "r30": 72000,
+      "r40": 136000,
+      "r50": 240000
+    },
+    {
+      "ad": "Gece Kurtarması",
+      "sure": 28800,
+      "acilis": "Reaktör 15",
+      "saat": 1.4,
+      "hadalit": "%70 şansla 60–120",
+      "r10": null,
+      "r20": 53200,
+      "r30": 126000,
+      "r40": 238000,
+      "r50": 420000
+    },
+    {
+      "ad": "Çukur Kurtarması",
+      "sure": 43200,
+      "acilis": "Reaktör 30",
+      "saat": 2.0,
+      "hadalit": "%80 şansla 80–160; %20 şansla 10–30 SA",
+      "r10": null,
+      "r20": null,
+      "r30": 180000,
+      "r40": 340000,
+      "r50": 600000
+    }
+  ],
+  "kurtarma_hedef_sutunlar": [
+    ["ad", "Görev"],
+    ["sure", "Süre", "sure"],
+    ["acilis", "Açılış"],
+    ["saat", "Titanyum (GS)"],
+    ["r10", "R10 Ti"],
+    ["r20", "R20 Ti"],
+    ["r30", "R30 Ti"],
+    ["r40", "R40 Ti"],
+    ["r50", "R50 Ti"],
+    ["hadalit", "Hadalit (×10)"]
+  ],
+  "dersler": [
+    {
+      "ders": "Basınç küresi",
+      "gercek": "Tam okyanus derinliğine inen insanlı araçlarda mürettebat kalın cidarlı bir titanyum kürede oturur; küre, basıncı her yönden eşit taşıyan en verimli biçimdir.",
+      "oyun": "Basınç sınıfı İskele'nin Titanyumla güçlenen küresidir; Basınç Küresi modülü açıkta gövde kaybını azaltır.",
+      "ornek": "DSV Limiting Factor (Triton 36000/2), Shinkai 6500"
+    },
+    {
+      "ders": "Sintaktik köpük",
+      "gercek": "Reçineye gömülmüş içi boş cam mikroküreler, ezilmeden yüzdürme sağlayan hafif bir malzeme oluşturur; derin araçların yüzdürme bloklarının çoğu budur.",
+      "oyun": "Teçhizat malzemesi ve Yüzdürme Bloğu modülü: hız ve dalış verimi.",
+      "ornek": "Deepsea Challenger, Alvin"
+    },
+    {
+      "ders": "Güvenlik payı",
+      "gercek": "Araçlar çalışma derinliklerinin üstünde bir güvenlik payıyla test edilir; pay, gövdenin dayanabileceği sınırla çalıştırıldığı derinlik arasındaki farktır.",
+      "oyun": "Bir sınıf açık hasarla tolere edilir; iki sınıf açık kesin yasaktır.",
+      "ornek": "DSV Limiting Factor (Triton 36000/2)"
+    },
+    {
+      "ders": "Malzeme yorulması",
+      "gercek": "Her dalış gövdeyi sıkıştırıp bırakır; tekrar eden yükler zamanla iz bırakır, bu yüzden gövdeler düzenli muayene edilir.",
+      "oyun": "Gövde bütünlüğü kalıcı değildir; açıkta geçen her dakika iz bırakır ve onarım ister.",
+      "ornek": "Alvin"
+    },
+    {
+      "ders": "Tek parçanın bedeli",
+      "gercek": "İnsansız hibrit araç Nereus, ağır köpük yerine yüzlerce içi boş seramik küreyle yüzüyordu; Kermadec Çukuru'ndaki kaybının büyük olasılıkla bu kürelerin çökmesinden kaynaklandığı düşünülüyor. Hafiflik kazancı ile güvenlik payı arasında bir denge vardır.",
+      "oyun": "Yüzdürme Bloğu 5. seviyede bölmelere ayrılır; gövde %0'a inince araç parçalanmaz, balast bırakıp yükselir.",
+      "ornek": "Nereus"
+    },
+    {
+      "ders": "Balast bırakarak yükselme",
+      "gercek": "Derin dalış araçları inişte taşıdıkları ağırlıkları bırakarak yüzeye döner; bu, güç kesilse bile çalışan pasif bir güvenlik yoludur.",
+      "oyun": "Acil tahliye: gövde bütünlüğü %0 olunca denizaltı seferi bırakır ve üsse döner; askerler sağ salim iner.",
+      "ornek": "Trieste"
+    },
+    {
+      "ders": "Ses, ışıktan uzağa gider",
+      "gercek": "Işık suda birkaç on metrede söner; derin denizde konum, haberleşme ve haritalama sesle (sonar, akustik modem) yapılır.",
+      "oyun": "Sonar aşamaları ve sis: haritayı ışık değil sonar dronları açar.",
+      "ornek": "—"
+    }
+  ],
+  "dersler_sutunlar": [
+    ["ders", "Mühendislik dersi"],
+    ["gercek", "Derin denizde"],
+    ["ornek", "Örnek araç (18)"],
+    ["oyun", "Hadal'daki karşılığı"]
+  ],
+  "moduller": [
+    {
+      "ad": "Basınç Küresi",
+      "malzeme": "Titanyum + bazalt camı",
+      "etki": "Açıkta gövde kaybı −%5 / seviye (en çok −%50)",
+      "seviye": 10
+    },
+    {
+      "ad": "Yüzdürme Bloğu",
+      "malzeme": "Sintaktik köpük",
+      "etki": "Seyir hızı +%2 / seviye; 5. seviyede bölmeli (zincirleme çöküşe karşı)",
+      "seviye": 10
+    },
+    {
+      "ad": "Sonar Dizisi",
+      "malzeme": "Kitin + masif sülfür",
+      "etki": "Sonar aşamasında 1 tur önceden görüş; Tür taraması +%10 / seviye",
+      "seviye": 10
+    }
+  ],
+  "moduller_sutunlar": [["ad", "Modül"], ["malzeme", "Malzeme"], ["etki", "Etki"], ["seviye", "En yüksek Sv"]]
+}

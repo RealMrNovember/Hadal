@@ -1,0 +1,1293 @@
+{
+  "surum": "rehber-1",
+  "_not": "09 · Dünya Haritası ve PvP verisi. Mekanik kuşak sırası ve basamakla çalışır (K-24); metredeki derinlikler Mariana referansıdır, her sunucuda o çukurun profiline göre ölçeklenerek gösterilir. Yatak hızları Ti-eşdeğeri/saattir (1 yük = 1 Titanyum değeri); 'etkin' sütunu tipik bonusla tek seferin hızıdır ve oduller.json 'toplama' tablosundaki yürüyüş başına hızla eşleşir.",
+  "izgara": {"boyut": 200, "merkez": 100, "aralik": 3, "gorus": 14, "kanat": 4, "esik_yuva": 1324},
+  "kusaklar_sutunlar": [
+    ["sira", "#"],
+    ["ad", "Kuşak"],
+    ["derinlik", "Derinlik (Mariana)"],
+    ["uzaklik", "Uzaklık (Chebyshev)"],
+    ["kare", "Kare"],
+    ["us", "Üs"],
+    ["sinif", "Gövde (sığ / derin)"],
+    ["dugum", "Yatak Sv"],
+    ["dusman", "Düşman Sv"],
+    ["acilis", "Açılış (Kronik)"]
+  ],
+  "kusaklar": [
+    {
+      "id": "abisal_duzluk",
+      "sira": 1,
+      "ad": "Abisal Düzlük",
+      "derinlik": "4.000–6.000 m",
+      "z_ust": 4000,
+      "z_alt": 6000,
+      "d_ic": 85,
+      "d_dis": 100,
+      "uzaklik": "85–100",
+      "kare": 11439,
+      "us": "Hayır",
+      "sinif": "P1 / P1",
+      "dugum": "1–6",
+      "dusman": "1–10",
+      "acilis": "1 · İniş",
+      "aciklama": "Çukurun dışındaki düz okyanus tabanı. Nodül sahaları, enkaz ve balina leşleri; keşif ve güvenli toplama."
+    },
+    {
+      "id": "hadal_esigi",
+      "sira": 2,
+      "ad": "Hadal Eşiği",
+      "derinlik": "6.000–7.000 m",
+      "z_ust": 6000,
+      "z_alt": 7000,
+      "d_ic": 65,
+      "d_dis": 84,
+      "uzaklik": "65–84",
+      "kare": 11920,
+      "us": "Evet · yeni üsler",
+      "sinif": "P1 / P2",
+      "dugum": "1–4",
+      "dusman": "1–20",
+      "acilis": "1 · İniş",
+      "aciklama": "Hadal Zonu'nun girişi. Her yeni üs buraya kurulur (K-08); erken oyunun yurdu."
+    },
+    {
+      "id": "cukur_yamaci",
+      "sira": 3,
+      "ad": "Çukur Yamacı",
+      "derinlik": "7.000–8.000 m",
+      "z_ust": 7000,
+      "z_alt": 8000,
+      "d_ic": 46,
+      "d_dis": 64,
+      "uzaklik": "46–64",
+      "kare": 8360,
+      "us": "Evet · P3",
+      "sinif": "P3 / P4",
+      "dugum": "3–5",
+      "dusman": "15–30",
+      "acilis": "4 · Birinci Kilit",
+      "aciklama": "Çukurun iç duvarı. Soğuk sızıntılar, ilk kadim kalıntılar ve ilk Basınç Kilitleri."
+    },
+    {
+      "id": "derin_yamac",
+      "sira": 4,
+      "ad": "Derin Yamaç",
+      "derinlik": "8.000–9.000 m",
+      "z_ust": 8000,
+      "z_alt": 9000,
+      "d_ic": 28,
+      "d_dis": 45,
+      "uzaklik": "28–45",
+      "kare": 5256,
+      "us": "Evet · P5",
+      "sinif": "P5 / P6",
+      "dugum": "4–6",
+      "dusman": "25–40",
+      "acilis": "6 · İkinci Kilit",
+      "aciklama": "Fay sırtlarının bittiği kesintisiz halka. Kanatlar burada birleşir; ilk Leviathan yuvaları."
+    },
+    {
+      "id": "cukur_ekseni",
+      "sira": 5,
+      "ad": "Çukur Ekseni",
+      "derinlik": "9.000–10.000 m",
+      "z_ust": 9000,
+      "z_alt": 10000,
+      "d_ic": 12,
+      "d_dis": 27,
+      "uzaklik": "12–27",
+      "kare": 2496,
+      "us": "Evet · yalnızca hedefli",
+      "sinif": "P7 / P8",
+      "dugum": "5–7",
+      "dusman": "35–50",
+      "acilis": "8 · Eksen",
+      "aciklama": "Çukurun ekseni boyunca uzanan dar oluk. Büyük Rezonans Alanları ve olgun Leviathan yuvaları."
+    },
+    {
+      "id": "dip_cekirdek",
+      "sira": 6,
+      "ad": "Dip ve Çekirdek",
+      "derinlik": "10.000–10.935 m",
+      "z_ust": 10000,
+      "z_alt": 10935,
+      "d_ic": 0,
+      "d_dis": 11,
+      "uzaklik": "0–11",
+      "kare": 529,
+      "us": "Hayır",
+      "sinif": "P9 / P10",
+      "dugum": "6–8",
+      "dusman": "45–50",
+      "acilis": "10 · Çekirdek",
+      "aciklama": "En derin nokta. Dip (6–11) P9, Çekirdek (0–5) P10 ister; ortada Çukur Kalbi durur."
+    }
+  ],
+  "basamaklar_sutunlar": [
+    ["kusak", "Kuşak"],
+    ["basamak", "Basamak"],
+    ["uzaklik", "Uzaklık"],
+    ["kare", "Kare"],
+    ["derinlik", "Derinlik (Mariana)"],
+    ["sinif", "Gerekli gövde"]
+  ],
+  "basamaklar": [
+    {
+      "kusak": "Abisal Düzlük",
+      "basamak": "Tek",
+      "uzaklik": "85–100",
+      "kare": 11439,
+      "sinif": "P1",
+      "derinlik": "4.000–6.000 m",
+      "sinif_m": 6500
+    },
+    {
+      "kusak": "Hadal Eşiği",
+      "basamak": "Sığ",
+      "uzaklik": "75–84",
+      "kare": 6360,
+      "sinif": "P1",
+      "derinlik": "6.000–6.500 m",
+      "sinif_m": 6500
+    },
+    {
+      "kusak": "Hadal Eşiği",
+      "basamak": "Derin",
+      "uzaklik": "65–74",
+      "kare": 5560,
+      "sinif": "P2",
+      "derinlik": "6.500–7.000 m",
+      "sinif_m": 7000
+    },
+    {
+      "kusak": "Çukur Yamacı",
+      "basamak": "Sığ",
+      "uzaklik": "55–64",
+      "kare": 4760,
+      "sinif": "P3",
+      "derinlik": "7.000–7.500 m",
+      "sinif_m": 7500
+    },
+    {
+      "kusak": "Çukur Yamacı",
+      "basamak": "Derin",
+      "uzaklik": "46–54",
+      "kare": 3600,
+      "sinif": "P4",
+      "derinlik": "7.500–8.000 m",
+      "sinif_m": 8000
+    },
+    {
+      "kusak": "Derin Yamaç",
+      "basamak": "Sığ",
+      "uzaklik": "37–45",
+      "kare": 2952,
+      "sinif": "P5",
+      "derinlik": "8.000–8.500 m",
+      "sinif_m": 8500
+    },
+    {
+      "kusak": "Derin Yamaç",
+      "basamak": "Derin",
+      "uzaklik": "28–36",
+      "kare": 2304,
+      "sinif": "P6",
+      "derinlik": "8.500–9.000 m",
+      "sinif_m": 9000
+    },
+    {
+      "kusak": "Çukur Ekseni",
+      "basamak": "Sığ",
+      "uzaklik": "20–27",
+      "kare": 1504,
+      "sinif": "P7",
+      "derinlik": "9.000–9.500 m",
+      "sinif_m": 9500
+    },
+    {
+      "kusak": "Çukur Ekseni",
+      "basamak": "Derin",
+      "uzaklik": "12–19",
+      "kare": 992,
+      "sinif": "P8",
+      "derinlik": "9.500–10.000 m",
+      "sinif_m": 10000
+    },
+    {
+      "kusak": "Dip ve Çekirdek",
+      "basamak": "Dip",
+      "uzaklik": "6–11",
+      "kare": 408,
+      "sinif": "P9",
+      "derinlik": "10.000–10.500 m",
+      "sinif_m": 10500
+    },
+    {
+      "kusak": "Dip ve Çekirdek",
+      "basamak": "Çekirdek",
+      "uzaklik": "0–5",
+      "kare": 121,
+      "sinif": "P10",
+      "derinlik": "10.500–10.935 m",
+      "sinif_m": 10935
+    }
+  ],
+  "sunucular_sutunlar": [
+    ["ad", "Çukur"],
+    ["olcek", "Ölçek k"],
+    ["esik", "Hadal Eşiği (m)"],
+    ["yamac", "Çukur Yamacı (m)"],
+    ["derin", "Derin Yamaç (m)"],
+    ["eksen", "Çukur Ekseni (m)"],
+    ["dip", "Dip ve Çekirdek (m)"]
+  ],
+  "sunucular": [
+    {
+      "id": "mariana",
+      "ad": "Mariana Çukuru",
+      "olcek": 1.0,
+      "esik": "6.000–7.000",
+      "yamac": "7.000–8.000",
+      "derin": "8.000–9.000",
+      "eksen": "9.000–10.000",
+      "dip": "10.000–10.935"
+    },
+    {
+      "id": "tonga",
+      "ad": "Tonga Çukuru",
+      "olcek": 0.976,
+      "esik": "6.000–6.976",
+      "yamac": "6.976–7.952",
+      "derin": "7.952–8.928",
+      "eksen": "8.928–9.904",
+      "dip": "9.904–10.816"
+    },
+    {
+      "id": "kuril_kamcatka",
+      "ad": "Kuril-Kamçatka Çukuru",
+      "olcek": 0.73,
+      "esik": "6.000–6.730",
+      "yamac": "6.730–7.461",
+      "derin": "7.461–8.191",
+      "eksen": "8.191–8.921",
+      "dip": "8.921–9.604"
+    },
+    {
+      "id": "filipin",
+      "ad": "Filipin Çukuru",
+      "olcek": 0.92,
+      "esik": "6.000–6.920",
+      "yamac": "6.920–7.840",
+      "derin": "7.840–8.760",
+      "eksen": "8.760–9.680",
+      "dip": "9.680–10.540"
+    },
+    {
+      "id": "kermadec",
+      "ad": "Kermadec Çukuru",
+      "olcek": 0.82,
+      "esik": "6.000–6.820",
+      "yamac": "6.820–7.640",
+      "derin": "7.640–8.460",
+      "eksen": "8.460–9.280",
+      "dip": "9.280–10.047"
+    },
+    {
+      "id": "izu_ogasawara",
+      "ad": "Izu-Ogasawara Çukuru",
+      "olcek": 0.775,
+      "esik": "6.000–6.775",
+      "yamac": "6.775–7.551",
+      "derin": "7.551–8.326",
+      "eksen": "8.326–9.101",
+      "dip": "9.101–9.826"
+    },
+    {
+      "id": "porto_riko",
+      "ad": "Porto Riko Çukuru",
+      "olcek": 0.482,
+      "esik": "6.000–6.482",
+      "yamac": "6.482–6.964",
+      "derin": "6.964–7.446",
+      "eksen": "7.446–7.927",
+      "dip": "7.927–8.378"
+    },
+    {
+      "id": "guney_sandwich",
+      "ad": "Güney Sandwich Çukuru",
+      "olcek": 0.459,
+      "esik": "6.000–6.459",
+      "yamac": "6.459–6.918",
+      "derin": "6.918–7.377",
+      "eksen": "7.377–7.836",
+      "dip": "7.836–8.265"
+    },
+    {
+      "id": "atacama",
+      "ad": "Atacama Çukuru",
+      "olcek": 0.419,
+      "esik": "6.000–6.419",
+      "yamac": "6.419–6.839",
+      "derin": "6.839–7.258",
+      "eksen": "7.258–7.677",
+      "dip": "7.677–8.069"
+    },
+    {
+      "id": "java",
+      "ad": "Java Çukuru",
+      "olcek": 0.241,
+      "esik": "6.000–6.241",
+      "yamac": "6.241–6.481",
+      "derin": "6.481–6.722",
+      "eksen": "6.722–6.962",
+      "dip": "6.962–7.187"
+    }
+  ],
+  "gecitler_sutunlar": [
+    ["ad", "Geçit"],
+    ["adet", "Adet"],
+    ["konum", "Konum"],
+    ["baglar", "Bağladığı"],
+    ["bekci", "Bekçi"],
+    ["dayaniklilik", "Dayanıklılık"],
+    ["garnizon", "Garnizon (sefer)"],
+    ["acilis", "Uyanış (Kronik)"]
+  ],
+  "gecitler": [
+    {
+      "id": "fay_gecidi_esik",
+      "ad": "Fay Geçidi (Eşik)",
+      "tur": "Fay geçidi",
+      "adet": 4,
+      "konum": "4 köşegen × Hadal Eşiği (uzaklık 74–75)",
+      "baglar": "Komşu kanatlar",
+      "bekci": "Bekçi I (Sv 15)",
+      "dayaniklilik": 150000,
+      "garnizon": 6,
+      "acilis": "3 · Fay Geçitleri"
+    },
+    {
+      "id": "fay_gecidi_yamac",
+      "ad": "Fay Geçidi (Yamaç)",
+      "tur": "Fay geçidi",
+      "adet": 4,
+      "konum": "4 köşegen × Çukur Yamacı (uzaklık 55)",
+      "baglar": "Komşu kanatlar",
+      "bekci": "Bekçi II (Sv 25)",
+      "dayaniklilik": 300000,
+      "garnizon": 8,
+      "acilis": "4 · Birinci Kilit"
+    },
+    {
+      "id": "basinc_kilidi_1",
+      "ad": "Basınç Kilidi I",
+      "tur": "Basınç kilidi",
+      "adet": 4,
+      "konum": "Her kanadın ortası, uzaklık 64 | 65",
+      "baglar": "Hadal Eşiği ↔ Çukur Yamacı",
+      "bekci": "Bekçi II (Sv 25)",
+      "dayaniklilik": 300000,
+      "garnizon": 8,
+      "acilis": "4 · Birinci Kilit"
+    },
+    {
+      "id": "basinc_kilidi_2",
+      "ad": "Basınç Kilidi II",
+      "tur": "Basınç kilidi",
+      "adet": 4,
+      "konum": "Her kanadın ortası, uzaklık 45 | 46",
+      "baglar": "Çukur Yamacı ↔ Derin Yamaç",
+      "bekci": "Bekçi III (Sv 35)",
+      "dayaniklilik": 600000,
+      "garnizon": 10,
+      "acilis": "6 · İkinci Kilit"
+    },
+    {
+      "id": "basinc_kilidi_3",
+      "ad": "Basınç Kilidi III",
+      "tur": "Basınç kilidi",
+      "adet": 4,
+      "konum": "Köşegenler, uzaklık 27 | 28",
+      "baglar": "Derin Yamaç ↔ Çukur Ekseni",
+      "bekci": "Bekçi IV (Sv 45)",
+      "dayaniklilik": 1200000,
+      "garnizon": 12,
+      "acilis": "8 · Eksen"
+    },
+    {
+      "id": "cekirdek_kapisi",
+      "ad": "Çekirdek Kapısı",
+      "tur": "Basınç kilidi",
+      "adet": 4,
+      "konum": "Her kanadın ortası, uzaklık 11 | 12",
+      "baglar": "Çukur Ekseni ↔ Dip",
+      "bekci": "Bekçi V (Sv 50)",
+      "dayaniklilik": 2500000,
+      "garnizon": 15,
+      "acilis": "9 · Çekirdek Kapıları"
+    }
+  ],
+  "dugum_seviyeleri_sutunlar": [
+    ["seviye", "Sv"],
+    ["kapasite", "Kapasite (yük)"],
+    ["taban", "Taban hız (yük/sa)"],
+    ["tipik", "Tipik reaktör"],
+    ["bonus", "Tipik bonus"],
+    ["etkin", "Etkin hız (yük/sa)"],
+    ["bosaltma", "Tek seferle boşaltma", "sure"],
+    ["kusaklar", "Kuşaklar"],
+    ["acilis", "Açılış (aşama)"]
+  ],
+  "dugum_seviyeleri": [
+    {
+      "seviye": 1,
+      "kapasite": 25000,
+      "taban": 2000,
+      "tipik": "1–7",
+      "bonus": "×1,1",
+      "etkin": 2200,
+      "bosaltma": 45000,
+      "kusaklar": "Abisal, Eşik (sığ)",
+      "acilis": 1
+    },
+    {
+      "seviye": 2,
+      "kapasite": 60000,
+      "taban": 4500,
+      "tipik": "8–13",
+      "bonus": "×1,2",
+      "etkin": 5400,
+      "bosaltma": 48000,
+      "kusaklar": "Abisal, Eşik",
+      "acilis": 1
+    },
+    {
+      "seviye": 3,
+      "kapasite": 140000,
+      "taban": 9000,
+      "tipik": "14–19",
+      "bonus": "×1,25",
+      "etkin": 11200,
+      "bosaltma": 56000,
+      "kusaklar": "Abisal, Eşik",
+      "acilis": 1
+    },
+    {
+      "seviye": 4,
+      "kapasite": 250000,
+      "taban": 14000,
+      "tipik": "20–27",
+      "bonus": "×1,35",
+      "etkin": 18900,
+      "bosaltma": 64286,
+      "kusaklar": "Abisal, Eşik (derin), Yamaç, Derin Yamaç",
+      "acilis": 2
+    },
+    {
+      "seviye": 5,
+      "kapasite": 400000,
+      "taban": 19000,
+      "tipik": "28–35",
+      "bonus": "×1,45",
+      "etkin": 27600,
+      "bosaltma": 75789,
+      "kusaklar": "Abisal (nodül), Yamaç, Derin Yamaç, Eksen",
+      "acilis": 4
+    },
+    {
+      "seviye": 6,
+      "kapasite": 600000,
+      "taban": 24000,
+      "tipik": "36–41",
+      "bonus": "×1,55",
+      "etkin": 37200,
+      "bosaltma": 90000,
+      "kusaklar": "Abisal (nodül), Derin Yamaç, Eksen, Dip",
+      "acilis": 6
+    },
+    {
+      "seviye": 7,
+      "kapasite": 850000,
+      "taban": 29000,
+      "tipik": "42–47",
+      "bonus": "×1,65",
+      "etkin": 47800,
+      "bosaltma": 105517,
+      "kusaklar": "Eksen, Dip",
+      "acilis": 8
+    },
+    {
+      "seviye": 8,
+      "kapasite": 1200000,
+      "taban": 35000,
+      "tipik": "48–50",
+      "bonus": "×1,75",
+      "etkin": 61200,
+      "bosaltma": 123429,
+      "kusaklar": "Dip, Çekirdek",
+      "acilis": 10
+    }
+  ],
+  "yuk_agirliklari_sutunlar": [["kaynak", "Kaynak"], ["agirlik", "Yük / birim"], ["not", "Not"]],
+  "yuk_agirliklari": [
+    {"kaynak": "Titanyum", "agirlik": 1, "not": "Ölçü birimi: 1 yük = 1 Titanyum değeri"},
+    {
+      "kaynak": "Biyokütle",
+      "agirlik": 1,
+      "not": "Gelir ve harcamada Titanyumun 0,4 katı akar; birim değeri eşit sayılır"
+    },
+    {"kaynak": "Gıda", "agirlik": 1, "not": "—"},
+    {"kaynak": "Enerji", "agirlik": 0.5, "not": "Üste bol üretilir; 1 yükte 2 birim"},
+    {"kaynak": "Oksijen", "agirlik": 0.5, "not": "1 yükte 2 birim"},
+    {"kaynak": "Süperalaşım", "agirlik": 6000, "not": "Kapı kaynağı; toplama hızı ayrı tanımlanır (aşağıda)"},
+    {"kaynak": "Hadalit", "agirlik": 0, "not": "Yük saymaz; günlük harita sınırı 60"}
+  ],
+  "hadalit_damari": {"gunluk_sinir": 60, "en_fazla": 12},
+  "dugum_turleri_sutunlar": [
+    ["ad", "Yatak"],
+    ["temel", "Okyanustaki karşılığı"],
+    ["kaynak", "Verdiği"],
+    ["seviye", "Sv"],
+    ["kusak", "Kuşak"],
+    ["ozel", "Özel kural"]
+  ],
+  "dugum_turleri": [
+    {
+      "id": "enkaz_alani",
+      "ad": "Enkaz Alanı",
+      "temel": "Batık konvoy gövdeleri, eski koloni modülleri, kayıp dron ve kızaklar",
+      "kaynak": "Titanyum",
+      "seviye": "1–7",
+      "kusak": "Abisal → Eksen",
+      "ozel": "En yaygın yatak. Delici askerler +%10 hızla söker."
+    },
+    {
+      "id": "kobalt_kabugu",
+      "ad": "Kobalt Kabuğu",
+      "temel": "Dalan deniz dağlarının yamaçlarındaki demir-mangan kabukları (kobalt, nikel, titanyum)",
+      "kaynak": "Titanyum; Sv 4+ ek Süperalaşım",
+      "seviye": "2–5",
+      "kusak": "Abisal → Çukur Yamacı",
+      "ozel": "Süperalaşım payı Alaşım Dökümhanesi (Reaktör 30) ister; öncesinde payın yerine Titanyum gelir."
+    },
+    {
+      "id": "nodul_sahasi",
+      "ad": "Nodül Sahası",
+      "temel": "Abisal düzlükte yatan polimetalik nodüller (mangan, nikel, kobalt, bakır)",
+      "kaynak": "Sv 1–3 Titanyum (demir-mangan cevheri); Sv 4–6 Süperalaşım",
+      "seviye": "1–6",
+      "kusak": "Abisal, Eşik (sığ)",
+      "ozel": "Güvenli dış halkadaki Süperalaşım kaynağı. Sv 4–6'da her tam seferde %5 şansla Karanlık Oksijen Hücresi (Oksijen Kapsülü); yalnızca deneysel araştırma dalı açıksa (18)."
+    },
+    {
+      "id": "masif_sulfur_bacasi",
+      "ad": "Masif Sülfür Bacası",
+      "temel": "Hidrotermal baca ağzında çökelen bakır-çinko-demir sülfürleri",
+      "kaynak": "Enerji (termal hücre) + az Titanyum",
+      "seviye": "3–8",
+      "kusak": "Yamaç → Çekirdek",
+      "ozel": "Yalnızca sönmüş baca yığınları yatak olur; canlı bacalar kazılmaz. Her tam seferde %15 şansla teçhizat malzemesi masif sülfür; Sv 6–8'de %2 şansla 10–30 Hadalit."
+    },
+    {
+      "id": "metan_hidrat",
+      "ad": "Metan Hidrat Sızıntısı",
+      "temel": "Soğuk sızıntılarda donmuş metan ve onunla beslenen bakteri matları",
+      "kaynak": "Gıda (metanotrof kültür) + Enerji",
+      "seviye": "2–6",
+      "kusak": "Eşik → Derin Yamaç",
+      "ozel": "Gıda Laboratuvarı'nın kemosentetik kültürüne başlangıç suşu verir."
+    },
+    {
+      "id": "balina_lesi",
+      "ad": "Balina Leşi",
+      "temel": "Tabana inen bir balina iskeleti ve etrafında kurulan geçici ekosistem",
+      "kaynak": "Biyokütle (son evrede + Gıda)",
+      "seviye": "2–5",
+      "kusak": "Abisal → Yamaç",
+      "ozel": "Doğar, üç evreden geçer ve 72 saatte söner; kapasite ×1,5."
+    },
+    {
+      "id": "hadalit_damari",
+      "ad": "Hadalit Damarı",
+      "temel": "Çukurun tabanında, yalnızca karanlıkta parıldayan kadim kristal damarı",
+      "kaynak": "Süperalaşım + Hadalit",
+      "seviye": "7–8",
+      "kusak": "Dip, Çekirdek",
+      "ozel": "Hadalit yük saymaz; kaptan başına günde en çok 60 Hadalit. Sunucuda en fazla 12 damar."
+    }
+  ],
+  "verim_sutunlar": [
+    ["seviye", "Sv"],
+    ["enkaz", "Enkaz Alanı"],
+    ["kabuk", "Kobalt Kabuğu"],
+    ["nodul", "Nodül Sahası"],
+    ["baca", "Masif Sülfür Bacası"],
+    ["hidrat", "Metan Hidrat"],
+    ["les", "Balina Leşi"],
+    ["damar", "Hadalit Damarı"]
+  ],
+  "verim": [
+    {
+      "seviye": 1,
+      "enkaz": "2.000 Ti",
+      "kabuk": "—",
+      "nodul": "1.800 Ti",
+      "baca": "—",
+      "hidrat": "—",
+      "les": "—",
+      "damar": "—"
+    },
+    {
+      "seviye": 2,
+      "enkaz": "4.500 Ti",
+      "kabuk": "3.600 Ti",
+      "nodul": "4.050 Ti",
+      "baca": "—",
+      "hidrat": "3.150 GD + 2.700 EN",
+      "les": "4.500 BK",
+      "damar": "—"
+    },
+    {
+      "seviye": 3,
+      "enkaz": "9.000 Ti",
+      "kabuk": "7.200 Ti",
+      "nodul": "8.100 Ti",
+      "baca": "14.400 EN + 1.800 Ti",
+      "hidrat": "6.300 GD + 5.400 EN",
+      "les": "9.000 BK",
+      "damar": "—"
+    },
+    {
+      "seviye": 4,
+      "enkaz": "14.000 Ti",
+      "kabuk": "11.200 Ti + 0,5 SA",
+      "nodul": "1,0 SA",
+      "baca": "22.400 EN + 2.800 Ti",
+      "hidrat": "9.800 GD + 8.400 EN",
+      "les": "14.000 BK",
+      "damar": "—"
+    },
+    {
+      "seviye": 5,
+      "enkaz": "19.000 Ti",
+      "kabuk": "15.200 Ti + 0,7 SA",
+      "nodul": "1,4 SA",
+      "baca": "30.400 EN + 3.800 Ti",
+      "hidrat": "13.300 GD + 11.400 EN",
+      "les": "19.000 BK",
+      "damar": "—"
+    },
+    {
+      "seviye": 6,
+      "enkaz": "24.000 Ti",
+      "kabuk": "—",
+      "nodul": "1,9 SA",
+      "baca": "38.400 EN + 4.800 Ti",
+      "hidrat": "16.800 GD + 14.400 EN",
+      "les": "—",
+      "damar": "—"
+    },
+    {
+      "seviye": 7,
+      "enkaz": "29.000 Ti",
+      "kabuk": "—",
+      "nodul": "—",
+      "baca": "46.400 EN + 5.800 Ti",
+      "hidrat": "—",
+      "les": "—",
+      "damar": "2,6 SA + 1,0 HD"
+    },
+    {
+      "seviye": 8,
+      "enkaz": "—",
+      "kabuk": "—",
+      "nodul": "—",
+      "baca": "56.000 EN + 7.000 Ti",
+      "hidrat": "—",
+      "les": "—",
+      "damar": "3,4 SA + 1,4 HD"
+    }
+  ],
+  "balina_evreleri_sutunlar": [
+    ["evre", "Evre"],
+    ["saat", "Saat"],
+    ["verim", "Verim"],
+    ["taramalar", "Taranabilen"],
+    ["aciklama", "Ne olur"]
+  ],
+  "balina_evreleri": [
+    {
+      "evre": "Leşçil evre",
+      "saat": "0–24",
+      "verim": "Biyokütle ×1,5",
+      "taramalar": "Leşçil balıklar ve amfipodlar (Tür Kataloğu)",
+      "aciklama": "Yumuşak doku hızla tüketilir; leşin doğal erimesi en hızlı burada."
+    },
+    {
+      "evre": "Zenginleşme evresi",
+      "saat": "24–48",
+      "verim": "Biyokütle ×1,0",
+      "taramalar": "Kemik yiyen kurtlar, çok kıllı solucanlar",
+      "aciklama": "Kemikler ve çevredeki tortu organik maddeyle zenginleşir."
+    },
+    {
+      "evre": "Sülfofilik evre",
+      "saat": "48–72",
+      "verim": "Biyokütle %50 + Gıda %50, ×0,7",
+      "taramalar": "Bakteri matları",
+      "aciklama": "Kemiklerdeki yağ parçalanırken sülfür bakterileri yerleşir. Oyunda 72. saatte söner."
+    }
+  ],
+  "yogunluk_sutunlar": [
+    ["kusak", "Kuşak"],
+    ["yogunluk", "100 karede yatak"],
+    ["yatak", "Yaklaşık yatak"],
+    ["dagilim", "Tür dağılımı"]
+  ],
+  "yogunluk": [
+    {
+      "kusak": "Abisal Düzlük",
+      "yogunluk": 10,
+      "yatak": 1144,
+      "dagilim": "Enkaz %35 · Nodül %35 · Kabuk %15 · Leş %15"
+    },
+    {
+      "kusak": "Hadal Eşiği",
+      "yogunluk": 6,
+      "yatak": 715,
+      "dagilim": "Enkaz %45 · Kabuk %20 · Hidrat %20 · Nodül (sığ) %10 · Leş %5"
+    },
+    {
+      "kusak": "Çukur Yamacı",
+      "yogunluk": 6,
+      "yatak": 502,
+      "dagilim": "Enkaz %35 · Hidrat %25 · Kabuk %20 · Baca %15 · Leş %5"
+    },
+    {
+      "kusak": "Derin Yamaç",
+      "yogunluk": 6,
+      "yatak": 315,
+      "dagilim": "Baca %35 · Enkaz %30 · Hidrat %20 · Kabuk %15"
+    },
+    {"kusak": "Çukur Ekseni", "yogunluk": 5, "yatak": 125, "dagilim": "Baca %50 · Enkaz %50"},
+    {
+      "kusak": "Dip ve Çekirdek",
+      "yogunluk": 4,
+      "yatak": 21,
+      "dagilim": "Hadalit Damarı (en çok 12) · geri kalanı Sv 6–8 Masif Sülfür Bacası"
+    }
+  ],
+  "sonar_enerjisi": {
+    "kapasite": 500,
+    "radar_bonus": 100,
+    "radar_esikleri": [10, 20, 30, 40],
+    "dogal_tavan": 900,
+    "yenilenme_saat": 30,
+    "gunluk": 720,
+    "esya_tavani": 3000,
+    "zincir_indirim": 25,
+    "zincir_hedef": 4,
+    "kayip_iade": 50,
+    "pil_kucuk": 50,
+    "pil_orta": 200,
+    "pil_buyuk": 500
+  },
+  "sonar_bedelleri_sutunlar": [["hedef", "Hedef"], ["bedel", "Bedel"], ["zincir", "Zincirde (−%25)"], ["not", "Not"]],
+  "sonar_bedelleri": [
+    {"hedef": "Uçurum Sürüngenleri", "bedel": 40, "zincir": 30, "not": "Tek sefer"},
+    {"hedef": "Siren Sürüsü", "bedel": 50, "zincir": 38, "not": "Tek sefer"},
+    {"hedef": "Kadim Muhafız Devriyesi", "bedel": 60, "zincir": 45, "not": "Sv 40+ ralli de olabilir"},
+    {
+      "hedef": "Kadim Bekçi (geçit, Rezonans Alanı)",
+      "bedel": "100 / 60",
+      "zincir": "—",
+      "not": "Ralliyi kuran / katılan"
+    },
+    {"hedef": "Demir Leviathan Yuvası", "bedel": "150 / 100", "zincir": "—", "not": "Ralliyi kuran / katılan"}
+  ],
+  "dusmanlar_sutunlar": [
+    ["ad", "Düşman"],
+    ["tur", "Tür"],
+    ["seviye", "Sv"],
+    ["kusak", "Kuşak"],
+    ["davranis", "Davranış"],
+    ["odul", "Ödül"]
+  ],
+  "dusmanlar": [
+    {
+      "id": "ucurum_surungeni",
+      "ad": "Uçurum Sürüngenleri",
+      "tur": "Sürü",
+      "seviye": "1–25",
+      "kusak": "Abisal, Eşik, Yamaç",
+      "davranis": "Yakın dövüşçü sürü; Zıpkıncılara karşı zayıf.",
+      "odul": "Kahraman deneyimi, kitin, küçük Kaynak Kapsülü"
+    },
+    {
+      "id": "siren_surusu",
+      "ad": "Siren Sürüsü",
+      "tur": "Sürü",
+      "seviye": "8–35",
+      "kusak": "Eşik, Yamaç, Derin Yamaç",
+      "davranis": "Yankı saldırısı: yenilen seferin dönüş hızını %20 düşürür.",
+      "odul": "Kahraman deneyimi, Anı Kristali şansı, bazalt camı"
+    },
+    {
+      "id": "kadim_muhafiz_devriyesi",
+      "ad": "Kadim Muhafız Devriyesi",
+      "tur": "Devriye",
+      "seviye": "15–50",
+      "kusak": "Yamaç → Dip",
+      "davranis": "2–3 birimlik biyomekanik devriye; Ark Askerlerine dirençli.",
+      "odul": "Basınç Kodeksi şansı (Sv 25+), kadim parça, sintaktik köpük"
+    },
+    {
+      "id": "kadim_bekci",
+      "ad": "Kadim Bekçi",
+      "tur": "Bekçi (ralli)",
+      "seviye": "I–V",
+      "kusak": "Geçitler, Rezonans Alanları, Çukur Kalbi",
+      "davranis": "Geçit ve alan uyandığında, sonra her Gelgit Penceresi başında doğar.",
+      "odul": "Rezonans Kristalleri, Basınç Kodeksi"
+    },
+    {
+      "id": "demir_leviathan_yuvasi",
+      "ad": "Demir Leviathan Yuvası",
+      "tur": "Yuva (ralli)",
+      "seviye": "Yuva 1–6",
+      "kusak": "Derin Yamaç → Çekirdek",
+      "davranis": "Ralli olmadan saldırılamaz; verilen hasar 1 saat kalır.",
+      "odul": "Kadim Şema, Basınç Kodeksi, Süperalaşım, Hadalit"
+    },
+    {
+      "id": "hadal_titani",
+      "ad": "Hadal Titanı",
+      "tur": "Sunucu olayı",
+      "seviye": "—",
+      "kusak": "Çekirdek",
+      "davranis": "Kronik aşama 11 ile uyanır; dalga dalga ralli.",
+      "odul": "Ayrıntı 14 · Son Oyun"
+    }
+  ],
+  "kronik_dusman_sutunlar": [["asama", "Kronik aşaması"], ["dusman", "En yüksek düşman Sv"], ["dugum", "En yüksek yatak Sv"]],
+  "kronik_dusman": [
+    {"asama": "1 · İniş", "dusman": 10, "dugum": 3},
+    {"asama": "2 · İlk Yankı", "dusman": 15, "dugum": 4},
+    {"asama": "3 · Fay Geçitleri", "dusman": 20, "dugum": 4},
+    {"asama": "4 · Birinci Kilit", "dusman": 25, "dugum": 5},
+    {"asama": "5 · Yamaç Çekişmesi", "dusman": 30, "dugum": 5},
+    {"asama": "6 · İkinci Kilit", "dusman": 35, "dugum": 6},
+    {"asama": "7 · Akıntı Çağrısı", "dusman": 40, "dugum": 6},
+    {"asama": "8 · Eksen", "dusman": 45, "dugum": 7},
+    {"asama": "9 · Çekirdek Kapıları", "dusman": 50, "dugum": 7},
+    {"asama": "10 · Çekirdek", "dusman": 50, "dugum": 8}
+  ],
+  "leviathan_sutunlar": [
+    ["seviye", "Yuva Sv"],
+    ["kusak", "Kuşak"],
+    ["adet", "Adet"],
+    ["acilis", "Açılış"],
+    ["katilimci", "En az katılımcı"],
+    ["kubbe", "Önerilen Savaş Kubbesi"],
+    ["kodeks", "Basınç Kodeksi"],
+    ["alasim", "Süperalaşım"],
+    ["hadalit", "Hadalit"],
+    ["sema", "Kadim Şema"]
+  ],
+  "leviathan": [
+    {
+      "seviye": 1,
+      "kusak": "Derin Yamaç",
+      "adet": 8,
+      "acilis": "6 · İkinci Kilit",
+      "katilimci": 3,
+      "kubbe": "Sv 2",
+      "kodeks": "2–3",
+      "alasim": 15,
+      "hadalit": "—",
+      "sema": "—"
+    },
+    {
+      "seviye": 2,
+      "kusak": "Derin Yamaç",
+      "adet": 4,
+      "acilis": "6 · İkinci Kilit",
+      "katilimci": 4,
+      "kubbe": "Sv 2",
+      "kodeks": "3–4",
+      "alasim": 25,
+      "hadalit": "—",
+      "sema": "—"
+    },
+    {
+      "seviye": 3,
+      "kusak": "Çukur Ekseni",
+      "adet": 6,
+      "acilis": "8 · Eksen",
+      "katilimci": 5,
+      "kubbe": "Sv 3",
+      "kodeks": "4–6",
+      "alasim": 40,
+      "hadalit": 20,
+      "sema": "—"
+    },
+    {
+      "seviye": 4,
+      "kusak": "Çukur Ekseni",
+      "adet": 4,
+      "acilis": "8 · Eksen",
+      "katilimci": 6,
+      "kubbe": "Sv 3",
+      "kodeks": "5–8",
+      "alasim": 60,
+      "hadalit": 30,
+      "sema": "%10"
+    },
+    {
+      "seviye": 5,
+      "kusak": "Dip",
+      "adet": 4,
+      "acilis": "10 · Çekirdek",
+      "katilimci": 8,
+      "kubbe": "Sv 4",
+      "kodeks": "6–10",
+      "alasim": 90,
+      "hadalit": 40,
+      "sema": "%25"
+    },
+    {
+      "seviye": 6,
+      "kusak": "Çekirdek",
+      "adet": 2,
+      "acilis": "10 · Çekirdek",
+      "katilimci": 10,
+      "kubbe": "Sv 5",
+      "kodeks": "8–12",
+      "alasim": 130,
+      "hadalit": 60,
+      "sema": "1 (kesin)"
+    }
+  ],
+  "leviathan_kurallar": {"gunluk_odul": 3, "yeniden_dogma_saat": 4, "hasar_kalis_saat": 1, "lider_ek": 20},
+  "rezonans_turleri_sutunlar": [
+    ["ad", "Alan"],
+    ["temel", "Okyanustaki karşılığı"],
+    ["etki", "İttifak etkisi"],
+    ["s1", "Kademe I"],
+    ["s2", "Kademe II"],
+    ["s3", "Kademe III"]
+  ],
+  "rezonans_turleri": [
+    {
+      "id": "baca_sahasi",
+      "ad": "Hidrotermal Baca Sahası",
+      "temel": "Kara ve beyaz bacalar, sıcak su kolonları",
+      "etki": "Asker eğitim hızı",
+      "s1": "%5",
+      "s2": "%8",
+      "s3": "%12"
+    },
+    {
+      "id": "soguk_sizinti",
+      "ad": "Soğuk Sızıntı Bahçesi",
+      "temel": "Metan sızıntısı; midye, deniz tarağı ve tüp kurdu kolonileri",
+      "etki": "İyileştirme hızı",
+      "s1": "%8",
+      "s2": "%12",
+      "s3": "%18"
+    },
+    {
+      "id": "nodul_ovasi",
+      "ad": "Büyük Nodül Ovası",
+      "temel": "Kilometrelerce süren nodül döşeği",
+      "etki": "Toplama hızı",
+      "s1": "%8",
+      "s2": "%12",
+      "s3": "%18"
+    },
+    {
+      "id": "kadim_kalinti",
+      "ad": "Kadim Kalıntı",
+      "temel": "Hadalit damarlı biyomekanik yapı kalıntısı",
+      "etki": "Asker saldırısı",
+      "s1": "%2",
+      "s2": "%3",
+      "s3": "%5"
+    }
+  ],
+  "rezonans_dagilim_sutunlar": [
+    ["kademe", "Kademe"],
+    ["adet", "Adet"],
+    ["yer", "Yer"],
+    ["acilis", "Uyanış (Kronik)"],
+    ["bekci", "Bekçi"],
+    ["garnizon", "Garnizon (sefer)"]
+  ],
+  "rezonans_dagilim": [
+    {
+      "kademe": "I",
+      "adet": 16,
+      "yer": "Baca ×4 ve Sızıntı ×4 Hadal Eşiği'nde; Nodül ×4 Abisal'de; Kalıntı ×4 Çukur Yamacı'nda (her kanatta birer)",
+      "acilis": "2 · İlk Yankı (Kalıntı I: 4)",
+      "bekci": "Bekçi I (Sv 15)",
+      "garnizon": 6
+    },
+    {
+      "kademe": "II",
+      "adet": 8,
+      "yer": "Sızıntı ×2 Yamaç'ta; Nodül ×2 Abisal'de; Baca ×2 ve Kalıntı ×2 Derin Yamaç'ta",
+      "acilis": "5 · Yamaç Çekişmesi (Derin Yamaç'takiler: 6)",
+      "bekci": "Bekçi II (Sv 25) · Derin Yamaç'ta Bekçi III (Sv 35)",
+      "garnizon": 10
+    },
+    {
+      "kademe": "III",
+      "adet": 4,
+      "yer": "Baca ve Kalıntı Çukur Ekseni'nde; Sızıntı Derin Yamaç'ta; Nodül Abisal'in tek büyük ovasında",
+      "acilis": "8 · Eksen",
+      "bekci": "Bekçi IV (Sv 45)",
+      "garnizon": 15
+    }
+  ],
+  "rezonans_kurallar": {"dinginlik_saat": 72, "en_fazla": 8, "kristal_adet": "4–8", "kristal_ayni_anda": 2},
+  "kristaller_sutunlar": [["ad", "Kristal"], ["etki", "Etki (kişisel)"], ["sure", "Süre", "sure"]],
+  "kristaller": [
+    {"ad": "Akıntı Kristali", "etki": "+%10 yürüyüş hızı", "sure": 14400},
+    {"ad": "Kabuk Kristali", "etki": "+%4 asker savunması", "sure": 14400},
+    {"ad": "Diken Kristali", "etki": "+%3 asker saldırısı", "sure": 14400},
+    {"ad": "Bereket Kristali", "etki": "+%15 toplama hızı", "sure": 14400},
+    {"ad": "Yankı Kristali", "etki": "+%20 Sonar Enerjisi yenilenmesi", "sure": 14400}
+  ],
+  "cukur_kalbi": {
+    "konum": "Merkez 3 × 3 (99–101, 99–101)",
+    "acilis_asama": 10,
+    "ilk_taht_saat": 24,
+    "tutma_saat": 6,
+    "taht_savasi_saat": 48,
+    "egemenlik_gun": 5,
+    "dongu_gun": 7,
+    "garnizon": 30,
+    "bekci": "Kadim Muhafız Sv 50 garnizonu",
+    "unvan_suresi_saat": 24,
+    "unvan_degistirme_saat": 4,
+    "kotu_unvan_min_reaktor": 20,
+    "kotu_unvan_tekrar_saat": 72
+  },
+  "fermanlar_sutunlar": [["ad", "Ferman"], ["etki", "Etki (24 sa)"], ["kural", "Sınır"]],
+  "fermanlar": [
+    {"ad": "Bereket Fermanı", "etki": "Tüm sunucu +%10 toplama hızı", "kural": "Günde 1 ferman"},
+    {"ad": "Şifa Fermanı", "etki": "Tüm sunucu +%10 iyileştirme hızı", "kural": "Günde 1 ferman"},
+    {"ad": "Akıntı Fermanı", "etki": "Tüm sunucu +%10 yürüyüş hızı", "kural": "Günde 1 ferman"},
+    {"ad": "Bilgelik Fermanı", "etki": "Tüm sunucu +%5 araştırma hızı", "kural": "Günde 1 ferman"},
+    {"ad": "Ustalık Fermanı", "etki": "Tüm sunucu +%5 inşa hızı", "kural": "Günde 1 ferman"},
+    {
+      "ad": "Sükûnet Fermanı",
+      "etki": "Hadal Eşiği'ndeki üslere 24 saat saldırı yapılamaz",
+      "kural": "7 günde en çok 1"
+    }
+  ],
+  "unvanlar_sutunlar": [["ad", "Unvan"], ["tur", "Tür"], ["etki", "Etki (24 sa)"], ["adet", "Aynı anda"]],
+  "unvanlar": [
+    {"ad": "Çukur Mühendisi", "tur": "İyi", "etki": "+%5 inşa hızı", "adet": 1},
+    {"ad": "Derin Hekim", "tur": "İyi", "etki": "+%10 iyileştirme hızı", "adet": 2},
+    {"ad": "Akıntı Kaptanı", "tur": "İyi", "etki": "+%10 yürüyüş hızı", "adet": 2},
+    {"ad": "Bereket Bekçisi", "tur": "İyi", "etki": "+%10 toplama hızı", "adet": 2},
+    {"ad": "Sonar Ustası", "tur": "İyi", "etki": "+%15 Sonar Enerjisi yenilenmesi", "adet": 2},
+    {"ad": "Paslı Gövde", "tur": "Kötü", "etki": "−%5 asker savunması", "adet": 1},
+    {"ad": "Sisli Sonar", "tur": "Kötü", "etki": "−%10 yürüyüş hızı", "adet": 1},
+    {"ad": "Sızdıran Ambar", "tur": "Kötü", "etki": "−%10 toplama hızı", "adet": 1},
+    {"ad": "Ağır Pervane", "tur": "Kötü", "etki": "−%5 eğitim hızı", "adet": 1}
+  ],
+  "yuruyus": {"kendi_bolge": 30, "yabanci_bolge": -15, "durdurma_yuk": 30, "gelgit_baslangic": "20:00", "gelgit_saat": 3},
+  "ralli_sutunlar": [
+    ["seviye", "Savaş Kubbesi"],
+    ["reaktor", "Reaktör"],
+    ["katilimci", "Katılımcı (lider dahil)"],
+    ["kapasite", "Ralli kapasitesi (liderin sefer kapasitesi ×)"],
+    ["toplanma", "Toplanma süreleri"]
+  ],
+  "ralli": [
+    {
+      "seviye": "—",
+      "reaktor": "< 16",
+      "katilimci": "—",
+      "kapasite": "—",
+      "toplanma": "Ralliye katılabilir, kuramaz"
+    },
+    {"seviye": 1, "reaktor": 16, "katilimci": 6, "kapasite": "×3", "toplanma": "5 dk · 15 dk · 1 sa"},
+    {"seviye": 2, "reaktor": 20, "katilimci": 8, "kapasite": "×4", "toplanma": "5 dk · 15 dk · 1 sa"},
+    {
+      "seviye": 3,
+      "reaktor": 30,
+      "katilimci": 12,
+      "kapasite": "×6",
+      "toplanma": "5 dk · 15 dk · 1 sa · 4 sa (PvE)"
+    },
+    {
+      "seviye": 4,
+      "reaktor": 40,
+      "katilimci": 16,
+      "kapasite": "×8",
+      "toplanma": "5 dk · 15 dk · 1 sa · 4 sa (PvE)"
+    },
+    {
+      "seviye": 5,
+      "reaktor": 45,
+      "katilimci": 20,
+      "kapasite": "×10",
+      "toplanma": "5 dk · 15 dk · 1 sa · 4 sa (PvE)"
+    }
+  ],
+  "takviye_sutunlar": [
+    ["seviye", "İttifak Merkezi Sv"],
+    ["kapasite", "Takviye kapasitesi (alıcının sefer kapasitesi ×)"],
+    ["gonderen", "En çok gönderen"],
+    ["yardim", "Yardım sınırı"]
+  ],
+  "takviye": [
+    {"seviye": 1, "kapasite": "×0,55", "gonderen": 2, "yardim": 10},
+    {"seviye": 5, "kapasite": "×0,75", "gonderen": 2, "yardim": 11},
+    {"seviye": 10, "kapasite": "×1,0", "gonderen": 3, "yardim": 12},
+    {"seviye": 15, "kapasite": "×1,25", "gonderen": 3, "yardim": 13},
+    {"seviye": 20, "kapasite": "×1,5", "gonderen": 4, "yardim": 14},
+    {"seviye": 25, "kapasite": "×1,75", "gonderen": 4, "yardim": 15},
+    {"seviye": 30, "kapasite": "×2,0", "gonderen": 5, "yardim": 16},
+    {"seviye": 35, "kapasite": "×2,25", "gonderen": 5, "yardim": 17},
+    {"seviye": 40, "kapasite": "×2,5", "gonderen": 6, "yardim": 18},
+    {"seviye": 45, "kapasite": "×2,75", "gonderen": 6, "yardim": 19},
+    {"seviye": 50, "kapasite": "×3,0", "gonderen": 7, "yardim": 20}
+  ],
+  "buluntu_yogunlugu_sutunlar": [
+    ["kusak", "Kuşak"],
+    ["enkaz", "Batık enkaz"],
+    ["kriyo_tur", "Terk edilmiş kriyo-kapsül"],
+    ["kriyo", "Kapsül sayısı"],
+    ["kalinti", "Kalıntı izi"]
+  ],
+  "buluntu_yogunlugu": [
+    {"kusak": "Abisal Düzlük", "enkaz": 114, "kriyo_tur": "Paslı (I)", "kriyo": 34, "kalinti": "—"},
+    {"kusak": "Hadal Eşiği", "enkaz": 95, "kriyo_tur": "Paslı (I)", "kriyo": 36, "kalinti": "—"},
+    {
+      "kusak": "Çukur Yamacı",
+      "enkaz": 50,
+      "kriyo_tur": "Paslı (I) sığ, Mühürlü (II) derin basamakta",
+      "kriyo": 25,
+      "kalinti": "—"
+    },
+    {"kusak": "Derin Yamaç", "enkaz": 26, "kriyo_tur": "Mühürlü (II)", "kriyo": 16, "kalinti": 5},
+    {
+      "kusak": "Çukur Ekseni",
+      "enkaz": 10,
+      "kriyo_tur": "Mühürlü (II) sığ, Kadim (III) derin basamakta",
+      "kriyo": 7,
+      "kalinti": 5
+    },
+    {"kusak": "Dip ve Çekirdek", "enkaz": 2, "kriyo_tur": "Kadim (III)", "kriyo": 2, "kalinti": 3}
+  ],
+  "kalkanlar_sutunlar": [["ad", "Koruma"], ["sure", "Süre"], ["bedel", "Bedel (öneri)"], ["kural", "Kural / kaynak"]],
+  "kalkanlar": [
+    {
+      "id": "yeni_kaptan",
+      "ad": "Yeni Kaptan Koruması",
+      "sure": "72 sa; Reaktör 12'ye kadar uzar (en çok 7 g)",
+      "bedel": "Ücretsiz",
+      "kural": "Oyuncu üssüne ya da yürüyüşüne saldırınca biter"
+    },
+    {
+      "id": "sessizlik_8",
+      "ad": "Sessizlik Kalkanı · 8 sa",
+      "sure": "8 sa",
+      "bedel": "400 Hadalit",
+      "kural": "Görev, etkinlik, İttifak Dükkânı"
+    },
+    {
+      "id": "sessizlik_24",
+      "ad": "Sessizlik Kalkanı · 24 sa",
+      "sure": "24 sa",
+      "bedel": "1.000 Hadalit",
+      "kural": "Etkinlik ödülü, The Syndicate"
+    },
+    {
+      "id": "sessizlik_3g",
+      "ad": "Sessizlik Kalkanı · 3 g",
+      "sure": "3 g",
+      "bedel": "2.500 Hadalit",
+      "kural": "The Syndicate, Akıntı Savaşı dükkânı"
+    },
+    {
+      "id": "toparlanma",
+      "ad": "Toparlanma Kalkanı",
+      "sure": "2 sa",
+      "bedel": "Otomatik",
+      "kural": "6 saatte 3 yenilgide; 24 saatte 1 kez"
+    },
+    {
+      "id": "suruklenme",
+      "ad": "Sürüklenme sonrası",
+      "sure": "4 sa",
+      "bedel": "Otomatik",
+      "kural": "Üs koptuğunda (dayanıklılık 0)"
+    }
+  ],
+  "yagma": {
+    "oran": 20,
+    "gunluk_tekrar": 2,
+    "yagmalanamaz": "Süperalaşım, Hadalit, çantadaki Kaynak Kapsülleri, İttifak Ambarı'ndaki birikim",
+    "su_aninda": 8,
+    "su_dakika": 0.5,
+    "su_sure_dk": 30,
+    "onarim_saat": 5,
+    "kopma_sonrasi": 50
+  },
+  "konuslanma_sutunlar": [["ad", "Konuşlanma"], ["hedef", "Nereye"], ["kosul", "Koşul"], ["bedel", "Bedel (öneri)"]],
+  "konuslanma": [
+    {
+      "id": "yeni_baslangic",
+      "ad": "Yeni Başlangıç",
+      "hedef": "Hadal Eşiği'nde seçilen boş kare",
+      "kosul": "Reaktör ≤ 10, ilk 7 gün, 1 kez",
+      "bedel": "Ücretsiz"
+    },
+    {
+      "id": "akinti_samandirasi",
+      "ad": "Akıntı Şamandırası",
+      "hedef": "Aynı kuşakta rastgele boş kare",
+      "kosul": "—",
+      "bedel": "Eşya; 200 Hadalit"
+    },
+    {
+      "id": "ittifak_rotasi",
+      "ad": "İttifak Rotası",
+      "hedef": "Kendi ittifak bölgende seçilen kare",
+      "kosul": "Bölge bağlı olmalı",
+      "bedel": "İttifak Dükkânı; 600 Hadalit"
+    },
+    {
+      "id": "hassas_konuslanma",
+      "ad": "Hassas Konuşlanma",
+      "hedef": "Açık kuşaklarda seçilen boş kare",
+      "kosul": "Kuşağa giden bir kilit ittifakında ya da kilitler aşınmış",
+      "bedel": "1.500 Hadalit"
+    },
+    {
+      "id": "cukur_pasaportu",
+      "ad": "Çukur Pasaportu",
+      "hedef": "Başka bir çukur sunucusu",
+      "kosul": "Göç kuralları (16)",
+      "bedel": "Pasaport"
+    }
+  ],
+  "guc_farki_sutunlar": [["oran", "Güç oranı (saldıran / savunan)"], ["yagma", "Yağma"], ["puan", "Savaş Puanı"], ["ek", "Ek"]],
+  "guc_farki": [
+    {"oran": "≤ 1,5", "yagma": "%100", "puan": "%100", "ek": "—"},
+    {"oran": "1,5–2,5", "yagma": "%50", "puan": "%50", "ek": "—"},
+    {"oran": "2,5–4", "yagma": "%10", "puan": "%0", "ek": "Zorbalık İzi (24 sa, profilde görünür)"},
+    {
+      "oran": "> 4",
+      "yagma": "—",
+      "puan": "—",
+      "ek": "Üsse saldırı ve yürüyüş durdurma yapılamaz (Eşik ve Yamaç'taki üsler)"
+    }
+  ]
+}
