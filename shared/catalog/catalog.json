@@ -6623,7 +6623,240 @@
       "table": []
     }
   ],
-  "world": {"size": 200, "spacing": 3, "viewRadius": 14},
+  "world": {
+    "size": 200,
+    "spacing": 3,
+    "viewRadius": 14,
+    "belts": [
+      {"id": "abisal_duzluk", "inner": 85, "outer": 100, "nodeMin": 1, "nodeMax": 6, "bases": false},
+      {"id": "hadal_esigi", "inner": 65, "outer": 84, "nodeMin": 1, "nodeMax": 4, "bases": true},
+      {"id": "cukur_yamaci", "inner": 46, "outer": 64, "nodeMin": 3, "nodeMax": 5, "bases": true},
+      {"id": "derin_yamac", "inner": 28, "outer": 45, "nodeMin": 4, "nodeMax": 6, "bases": true},
+      {"id": "cukur_ekseni", "inner": 12, "outer": 27, "nodeMin": 5, "nodeMax": 7, "bases": true},
+      {"id": "dip_cekirdek", "inner": 0, "outer": 11, "nodeMin": 6, "nodeMax": 8, "bases": false}
+    ],
+    "nodeLevels": [
+      {"level": 1, "capacity": 25000, "baseRate": 2000, "bonus": 1.1},
+      {"level": 2, "capacity": 60000, "baseRate": 4500, "bonus": 1.2},
+      {"level": 3, "capacity": 140000, "baseRate": 9000, "bonus": 1.25},
+      {"level": 4, "capacity": 250000, "baseRate": 14000, "bonus": 1.35},
+      {"level": 5, "capacity": 400000, "baseRate": 19000, "bonus": 1.45},
+      {"level": 6, "capacity": 600000, "baseRate": 24000, "bonus": 1.55},
+      {"level": 7, "capacity": 850000, "baseRate": 29000, "bonus": 1.65},
+      {"level": 8, "capacity": 1200000, "baseRate": 35000, "bonus": 1.75}
+    ],
+    "nodeTypes": [
+      {
+        "id": "enkaz_alani",
+        "minLevel": 1,
+        "maxLevel": 7,
+        "capacityFactor": 1.0,
+        "lifeHours": 0,
+        "yields": [
+          {"level": 1, "rates": [{"resource": "Titanium", "perHour": 2000.0}]},
+          {"level": 2, "rates": [{"resource": "Titanium", "perHour": 4500.0}]},
+          {"level": 3, "rates": [{"resource": "Titanium", "perHour": 9000.0}]},
+          {"level": 4, "rates": [{"resource": "Titanium", "perHour": 14000.0}]},
+          {"level": 5, "rates": [{"resource": "Titanium", "perHour": 19000.0}]},
+          {"level": 6, "rates": [{"resource": "Titanium", "perHour": 24000.0}]},
+          {"level": 7, "rates": [{"resource": "Titanium", "perHour": 29000.0}]}
+        ]
+      },
+      {
+        "id": "kobalt_kabugu",
+        "minLevel": 2,
+        "maxLevel": 5,
+        "capacityFactor": 1.0,
+        "lifeHours": 0,
+        "yields": [
+          {"level": 2, "rates": [{"resource": "Titanium", "perHour": 3600.0}]},
+          {"level": 3, "rates": [{"resource": "Titanium", "perHour": 7200.0}]},
+          {
+            "level": 4,
+            "rates": [{"resource": "Titanium", "perHour": 11200.0}, {"resource": "Alloy", "perHour": 0.5}]
+          },
+          {
+            "level": 5,
+            "rates": [{"resource": "Titanium", "perHour": 15200.0}, {"resource": "Alloy", "perHour": 0.7}]
+          }
+        ]
+      },
+      {
+        "id": "nodul_sahasi",
+        "minLevel": 1,
+        "maxLevel": 6,
+        "capacityFactor": 1.0,
+        "lifeHours": 0,
+        "yields": [
+          {"level": 1, "rates": [{"resource": "Titanium", "perHour": 1800.0}]},
+          {"level": 2, "rates": [{"resource": "Titanium", "perHour": 4050.0}]},
+          {"level": 3, "rates": [{"resource": "Titanium", "perHour": 8100.0}]},
+          {"level": 4, "rates": [{"resource": "Alloy", "perHour": 1.0}]},
+          {"level": 5, "rates": [{"resource": "Alloy", "perHour": 1.4}]},
+          {"level": 6, "rates": [{"resource": "Alloy", "perHour": 1.9}]}
+        ]
+      },
+      {
+        "id": "masif_sulfur_bacasi",
+        "minLevel": 3,
+        "maxLevel": 8,
+        "capacityFactor": 1.0,
+        "lifeHours": 0,
+        "yields": [
+          {
+            "level": 3,
+            "rates": [{"resource": "Energy", "perHour": 14400.0}, {"resource": "Titanium", "perHour": 1800.0}]
+          },
+          {
+            "level": 4,
+            "rates": [{"resource": "Energy", "perHour": 22400.0}, {"resource": "Titanium", "perHour": 2800.0}]
+          },
+          {
+            "level": 5,
+            "rates": [{"resource": "Energy", "perHour": 30400.0}, {"resource": "Titanium", "perHour": 3800.0}]
+          },
+          {
+            "level": 6,
+            "rates": [{"resource": "Energy", "perHour": 38400.0}, {"resource": "Titanium", "perHour": 4800.0}]
+          },
+          {
+            "level": 7,
+            "rates": [{"resource": "Energy", "perHour": 46400.0}, {"resource": "Titanium", "perHour": 5800.0}]
+          },
+          {
+            "level": 8,
+            "rates": [{"resource": "Energy", "perHour": 56000.0}, {"resource": "Titanium", "perHour": 7000.0}]
+          }
+        ]
+      },
+      {
+        "id": "metan_hidrat",
+        "minLevel": 2,
+        "maxLevel": 6,
+        "capacityFactor": 1.0,
+        "lifeHours": 0,
+        "yields": [
+          {
+            "level": 2,
+            "rates": [{"resource": "Food", "perHour": 3150.0}, {"resource": "Energy", "perHour": 2700.0}]
+          },
+          {
+            "level": 3,
+            "rates": [{"resource": "Food", "perHour": 6300.0}, {"resource": "Energy", "perHour": 5400.0}]
+          },
+          {
+            "level": 4,
+            "rates": [{"resource": "Food", "perHour": 9800.0}, {"resource": "Energy", "perHour": 8400.0}]
+          },
+          {
+            "level": 5,
+            "rates": [{"resource": "Food", "perHour": 13300.0}, {"resource": "Energy", "perHour": 11400.0}]
+          },
+          {
+            "level": 6,
+            "rates": [{"resource": "Food", "perHour": 16800.0}, {"resource": "Energy", "perHour": 14400.0}]
+          }
+        ]
+      },
+      {
+        "id": "balina_lesi",
+        "minLevel": 2,
+        "maxLevel": 5,
+        "capacityFactor": 1.5,
+        "lifeHours": 72,
+        "yields": [
+          {"level": 2, "rates": [{"resource": "Biomass", "perHour": 4500.0}]},
+          {"level": 3, "rates": [{"resource": "Biomass", "perHour": 9000.0}]},
+          {"level": 4, "rates": [{"resource": "Biomass", "perHour": 14000.0}]},
+          {"level": 5, "rates": [{"resource": "Biomass", "perHour": 19000.0}]}
+        ]
+      },
+      {
+        "id": "hadalit_damari",
+        "minLevel": 7,
+        "maxLevel": 8,
+        "capacityFactor": 1.0,
+        "lifeHours": 0,
+        "yields": [
+          {
+            "level": 7,
+            "rates": [{"resource": "Alloy", "perHour": 2.6}, {"resource": "Hadalite", "perHour": 1.0}]
+          },
+          {
+            "level": 8,
+            "rates": [{"resource": "Alloy", "perHour": 3.4}, {"resource": "Hadalite", "perHour": 1.4}]
+          }
+        ]
+      }
+    ],
+    "density": [
+      {
+        "belt": "abisal_duzluk",
+        "per100": 10,
+        "weights": [
+          {"type": "enkaz_alani", "percent": 35},
+          {"type": "nodul_sahasi", "percent": 35},
+          {"type": "kobalt_kabugu", "percent": 15},
+          {"type": "balina_lesi", "percent": 15}
+        ]
+      },
+      {
+        "belt": "hadal_esigi",
+        "per100": 6,
+        "weights": [
+          {"type": "enkaz_alani", "percent": 45},
+          {"type": "kobalt_kabugu", "percent": 20},
+          {"type": "metan_hidrat", "percent": 20},
+          {"type": "nodul_sahasi", "percent": 10},
+          {"type": "balina_lesi", "percent": 5}
+        ]
+      },
+      {
+        "belt": "cukur_yamaci",
+        "per100": 6,
+        "weights": [
+          {"type": "enkaz_alani", "percent": 35},
+          {"type": "metan_hidrat", "percent": 25},
+          {"type": "kobalt_kabugu", "percent": 20},
+          {"type": "masif_sulfur_bacasi", "percent": 15},
+          {"type": "balina_lesi", "percent": 5}
+        ]
+      },
+      {
+        "belt": "derin_yamac",
+        "per100": 6,
+        "weights": [
+          {"type": "masif_sulfur_bacasi", "percent": 35},
+          {"type": "enkaz_alani", "percent": 30},
+          {"type": "metan_hidrat", "percent": 20},
+          {"type": "kobalt_kabugu", "percent": 15}
+        ]
+      },
+      {
+        "belt": "cukur_ekseni",
+        "per100": 5,
+        "weights": [{"type": "masif_sulfur_bacasi", "percent": 50}, {"type": "enkaz_alani", "percent": 50}]
+      },
+      {
+        "belt": "dip_cekirdek",
+        "per100": 4,
+        "weights": [{"type": "hadalit_damari", "percent": 50}, {"type": "masif_sulfur_bacasi", "percent": 50}]
+      }
+    ],
+    "loadWeights": [
+      {"resource": "Titanium", "weight": 1},
+      {"resource": "Biomass", "weight": 1},
+      {"resource": "Food", "weight": 1},
+      {"resource": "Energy", "weight": 0.5},
+      {"resource": "Oxygen", "weight": 0.5},
+      {"resource": "Alloy", "weight": 6000},
+      {"resource": "Hadalite", "weight": 0}
+    ],
+    "respawnMinutes": 30,
+    "hadaliteDailyCap": 60,
+    "maxVeins": 12,
+    "marchSecondsPerTile": 60
+  },
   "ringUnlocks": [
     {
       "ring": 5,
@@ -6882,5 +7115,160 @@
     }
   ],
   "incomeHour": [1200, 1200, 1570, 2050, 2680, 3500, 4230, 5110, 6170, 7450, 9000, 10600, 12400, 14500, 17000, 20000, 22700, 25900, 29400, 33400, 38000, 41900, 46200, 51000, 56200, 62000, 66800, 72000, 77500, 83500, 90000, 96100, 103000, 110000, 117000, 125000, 133000, 141000, 150000, 160000, 170000, 181000, 192000, 204000, 217000, 230000, 243000, 256000, 270000, 284000, 300000],
-  "incomeBiomassRatio": 0.4
+  "incomeBiomassRatio": 0.4,
+  "gather": {
+    "queueReactors": [4, 10, 18, 26],
+    "loadByReactor": [5500, 5500, 5500, 5500, 5500, 5500, 5500, 5500, 13500, 13500, 13500, 18600, 23800, 28900, 70600, 81200, 91800, 102000, 113000, 124000, 227000, 227000, 227000, 227000, 227000, 227000, 227000, 227000, 331000, 331000, 331000, 331000, 331000, 331000, 331000, 331000, 446000, 446000, 446000, 446000, 446000, 446000, 574000, 574000, 574000, 574000, 574000, 574000, 734000, 734000, 734000],
+    "alloyReactor": 30
+  },
+  "expedition": {
+    "stages": 10,
+    "dailyRewarded": 3,
+    "refundPercent": 80,
+    "gsPerDayEarly": 1.65,
+    "gsPerDayLate": 1.0,
+    "lateFromReactor": 20,
+    "chapters": [
+      {
+        "chapter": 1,
+        "id": "hadal_esigi",
+        "reactor": 5,
+        "oxygen": 150,
+        "powerFirst": 810,
+        "powerLast": 1610,
+        "powerBoss": 2710,
+        "bossHadalite": 100,
+        "bossAlloy": 0,
+        "bossCardRarity": "rare",
+        "bossCards": 10,
+        "diveAlloy": 0
+      },
+      {
+        "chapter": 2,
+        "id": "dalan_levha",
+        "reactor": 7,
+        "oxygen": 300,
+        "powerFirst": 1270,
+        "powerLast": 4450,
+        "powerBoss": 7490,
+        "bossHadalite": 100,
+        "bossAlloy": 0,
+        "bossCardRarity": "rare",
+        "bossCards": 10,
+        "diveAlloy": 0
+      },
+      {
+        "chapter": 3,
+        "id": "fay_basamaklari",
+        "reactor": 11,
+        "oxygen": 1000,
+        "powerFirst": 4090,
+        "powerLast": 14800,
+        "powerBoss": 25000,
+        "bossHadalite": 150,
+        "bossAlloy": 0,
+        "bossCardRarity": "rare",
+        "bossCards": 15,
+        "diveAlloy": 0
+      },
+      {
+        "chapter": 4,
+        "id": "soluk_suruler",
+        "reactor": 16,
+        "oxygen": 2000,
+        "powerFirst": 13200,
+        "powerLast": 41200,
+        "powerBoss": 69300,
+        "bossHadalite": 150,
+        "bossAlloy": 0,
+        "bossCardRarity": "rare",
+        "bossCards": 15,
+        "diveAlloy": 0
+      },
+      {
+        "chapter": 5,
+        "id": "balik_siniri",
+        "reactor": 21,
+        "oxygen": 4000,
+        "powerFirst": 35500,
+        "powerLast": 91200,
+        "powerBoss": 154000,
+        "bossHadalite": 200,
+        "bossAlloy": 0,
+        "bossCardRarity": "epic",
+        "bossCards": 10,
+        "diveAlloy": 0
+      },
+      {
+        "chapter": 6,
+        "id": "sessiz_derinlik",
+        "reactor": 26,
+        "oxygen": 6000,
+        "powerFirst": 77400,
+        "powerLast": 179000,
+        "powerBoss": 302000,
+        "bossHadalite": 200,
+        "bossAlloy": 0,
+        "bossCardRarity": "epic",
+        "bossCards": 10,
+        "diveAlloy": 0
+      },
+      {
+        "chapter": 7,
+        "id": "huni_tabani",
+        "reactor": 31,
+        "oxygen": 10000,
+        "powerFirst": 151000,
+        "powerLast": 332000,
+        "powerBoss": 559000,
+        "bossHadalite": 250,
+        "bossAlloy": 60,
+        "bossCardRarity": "epic",
+        "bossCards": 15,
+        "diveAlloy": 1
+      },
+      {
+        "chapter": 8,
+        "id": "soguk_sizinti",
+        "reactor": 36,
+        "oxygen": 15000,
+        "powerFirst": 274000,
+        "powerLast": 579000,
+        "powerBoss": 974000,
+        "bossHadalite": 300,
+        "bossAlloy": 100,
+        "bossCardRarity": "epic",
+        "bossCards": 15,
+        "diveAlloy": 2
+      },
+      {
+        "chapter": 9,
+        "id": "dip_tortulu",
+        "reactor": 41,
+        "oxygen": 22000,
+        "powerFirst": 472000,
+        "powerLast": 975000,
+        "powerBoss": 1640000,
+        "bossHadalite": 350,
+        "bossAlloy": 150,
+        "bossCardRarity": "legendary",
+        "bossCards": 5,
+        "diveAlloy": 3
+      },
+      {
+        "chapter": 10,
+        "id": "cukurun_dibi",
+        "reactor": 46,
+        "oxygen": 30000,
+        "powerFirst": 810000,
+        "powerLast": 1230000,
+        "powerBoss": 2070000,
+        "bossHadalite": 500,
+        "bossAlloy": 250,
+        "bossCardRarity": "legendary",
+        "bossCards": 10,
+        "diveAlloy": 4
+      }
+    ]
+  }
 }

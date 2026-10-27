@@ -10,5 +10,12 @@ namespace Hadal.Game
 
         /// <summary>How often dirty player state is flushed to the database.</summary>
         public int SaveIntervalSeconds { get; set; } = 10;
+
+        /// <summary>
+        /// Highest catalog design version a release may publish by itself (0 = any). A newer catalog file is then
+        /// held back and the stored one keeps running, so code can ship before its balance goes live
+        /// (env <c>Game__PublishCatalogUpTo</c>).
+        /// </summary>
+        public int PublishCatalogUpTo { get; set; }
     }
 }

@@ -35,6 +35,10 @@ namespace HADAL.Shared.Catalog
 
         public WorldCatalogData world = new WorldCatalogData();
 
+        // Gathering and the Depth Map campaign (docs/rehber 08, 09; income sources).
+        public GatherCatalogData gather = new GatherCatalogData();
+        public ExpeditionCatalogData expedition = new ExpeditionCatalogData();
+
         // Balance infrastructure (docs/rehber, Paket A).
         public ReactorRequirementData[] reactorRequirements = Array.Empty<ReactorRequirementData>();
 

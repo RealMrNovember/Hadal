@@ -35,5 +35,14 @@ namespace HADAL.Shared.Enums
         [ProtoEnum] OpenItem = 27,
         [ProtoEnum] RecruitHero = 28,
         [ProtoEnum] ViewWorld = 29,
+        [ProtoEnum] MarchGather = 30,
+        [ProtoEnum] RecallMarch = 31,
+        [ProtoEnum] DiveStage = 32,
+        [ProtoEnum] SetMemberRank = 33,
+        [ProtoEnum] TransferLeadership = 34,
+        [ProtoEnum] SetAllianceSettings = 35,
+        [ProtoEnum] InviteToAlliance = 36,
+        [ProtoEnum] AnswerInvite = 37,
+        [ProtoEnum] AnswerApplication = 38,
     }
 }

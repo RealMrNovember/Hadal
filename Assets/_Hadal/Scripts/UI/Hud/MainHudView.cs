@@ -38,6 +38,9 @@ namespace Hadal.UI.Hud
             public Action<string, Color> Toast;
             public Func<bool> SheetOpen;
             public Action Territory;
+
+            /// <summary>The Depth Map campaign (docs/rehber 08 §5).</summary>
+            public Action Expedition;
             public Func<bool> InWorld;
         }
 
@@ -162,7 +165,7 @@ namespace Hadal.UI.Hud
             _podLabel = pod.Label;
             _podDot = pod.Dot;
             SideButton(_lower.transform, "Events", "event_gift", Loc.T("hud.events"), 0.835f, 0.71f, 0.985f, 0.785f, () => Soon("hud.events"));
-            SideButton(_lower.transform, "War", "event_war", Loc.T("hud.war"), 0.835f, 0.62f, 0.985f, 0.695f, () => Soon("hud.war"));
+            SideButton(_lower.transform, "War", "event_war", Loc.T("hud.expedition"), 0.835f, 0.62f, 0.985f, 0.695f, () => _actions.Expedition?.Invoke());
         }
 
         private void BuildLeftColumn()

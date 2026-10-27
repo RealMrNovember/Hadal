@@ -2,11 +2,13 @@ using System.Collections.Concurrent;
 
 namespace Hadal.Game.Social
 {
-    public sealed record AllianceRecord(string Id, string Name, string Tag, string Description, string LeaderId, DateTimeOffset CreatedAt);
+    /// <summary><see cref="JoinMode"/> is an <c>AllianceJoinMode</c> value.</summary>
+    public sealed record AllianceRecord(string Id, string Name, string Tag, string Description, string LeaderId, DateTimeOffset CreatedAt, int JoinMode = 0);
 
-    public sealed record MemberRecord(string PlayerId, string AllianceId, string Name, long Power, DateTimeOffset JoinedAt);
+    /// <summary><see cref="Rank"/> 1–5 (0 = stored before ranks existed), <see cref="Role"/> an officer duty tag.</summary>
+    public sealed record MemberRecord(string PlayerId, string AllianceId, string Name, long Power, DateTimeOffset JoinedAt, int Rank = 0, string Role = "");
 
-    /// <summary>One chat line. <see cref="Channel"/> is "world" or "alliance:&lt;id&gt;".</summary>
+    /// <summary>One chat line. <see cref="Channel"/> is "world", "alliance:&lt;id&gt;" or "dm:&lt;id&gt;:&lt;id&gt;" (ids in order).</summary>
     public sealed record ChatRecord(long Id, string Channel, string SenderId, string SenderName, string AllianceTag, string Text, DateTimeOffset SentAt, bool IsSystem);
 
     /// <summary>Durable alliances, memberships and chat (docs/25). The hub keeps everything in memory and writes through.</summary>

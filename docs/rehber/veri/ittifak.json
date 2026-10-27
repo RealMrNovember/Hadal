@@ -5,12 +5,12 @@
   "kodda": [
     {"ozellik": "Kurma bedeli", "kodda": "3.000 Titanyum", "hedef": "3.000 Titanyum", "durum": "✅"},
     {"ozellik": "Ad / etiket", "kodda": "3–20 / 3–4 karakter, benzersiz", "hedef": "Aynı", "durum": "✅"},
-    {"ozellik": "Katılım", "kodda": "Açık", "hedef": "Açık · onaylı · kapalı", "durum": "🟡"},
+    {"ozellik": "Katılım", "kodda": "Açık · onaylı · kapalı; davet ve başvuru (bellekte, 48 sa)", "hedef": "Açık · onaylı · kapalı", "durum": "✅"},
     {"ozellik": "Üye sınırı", "kodda": "30", "hedef": "30 → 100 (ittifak seviyesi + kuleler)", "durum": "🟡"},
-    {"ozellik": "Rütbeler", "kodda": "Lider / Üye", "hedef": "R5–R1 ve yetki tablosu", "durum": "🟡"},
+    {"ozellik": "Rütbeler", "kodda": "R5–R1, yetki tablosu, 4 Kurmay koltuğu ve görev etiketi; Aday 48 sa sonra Dalgıç", "hedef": "R5–R1 ve yetki tablosu", "durum": "✅"},
     {
       "ozellik": "Liderlik devri",
-      "kodda": "Lider ayrılınca en eski üye",
+      "kodda": "Lider devredebilir; ayrılınca en yüksek rütbe (eşitse en eski üye)",
       "hedef": "+ 7 gün girmeyen liderin yerine en etkin R4",
       "durum": "🟡"
     },
@@ -28,7 +28,7 @@
     },
     {
       "ozellik": "Sohbet",
-      "kodda": "Dünya + İttifak · 200 karakter · 2 sn · son 50",
+      "kodda": "Dünya + İttifak + Özel (bire bir) · 200 karakter · 2 sn · son 50",
       "hedef": "+ sabit duyuru, koordinat bağlantısı, ralli kartı",
       "durum": "🟡"
     },

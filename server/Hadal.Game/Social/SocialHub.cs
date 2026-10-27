@@ -54,6 +54,17 @@ namespace Hadal.Game.Social
         private readonly System.Threading.Channels.Channel<Func<CancellationToken, Task>> _writes = System.Threading.Channels.Channel.CreateUnbounded<Func<CancellationToken, Task>>(new UnboundedChannelOptions { SingleReader = true });
         private long _nextChatId;
 
+        // Invitations and applications (docs/rehber 10 §2); kept in memory, they expire.
+        private sealed record Invite(string AllianceId, string InviterName, DateTimeOffset At);
+        private sealed record Applicant(string PlayerId, string Name, long Power, DateTimeOffset At);
+        private static readonly TimeSpan InviteLife = TimeSpan.FromHours(48);
+        private readonly Dictionary<string, List<Invite>> _invites = new(StringComparer.Ordinal);
+        private readonly Dictionary<string, List<Applicant>> _applications = new(StringComparer.Ordinal);
+        private readonly Dictionary<string, string> _names = new(StringComparer.Ordinal);
+
+        /// <summary>Names of players who are not online and not in an alliance (the world map knows every base).</summary>
+        public Func<string, string?>? NameLookup { get; set; }
+
         public SocialHub(ISocialStore store, CatalogRuntime runtime, INetworkSerializer serializer, ILogger logger)
         {
             _store = store;
@@ -67,7 +78,9 @@ namespace Hadal.Game.Social
         private HADAL.Shared.Catalog.GameCatalog Catalog => _runtime.Current.Catalog;
 
         public static bool Handles(CommandType type) => type is CommandType.SendChat or CommandType.CreateAlliance or CommandType.JoinAlliance
-            or CommandType.LeaveAlliance or CommandType.BrowseAlliances or CommandType.KickMember or CommandType.RequestHelp or CommandType.HelpAll;
+            or CommandType.LeaveAlliance or CommandType.BrowseAlliances or CommandType.KickMember or CommandType.RequestHelp or CommandType.HelpAll
+            or CommandType.SetMemberRank or CommandType.TransferLeadership or CommandType.SetAllianceSettings or CommandType.InviteToAlliance
+            or CommandType.AnswerInvite or CommandType.AnswerApplication;
 
         /// <summary>Loads alliances and recent chat. Call once at startup, after the schema exists.</summary>
         public async Task InitializeAsync(CancellationToken cancellationToken)
@@ -84,13 +97,20 @@ namespace Hadal.Game.Social
                 {
                     if (!_alliances.TryGetValue(member.AllianceId, out var alliance))
                         continue;
-                    alliance.Members.Add(member);
+                    var ranked = member.Rank > 0 ? member
+                        : member with { Rank = member.PlayerId == alliance.Record.LeaderId ? AlliancePermissions.Leader : AlliancePermissions.Diver };
+                    alliance.Members.Add(ranked);
                     _memberOf[member.PlayerId] = member.AllianceId;
+                    _names[member.PlayerId] = member.Name;
+                    if (ranked != member)
+                        Write(ct => _store.SaveMemberAsync(ranked, ct));
                 }
 
                 foreach (var line in chat)
                 {
                     Lines(line.Channel).Add(line);
+                    if (!line.IsSystem && line.SenderId.Length > 0)
+                        _names[line.SenderId] = line.SenderName;
                     _nextChatId = Math.Max(_nextChatId, line.Id + 1);
                 }
             }
@@ -116,11 +136,13 @@ namespace Hadal.Game.Social
             lock (_gate)
             {
                 _online[session.PublicId] = session;
+                _names[session.PublicId] = session.DisplayName;
                 var alliance = AllianceOf(session.PublicId);
                 session.SetInAlliance(alliance != null, now);
                 if (alliance != null)
                 {
                     UpdateMember(alliance, session.PublicId, session.DisplayName, session.Power);
+                    PromoteRecruits(alliance, now);
                     PushAlliance(alliance, now); // others see them online
                 }
 
@@ -128,7 +150,8 @@ namespace Hadal.Game.Social
                 {
                     HistoryChange(session.PublicId),
                     MyAllianceChange(session.PublicId),
-                    HelpChange(session.PublicId, now)
+                    HelpChange(session.PublicId, now),
+                    InvitesChange(session.PublicId, now)
                 }, now);
             }
         }
@@ -182,6 +205,24 @@ namespace Hadal.Game.Social
                     case CommandType.HelpAll when TryDeserialize(envelope.Payload, out HelpAllCommand? helpAll):
                         Done(session, helpAll!.CommandId, helpAll.ClientSequence, HelpAll(session.PublicId, now), now);
                         break;
+                    case CommandType.SetMemberRank when TryDeserialize(envelope.Payload, out SetMemberRankCommand? rank):
+                        Done(session, rank!.CommandId, rank.ClientSequence, SetRank(session.PublicId, rank, now), now);
+                        break;
+                    case CommandType.TransferLeadership when TryDeserialize(envelope.Payload, out TransferLeadershipCommand? transfer):
+                        Done(session, transfer!.CommandId, transfer.ClientSequence, Transfer(session.PublicId, transfer.MemberId, now), now);
+                        break;
+                    case CommandType.SetAllianceSettings when TryDeserialize(envelope.Payload, out SetAllianceSettingsCommand? settings):
+                        Done(session, settings!.CommandId, settings.ClientSequence, Settings(session.PublicId, settings, now), now);
+                        break;
+                    case CommandType.InviteToAlliance when TryDeserialize(envelope.Payload, out InviteToAllianceCommand? invite):
+                        Done(session, invite!.CommandId, invite.ClientSequence, InvitePlayer(session, invite.PlayerId, now), now);
+                        break;
+                    case CommandType.AnswerInvite when TryDeserialize(envelope.Payload, out AnswerInviteCommand? answer):
+                        Done(session, answer!.CommandId, answer.ClientSequence, AnswerInvite(session, answer, now), now);
+                        break;
+                    case CommandType.AnswerApplication when TryDeserialize(envelope.Payload, out AnswerApplicationCommand? application):
+                        Done(session, application!.CommandId, application.ClientSequence, AnswerApplication(session.PublicId, application, now), now);
+                        break;
                     default:
                         session.Acknowledge(envelope.CommandId, envelope.ClientSequence, "MalformedCommand", now);
                         break;
@@ -198,12 +239,16 @@ namespace Hadal.Game.Social
             var text = SocialRules.CleanMessage(command.Text, rules);
             if (text.Length == 0)
                 return SocialRejectReason.EmptyMessage;
-            if (_lastChat.TryGetValue(session.PublicId, out var last) && (now - last).TotalSeconds < rules.minIntervalSeconds)
-                return SocialRejectReason.TooFast;
-
             var alliance = AllianceOf(session.PublicId);
             string channel;
-            if (command.Channel == (int)ChatChannel.Alliance)
+            if (command.Channel == (int)ChatChannel.Private)
+            {
+                var target = command.TargetId ?? string.Empty;
+                if (target.Length == 0 || target == session.PublicId || NameOf(target).Length == 0)
+                    return SocialRejectReason.UnknownPlayer;
+                channel = PrivateChannel(session.PublicId, target);
+            }
+            else if (command.Channel == (int)ChatChannel.Alliance)
             {
                 if (alliance == null)
                     return SocialRejectReason.NotInAlliance;
@@ -213,6 +258,9 @@ namespace Hadal.Game.Social
             {
                 channel = WorldChannel;
             }
+
+            if (_lastChat.TryGetValue(session.PublicId, out var last) && (now - last).TotalSeconds < rules.minIntervalSeconds)
+                return SocialRejectReason.TooFast;
 
             _lastChat[session.PublicId] = now;
             session.RecordEvent("chat", 1, now);
@@ -246,10 +294,11 @@ namespace Hadal.Game.Social
             };
             _alliances[alliance.Record.Id] = alliance;
             Write(ct => _store.SaveAllianceAsync(alliance.Record, ct));
-            AddMember(alliance, session.PublicId, session.DisplayName, session.Power, now);
+            AddMember(alliance, session.PublicId, session.DisplayName, session.Power, now, AlliancePermissions.Leader);
+            ForgetPending(session.PublicId);
             session.SetInAlliance(true, now);
 
-            session.Push(new List<EntityChangeDto> { HistoryChange(session.PublicId), HelpChange(session.PublicId, now) }, now);
+            session.Push(new List<EntityChangeDto> { HistoryChange(session.PublicId), HelpChange(session.PublicId, now), InvitesChange(session.PublicId, now) }, now);
             PushAlliance(alliance, now);
             return SocialRejectReason.None;
         }
@@ -263,11 +312,222 @@ namespace Hadal.Game.Social
             if (alliance.Members.Count >= Math.Max(1, Catalog.Alliance.maxMembers))
                 return SocialRejectReason.AllianceFull;
 
-            AddMember(alliance, session.PublicId, session.DisplayName, session.Power, now);
-            session.SetInAlliance(true, now);
-            SystemMessage(alliance, "sys.joined", session.DisplayName, now);
-            session.Push(new List<EntityChangeDto> { HistoryChange(session.PublicId), HelpChange(session.PublicId, now) }, now);
+            // An invitation opens any alliance; otherwise the join mode decides.
+            if (!HasInvite(session.PublicId, alliance.Record.Id, now))
+            {
+                if (alliance.Record.JoinMode == (int)AllianceJoinMode.Closed)
+                    return SocialRejectReason.InviteOnly;
+                if (alliance.Record.JoinMode == (int)AllianceJoinMode.Approval)
+                {
+                    if (!_applications.TryGetValue(alliance.Record.Id, out var list))
+                        _applications[alliance.Record.Id] = list = new List<Applicant>();
+                    if (list.Any(a => a.PlayerId == session.PublicId))
+                        return SocialRejectReason.AlreadyApplied;
+                    list.Add(new Applicant(session.PublicId, session.DisplayName, session.Power, now));
+                    session.Push(new List<EntityChangeDto> { InvitesChange(session.PublicId, now) }, now);
+                    PushAlliance(alliance, now);
+                    return SocialRejectReason.None;
+                }
+            }
+
+            Admit(alliance, session.PublicId, session.DisplayName, session.Power, now);
+            return SocialRejectReason.None;
+        }
+
+        /// <summary>Makes a player a recruit (R1) and tells everyone who needs to know.</summary>
+        private void Admit(Alliance alliance, string playerId, string name, long power, DateTimeOffset now)
+        {
+            AddMember(alliance, playerId, name, power, now, AlliancePermissions.Recruit);
+            ForgetPending(playerId);
+            if (_online.TryGetValue(playerId, out var session))
+            {
+                session.SetInAlliance(true, now);
+                session.Push(new List<EntityChangeDto> { HistoryChange(playerId), HelpChange(playerId, now), InvitesChange(playerId, now) }, now);
+            }
+
+            SystemMessage(alliance, "sys.joined", name, now);
             PushAlliance(alliance, now);
+        }
+
+        /// <summary>Drops every invitation and application of a player who joined somewhere.</summary>
+        private void ForgetPending(string playerId)
+        {
+            _invites.Remove(playerId);
+            foreach (var list in _applications.Values)
+                list.RemoveAll(a => a.PlayerId == playerId);
+        }
+
+        private bool HasInvite(string playerId, string allianceId, DateTimeOffset now) =>
+            _invites.TryGetValue(playerId, out var list) && list.Any(i => i.AllianceId == allianceId && now - i.At < InviteLife);
+
+        private int RankOf(Alliance alliance, string playerId) =>
+            alliance.Members.FirstOrDefault(m => m.PlayerId == playerId)?.Rank ?? 0;
+
+        private void SetMember(Alliance alliance, MemberRecord member)
+        {
+            var index = alliance.Members.FindIndex(m => m.PlayerId == member.PlayerId);
+            if (index < 0)
+                return;
+            alliance.Members[index] = member;
+            Write(ct => _store.SaveMemberAsync(member, ct));
+        }
+
+        /// <summary>Recruits become divers by themselves after <see cref="AlliancePermissions.RecruitHours"/>.</summary>
+        private void PromoteRecruits(Alliance alliance, DateTimeOffset now)
+        {
+            foreach (var m in alliance.Members.Where(m => m.Rank == AlliancePermissions.Recruit && (now - m.JoinedAt).TotalHours >= AlliancePermissions.RecruitHours).ToList())
+                SetMember(alliance, m with { Rank = AlliancePermissions.Diver });
+        }
+
+        private SocialRejectReason SetRank(string actorId, SetMemberRankCommand command, DateTimeOffset now)
+        {
+            var alliance = AllianceOf(actorId);
+            if (alliance == null)
+                return SocialRejectReason.NotInAlliance;
+            var target = alliance.Members.FirstOrDefault(m => m.PlayerId == command.MemberId);
+            if (target == null || target.PlayerId == actorId)
+                return SocialRejectReason.UnknownMember;
+
+            var actor = RankOf(alliance, actorId);
+            var rank = command.Rank <= 0 ? target.Rank : command.Rank;
+            var role = command.Role ?? target.Role;
+            if (rank != target.Rank && !AlliancePermissions.CanSetRank(actor, target.Rank, rank))
+                return SocialRejectReason.NotAllowed;
+            if (role != target.Role && (!AlliancePermissions.CanSetRole(actor) || Array.IndexOf(AlliancePermissions.Roles, role) < 0))
+                return SocialRejectReason.NotAllowed;
+            if (rank == AlliancePermissions.Officer && target.Rank != AlliancePermissions.Officer
+                && alliance.Members.Count(m => m.Rank == AlliancePermissions.Officer) >= AlliancePermissions.MaxOfficers)
+                return SocialRejectReason.RankFull;
+
+            SetMember(alliance, target with { Rank = rank, Role = rank == AlliancePermissions.Officer ? role : string.Empty });
+            if (rank != target.Rank)
+                SystemMessage(alliance, "sys.rank", target.Name + "|" + rank, now);
+            PushAlliance(alliance, now);
+            return SocialRejectReason.None;
+        }
+
+        private SocialRejectReason Transfer(string leaderId, string memberId, DateTimeOffset now)
+        {
+            var alliance = AllianceOf(leaderId);
+            if (alliance == null)
+                return SocialRejectReason.NotInAlliance;
+            if (!AlliancePermissions.CanTransfer(RankOf(alliance, leaderId)))
+                return SocialRejectReason.NotLeader;
+            var heir = alliance.Members.FirstOrDefault(m => m.PlayerId == memberId);
+            var leader = alliance.Members.First(m => m.PlayerId == leaderId);
+            if (heir == null || memberId == leaderId)
+                return SocialRejectReason.UnknownMember;
+
+            SetMember(alliance, heir with { Rank = AlliancePermissions.Leader, Role = string.Empty });
+            SetMember(alliance, leader with { Rank = AlliancePermissions.Officer });
+            alliance.Record = alliance.Record with { LeaderId = memberId };
+            var record = alliance.Record;
+            Write(ct => _store.SaveAllianceAsync(record, ct));
+            SystemMessage(alliance, "sys.leader", heir.Name, now);
+            PushAlliance(alliance, now);
+            return SocialRejectReason.None;
+        }
+
+        private SocialRejectReason Settings(string leaderId, SetAllianceSettingsCommand command, DateTimeOffset now)
+        {
+            var alliance = AllianceOf(leaderId);
+            if (alliance == null)
+                return SocialRejectReason.NotInAlliance;
+            if (!AlliancePermissions.CanEditSettings(RankOf(alliance, leaderId)))
+                return SocialRejectReason.NotLeader;
+            if (!Enum.IsDefined(typeof(AllianceJoinMode), command.JoinMode))
+                return SocialRejectReason.NotAllowed;
+
+            var description = SocialRules.CleanMessage(command.Description, new HADAL.Shared.Catalog.ChatCatalogData { maxLength = 200 });
+            alliance.Record = alliance.Record with { JoinMode = command.JoinMode, Description = description };
+            var record = alliance.Record;
+            Write(ct => _store.SaveAllianceAsync(record, ct));
+
+            // Opening up admits everyone who was waiting.
+            if (command.JoinMode == (int)AllianceJoinMode.Open && _applications.Remove(alliance.Record.Id, out var waiting))
+            {
+                foreach (var a in waiting.Where(a => AllianceOf(a.PlayerId) == null))
+                {
+                    if (alliance.Members.Count >= Math.Max(1, Catalog.Alliance.maxMembers))
+                        break;
+                    Admit(alliance, a.PlayerId, NameOf(a.PlayerId) is { Length: > 0 } n ? n : a.Name, a.Power, now);
+                }
+            }
+
+            PushAlliance(alliance, now);
+            return SocialRejectReason.None;
+        }
+
+        private SocialRejectReason InvitePlayer(PlayerSession session, string playerId, DateTimeOffset now)
+        {
+            var alliance = AllianceOf(session.PublicId);
+            if (alliance == null)
+                return SocialRejectReason.NotInAlliance;
+            if (!AlliancePermissions.CanInvite(RankOf(alliance, session.PublicId)))
+                return SocialRejectReason.NotAllowed;
+            if (string.IsNullOrEmpty(playerId) || playerId == session.PublicId || NameOf(playerId).Length == 0)
+                return SocialRejectReason.UnknownPlayer;
+            if (AllianceOf(playerId) != null)
+                return SocialRejectReason.AlreadyInAlliance;
+            if (HasInvite(playerId, alliance.Record.Id, now))
+                return SocialRejectReason.AlreadyInvited;
+
+            if (!_invites.TryGetValue(playerId, out var list))
+                _invites[playerId] = list = new List<Invite>();
+            list.RemoveAll(i => i.AllianceId == alliance.Record.Id || now - i.At >= InviteLife);
+            list.Add(new Invite(alliance.Record.Id, session.DisplayName, now));
+            if (_online.TryGetValue(playerId, out var invitee))
+                invitee.Push(new List<EntityChangeDto> { InvitesChange(playerId, now) }, now);
+            return SocialRejectReason.None;
+        }
+
+        private SocialRejectReason AnswerInvite(PlayerSession session, AnswerInviteCommand command, DateTimeOffset now)
+        {
+            if (!HasInvite(session.PublicId, command.AllianceId, now) || !_alliances.TryGetValue(command.AllianceId, out var alliance))
+                return SocialRejectReason.NoInvite;
+
+            if (!command.Accept)
+            {
+                _invites[session.PublicId].RemoveAll(i => i.AllianceId == command.AllianceId);
+                session.Push(new List<EntityChangeDto> { InvitesChange(session.PublicId, now) }, now);
+                return SocialRejectReason.None;
+            }
+
+            if (AllianceOf(session.PublicId) != null)
+                return SocialRejectReason.AlreadyInAlliance;
+            if (alliance.Members.Count >= Math.Max(1, Catalog.Alliance.maxMembers))
+                return SocialRejectReason.AllianceFull;
+            Admit(alliance, session.PublicId, session.DisplayName, session.Power, now);
+            return SocialRejectReason.None;
+        }
+
+        private SocialRejectReason AnswerApplication(string actorId, AnswerApplicationCommand command, DateTimeOffset now)
+        {
+            var alliance = AllianceOf(actorId);
+            if (alliance == null)
+                return SocialRejectReason.NotInAlliance;
+            if (!AlliancePermissions.CanApprove(RankOf(alliance, actorId)))
+                return SocialRejectReason.NotAllowed;
+            if (!_applications.TryGetValue(alliance.Record.Id, out var list) || list.All(a => a.PlayerId != command.PlayerId))
+                return SocialRejectReason.NoApplication;
+
+            var applicant = list.First(a => a.PlayerId == command.PlayerId);
+            list.Remove(applicant);
+            if (command.Accept)
+            {
+                if (AllianceOf(applicant.PlayerId) != null)
+                    return SocialRejectReason.AlreadyInAlliance;
+                if (alliance.Members.Count >= Math.Max(1, Catalog.Alliance.maxMembers))
+                    return SocialRejectReason.AllianceFull;
+                Admit(alliance, applicant.PlayerId, NameOf(applicant.PlayerId) is { Length: > 0 } n ? n : applicant.Name, applicant.Power, now);
+            }
+            else
+            {
+                if (_online.TryGetValue(applicant.PlayerId, out var declined))
+                    declined.Push(new List<EntityChangeDto> { InvitesChange(applicant.PlayerId, now) }, now);
+                PushAlliance(alliance, now);
+            }
+
             return SocialRejectReason.None;
         }
 
@@ -298,6 +558,7 @@ namespace Hadal.Game.Social
             if (alliance.Members.Count == 0)
             {
                 _alliances.Remove(alliance.Record.Id);
+                _applications.Remove(alliance.Record.Id);
                 _channels.Remove(AllianceChannel(alliance.Record.Id));
                 Write(ct => _store.DeleteAllianceAsync(alliance.Record.Id, ct));
                 return SocialRejectReason.None;
@@ -305,7 +566,10 @@ namespace Hadal.Game.Social
 
             if (alliance.Record.LeaderId == playerId)
             {
-                alliance.Record = alliance.Record with { LeaderId = alliance.Members.OrderBy(m => m.JoinedAt).First().PlayerId };
+                // The highest rank takes over; among equals the longest-standing member.
+                var heir = alliance.Members.OrderByDescending(m => m.Rank).ThenBy(m => m.JoinedAt).First();
+                SetMember(alliance, heir with { Rank = AlliancePermissions.Leader, Role = string.Empty });
+                alliance.Record = alliance.Record with { LeaderId = heir.PlayerId };
                 var record = alliance.Record;
                 Write(ct => _store.SaveAllianceAsync(record, ct));
             }
@@ -321,10 +585,10 @@ namespace Hadal.Game.Social
             var alliance = AllianceOf(leaderId);
             if (alliance == null)
                 return SocialRejectReason.NotInAlliance;
-            if (alliance.Record.LeaderId != leaderId)
-                return SocialRejectReason.NotLeader;
             if (memberId == leaderId || alliance.Members.All(m => m.PlayerId != memberId))
                 return SocialRejectReason.UnknownMember;
+            if (!AlliancePermissions.CanKick(RankOf(alliance, leaderId), RankOf(alliance, memberId)))
+                return SocialRejectReason.NotAllowed;
             return Leave(memberId, now, leaderId);
         }
 
@@ -439,6 +703,31 @@ namespace Hadal.Game.Social
 
         private static string AllianceChannel(string allianceId) => "alliance:" + allianceId;
 
+        private const string PrivatePrefix = "dm:";
+
+        /// <summary>One channel per pair of players, ids in order so both sides land on the same one.</summary>
+        private static string PrivateChannel(string a, string b) =>
+            string.CompareOrdinal(a, b) < 0 ? PrivatePrefix + a + ":" + b : PrivatePrefix + b + ":" + a;
+
+        private static (string A, string B) PrivatePair(string channel)
+        {
+            var parts = channel.Substring(PrivatePrefix.Length).Split(':');
+            return parts.Length == 2 ? (parts[0], parts[1]) : (string.Empty, string.Empty);
+        }
+
+        /// <summary>A player's current name: online session, alliance roster, chat, then the world map.</summary>
+        private string NameOf(string playerId)
+        {
+            if (_online.TryGetValue(playerId, out var session))
+                return session.DisplayName;
+            if (_names.TryGetValue(playerId, out var name))
+                return name;
+            name = NameLookup?.Invoke(playerId) ?? string.Empty;
+            if (name.Length > 0)
+                _names[playerId] = name;
+            return name;
+        }
+
         private List<ChatRecord> Lines(string channel)
         {
             if (!_channels.TryGetValue(channel, out var lines))
@@ -446,9 +735,9 @@ namespace Hadal.Game.Social
             return lines;
         }
 
-        private void AddMember(Alliance alliance, string playerId, string name, long power, DateTimeOffset now)
+        private void AddMember(Alliance alliance, string playerId, string name, long power, DateTimeOffset now, int rank)
         {
-            var member = new MemberRecord(playerId, alliance.Record.Id, name, power, now);
+            var member = new MemberRecord(playerId, alliance.Record.Id, name, power, now, rank);
             alliance.Members.Add(member);
             _memberOf[playerId] = alliance.Record.Id;
             Write(ct => _store.SaveMemberAsync(member, ct));
@@ -460,6 +749,7 @@ namespace Hadal.Game.Social
             if (index < 0)
                 return;
             var member = alliance.Members[index] with { Name = name, Power = power };
+            _names[playerId] = name;
             alliance.Members[index] = member;
             Write(ct => _store.SaveMemberAsync(member, ct));
         }
@@ -491,6 +781,11 @@ namespace Hadal.Game.Social
         {
             if (channel == WorldChannel)
                 return _online.Values.ToList();
+            if (channel.StartsWith(PrivatePrefix, StringComparison.Ordinal))
+            {
+                var (a, b) = PrivatePair(channel);
+                return new[] { a, b }.Select(id => _online.TryGetValue(id, out var s) ? s : null).Where(s => s != null).Cast<PlayerSession>().ToList();
+            }
             var allianceId = channel.Substring("alliance:".Length);
             return _alliances.TryGetValue(allianceId, out var alliance)
                 ? alliance.Members.Select(m => _online.TryGetValue(m.PlayerId, out var s) ? s : null).Where(s => s != null).Cast<PlayerSession>().ToList()
@@ -528,6 +823,12 @@ namespace Hadal.Game.Social
             var alliance = AllianceOf(playerId);
             if (alliance != null)
                 lines.AddRange(Lines(AllianceChannel(alliance.Record.Id)));
+            foreach (var (channel, privateLines) in _channels.Where(c => c.Key.StartsWith(PrivatePrefix, StringComparison.Ordinal)))
+            {
+                var (a, b) = PrivatePair(channel);
+                if (a == playerId || b == playerId)
+                    lines.AddRange(privateLines);
+            }
 
             return new EntityChangeDto
             {
@@ -551,6 +852,10 @@ namespace Hadal.Game.Social
                 Description = alliance.Record.Description,
                 LeaderId = alliance.Record.LeaderId,
                 MaxMembers = Catalog.Alliance.maxMembers,
+                JoinMode = alliance.Record.JoinMode,
+                Applicants = AlliancePermissions.CanApprove(RankOf(alliance, playerId)) && _applications.TryGetValue(alliance.Record.Id, out var waiting)
+                    ? waiting.Select(a => new AllianceApplicantDto { PlayerId = a.PlayerId, Name = NameOf(a.PlayerId) is { Length: > 0 } n ? n : a.Name, Power = a.Power }).ToArray()
+                    : Array.Empty<AllianceApplicantDto>(),
                 Members = alliance.Members.Select(m =>
                 {
                     var online = _online.TryGetValue(m.PlayerId, out var s);
@@ -560,9 +865,11 @@ namespace Hadal.Game.Social
                         Name = online ? s!.DisplayName : m.Name,
                         IsLeader = m.PlayerId == alliance.Record.LeaderId,
                         Power = online ? s!.Power : m.Power,
-                        Online = online
+                        Online = online,
+                        Rank = m.Rank,
+                        Role = m.Role
                     };
-                }).OrderByDescending(m => m.IsLeader).ThenByDescending(m => m.Power).ToArray()
+                }).OrderByDescending(m => m.Rank).ThenByDescending(m => m.Power).ToArray()
             };
             return new EntityChangeDto { EntityId = EntityIds.MyAlliance, Kind = EntityChangeKind.Update, Payload = _serializer.Serialize(dto) };
         }
@@ -581,7 +888,8 @@ namespace Hadal.Game.Social
                     Members = a.Members.Count,
                     MaxMembers = Catalog.Alliance.maxMembers,
                     LeaderName = a.Members.FirstOrDefault(m => m.PlayerId == a.Record.LeaderId)?.Name ?? string.Empty,
-                    Power = a.Members.Sum(m => _online.TryGetValue(m.PlayerId, out var s) ? s.Power : m.Power)
+                    Power = a.Members.Sum(m => _online.TryGetValue(m.PlayerId, out var s) ? s.Power : m.Power),
+                    JoinMode = a.Record.JoinMode
                 })
                 .OrderByDescending(a => a.Power)
                 .Take(30)
@@ -608,7 +916,44 @@ namespace Hadal.Game.Social
             return new EntityChangeDto { EntityId = EntityIds.AllianceHelp, Kind = EntityChangeKind.Update, Payload = _serializer.Serialize(new HelpListDto { Requests = requests }) };
         }
 
-        private static ChatMessageDto ToDto(ChatRecord line) => new()
+        private EntityChangeDto InvitesChange(string playerId, DateTimeOffset now)
+        {
+            var invites = _invites.TryGetValue(playerId, out var list) ? list.Where(i => now - i.At < InviteLife && _alliances.ContainsKey(i.AllianceId)).ToList() : new List<Invite>();
+            var dto = new AllianceInviteListDto
+            {
+                Invites = invites.Select(i =>
+                {
+                    var a = _alliances[i.AllianceId];
+                    return new AllianceInviteDto
+                    {
+                        AllianceId = a.Record.Id,
+                        Name = a.Record.Name,
+                        Tag = a.Record.Tag,
+                        InviterName = i.InviterName,
+                        Members = a.Members.Count,
+                        MaxMembers = Catalog.Alliance.maxMembers
+                    };
+                }).ToArray(),
+                Applied = _applications.Where(p => p.Value.Any(a => a.PlayerId == playerId)).Select(p => p.Key).ToArray()
+            };
+            return new EntityChangeDto { EntityId = EntityIds.AllianceInvites, Kind = EntityChangeKind.Update, Payload = _serializer.Serialize(dto) };
+        }
+
+        private ChatMessageDto ToDto(ChatRecord line)
+        {
+            var dto = ToDtoBase(line);
+            if (line.Channel.StartsWith(PrivatePrefix, StringComparison.Ordinal))
+            {
+                var (a, b) = PrivatePair(line.Channel);
+                dto.Channel = (int)ChatChannel.Private;
+                dto.TargetId = a == line.SenderId ? b : a;
+                dto.TargetName = NameOf(dto.TargetId);
+            }
+
+            return dto;
+        }
+
+        private static ChatMessageDto ToDtoBase(ChatRecord line) => new()
         {
             Id = line.Id,
             Channel = line.Channel == WorldChannel ? (int)ChatChannel.World : (int)ChatChannel.Alliance,

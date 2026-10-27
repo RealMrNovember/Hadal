@@ -56,6 +56,9 @@ namespace Hadal.Game.Tests
 
             foreach (var resource in root["resources"]!.AsArray())
                 resource!.AsObject().Remove("capacityByReactor");
+
+            // Without belts the map keeps the old centre spiral and has no resource nodes.
+            root["world"]!.AsObject().Remove("belts");
             return root.ToJsonString();
         }
 

@@ -193,12 +193,17 @@ namespace Hadal.Game
                         RecruitHero(recruit!, now);
                         break;
 
+                    case CommandType.DiveStage when TryDeserialize(envelope.Payload, out DiveStageCommand? dive):
+                        DiveStage(dive!, now);
+                        break;
+
                     default:
                         var known = envelope.Type is CommandType.PlaceBuilding or CommandType.UpgradeBuilding or CommandType.FinishConstruction
                             or CommandType.RemoveBuilding or CommandType.UnlockRing or CommandType.StartResearch or CommandType.FinishResearch
                             or CommandType.BoostBuilding or CommandType.Overdrive or CommandType.StartSalvage or CommandType.ExecuteGacha
                             or CommandType.LevelUpHero or CommandType.PromoteHero or CommandType.AssignHero
-                            or CommandType.ClaimQuest or CommandType.ClaimDailyChest or CommandType.OpenItem or CommandType.RecruitHero;
+                            or CommandType.ClaimQuest or CommandType.ClaimDailyChest or CommandType.OpenItem or CommandType.RecruitHero
+                            or CommandType.DiveStage;
                         Reject(envelope.CommandId, envelope.ClientSequence, known ? "MalformedCommand" : "NotSupported", now);
                         break;
                 }
@@ -686,6 +691,9 @@ namespace Hadal.Game
                         changedBuildings.Add(building);
                 }
 
+                foreach (var march in _state.Marches.Where(m => m.HomeAt <= at).ToList())
+                    CompleteMarch(march);
+
                 foreach (var research in _state.ActiveResearch.Where(a => a.EndsAt <= at).ToList())
                 {
                     _state.ActiveResearch.Remove(research);
@@ -699,7 +707,9 @@ namespace Hadal.Game
             AdvanceEconomy(now);
 
             var changes = new List<EntityChangeDto>();
-            if (changedBuildings.Count == 0 && !researchChanged)
+            if (_marchesDirty)
+                changes.Add(MarchesChange(now));
+            if (changedBuildings.Count == 0 && !researchChanged && changes.Count == 0)
                 return changes;
 
             changes.AddRange(changedBuildings.Select(b => BuildingChange(b, now)));
@@ -731,6 +741,8 @@ namespace Hadal.Game
 
             foreach (var research in _state.ActiveResearch)
                 Consider(research.EndsAt);
+            foreach (var march in _state.Marches)
+                Consider(march.HomeAt);
             return next;
         }
 
@@ -921,7 +933,9 @@ namespace Hadal.Game
                 Research = ResearchDto(now),
                 Heroes = RosterDto(now),
                 Quests = QuestDto(now),
-                Inventory = InventoryDto()
+                Inventory = InventoryDto(),
+                Marches = MarchListDto(now),
+                Expedition = ExpeditionDto()
             };
             _questsDirty = false;
 

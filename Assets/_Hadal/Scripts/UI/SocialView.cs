@@ -32,7 +32,9 @@ namespace Hadal.UI
             Chat,
             Quests,
             Bag,
-            Reward
+            Reward,
+            Expedition,
+            DiveResult
         }
 
         private static readonly CommandType[] OwnCommands =
@@ -40,7 +42,9 @@ namespace Hadal.UI
             CommandType.ExecuteGacha, CommandType.LevelUpHero, CommandType.PromoteHero, CommandType.AssignHero, CommandType.SendChat,
             CommandType.CreateAlliance, CommandType.JoinAlliance, CommandType.LeaveAlliance, CommandType.BrowseAlliances,
             CommandType.KickMember, CommandType.RequestHelp, CommandType.HelpAll,
-            CommandType.ClaimQuest, CommandType.ClaimDailyChest, CommandType.OpenItem, CommandType.RecruitHero
+            CommandType.ClaimQuest, CommandType.ClaimDailyChest, CommandType.OpenItem, CommandType.RecruitHero,
+            CommandType.DiveStage, CommandType.SetMemberRank, CommandType.TransferLeadership, CommandType.SetAllianceSettings,
+            CommandType.AnswerInvite, CommandType.AnswerApplication
         };
 
         private IStateSyncService _stateSync;
@@ -148,6 +152,7 @@ namespace Hadal.UI
 
         public void Close()
         {
+            _title.color = UiKit.Accent;
             _stage?.Hide();
             _sheet.SetActive(false);
             _footer.gameObject.SetActive(false);
@@ -168,6 +173,12 @@ namespace Hadal.UI
             {
                 _podResult = result;
                 Open(Page.PodResult);
+            }
+
+            while (View.TryTakeDiveReport(out var dive))
+            {
+                _dive = dive;
+                Open(Page.DiveResult);
             }
 
             while (View.TryTakeRewardReport(out var report))
@@ -194,8 +205,9 @@ namespace Hadal.UI
         {
             Page.Heroes or Page.HeroDetail => $"{_page}|{_heroId}|{HeroesKey()}|{View.QuestVersion}",
             Page.Alliance => $"{_page}|{View.AllianceVersion}|{_confirmLeave}|{_allianceTab}",
-            Page.Chat => $"{_page}|{View.ChatVersion}|{_chatChannel}",
+            Page.Chat => $"{_page}|{View.ChatVersion}|{_chatChannel}|{_chatPeer}",
             Page.Quests or Page.Bag => $"{_page}|{QuestKey()}",
+            Page.Expedition => $"{_page}|{ExpeditionKey()}",
             _ => _page.ToString()
         };
 
@@ -228,7 +240,7 @@ namespace Hadal.UI
 
             var listRect = (RectTransform)_list.parent;
             listRect.Place(0.04f, _page == Page.Chat ? 0.085f : 0.02f, 0.96f, 0.875f);
-            _footer.gameObject.SetActive(_page == Page.Chat);
+            _footer.gameObject.SetActive(_page == Page.Chat && !(_chatChannel == ChatChannel.Private && _chatPeer.Length == 0));
 
             if (_page != Page.HeroDetail)
                 _stage.Hide();
@@ -243,6 +255,8 @@ namespace Hadal.UI
                 case Page.Quests: RenderQuests(); break;
                 case Page.Bag: RenderBag(); break;
                 case Page.Reward: RenderReward(); break;
+                case Page.Expedition: RenderExpedition(); break;
+                case Page.DiveResult: RenderDiveResult(); break;
             }
 
             if (_page == Page.Chat)
@@ -274,7 +288,12 @@ namespace Hadal.UI
                 CommandType.PromoteHero => Loc.T("hero.promoted"),
                 CommandType.AssignHero => Loc.T("hero.assigned"),
                 CommandType.CreateAlliance => Loc.T("alliance.created"),
-                CommandType.JoinAlliance => Loc.T("alliance.joined"),
+                CommandType.JoinAlliance => View.MyAlliance != null ? Loc.T("alliance.joined") : Loc.T("alliance.applied.toast"),
+                CommandType.SetMemberRank => Loc.T("alliance.rank.saved"),
+                CommandType.TransferLeadership => Loc.T("alliance.transferred"),
+                CommandType.SetAllianceSettings => Loc.T("alliance.saved"),
+                CommandType.AnswerInvite => View.MyAlliance != null ? Loc.T("alliance.joined") : string.Empty,
+                CommandType.AnswerApplication => Loc.T("alliance.saved"),
                 CommandType.LeaveAlliance => Loc.T("alliance.left"),
                 CommandType.KickMember => Loc.T("alliance.kicked"),
                 CommandType.RequestHelp => Loc.T("alliance.help.requested"),

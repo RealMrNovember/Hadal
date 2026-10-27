@@ -53,6 +53,15 @@ namespace HADAL.Shared.Protocol
         /// <summary>Bases around the tile the player looks at on the world map (<c>WorldViewDto</c>).</summary>
         public const string WorldView = "world:view";
 
+        /// <summary>The player's gathering marches and queues (<c>MarchListDto</c>).</summary>
+        public const string Marches = Base + "marches";
+
+        /// <summary>Depth Map progress (<c>ExpeditionStateDto</c>).</summary>
+        public const string Expedition = Base + "expedition";
+
+        /// <summary>Prefix of one dive result (<c>DiveReportDto</c>), followed by the command id.</summary>
+        public const string DiveReport = Base + "dive:";
+
         public const string Alliance = "alliance:";
 
         /// <summary>The player's alliance (<c>AllianceDto</c>); Delete when the player has none.</summary>
@@ -63,5 +72,8 @@ namespace HADAL.Shared.Protocol
 
         /// <summary>Open help requests of alliance mates (<c>HelpListDto</c>).</summary>
         public const string AllianceHelp = Alliance + "help";
+
+        /// <summary>Invitations and applications of a player without an alliance (<c>AllianceInviteListDto</c>).</summary>
+        public const string AllianceInvites = Alliance + "invites";
     }
 }

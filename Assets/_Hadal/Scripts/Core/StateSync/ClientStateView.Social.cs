@@ -62,6 +62,26 @@ namespace Hadal.Core.StateSync
 
         public HelpRequestDto[] HelpRequests { get; private set; } = System.Array.Empty<HelpRequestDto>();
 
+        /// <summary>Invitations and applications while the player has no alliance (docs/rehber 10 §2).</summary>
+        public AllianceInviteListDto AllianceInvites { get; private set; } = new();
+
+        public void ApplyAllianceInvites(AllianceInviteListDto invites)
+        {
+            AllianceInvites = invites ?? new AllianceInviteListDto();
+            AllianceVersion++;
+        }
+
+        /// <summary>The viewer's rank in their alliance, 0 without one.</summary>
+        public int MyRank()
+        {
+            if (MyAlliance == null)
+                return 0;
+            foreach (var m in MyAlliance.Members ?? System.Array.Empty<AllianceMemberDto>())
+                if (m.PlayerId == PlayerId)
+                    return m.Rank > 0 ? m.Rank : MyAlliance.LeaderId == PlayerId ? 5 : 2;
+            return 0;
+        }
+
         /// <summary>Bumps on any alliance change (membership, browse results, help requests).</summary>
         public int AllianceVersion { get; private set; }
 
@@ -199,6 +219,7 @@ namespace Hadal.Core.StateSync
 
         private void ResetSocial()
         {
+            ResetIncome();
             Quests = null;
             _items.Clear();
             _heroCards.Clear();
@@ -216,6 +237,7 @@ namespace Hadal.Core.StateSync
             MyAlliance = null;
             AllianceBrowse = System.Array.Empty<AllianceSummaryDto>();
             HelpRequests = System.Array.Empty<HelpRequestDto>();
+            AllianceInvites = new AllianceInviteListDto();
             AllianceVersion++;
         }
     }

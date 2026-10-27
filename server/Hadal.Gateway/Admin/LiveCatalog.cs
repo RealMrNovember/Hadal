@@ -36,8 +36,11 @@ namespace Hadal.Gateway.Admin
         private readonly LiveCatalog _live;
         private readonly ILogger<CatalogBootstrap> _logger;
 
-        public CatalogBootstrap(IAdminStore store, GameWorld world, LiveCatalog live, ILogger<CatalogBootstrap> logger)
+        private readonly int _publishUpTo;
+
+        public CatalogBootstrap(IAdminStore store, GameWorld world, LiveCatalog live, ILogger<CatalogBootstrap> logger, IOptions<GameOptions> options)
         {
+            _publishUpTo = options.Value.PublishCatalogUpTo;
             _store = store;
             _world = world;
             _live = live;
@@ -53,7 +56,12 @@ namespace Hadal.Gateway.Admin
 
             // A release whose catalog file is a newer design ("version" field) than the panel's last
             // edit supersedes it; it is stored as a new version so the panel history shows it.
-            if (FileSupersedes(_live.Json, latest.Json))
+            if (FileSupersedes(_live.Json, latest.Json) && _publishUpTo > 0 && DesignVersion(_live.Json) > _publishUpTo)
+            {
+                _logger.LogInformation("Catalog file v{Design} is held back (Game:PublishCatalogUpTo = {Limit}); stored catalog v{Stored} keeps running.",
+                    DesignVersion(_live.Json), _publishUpTo, latest.Version);
+            }
+            else if (FileSupersedes(_live.Json, latest.Json))
             {
                 var version = await _store.AddCatalogAsync(_live.Json, "release", $"catalog file v{DesignVersion(_live.Json)}", cancellationToken);
                 _world.ReplaceCatalog(CatalogLoader.Parse(_live.Json), version);

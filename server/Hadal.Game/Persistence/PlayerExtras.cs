@@ -1,4 +1,5 @@
 using System.Text.Json;
+using HADAL.Shared.Enums;
 
 namespace Hadal.Game.Persistence
 {
@@ -18,7 +19,12 @@ namespace Hadal.Game.Persistence
 
         private sealed record Doc(
             Dictionary<string, int>? Research, List<ActiveDoc>? Active, Dictionary<string, BuildingDoc>? Buildings,
-            List<HeroDoc>? Heroes = null, int SincePity = 0, DateTimeOffset? FreePullAt = null, QuestDoc? Quests = null);
+            List<HeroDoc>? Heroes = null, int SincePity = 0, DateTimeOffset? FreePullAt = null, QuestDoc? Quests = null,
+            List<MarchDoc>? Marches = null, int ExpeditionCleared = 0);
+
+        private sealed record MarchDoc(
+            string Id, string NodeId, string NodeType, int NodeLevel, int X, int Y, DateTimeOffset StartedAt, DateTimeOffset ArrivesAt,
+            DateTimeOffset GatheredAt, DateTimeOffset HomeAt, long Reserved, Dictionary<string, double>? Rates, Dictionary<string, long>? Cargo);
 
         private sealed record QuestDoc(
             int ChapterIndex, Dictionary<string, long>? Counters, Dictionary<string, long>? Daily, int DailyDay,
@@ -44,7 +50,20 @@ namespace Hadal.Game.Persistence
                 state.FreePullAt,
                 new QuestDoc(state.ChapterIndex, new Dictionary<string, long>(state.QuestCounters), new Dictionary<string, long>(state.DailyCounters),
                     state.DailyDay, state.ClaimedDaily.ToList(), state.DailyPoints, state.ClaimedChests.ToList(),
-                    new Dictionary<string, int>(state.Items), new Dictionary<string, int>(state.HeroCards))));
+                    new Dictionary<string, int>(state.Items), new Dictionary<string, int>(state.HeroCards)),
+                state.Marches.Select(m => new MarchDoc(m.Id, m.NodeId, m.NodeType, m.NodeLevel, m.X, m.Y, m.StartedAt, m.ArrivesAt,
+                    m.GatheredAt, m.HomeAt, m.Reserved,
+                    m.Rates.ToDictionary(p => p.Key.ToString(), p => p.Value), m.Cargo.ToDictionary(p => p.Key.ToString(), p => p.Value))).ToList(),
+                state.ExpeditionCleared));
+        }
+
+        private static Dictionary<ResourceType, T> Resources<T>(Dictionary<string, T>? map)
+        {
+            var result = new Dictionary<ResourceType, T>();
+            foreach (var pair in map ?? new Dictionary<string, T>())
+                if (Enum.TryParse(pair.Key, out ResourceType resource))
+                    result[resource] = pair.Value;
+            return result;
         }
 
         /// <summary>Applies a stored document to a freshly loaded player (after its buildings).</summary>
@@ -92,6 +111,18 @@ namespace Hadal.Game.Persistence
                 foreach (var pair in q.HeroCards ?? new Dictionary<string, int>())
                     state.HeroCards[pair.Key] = pair.Value;
             }
+
+            foreach (var m in doc.Marches ?? new List<MarchDoc>())
+            {
+                state.Marches.Add(new MarchState
+                {
+                    Id = m.Id, NodeId = m.NodeId, NodeType = m.NodeType, NodeLevel = m.NodeLevel, X = m.X, Y = m.Y,
+                    StartedAt = m.StartedAt, ArrivesAt = m.ArrivesAt, GatheredAt = m.GatheredAt, HomeAt = m.HomeAt, Reserved = m.Reserved,
+                    Rates = Resources(m.Rates), Cargo = Resources(m.Cargo)
+                });
+            }
+
+            state.ExpeditionCleared = doc.ExpeditionCleared;
 
             foreach (var b in state.Buildings)
             {

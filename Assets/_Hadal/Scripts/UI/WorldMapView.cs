@@ -18,7 +18,7 @@ namespace Hadal.UI
     /// its map tile, a name plate ("[TAG] Name" and level) over each, its own camera (drag to pan, pinch to
     /// zoom) and a tap for details. Areas load from the server as the camera moves.
     /// </summary>
-    public sealed class WorldMapView : MonoBehaviour
+    public sealed partial class WorldMapView : MonoBehaviour
     {
         private static readonly Vector3 Origin = new(10000f, 0f, 0f);
         private const float Tile = 8f;
@@ -56,13 +56,17 @@ namespace Hadal.UI
 
         public bool IsOpen { get; private set; }
 
+        /// <summary>Opens a private conversation with a base's owner (id, name); set by BaseManagementView.</summary>
+        public Action<string, string> MessagePlayer;
+
         private ClientStateView View => _stateSync.View;
 
-        public void Initialize(IStateSyncService stateSync, ICommandDispatcher commands, Action<string, Color> toast)
+        public void Initialize(IStateSyncService stateSync, ICommandDispatcher commands, Action<string, Color> toast, Hadal.Core.Events.ILocalEventBus localBus = null)
         {
             _stateSync = stateSync;
             _commands = commands;
             _toast = toast;
+            InitializeNodes(localBus);
         }
 
         // --- Enter and leave -----------------------------------------------------------------
@@ -166,6 +170,8 @@ namespace Hadal.UI
             home.GetComponentInChildren<Text>().color = UiKit.Text;
             ((RectTransform)home.transform).Place(0.54f, 0.19f, 0.8f, 0.23f);
 
+            BuildMarches(safe);
+
             // Base details open above the HUD.
             _popupCanvas = UiKit.Canvas("WorldPopup", 46);
             _popupCanvas.transform.SetParent(transform, false);
@@ -226,6 +232,8 @@ namespace Hadal.UI
                 Destroy(plate.gameObject);
                 _bases.Remove(id);
             }
+
+            ApplyNodes(view);
         }
 
         private GameObject BuildBase(WorldBaseDto b)
@@ -308,8 +316,33 @@ namespace Hadal.UI
                         $"{Loc.F("world.coords", b.X, b.Y)}    {(b.Online ? Loc.T("world.online") : Loc.T("world.offline"))}" +
                         (me ? "\n" + Loc.T("world.you") : string.Empty);
             UiKit.Label("Info", card.transform, lines, 30, UiKit.Muted, TextAnchor.UpperLeft).rectTransform.Place(0.06f, 0.3f, 0.96f, 0.68f);
-            var close = UiKit.Button("Close", card.transform, Loc.T("hero.pod.done"), ClosePopup, UiKit.Accent, 30);
-            ((RectTransform)close.transform).Place(0.3f, 0.06f, 0.7f, 0.26f);
+            if (me)
+            {
+                var done = UiKit.Button("Close", card.transform, Loc.T("hero.pod.done"), ClosePopup, UiKit.Accent, 30);
+                ((RectTransform)done.transform).Place(0.3f, 0.06f, 0.7f, 0.26f);
+                return;
+            }
+
+            // Write to them, or bring them into the alliance (R3+ may invite players without one).
+            var info = b;
+            var message = UiKit.Button("Message", card.transform, Loc.T("alliance.message"), () =>
+            {
+                ClosePopup();
+                MessagePlayer?.Invoke(info.PlayerId, info.Name);
+            }, UiKit.Accent, 28);
+            ((RectTransform)message.transform).Place(0.04f, 0.06f, 0.34f, 0.26f);
+
+            var canInvite = HADAL.Shared.Simulation.AlliancePermissions.CanInvite(View.MyRank()) && string.IsNullOrEmpty(b.AllianceTag);
+            var invite = UiKit.Button("Invite", card.transform, Loc.T("alliance.invite"), () => _commands.Dispatch(new InviteToAllianceCommand
+            {
+                CommandId = Guid.NewGuid().ToString("N"), ClientSequence = ++_sequence, PlayerId = info.PlayerId
+            }), canInvite ? UiKit.Accent : UiKit.Field, 28);
+            invite.interactable = canInvite;
+            ((RectTransform)invite.transform).Place(0.36f, 0.06f, 0.66f, 0.26f);
+
+            var close = UiKit.Button("Close", card.transform, Loc.T("hero.pod.done"), ClosePopup, UiKit.Field, 28);
+            close.GetComponentInChildren<Text>().color = UiKit.Text;
+            ((RectTransform)close.transform).Place(0.68f, 0.06f, 0.96f, 0.26f);
         }
 
         private void ClosePopup()
@@ -350,6 +383,8 @@ namespace Hadal.UI
 
             ScatterDecor();
             UpdatePlates();
+            UpdateNodePlates();
+            UpdateMarches();
 
             var tile = WorldToTile(_focus);
             _coords.text = Loc.F("world.coords", tile.x, tile.y);

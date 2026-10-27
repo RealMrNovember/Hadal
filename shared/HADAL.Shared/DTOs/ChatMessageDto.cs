@@ -18,6 +18,10 @@ namespace HADAL.Shared.DTOs
 
         /// <summary>Server notices (someone joined the alliance, ...) carry a localization key in Text.</summary>
         [ProtoMember(8)] public bool IsSystem { get; set; }
+
+        /// <summary>Private lines: the recipient.</summary>
+        [ProtoMember(9)] public string TargetId { get; set; } = string.Empty;
+        [ProtoMember(10)] public string TargetName { get; set; } = string.Empty;
     }
 
     /// <summary>Recent lines of every readable channel, oldest first (entity <c>EntityIds.ChatHistory</c>).</summary>

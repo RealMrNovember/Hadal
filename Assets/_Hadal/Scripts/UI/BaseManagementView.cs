@@ -146,7 +146,12 @@ namespace Hadal.UI
             var map = new GameObject("WorldMap");
             map.transform.SetParent(transform, false);
             _map = map.AddComponent<WorldMapView>();
-            _map.Initialize(_stateSync, _commands, Toast);
+            _map.Initialize(_stateSync, _commands, Toast, _localBus);
+            _map.MessagePlayer = (id, name) =>
+            {
+                _map.Close();
+                _social.OpenPrivateChat(id, name);
+            };
 
             // The main screen frame: header, side columns, bottom bar (docs/26_HUD.md).
             var hud = new GameObject("MainHud");
@@ -163,6 +168,7 @@ namespace Hadal.UI
                 Settings = () => FindFirstObjectByType<AccountPanelView>()?.Open(),
                 Quests = () => { Close(); _social.OpenQuests(); },
                 Bag = () => { Close(); _social.OpenBag(); },
+                Expedition = () => { Close(); _map.Close(); _social.OpenExpedition(); },
                 ClaimQuest = id => _social.ClaimQuest(id),
                 Building = key => { _social.Close(); _map.Close(); OpenBuilding(key); },
                 Toast = Toast,

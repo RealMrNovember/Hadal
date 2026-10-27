@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using HADAL.Shared.Commands;
 using HADAL.Shared.DTOs;
 using HADAL.Shared.Simulation;
@@ -11,6 +12,23 @@ namespace Hadal.UI
     public sealed partial class SocialView
     {
         private ChatChannel _chatChannel = ChatChannel.World;
+
+        // Private channel: the player the conversation is with (empty = the list of conversations).
+        private string _chatPeer = string.Empty;
+        private string _chatPeerName = string.Empty;
+
+        /// <summary>Opens a one-to-one conversation (from the world map or the member list).</summary>
+        public void OpenPrivateChat(string peerId, string peerName)
+        {
+            _chatChannel = ChatChannel.Private;
+            _chatPeer = peerId ?? string.Empty;
+            _chatPeerName = peerName ?? string.Empty;
+            Open(Page.Chat);
+        }
+
+        /// <summary>The other player of a private line, from the viewer's side.</summary>
+        private (string Id, string Name) Peer(ChatMessageDto line) =>
+            line.SenderId == View.PlayerId ? (line.TargetId, line.TargetName) : (line.SenderId, line.SenderName);
         private InputField _chatInput;
 
         private void RenderChat(bool force)
@@ -20,10 +38,10 @@ namespace Hadal.UI
             BuildChatFooter();
 
             var inAlliance = View.MyAlliance != null;
-            if (!inAlliance)
+            if (!inAlliance && _chatChannel == ChatChannel.Alliance)
                 _chatChannel = ChatChannel.World;
 
-            UiKit.Choice("Channels", _list, new[] { Loc.T("chat.world"), inAlliance ? $"[{View.MyAlliance.Tag}] {Loc.T("chat.alliance")}" : Loc.T("chat.alliance") },
+            UiKit.Choice("Channels", _list, new[] { Loc.T("chat.world"), inAlliance ? $"[{View.MyAlliance.Tag}] {Loc.T("chat.alliance")}" : Loc.T("chat.alliance"), Loc.T("chat.private") },
                 () => (int)_chatChannel, i =>
                 {
                     if (i == (int)ChatChannel.Alliance && View.MyAlliance == null)
@@ -33,13 +51,33 @@ namespace Hadal.UI
                     }
 
                     _chatChannel = (ChatChannel)i;
+                    _chatPeer = string.Empty;
                     Render(force: true);
                 }).Row(80);
+
+            if (_chatChannel == ChatChannel.Private && _chatPeer.Length == 0)
+            {
+                RenderConversations();
+                return;
+            }
+
+            if (_chatChannel == ChatChannel.Private)
+            {
+                var back = Card(90);
+                CardText(back.transform, "‹ " + _chatPeerName, 32, UiKit.Accent, 0.04f, 0.05f, 0.7f, 0.95f, TextAnchor.MiddleLeft, FontStyle.Bold);
+                CardButton(back.transform, Loc.T("chat.private.all"), true, () =>
+                {
+                    _chatPeer = string.Empty;
+                    Render(force: true);
+                }, UiKit.Field, 0.62f, 0.12f, 0.97f, 0.88f);
+            }
 
             var any = false;
             foreach (var line in View.Chat)
             {
                 if (line.Channel != (int)_chatChannel)
+                    continue;
+                if (_chatChannel == ChatChannel.Private && Peer(line).Id != _chatPeer)
                     continue;
                 any = true;
                 var label = UiKit.Label("Line", _list, ChatLine(line, compact: false), 30, line.IsSystem ? UiKit.Amber : UiKit.Text, TextAnchor.UpperLeft);
@@ -51,6 +89,31 @@ namespace Hadal.UI
 
             if (!any)
                 Note(Loc.T("chat.empty"));
+        }
+
+        /// <summary>One card per person the player has written with, newest first.</summary>
+        private void RenderConversations()
+        {
+            _footer.gameObject.SetActive(false);
+            var conversations = View.Chat.Where(l => l.Channel == (int)ChatChannel.Private)
+                .GroupBy(l => Peer(l).Id)
+                .Select(g => g.OrderBy(l => l.Id).Last())
+                .OrderByDescending(l => l.Id)
+                .ToList();
+            if (conversations.Count == 0)
+            {
+                Note(Loc.T("chat.private.none"));
+                return;
+            }
+
+            foreach (var last in conversations)
+            {
+                var (id, name) = Peer(last);
+                var card = Card(130);
+                CardText(card.transform, name, 32, UiKit.Text, 0.04f, 0.5f, 0.7f, 0.95f, TextAnchor.UpperLeft, FontStyle.Bold);
+                CardText(card.transform, last.Text, 26, UiKit.Muted, 0.04f, 0.05f, 0.7f, 0.5f);
+                CardButton(card.transform, Loc.T("chat.open"), true, () => OpenPrivateChat(id, name), UiKit.Accent);
+            }
         }
 
         private void BuildChatFooter()
@@ -80,7 +143,8 @@ namespace Hadal.UI
 
             _commands.Dispatch(new SendChatCommand
             {
-                CommandId = NewId(), ClientSequence = NextSequence(), Channel = (int)_chatChannel, Text = text
+                CommandId = NewId(), ClientSequence = NextSequence(), Channel = (int)_chatChannel, Text = text,
+                TargetId = _chatChannel == ChatChannel.Private ? _chatPeer : string.Empty
             });
             _chatInput.text = string.Empty;
         }
@@ -94,7 +158,7 @@ namespace Hadal.UI
                 var bar = line.Text.IndexOf('|');
                 var key = bar < 0 ? line.Text : line.Text.Substring(0, bar);
                 var argument = bar < 0 ? string.Empty : line.Text.Substring(bar + 1);
-                body = "· " + Loc.F("chat." + key, argument);
+                body = "· " + Loc.F("chat." + key, argument.Split('|'));
             }
             else
             {

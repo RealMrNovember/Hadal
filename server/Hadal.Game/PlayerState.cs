@@ -104,6 +104,12 @@ namespace Hadal.Game
         /// <summary>Hero cards of heroes not owned yet; an owned hero keeps its shards on <see cref="OwnedHeroState"/>.</summary>
         public Dictionary<string, int> HeroCards { get; } = new(StringComparer.Ordinal);
 
+        /// <summary>Gathering marches out on the map (docs/rehber 09 §4).</summary>
+        public List<MarchState> Marches { get; } = new();
+
+        /// <summary>Depth Map stages cleared in order (docs/rehber 08 §5).</summary>
+        public int ExpeditionCleared { get; set; }
+
         /// <summary>Fractions of a unit (thousandths) carried between economy steps; not persisted.</summary>
         public Dictionary<ResourceType, long> CarryMilli { get; } = new();
 

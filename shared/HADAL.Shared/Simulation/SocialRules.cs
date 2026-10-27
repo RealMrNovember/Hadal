@@ -24,6 +24,14 @@ namespace HADAL.Shared.Simulation
         NothingToHelp = 14,
         AlreadyRequested = 15,
         Muted = 16,
+        NotAllowed = 17,
+        InviteOnly = 18,
+        AlreadyInvited = 19,
+        NoInvite = 20,
+        RankFull = 21,
+        UnknownPlayer = 22,
+        AlreadyApplied = 23,
+        NoApplication = 24,
     }
 
     /// <summary>Chat channels. Values are a wire contract.</summary>
@@ -31,6 +39,56 @@ namespace HADAL.Shared.Simulation
     {
         World = 0,
         Alliance = 1,
+
+        /// <summary>One-to-one messages; the line names the other player.</summary>
+        Private = 2,
+    }
+
+    /// <summary>Who may join an alliance (docs/rehber 10 §2). Values are a wire contract.</summary>
+    public enum AllianceJoinMode
+    {
+        Open = 0,
+        Approval = 1,
+        Closed = 2,
+    }
+
+    /// <summary>
+    /// Alliance ranks and what each may do (docs/rehber 10 §3): R5 Leader, R4 Officer, R3 Veteran, R2 Diver,
+    /// R1 Recruit. A captain only changes or removes ranks below their own.
+    /// </summary>
+    public static class AlliancePermissions
+    {
+        public const int Leader = 5;
+        public const int Officer = 4;
+        public const int Veteran = 3;
+        public const int Diver = 2;
+        public const int Recruit = 1;
+
+        /// <summary>Officer seats (the guide grows them with the alliance level; level 1 has four).</summary>
+        public const int MaxOfficers = 4;
+
+        /// <summary>A recruit becomes a diver by itself after this long.</summary>
+        public const int RecruitHours = 48;
+
+        /// <summary>Optional duty tags an officer carries; they show who to ask, they grant nothing.</summary>
+        public static readonly string[] Roles = { "", "war", "logistics", "diplomacy", "scout" };
+
+        public static bool CanInvite(int rank) => rank >= Veteran;
+
+        public static bool CanApprove(int rank) => rank >= Veteran;
+
+        public static bool CanKick(int actor, int target) =>
+            actor == Leader ? target < Leader : actor == Officer && target <= Veteran;
+
+        /// <summary>The leader moves anyone below to R1–R4; an officer moves R1–R3 within R1–R3.</summary>
+        public static bool CanSetRank(int actor, int target, int rank) =>
+            rank >= Recruit && (actor == Leader ? target < Leader && rank <= Officer : actor == Officer && target <= Veteran && rank <= Veteran);
+
+        public static bool CanSetRole(int actor) => actor == Leader;
+
+        public static bool CanEditSettings(int actor) => actor == Leader;
+
+        public static bool CanTransfer(int actor) => actor == Leader;
     }
 
     /// <summary>Chat and alliance rules shared by server and client (docs/25_Heroes_Alliance_Chat.md).</summary>

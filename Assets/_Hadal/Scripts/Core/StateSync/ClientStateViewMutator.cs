@@ -50,6 +50,10 @@ namespace Hadal.Core.StateSync
                 view.ApplyQuests(snapshot.Quests);
             if (snapshot.Inventory != null)
                 view.ApplyInventory(snapshot.Inventory);
+            if (snapshot.Marches != null)
+                view.ApplyMarches(snapshot.Marches);
+            if (snapshot.Expedition != null)
+                view.ApplyExpedition(snapshot.Expedition);
             if (!string.IsNullOrEmpty(snapshot.PlayerId))
                 view.PlayerId = snapshot.PlayerId;
 
@@ -145,6 +149,31 @@ namespace Hadal.Core.StateSync
             {
                 if (TryDeserializePayload(change.Payload, serialization, out WorldViewDto world))
                     view.ApplyWorldView(world);
+                return true;
+            }
+
+            if (id == EntityIds.AllianceInvites)
+            {
+                view.ApplyAllianceInvites(TryDeserializePayload(change.Payload, serialization, out AllianceInviteListDto invites) ? invites : new AllianceInviteListDto());
+                return true;
+            }
+
+            if (id == EntityIds.Marches)
+            {
+                view.ApplyMarches(TryDeserializePayload(change.Payload, serialization, out MarchListDto marches) ? marches : new MarchListDto());
+                return true;
+            }
+
+            if (id == EntityIds.Expedition)
+            {
+                view.ApplyExpedition(TryDeserializePayload(change.Payload, serialization, out ExpeditionStateDto expedition) ? expedition : new ExpeditionStateDto());
+                return true;
+            }
+
+            if (id.StartsWith(EntityIds.DiveReport, StringComparison.Ordinal))
+            {
+                if (TryDeserializePayload(change.Payload, serialization, out DiveReportDto dive))
+                    view.AddDiveReport(dive);
                 return true;
             }
 

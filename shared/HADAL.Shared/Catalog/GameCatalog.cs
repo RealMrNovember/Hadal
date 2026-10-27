@@ -214,6 +214,10 @@ namespace HADAL.Shared.Catalog
 
         public WorldCatalogData World => Data.world ?? new WorldCatalogData();
 
+        public GatherCatalogData Gather => Data.gather ?? new GatherCatalogData();
+
+        public ExpeditionCatalogData Expedition => Data.expedition ?? new ExpeditionCatalogData();
+
         public bool TryGetItem(string id, out ItemData item)
         {
             item = Array.Find(Data.items ?? Array.Empty<ItemData>(), i => i != null && i.id == id)!;

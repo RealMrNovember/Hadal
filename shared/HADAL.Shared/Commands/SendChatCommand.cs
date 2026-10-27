@@ -13,5 +13,8 @@ namespace HADAL.Shared.Commands
         [ProtoMember(3)] public int Channel { get; set; }
 
         [ProtoMember(4)] public string Text { get; set; } = string.Empty;
+
+        /// <summary>Private channel: who gets the message.</summary>
+        [ProtoMember(5)] public string TargetId { get; set; } = string.Empty;
     }
 }

@@ -511,13 +511,13 @@ The Syndicate teklifleri postaya ve sohbete **hiçbir zaman** düşmez.
 | --- | --- | --- | --- |
 | Kurma bedeli | 3.000 Titanyum | 3.000 Titanyum | ✅ |
 | Ad / etiket | 3–20 / 3–4 karakter, benzersiz | Aynı | ✅ |
-| Katılım | Açık | Açık · onaylı · kapalı | 🟡 |
+| Katılım | Açık · onaylı · kapalı; davet ve başvuru (bellekte, 48 sa) | Açık · onaylı · kapalı | ✅ |
 | Üye sınırı | 30 | 30 → 100 (ittifak seviyesi + kuleler) | 🟡 |
-| Rütbeler | Lider / Üye | R5–R1 ve yetki tablosu | 🟡 |
-| Liderlik devri | Lider ayrılınca en eski üye | + 7 gün girmeyen liderin yerine en etkin R4 | 🟡 |
+| Rütbeler | R5–R1, yetki tablosu, 4 Kurmay koltuğu ve görev etiketi; Aday 48 sa sonra Dalgıç | R5–R1 ve yetki tablosu | ✅ |
+| Liderlik devri | Lider devredebilir; ayrılınca en yüksek rütbe (eşitse en eski üye) | + 7 gün girmeyen liderin yerine en etkin R4 | 🟡 |
 | Yardım | %1, en az 60 sn, inşaat başına 10 | 10 + ⌊İttifak Merkezi Sv / 5⌋, en çok 20; araştırma ve iyileştirme de | 🟡 |
 | Çevrimdışı yardım | Girişte uygulanır (bellekte) | Kalıcı kayıt | 🟡 |
-| Sohbet | Dünya + İttifak · 200 karakter · 2 sn · son 50 | + sabit duyuru, koordinat bağlantısı, ralli kartı | 🟡 |
+| Sohbet | Dünya + İttifak + Özel (bire bir) · 200 karakter · 2 sn · son 50 | + sabit duyuru, koordinat bağlantısı, ralli kartı | 🟡 |
 | Teknoloji, kredi, dükkân, hediye, bölge, savaş, posta | Yok | Bu bölüm | ⬜ |
 <!-- /URET:tablo:ittifak.kodda -->
 

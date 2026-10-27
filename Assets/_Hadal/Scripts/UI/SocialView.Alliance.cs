@@ -2,22 +2,32 @@ using System;
 using System.Linq;
 using HADAL.Shared.Commands;
 using HADAL.Shared.DTOs;
+using HADAL.Shared.Enums;
 using HADAL.Shared.Simulation;
 using UnityEngine;
 using UnityEngine.UI;
 
 namespace Hadal.UI
 {
-    /// <summary>Alliance page: find or found one; once in, members, help and leaving (docs/25).</summary>
+    /// <summary>
+    /// Alliance page (docs/25, docs/rehber 10): invitations, find or found one; once in, members with ranks and
+    /// a manage card per member, help, and an admin tab (applications, join mode, description).
+    /// </summary>
     public sealed partial class SocialView
     {
-        private int _allianceTab; // 0 = members, 1 = help (in an alliance); 0 = join, 1 = found (without)
+        private int _allianceTab; // in an alliance: 0 members, 1 help, 2 admin; without: 0 join, 1 found
         private bool _confirmLeave;
         private string _kickConfirm = string.Empty;
+        private string _transferConfirm = string.Empty;
+        private string _manage = string.Empty;
         private string _search = string.Empty;
         private string _newName = string.Empty;
         private string _newTag = string.Empty;
         private string _newDescription = string.Empty;
+        private int _editMode = -1;
+        private string _editDescription;
+
+        private static string RankName(int rank) => Loc.T("alliance.rank." + Mathf.Clamp(rank, 1, 5));
 
         private void RenderAlliance()
         {
@@ -32,6 +42,19 @@ namespace Hadal.UI
         {
             _title.text = Loc.T("social.alliance");
             _subtitle.text = Loc.T("alliance.none");
+
+            // Invitations come first: one tap and the player is in.
+            foreach (var invite in View.AllianceInvites.Invites ?? Array.Empty<AllianceInviteDto>())
+            {
+                var card = Card(170);
+                card.color = new Color(0.05f, 0.22f, 0.3f, 1f);
+                CardText(card.transform, $"[{invite.Tag}] {invite.Name}", 34, UiKit.Accent, 0.04f, 0.55f, 0.6f, 0.95f, TextAnchor.UpperLeft, FontStyle.Bold);
+                CardText(card.transform, $"{Loc.F("alliance.invite.from", invite.InviterName)}\n{Loc.F("alliance.members", invite.Members, invite.MaxMembers)}", 24,
+                    UiKit.Muted, 0.04f, 0.05f, 0.6f, 0.55f);
+                var id = invite.AllianceId;
+                CardButton(card.transform, Loc.T("alliance.invite.accept"), true, () => AnswerInvite(id, true), null, 0.62f, 0.52f, 0.97f, 0.92f);
+                CardButton(card.transform, Loc.T("alliance.invite.decline"), true, () => AnswerInvite(id, false), UiKit.Field, 0.62f, 0.08f, 0.97f, 0.48f);
+            }
 
             UiKit.Choice("Tabs", _list, new[] { Loc.T("alliance.tab.join"), Loc.T("alliance.tab.found") },
                 () => _allianceTab, i => { _allianceTab = i; Render(force: true); }).Row(90);
@@ -56,17 +79,26 @@ namespace Hadal.UI
                 return;
             }
 
+            var applied = View.AllianceInvites.Applied ?? Array.Empty<string>();
             foreach (var entry in View.AllianceBrowse)
             {
                 var card = Card(220);
                 CardText(card.transform, $"[{entry.Tag}] {entry.Name}", 36, UiKit.Text, 0.04f, 0.68f, 0.7f, 0.96f, TextAnchor.UpperLeft, FontStyle.Bold);
-                CardText(card.transform, $"{Loc.F("alliance.members", entry.Members, entry.MaxMembers)}   {Loc.F("hero.power", entry.Power)}\n{Loc.F("alliance.leader", entry.LeaderName)}",
+                CardText(card.transform, $"{Loc.F("alliance.members", entry.Members, entry.MaxMembers)}   {Loc.F("hero.power", entry.Power)}\n" +
+                                         $"{Loc.F("alliance.leader", entry.LeaderName)}   {Loc.T("alliance.mode." + entry.JoinMode)}",
                     26, UiKit.Muted, 0.04f, 0.32f, 0.7f, 0.68f);
                 if (!string.IsNullOrEmpty(entry.Description))
                     CardText(card.transform, entry.Description, 24, UiKit.Text, 0.04f, 0.03f, 0.7f, 0.32f);
                 var id = entry.Id;
                 var full = entry.Members >= entry.MaxMembers;
-                CardButton(card.transform, full ? Loc.T("alliance.full") : Loc.T("alliance.join"), !full, () => _commands.Dispatch(new JoinAllianceCommand
+                var waiting = applied.Contains(id);
+                var label = full ? Loc.T("alliance.full")
+                    : waiting ? Loc.T("alliance.applied")
+                    : entry.JoinMode == (int)AllianceJoinMode.Closed ? Loc.T("alliance.inviteonly")
+                    : entry.JoinMode == (int)AllianceJoinMode.Approval ? Loc.T("alliance.apply")
+                    : Loc.T("alliance.join");
+                var can = !full && !waiting && entry.JoinMode != (int)AllianceJoinMode.Closed;
+                CardButton(card.transform, label, can, () => _commands.Dispatch(new JoinAllianceCommand
                 {
                     CommandId = NewId(), ClientSequence = NextSequence(), AllianceId = id
                 }));
@@ -103,17 +135,33 @@ namespace Hadal.UI
         private void RenderMyAlliance(AllianceDto alliance)
         {
             var me = View.PlayerId;
-            var leader = alliance.LeaderId == me;
+            var myRank = View.MyRank();
             _title.text = $"[{alliance.Tag}] {alliance.Name}";
-            _subtitle.text = $"{Loc.F("alliance.members", alliance.Members.Length, alliance.MaxMembers)}   {Loc.F("hero.power", alliance.Members.Sum(m => m.Power))}";
+            _subtitle.text = $"{Loc.F("alliance.members", alliance.Members.Length, alliance.MaxMembers)}   {Loc.F("hero.power", alliance.Members.Sum(m => m.Power))}   " +
+                             $"{RankName(myRank)}";
 
             var waiting = View.HelpRequests.Count(r => !r.HelpedByMe);
-            UiKit.Choice("Tabs", _list, new[] { Loc.T("alliance.tab.members"), waiting > 0 ? $"{Loc.T("alliance.tab.help")} ({waiting})" : Loc.T("alliance.tab.help") },
-                () => _allianceTab, i => { _allianceTab = i; Render(force: true); }).Row(90);
+            var applicants = alliance.Applicants?.Length ?? 0;
+            var admin = AlliancePermissions.CanApprove(myRank);
+            var tabs = new[]
+            {
+                Loc.T("alliance.tab.members"),
+                waiting > 0 ? $"{Loc.T("alliance.tab.help")} ({waiting})" : Loc.T("alliance.tab.help"),
+                applicants > 0 ? $"{Loc.T("alliance.tab.admin")} ({applicants})" : Loc.T("alliance.tab.admin")
+            };
+            if (!admin && _allianceTab == 2)
+                _allianceTab = 0;
+            UiKit.Choice("Tabs", _list, admin ? tabs : tabs.Take(2).ToArray(), () => _allianceTab, i => { _allianceTab = i; Render(force: true); }).Row(90);
 
             if (_allianceTab == 1)
             {
                 RenderHelp();
+                return;
+            }
+
+            if (_allianceTab == 2)
+            {
+                RenderAdmin(alliance, myRank);
                 return;
             }
 
@@ -124,28 +172,25 @@ namespace Hadal.UI
             {
                 var card = Card(150);
                 var dot = member.Online ? "<color=#38D6F2>●</color>" : "<color=#3A5560>●</color>";
-                var role = member.IsLeader ? $"  <color=#FFB74D>{Loc.T("alliance.role.leader")}</color>" : string.Empty;
-                CardText(card.transform, $"{dot} {member.Name}{role}", 34, member.PlayerId == me ? UiKit.Accent : UiKit.Text,
+                var rank = member.Rank > 0 ? member.Rank : member.IsLeader ? 5 : 2;
+                var role = string.IsNullOrEmpty(member.Role) ? string.Empty : " · " + Loc.T("alliance.duty." + member.Role);
+                CardText(card.transform, $"{dot} {member.Name}", 34, member.PlayerId == me ? UiKit.Accent : UiKit.Text,
                     0.04f, 0.5f, 0.7f, 0.95f, TextAnchor.UpperLeft, FontStyle.Bold);
-                CardText(card.transform, Loc.F("hero.power", member.Power), 26, UiKit.Muted, 0.04f, 0.08f, 0.7f, 0.5f);
+                CardText(card.transform, $"<color=#FFB74D>R{rank} {RankName(rank)}{role}</color>   {Loc.F("hero.power", member.Power)}", 24, UiKit.Muted,
+                    0.04f, 0.08f, 0.75f, 0.5f);
 
-                if (leader && member.PlayerId != me)
+                if (member.PlayerId == me)
+                    continue;
+                var id = member.PlayerId;
+                CardButton(card.transform, _manage == id ? "▲" : "⋯", true, () =>
                 {
-                    var id = member.PlayerId;
-                    var confirming = _kickConfirm == id;
-                    CardButton(card.transform, confirming ? Loc.T("base.confirm.yes") : Loc.T("alliance.kick"), true, () =>
-                    {
-                        if (_kickConfirm != id)
-                        {
-                            _kickConfirm = id;
-                            Render(force: false);
-                            return;
-                        }
+                    _manage = _manage == id ? string.Empty : id;
+                    _kickConfirm = _transferConfirm = string.Empty;
+                    Render(force: false);
+                }, UiKit.Field, 0.8f, 0.2f, 0.97f, 0.8f);
 
-                        _kickConfirm = string.Empty;
-                        _commands.Dispatch(new KickMemberCommand { CommandId = NewId(), ClientSequence = NextSequence(), MemberId = id });
-                    }, UiKit.Danger);
-                }
+                if (_manage == id)
+                    RenderManage(member, rank, myRank, alliance);
             }
 
             var leave = Card(150);
@@ -156,6 +201,7 @@ namespace Hadal.UI
                 if (!_confirmLeave)
                 {
                     _confirmLeave = true;
+                    Render(force: false);
                     return;
                 }
 
@@ -163,6 +209,123 @@ namespace Hadal.UI
                 _allianceTab = 0;
                 _commands.Dispatch(new LeaveAllianceCommand { CommandId = NewId(), ClientSequence = NextSequence() });
             }, UiKit.Danger);
+        }
+
+        /// <summary>What the viewer may do to one member: message, rank up or down, duty, hand over, remove.</summary>
+        private void RenderManage(AllianceMemberDto member, int rank, int myRank, AllianceDto alliance)
+        {
+            var id = member.PlayerId;
+            var actions = Card(120);
+            actions.color = new Color(0.03f, 0.1f, 0.14f, 1f);
+            var slots = new System.Collections.Generic.List<(string Label, bool Enabled, Action Click, Color? Fill)>
+            {
+                (Loc.T("alliance.message"), true, () => OpenPrivateChat(id, member.Name), UiKit.Field)
+            };
+
+            var officers = alliance.Members.Count(m => m.Rank == AlliancePermissions.Officer);
+            if (AlliancePermissions.CanSetRank(myRank, rank, rank + 1))
+                slots.Add((Loc.T("alliance.promote"), rank + 1 != AlliancePermissions.Officer || officers < AlliancePermissions.MaxOfficers,
+                    () => SetRank(id, rank + 1, null), null));
+            if (rank > AlliancePermissions.Recruit && AlliancePermissions.CanSetRank(myRank, rank, rank - 1))
+                slots.Add((Loc.T("alliance.demote"), true, () => SetRank(id, rank - 1, null), UiKit.Field));
+            if (rank == AlliancePermissions.Officer && AlliancePermissions.CanSetRole(myRank))
+            {
+                var roles = AlliancePermissions.Roles;
+                var next = roles[(Array.IndexOf(roles, member.Role ?? string.Empty) + 1) % roles.Length];
+                slots.Add((Loc.T("alliance.duty"), true, () => SetRank(id, rank, next), UiKit.Field));
+            }
+
+            var x = 0.02f;
+            var width = 0.96f / Math.Max(1, slots.Count);
+            foreach (var (label, enabled, click, fill) in slots)
+            {
+                CardButton(actions.transform, label, enabled, click, fill, x, 0.15f, x + width - 0.02f, 0.85f);
+                x += width;
+            }
+
+            // Dangerous actions sit on their own row and need a second tap.
+            var canKick = AlliancePermissions.CanKick(myRank, rank);
+            var canTransfer = AlliancePermissions.CanTransfer(myRank);
+            if (!canKick && !canTransfer)
+                return;
+            var danger = Card(110);
+            danger.color = new Color(0.03f, 0.1f, 0.14f, 1f);
+            if (canTransfer)
+            {
+                CardButton(danger.transform, _transferConfirm == id ? Loc.T("base.confirm.yes") : Loc.T("alliance.transfer"), true, () =>
+                {
+                    if (_transferConfirm != id)
+                    {
+                        _transferConfirm = id;
+                        Render(force: false);
+                        return;
+                    }
+
+                    _transferConfirm = string.Empty;
+                    _commands.Dispatch(new TransferLeadershipCommand { CommandId = NewId(), ClientSequence = NextSequence(), MemberId = id });
+                }, UiKit.Amber, 0.02f, 0.12f, 0.48f, 0.88f);
+            }
+
+            if (canKick)
+            {
+                CardButton(danger.transform, _kickConfirm == id ? Loc.T("base.confirm.yes") : Loc.T("alliance.kick"), true, () =>
+                {
+                    if (_kickConfirm != id)
+                    {
+                        _kickConfirm = id;
+                        Render(force: false);
+                        return;
+                    }
+
+                    _kickConfirm = string.Empty;
+                    _manage = string.Empty;
+                    _commands.Dispatch(new KickMemberCommand { CommandId = NewId(), ClientSequence = NextSequence(), MemberId = id });
+                }, UiKit.Danger, 0.52f, 0.12f, 0.98f, 0.88f);
+            }
+        }
+
+        /// <summary>Applications (R3+) and, for the leader, who may join and the description.</summary>
+        private void RenderAdmin(AllianceDto alliance, int myRank)
+        {
+            Header(Loc.T("alliance.applications"));
+            var applicants = alliance.Applicants ?? Array.Empty<AllianceApplicantDto>();
+            if (applicants.Length == 0)
+                Note(Loc.T("alliance.applications.none"));
+            foreach (var a in applicants)
+            {
+                var card = Card(140);
+                CardText(card.transform, a.Name, 32, UiKit.Text, 0.04f, 0.5f, 0.6f, 0.95f, TextAnchor.UpperLeft, FontStyle.Bold);
+                CardText(card.transform, Loc.F("hero.power", a.Power), 24, UiKit.Muted, 0.04f, 0.05f, 0.6f, 0.5f);
+                var id = a.PlayerId;
+                CardButton(card.transform, Loc.T("alliance.invite.accept"), true, () => AnswerApplication(id, true), null, 0.62f, 0.52f, 0.97f, 0.92f);
+                CardButton(card.transform, Loc.T("alliance.invite.decline"), true, () => AnswerApplication(id, false), UiKit.Field, 0.62f, 0.08f, 0.97f, 0.48f);
+            }
+
+            Note(Loc.T("alliance.invite.how"));
+
+            if (!AlliancePermissions.CanEditSettings(myRank))
+                return;
+
+            Header(Loc.T("alliance.settings"));
+            if (_editMode < 0)
+                _editMode = alliance.JoinMode;
+            _editDescription ??= alliance.Description ?? string.Empty;
+            UiKit.Choice("Mode", _list, new[] { Loc.T("alliance.mode.0"), Loc.T("alliance.mode.1"), Loc.T("alliance.mode.2") },
+                () => _editMode, i => { _editMode = i; Render(force: false); }).Row(90);
+            UiKit.Label("ModeHint", _list, Loc.T("alliance.mode.hint." + _editMode), 24, UiKit.Muted).Row(70);
+            var description = UiKit.Input("Description", _list, Loc.T("alliance.description.hint"), characterLimit: 200).Row(100);
+            description.text = _editDescription;
+            description.onValueChanged.AddListener(v => _editDescription = v);
+            var save = Card(110);
+            CardButton(save.transform, Loc.T("alliance.save"), true, () =>
+            {
+                _commands.Dispatch(new SetAllianceSettingsCommand
+                {
+                    CommandId = NewId(), ClientSequence = NextSequence(), JoinMode = _editMode, Description = (_editDescription ?? string.Empty).Trim()
+                });
+                _editMode = -1;
+                _editDescription = null;
+            }, null, 0.25f, 0.1f, 0.75f, 0.9f);
         }
 
         private void RenderHelp()
@@ -187,6 +350,21 @@ namespace Hadal.UI
                     request.HelpedByMe ? UiKit.Accent : UiKit.Muted, 0.04f, 0.05f, 0.96f, 0.5f);
             }
         }
+
+        private void SetRank(string memberId, int rank, string role) => _commands.Dispatch(new SetMemberRankCommand
+        {
+            CommandId = NewId(), ClientSequence = NextSequence(), MemberId = memberId, Rank = rank, Role = role
+        });
+
+        private void AnswerInvite(string allianceId, bool accept) => _commands.Dispatch(new AnswerInviteCommand
+        {
+            CommandId = NewId(), ClientSequence = NextSequence(), AllianceId = allianceId, Accept = accept
+        });
+
+        private void AnswerApplication(string playerId, bool accept) => _commands.Dispatch(new AnswerApplicationCommand
+        {
+            CommandId = NewId(), ClientSequence = NextSequence(), PlayerId = playerId, Accept = accept
+        });
 
         private void Browse(string query) => _commands.Dispatch(new BrowseAlliancesCommand
         {

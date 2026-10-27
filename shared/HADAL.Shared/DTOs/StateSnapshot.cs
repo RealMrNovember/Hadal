@@ -34,6 +34,12 @@ namespace HADAL.Shared.DTOs
 
         [ProtoMember(10)] public InventoryDto? Inventory { get; set; }
 
+        /// <summary>Gathering marches (docs/rehber 09); null from older servers.</summary>
+        [ProtoMember(11)] public MarchListDto? Marches { get; set; }
+
+        /// <summary>Depth Map progress (docs/rehber 08); null from older servers.</summary>
+        [ProtoMember(12)] public ExpeditionStateDto? Expedition { get; set; }
+
         [ProtoBeforeSerialization]
         private void BeforeSerialize() => BuildingsWire = Buildings?.ToArray() ?? System.Array.Empty<BuildingStateDto>();
 

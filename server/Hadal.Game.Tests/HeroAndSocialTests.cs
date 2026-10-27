@@ -246,9 +246,9 @@ namespace Hadal.Game.Tests
             var line = leaderConnection.Messages.Last().Delta().Changes.Single(c => c.EntityId.StartsWith(EntityIds.ChatMessage, StringComparison.Ordinal));
             Assert.Equal("AWD", TestSupport.Serializer.Deserialize<ChatMessageDto>(line.Payload).AllianceTag);
 
-            // Only the leader kicks.
+            // A recruit cannot kick (docs/rehber 10 §3).
             _world.HandleCommand(member, Command(new KickMemberCommand { CommandId = Id(), ClientSequence = 1, MemberId = leader.PublicId }, CommandType.KickMember));
-            Assert.Equal(nameof(SocialRejectReason.NotLeader), LastAck(memberConnection).Reason);
+            Assert.Equal(nameof(SocialRejectReason.NotAllowed), LastAck(memberConnection).Reason);
             _world.HandleCommand(leader, Command(new KickMemberCommand { CommandId = Id(), ClientSequence = 1, MemberId = member.PublicId }, CommandType.KickMember));
             Assert.Equal(CommandResultCode.Accepted, LastAck(leaderConnection).Result);
             Assert.Contains(memberConnection.Messages.Last(m => m.Delta != null && m.Delta().Changes.Any(c => c.EntityId == EntityIds.MyAlliance)).Delta().Changes,

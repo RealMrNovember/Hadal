@@ -87,8 +87,111 @@ def uret(v):
     katalog["incomeHour"] = [int(egri.anlamli(egri.deger(gelir["titanyum_saat"], max(1, R)))) for R in range(0, 51)]
     katalog["incomeBiomassRatio"] = gelir.get("biyokutle_orani", 0.4)
 
+    # 5. Harita yatakları, toplama ve Derinlik Haritası seferleri (09 §4, 08 §5, 15 §3.2–3.4).
+    harita_yataklari(v, katalog["world"])
+    katalog["gather"] = toplama(v)
+    katalog["expedition"] = sefer(v)
+
     katalog["version"] = max(SURUM, int(katalog.get("version", 0)))
     return katalog, sorted(atlanan)
+
+
+KISALTMA = {"Ti": "Titanium", "SA": "Alloy", "GD": "Food", "EN": "Energy", "BK": "Biomass", "HD": "Hadalite"}
+VERIM_SUTUN = {"enkaz_alani": "enkaz", "kobalt_kabugu": "kabuk", "nodul_sahasi": "nodul", "masif_sulfur_bacasi": "baca",
+               "metan_hidrat": "hidrat", "balina_lesi": "les", "hadalit_damari": "damar"}
+YOGUNLUK_ADI = {"Enkaz": "enkaz_alani", "Kabuk": "kobalt_kabugu", "Nodül": "nodul_sahasi", "Baca": "masif_sulfur_bacasi",
+                "Hidrat": "metan_hidrat", "Leş": "balina_lesi", "Hadalit Damarı": "hadalit_damari"}
+
+
+def sayi(metin):
+    return float(metin.replace(".", "").replace(",", "."))
+
+
+def aralik(metin):
+    a, _, b = metin.replace("–", "-").partition("-")
+    return int(a), int(b or a)
+
+
+def verim_hucresi(metin):
+    """'11.200 Ti + 0,5 SA' → [{resource, perHour}]; '—' → []."""
+    if not metin or metin.strip() == "—":
+        return []
+    out = []
+    for parca in metin.split("+"):
+        miktar, kisa = parca.split()
+        out.append({"resource": KISALTMA[kisa], "perHour": sayi(miktar)})
+    return out
+
+
+def harita_yataklari(v, dunya):
+    h = v["harita"]
+    dunya["belts"] = [{"id": k["id"], "inner": k["d_ic"], "outer": k["d_dis"],
+                       "nodeMin": aralik(k["dugum"])[0], "nodeMax": aralik(k["dugum"])[1],
+                       "bases": k["us"].startswith("Evet")} for k in h["kusaklar"]]
+    dunya["nodeLevels"] = [{"level": s["seviye"], "capacity": s["kapasite"], "baseRate": s["taban"],
+                            "bonus": sayi(s["bonus"].lstrip("×"))} for s in h["dugum_seviyeleri"]]
+    turler = []
+    for t in h["dugum_turleri"]:
+        lo, hi = aralik(t["seviye"])
+        verim = [{"level": r["seviye"], "rates": verim_hucresi(r[VERIM_SUTUN[t["id"]]])} for r in h["verim"]]
+        turler.append({"id": t["id"], "minLevel": lo, "maxLevel": hi,
+                       "capacityFactor": 1.5 if t["id"] == "balina_lesi" else 1.0,
+                       "lifeHours": 72 if t["id"] == "balina_lesi" else 0,
+                       "yields": [y for y in verim if y["rates"]]})
+    dunya["nodeTypes"] = turler
+    yogunluk = []
+    for satir, kusak in zip(h["yogunluk"], h["kusaklar"]):
+        agirlik = []
+        for parca in satir["dagilim"].split("·"):
+            parca = parca.strip()
+            if parca.startswith("Hadalit Damarı"):
+                agirlik.append({"type": "hadalit_damari", "percent": 50})
+                agirlik.append({"type": "masif_sulfur_bacasi", "percent": 50})
+                break
+            ad, _, yuzde = parca.rpartition("%")
+            ad = ad.replace("(sığ)", "").strip()
+            agirlik.append({"type": YOGUNLUK_ADI[ad], "percent": int(yuzde)})
+        yogunluk.append({"belt": kusak["id"], "per100": satir["yogunluk"], "weights": agirlik})
+    dunya["density"] = yogunluk
+    dunya["loadWeights"] = [{"resource": {"Titanyum": "Titanium", "Biyokütle": "Biomass", "Gıda": "Food", "Enerji": "Energy",
+                                          "Oksijen": "Oxygen", "Süperalaşım": "Alloy", "Hadalit": "Hadalite"}[y["kaynak"]],
+                             "weight": y["agirlik"]} for y in h["yuk_agirliklari"]]
+    dunya["respawnMinutes"] = 30
+    dunya["hadaliteDailyCap"] = h["hadalit_damari"]["gunluk_sinir"]
+    dunya["maxVeins"] = h["hadalit_damari"]["en_fazla"]
+    dunya["marchSecondsPerTile"] = 60
+
+
+def toplama(v):
+    """Yürüyüş kuyrukları ve taşıma yükü. Askerler gelene kadar yük reaktörden okunur: tipik yatağın
+    etkin hızı × taşıma saati (R10'da 2,5 sa, R20'den sonra 12 sa; 09 §4.2)."""
+    h = v["harita"]
+    kuyruk = [r["reaktor"] for r in v["denizaltilar"]["hangarlar"]]
+    yuk = []
+    for R in range(0, 51):
+        seviye = next((s for s in h["dugum_seviyeleri"] if aralik(s["tipik"])[0] <= max(1, R) <= aralik(s["tipik"])[1]),
+                      h["dugum_seviyeleri"][-1])
+        saat = 2.5 if R <= 10 else 12.0 if R >= 20 else 2.5 + (R - 10) * 0.95
+        yuk.append(int(egri.anlamli(seviye["etkin"] * saat)))
+    return {"queueReactors": kuyruk, "loadByReactor": yuk, "alloyReactor": 30}
+
+
+def sefer(v):
+    k = v["denizaltilar"]["kampanya"]
+    o = v["oduller"]["birim"]
+    oduller = {r["bolum"]: r for r in k["oduller"]}
+    bolumler = []
+    for b in k["bolumler"]:
+        r = oduller[b["no"]]
+        nadirlik, _, adet = r["boss_parca"].partition("×")
+        bolumler.append({"chapter": b["no"], "id": b["id"], "reactor": aralik(b["reaktor"])[0], "oxygen": b["dalis_o2"],
+                         "powerFirst": b["onerilen_ilk"], "powerLast": b["onerilen_son"], "powerBoss": b["onerilen_boss"],
+                         "bossHadalite": r["boss_hd"] or 0, "bossAlloy": r["boss_sa"] or 0,
+                         "bossCardRarity": {"Nadir": "rare", "Destansı": "epic", "Efsanevi": "legendary"}[nadirlik.strip()],
+                         "bossCards": int(adet), "diveAlloy": max(0, b["no"] - 6) if r["dalis_sa"] else 0})
+    return {"stages": 10, "dailyRewarded": k["odullu_dalis"], "refundPercent": 80,
+            "gsPerDayEarly": o["sefer_gs_gun_erken"], "gsPerDayLate": o["sefer_gs_gun_gec"], "lateFromReactor": 20,
+            "chapters": bolumler}
 
 
 def main():

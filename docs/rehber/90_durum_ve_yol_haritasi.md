@@ -22,8 +22,8 @@
 | Kahramanlar | 🟡 | 8 kahraman, yalnızca ekonomi becerisi, Kriyo-Kapsül | 30 kahraman, savaş yetenekleri, yetenek ağaçları | [05](05_kahramanlar.md) | 8 |
 | Teçhizat | ⬜ | Yok | 4 malzeme, 5 nadirlik, setler | [17](17_techizat.md) | 8–9 |
 | Askerler ve savaş | ⬜ | Yok | 4 tür × 10 kademe, sunucu hakemli savaş | [07](07_birlikler_ve_savas.md) | 9 |
-| Denizaltılar, basınç, seferler | ⬜ | Yalnızca dron kurtarma görevleri | Hangarlar, P1–P10, Derinlik Haritası | [08](08_denizaltilar_basinc_seferler.md) | 6–7 |
-| Dünya haritası | 🟡 | 200×200, salt görüntü, spiral yerleşim | Kuşaklar, yataklar, PvE, yürüyüş, PvP | [09](09_dunya_haritasi_ve_pvp.md) | 10, 12 |
+| Denizaltılar, basınç, seferler | 🟡 | Dron kurtarma; Derinlik Haritası 10×10 aşama güçle çözülür, günde 3 ödüllü dalış, boss ödülleri (askerler ve savaş gelene kadar) | Hangarlar, P1–P10, Derinlik Haritası | [08](08_denizaltilar_basinc_seferler.md) | 6–7 |
+| Dünya haritası | 🟡 | 200×200; kuşaklar, Hadal Eşiği yerleşimi (K-08), 7 tür yatak, toplama yürüyüşü ve geri çağırma (yük reaktörden, askerler gelene kadar) | Kuşaklar, yataklar, PvE, yürüyüş, PvP | [09](09_dunya_haritasi_ve_pvp.md) | 10, 12 |
 | İttifak | 🟡 | Kur/katıl/ayrıl, Lider/Üye, yardım, sohbet | R1–R5, teknoloji, bölge, kredi, hediye | [10](10_ittifak.md) | 11 |
 | VIP | ⬜ | Yok | Kalıcı VIP | [11](11_vip.md) | 13 |
 | The Syndicate | ⬜ | Yok (HUD düğmesi Kriyo-Kapsül'ü açıyor) | Paketler, aylık kart, bilet, fon | [12](12_syndicate.md) | 13 |
