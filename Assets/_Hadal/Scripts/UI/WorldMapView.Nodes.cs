@@ -421,6 +421,7 @@ namespace Hadal.UI
         {
             var marches = View.Marches?.Marches ?? Array.Empty<MarchDto>();
             var now = View.ServerNowMs;
+            UpdateTeams(marches, now);
             var live = new HashSet<string>();
             var catalog = ClientCatalog.Catalog;
             foreach (var m in marches)
@@ -463,7 +464,7 @@ namespace Hadal.UI
 
                 var visible = _popup == null;
                 var position = Project(MarchPosition(m, now) + Vector3.up * 2f, out var onScreen);
-                sub.Sub.gameObject.SetActive(visible && onScreen);
+                sub.Sub.gameObject.SetActive(false);
                 sub.Sub.anchoredPosition = position;
 
                 // The route: dots between the base and the node.
@@ -531,7 +532,7 @@ namespace Hadal.UI
                 var row = UiKit.Box("March", _marchPanel, new Color(0.03f, 0.10f, 0.14f, 0.88f));
                 row.rectTransform.Place(0, y1 - rowHeight, 1f, y1);
                 var march = m;
-                row.gameObject.AddComponent<Button>().onClick.AddListener(() => GlideTo(march.X, march.Y));
+                row.gameObject.AddComponent<Button>().onClick.AddListener(() => FollowTeam(march.Id));
                 if (catalog.TryGetHero(m.HeroId, out var def))
                     SocialView.Portrait(row.transform, def, true, 0.01f, 0.06f, 0.2f, 0.94f);
                 else

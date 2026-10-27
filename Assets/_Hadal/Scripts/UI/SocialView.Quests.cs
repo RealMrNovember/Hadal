@@ -3,6 +3,7 @@ using System.Linq;
 using HADAL.Shared.Catalog;
 using HADAL.Shared.Commands;
 using HADAL.Shared.DTOs;
+using HADAL.Shared.Enums;
 using HADAL.Shared.Simulation;
 using Hadal.Core.Catalog;
 using UnityEngine;
@@ -171,53 +172,210 @@ namespace Hadal.UI
             }
         }
 
+        private string _bagSelected = string.Empty;
+        private int _bagCount = 1;
+        private GameObject _bagStats;
+
+        /// <summary>
+        /// The bag in Last Asylum's layout: tabs (Special · Resources · Speed-ups · Heroes), a grid of square tiles
+        /// framed by rarity or package size with the amount on top and the count in the corner; tapping one opens a
+        /// panel under its row with what it gives, a count slider and Use. The chart button shows bag + owned totals.
+        /// </summary>
         private void RenderBag()
         {
             _title.text = Loc.T("bag.title");
             _subtitle.text = string.Empty;
-            UiKit.Choice("Tabs", _list, new[] { Loc.T("bag.tab.items"), Loc.T("bag.tab.cards") },
-                () => _bagTab, i => { _bagTab = i; Render(force: true); }).Row(90);
 
-            if (_bagTab == 0)
+            var tabs = new[] { Loc.T("bag.tab.special"), Loc.T("bag.tab.resources"), Loc.T("bag.tab.speedups"), Loc.T("bag.tab.heroes") };
+            var bar = UiKit.Rect("TabsRow", _list).Row(96);
+            UiKit.Choice("Tabs", bar, tabs, () => _bagTab, i => { _bagTab = i; _bagSelected = string.Empty; Render(force: true); }).Place(0, 0, 0.86f, 1);
+            var stats = UiKit.Button("Stats", bar, "Σ", OpenBagStats, UiKit.Field, 40);
+            stats.GetComponentInChildren<Text>().color = UiKit.Accent;
+            ((RectTransform)stats.transform).Place(0.88f, 0.08f, 1f, 0.92f);
+
+            var entries = View.Items.Where(p => p.Value > 0)
+                .Select(p => (Id: p.Key, Count: p.Value, Tab: BagTab(p.Key)))
+                .Where(e => e.Tab == _bagTab)
+                .OrderBy(e => Capsules.TryParse(e.Id, out var r, out _) ? (int)r : 99)
+                .ThenByDescending(e => Capsules.TryParse(e.Id, out _, out var a) ? a : 0)
+                .ThenBy(e => e.Id, StringComparer.Ordinal)
+                .ToList();
+
+            if (entries.Count == 0 && !(_bagTab == 3 && View.HeroCards.Any(p => p.Value > 0)))
             {
-                var items = View.Items.Where(p => p.Value > 0).OrderBy(p => p.Key).ToList();
-                if (items.Count == 0)
-                {
-                    Note(Loc.T("bag.empty"));
-                    return;
-                }
-
-                foreach (var (id, count) in items.Select(p => (p.Key, p.Value)))
-                {
-                    _catalog.TryGetItem(id, out var item);
-                    var card = Card(190);
-                    HudIconImage(card.transform, QuestText.ItemIcon(id, item?.kind), 0.02f, 0.1f, 0.2f, 0.9f);
-                    CardText(card.transform, $"<color={RarityColor(item?.rarity ?? "common")}>{QuestText.Item(id)}</color>  ×{count}", 32, UiKit.Text,
-                        0.23f, 0.55f, 0.7f, 0.95f, TextAnchor.UpperLeft, FontStyle.Bold);
-                    CardText(card.transform, QuestText.ItemDescription(id), 22, UiKit.Muted, 0.23f, 0.05f, 0.7f, 0.55f);
-                    var itemId = id;
-                    CardButton(card.transform, Loc.T("bag.open"), true, () => OpenItems(itemId, 1), null, 0.72f, 0.55f, 0.97f, 0.92f);
-                    if (count > 1)
-                        CardButton(card.transform, Loc.F("bag.open.all", Math.Min(count, 50)), true, () => OpenItems(itemId, Math.Min(count, 50)), UiKit.Amber, 0.72f, 0.08f, 0.97f, 0.45f);
-                }
-
+                Note(Loc.T(_bagTab == 2 ? "bag.speedups.empty" : "bag.empty"));
                 return;
             }
 
-            // Hero cards of heroes not recruited yet.
-            var cards = View.HeroCards.Where(p => p.Value > 0).ToList();
-            if (cards.Count == 0)
+            const int columns = 4;
+            for (var start = 0; start < entries.Count; start += columns)
             {
-                Note(Loc.T("bag.cards.empty"));
-                return;
+                var row = UiKit.Rect("Row", _list).Row(210);
+                for (var c = 0; c < columns && start + c < entries.Count; c++)
+                    BagTile(row, entries[start + c].Id, entries[start + c].Count, c * 0.25f + 0.01f, c * 0.25f + 0.24f);
+
+                // The use panel opens under the row of the chosen tile.
+                var chosen = entries.Skip(start).Take(columns).FirstOrDefault(e => e.Id == _bagSelected);
+                if (chosen.Id != null)
+                    BagUsePanel(chosen.Id, chosen.Count);
             }
 
-            foreach (var (heroId, count) in cards.Select(p => (p.Key, p.Value)))
+            // Hero cards of heroes not recruited yet stay on the Heroes tab.
+            if (_bagTab == 3)
             {
-                if (!_catalog.TryGetHero(heroId, out var hero))
-                    continue;
-                RecruitCard(hero, count);
+                foreach (var (heroId, count) in View.HeroCards.Where(p => p.Value > 0).Select(p => (p.Key, p.Value)))
+                {
+                    if (_catalog.TryGetHero(heroId, out var hero))
+                        RecruitCard(hero, count);
+                }
             }
+        }
+
+        /// <summary>0 special (chests), 1 resources (capsules), 2 speed-ups, 3 heroes (cards).</summary>
+        private int BagTab(string id)
+        {
+            if (Capsules.TryParse(id, out _, out _))
+                return 1;
+            if (id.StartsWith("speed_", StringComparison.Ordinal))
+                return 2;
+            return _catalog.TryGetItem(id, out var item) && item.kind == "heroCard" ? 3 : 0;
+        }
+
+        /// <summary>Frame colour: rarity for items, package size for resources (green, blue, purple, orange).</summary>
+        private Color BagFrame(string id)
+        {
+            string tone;
+            if (Capsules.TryParse(id, out _, out var amount))
+                tone = amount >= 1_000_000 ? "legendary" : amount >= 100_000 ? "epic" : amount >= 10_000 ? "rare" : "common";
+            else
+                tone = _catalog.TryGetItem(id, out var item) ? item.rarity : "common";
+            return tone switch
+            {
+                "legendary" => new Color(0.91f, 0.55f, 0.16f, 1f),
+                "epic" => new Color(0.6f, 0.33f, 0.86f, 1f),
+                "rare" => new Color(0.2f, 0.5f, 0.86f, 1f),
+                _ => new Color(0.27f, 0.66f, 0.33f, 1f)
+            };
+        }
+
+        private void BagTile(RectTransform row, string id, int count, float x0, float x1)
+        {
+            var chosen = id == _bagSelected;
+            var frame = UiKit.Box("Tile", row, BagFrame(id));
+            frame.rectTransform.Place(x0, 0.04f, x1, 0.96f);
+            if (chosen)
+            {
+                var outline = frame.gameObject.AddComponent<Outline>();
+                outline.effectColor = new Color(1f, 0.82f, 0.3f, 1f);
+                outline.effectDistance = new Vector2(5, -5);
+            }
+
+            // A soft inner shade and the icon in the middle, Last Asylum's card look.
+            var inner = UiKit.Box("Inner", frame.transform, new Color(1f, 1f, 1f, 0.12f));
+            inner.rectTransform.Place(0.06f, 0.06f, 0.94f, 0.94f);
+            inner.raycastTarget = false;
+            _catalog.TryGetItem(id, out var item);
+            HudIconImage(frame.transform, QuestText.ItemIcon(id, item?.kind), 0.18f, 0.16f, 0.82f, 0.8f);
+            if (Capsules.TryParse(id, out _, out var amount))
+                Outlined(UiKit.Label("Amount", frame.transform, CostChips.Compact(amount), 26, Color.white, TextAnchor.UpperCenter, FontStyle.Bold))
+                    .rectTransform.Place(0, 0.76f, 1, 0.98f);
+            Outlined(UiKit.Label("Count", frame.transform, count.ToString("N0"), 26, Color.white, TextAnchor.LowerRight, FontStyle.Bold))
+                .rectTransform.Place(0.05f, 0.03f, 0.94f, 0.3f);
+
+            var pick = id;
+            frame.gameObject.AddComponent<Button>().onClick.AddListener(() =>
+            {
+                _bagSelected = _bagSelected == pick ? string.Empty : pick;
+                _bagCount = 1;
+                Render(force: true);
+            });
+            frame.gameObject.AddComponent<PressFeedback>();
+        }
+
+        private void BagUsePanel(string id, int count)
+        {
+            var panel = UiKit.Box("Use", _list, new Color(0.9f, 0.93f, 0.96f, 1f)).Row(300);
+            var dark = new Color(0.1f, 0.16f, 0.22f, 1f);
+            UiKit.Label("Name", panel.transform, QuestText.Item(id), 32, dark, TextAnchor.MiddleCenter, FontStyle.Bold).rectTransform.Place(0.04f, 0.78f, 0.96f, 0.96f);
+            var desc = Capsules.TryParse(id, out var resource, out var amount)
+                ? Loc.F("bag.capsule.gives", CostChips.Compact(amount), Loc.Resource(resource.ToString()))
+                : QuestText.ItemDescription(id);
+            UiKit.Label("Desc", panel.transform, desc, 24, new Color(0.3f, 0.4f, 0.47f, 1f), TextAnchor.MiddleCenter).rectTransform.Place(0.04f, 0.58f, 0.96f, 0.78f);
+
+            var max = Math.Max(1, Math.Min(count, 50));
+            _bagCount = Mathf.Clamp(_bagCount, 1, max);
+            var minus = UiKit.Button("Minus", panel.transform, "-", () => { _bagCount = Math.Max(1, _bagCount - 1); Render(force: true); }, new Color(0.25f, 0.5f, 0.85f, 1f), 40);
+            ((RectTransform)minus.transform).Place(0.04f, 0.33f, 0.14f, 0.53f);
+            var countText = UiKit.Label("CountText", panel.transform, _bagCount.ToString(), 30, dark, TextAnchor.MiddleCenter, FontStyle.Bold);
+            countText.rectTransform.Place(0.8f, 0.33f, 0.96f, 0.53f);
+            var slider = UiKit.Slider("Count", panel.transform, max <= 1 ? 1f : (_bagCount - 1f) / (max - 1f), v =>
+            {
+                _bagCount = Mathf.Clamp(1 + Mathf.RoundToInt(v * (max - 1)), 1, max);
+                countText.text = _bagCount.ToString();
+            });
+            ((RectTransform)slider.transform).Place(0.16f, 0.33f, 0.66f, 0.53f);
+            var plus = UiKit.Button("Plus", panel.transform, "+", () => { _bagCount = Math.Min(max, _bagCount + 1); Render(force: true); }, new Color(0.25f, 0.5f, 0.85f, 1f), 40);
+            ((RectTransform)plus.transform).Place(0.67f, 0.33f, 0.77f, 0.53f);
+
+            var use = UiKit.Button("UseButton", panel.transform, Loc.T("bag.use"), () =>
+            {
+                OpenItems(id, _bagCount);
+                _bagSelected = string.Empty;
+            }, new Color(0.25f, 0.5f, 0.85f, 1f), 34);
+            use.GetComponentInChildren<Text>().color = Color.white;
+            ((RectTransform)use.transform).Place(0.28f, 0.05f, 0.72f, 0.27f);
+        }
+
+        /// <summary>Last Asylum's resource overview: what the bag holds, what is owned, and both together.</summary>
+        private void OpenBagStats()
+        {
+            if (_bagStats != null)
+                Destroy(_bagStats);
+            var dim = UiKit.Box("BagStats", _canvas.transform, new Color(0, 0, 0, 0.65f));
+            dim.rectTransform.Place(0, 0, 1, 1);
+            dim.gameObject.AddComponent<Button>().onClick.AddListener(() => Destroy(_bagStats));
+            _bagStats = dim.gameObject;
+
+            var card = UiKit.Box("Card", dim.transform, UiKit.Panel);
+            card.rectTransform.Place(0.04f, 0.28f, 0.96f, 0.72f);
+            card.gameObject.AddComponent<Button>();
+            card.gameObject.AddComponent<CanvasGroup>();
+            card.gameObject.AddComponent<PopIn>();
+            UiKit.Label("Title", card.transform, Loc.T("bag.stats.title"), 34, UiKit.Text, TextAnchor.MiddleLeft, FontStyle.Bold).rectTransform.Place(0.05f, 0.86f, 0.85f, 0.97f);
+
+            string[] head = { Loc.T("bag.stats.type"), Loc.T("bag.stats.items"), Loc.T("bag.stats.owned"), Loc.T("bag.stats.total") };
+            float[] cols = { 0.04f, 0.4f, 0.6f, 0.8f, 0.97f };
+            for (var c = 0; c < head.Length; c++)
+                UiKit.Label("Head", card.transform, head[c], 22, UiKit.Muted, c == 0 ? TextAnchor.MiddleLeft : TextAnchor.MiddleRight, FontStyle.Bold)
+                    .rectTransform.Place(cols[c], 0.76f, cols[c + 1], 0.84f);
+
+            var wallet = Wallet();
+            var types = new[] { ResourceType.Titanium, ResourceType.Biomass, ResourceType.Food, ResourceType.Energy, ResourceType.Oxygen };
+            for (var i = 0; i < types.Length; i++)
+            {
+                var type = types[i];
+                long inBag = View.Items.Where(p => p.Value > 0).Sum(p => Capsules.TryParse(p.Key, out var r, out var a) && r == type ? a * p.Value : 0);
+                wallet.TryGetValue(type, out var owned);
+                var y1 = 0.74f - i * 0.14f;
+                var row = UiKit.Box("Row", card.transform, i % 2 == 0 ? new Color(1, 1, 1, 0.05f) : new Color(0, 0, 0, 0));
+                row.rectTransform.Place(0.02f, y1 - 0.13f, 0.98f, y1);
+                row.raycastTarget = false;
+                HudIconImage(row.transform, Hud.HudIcons.Resource(type), 0.01f, 0.1f, 0.09f, 0.9f);
+                UiKit.Label("Name", row.transform, Loc.Resource(type.ToString()), 24, UiKit.Text, TextAnchor.MiddleLeft).rectTransform.Place(0.11f, 0, 0.4f, 1);
+                var values = new[] { inBag, owned, inBag + owned };
+                for (var c = 0; c < values.Length; c++)
+                    UiKit.Label("V", row.transform, CostChips.Compact(values[c]), 24, c == 2 ? UiKit.Amber : UiKit.Text, TextAnchor.MiddleRight, FontStyle.Bold)
+                        .rectTransform.Place(cols[c + 1] - 0.02f, 0, cols[c + 2] - 0.02f, 1);
+            }
+        }
+
+        private static Text Outlined(Text text)
+        {
+            var outline = text.gameObject.AddComponent<Outline>();
+            outline.effectColor = new Color(0, 0, 0, 0.85f);
+            outline.effectDistance = new Vector2(2, -2);
+            text.raycastTarget = false;
+            return text;
         }
 
         /// <summary>A not-yet-owned hero with its card count and, when enough, the recruit button.</summary>
