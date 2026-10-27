@@ -344,7 +344,8 @@ namespace Hadal.UI
         {
             if (result.Type is not (CommandType.PlaceBuilding or CommandType.UpgradeBuilding or CommandType.FinishConstruction
                 or CommandType.RemoveBuilding or CommandType.UnlockRing or CommandType.StartResearch or CommandType.FinishResearch
-                or CommandType.BoostBuilding or CommandType.Overdrive or CommandType.StartSalvage))
+                or CommandType.BoostBuilding or CommandType.Overdrive or CommandType.StartSalvage
+                or CommandType.TrainTroops or CommandType.CancelTraining))
                 return;
 
             if (result.Result == CommandResultCode.Rejected)
@@ -358,6 +359,8 @@ namespace Hadal.UI
                 CommandType.FinishConstruction => Loc.T("base.done"),
                 CommandType.RemoveBuilding => Loc.T("base.removed"),
                 CommandType.UnlockRing => Loc.T("base.expand.done"),
+                CommandType.TrainTroops => Loc.T("train.started"),
+                CommandType.CancelTraining => Loc.T("train.cancelled"),
                 CommandType.StartResearch or CommandType.FinishResearch or CommandType.BoostBuilding
                     or CommandType.Overdrive or CommandType.StartSalvage => FunctionToast(result.Type),
                 _ => Loc.T("base.started")
@@ -377,6 +380,7 @@ namespace Hadal.UI
 
             UpdateTimers();
             TickUpgrade();
+            TickTraining();
             ShowSalvageReports();
             HideGearWhenReady();
             HandleBack();
@@ -675,7 +679,8 @@ namespace Hadal.UI
             var live = new HashSet<string>();
             foreach (var building in Buildings())
             {
-                if (!building.IsUnderConstruction || camera == null)
+                var training = building.IsUnderConstruction ? null : TrainingAt(building.instanceKey);
+                if ((!building.IsUnderConstruction && training == null) || camera == null)
                     continue;
 
                 live.Add(building.instanceKey);
@@ -697,8 +702,22 @@ namespace Hadal.UI
                 timer.Root.gameObject.SetActive(screen.z > 0f);
                 RectTransformUtility.ScreenPointToLocalPointInRectangle(_overlay, screen, null, out var local);
                 timer.Root.anchoredPosition = local;
+                if (training != null)
+                {
+                    // Training: amber bar and "count · time" (Last Asylum's countdown over the training ground).
+                    var now = _stateSync.View.ServerNowMs;
+                    var left = Math.Max(0, (training.EndsAtMs - now) / 1000f);
+                    var span = Math.Max(1, training.EndsAtMs - training.StartedAtMs);
+                    timer.Fill.color = UiKit.Amber;
+                    timer.Fill.rectTransform.Place(0, 0, Mathf.Max(0.02f, Mathf.Clamp01((now - training.StartedAtMs) / (float)span)), 0.35f);
+                    timer.Label.text = $"{training.Count} · {Loc.Duration(left)}";
+                    timer.Label.color = UiKit.Amber;
+                    continue;
+                }
+
                 var remaining = building.constructionEndsAt - Time.realtimeSinceStartup;
                 var progress = building.constructionSeconds > 0 ? Mathf.Clamp01(1f - remaining / building.constructionSeconds) : 1f;
+                timer.Fill.color = UiKit.Accent;
                 timer.Fill.rectTransform.Place(0, 0, Mathf.Max(0.02f, progress), 0.35f);
                 timer.Label.text = Loc.Duration(remaining);
                 timer.Label.color = remaining <= _catalog.Progression.freeFinishSeconds ? UiKit.Accent : UiKit.Text;

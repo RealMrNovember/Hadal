@@ -220,6 +220,65 @@ def decoration_spire():
     return s, lights
 
 
+def armor_yard():
+    """Armored divers: a squat hangar with hard suits on racks and a test chamber."""
+    s = pad(accent="GlowRed")
+    s += [box("hall", (2.6, 1.8, 1.1), (0, 0.35, 0.29), "HullMid", 0.08),
+          box("roof", (2.8, 2.0, 0.22), (0, 0.35, 1.39), "HullDark", 0.05),
+          box("roof_stripe", (2.82, 0.2, 0.05), (0, -0.2, 1.62), "Hazard", 0.0),
+          box("door", (1.2, 0.06, 0.8), (0, -0.56, 0.4), "GlowRed", 0.0),
+          cyl("chamber", 0.55, 1.2, (-1.3, -1.1, 0.29), "Steel", verts=16, bevel=0.04),
+          dome("chamber_cap", 0.55, (-1.3, -1.1, 1.49), "Glass", seg=16, rings=6, squash=0.6)]
+    for i, x in enumerate((0.55, 1.05, 1.55)):
+        s += [cyl(f"suit{i}", 0.2, 0.55, (x, -1.25, 0.29), "Hazard", verts=10, bevel=0.03),
+              sphere(f"helmet{i}", 0.17, (x, -1.25, 0.98), "Steel", seg=12, rings=6),
+              sphere(f"visor{i}", 0.08, (x, -1.4, 0.98), "GlowAmber", seg=8, rings=4)]
+    beacon = anim(sphere("beacon", 0.14, (0.9, 0.35, 1.75), "GlowRed", seg=10, rings=5), "pulse", speed=1.0)
+    return s, [beacon]
+
+
+def harpoon_yard():
+    """Harpooners: a firing line with a launcher and target plates down the range."""
+    s = pad(accent="GlowAmber")
+    s += [box("bench", (0.9, 2.6, 0.45), (-1.2, 0, 0.29), "HullMid", 0.05),
+          box("rail", (2.8, 0.12, 0.08), (0.2, 0, 0.62), "Steel", 0.0)]
+    for i, y in enumerate((-0.8, 0.0, 0.8)):
+        s += [cyl(f"post{i}", 0.06, 1.2, (1.45, y, 0.29), "Steel", verts=8, bevel=0.0),
+              torus(f"target{i}", 0.3, 0.05, (1.45, y, 1.3), "Hazard", seg=20, minor_seg=6),
+              sphere(f"bull{i}", 0.1, (1.45, y, 1.3), "GlowRed", seg=8, rings=4)]
+    gun = bake(cyl("launcher", 0.12, 1.4, (0, 0, 0), "Steel", verts=12, bevel=0.0), (0, 1.5708, 0), (-1.0, 0, 1.0))
+    tip = sphere("tip", 0.09, (-0.25, 0, 1.0), "GlowAmber", seg=8, rings=4)
+    turret = anim(box("mount", (0.5, 0.5, 0.35), (-1.2, 0, 0.74), "HullDark", 0.04), "spin", "z", 10)
+    return s + [gun, tip], [turret]
+
+
+def arc_yard():
+    """Arc troopers: insulated coil towers with a live arc between them."""
+    s = pad(accent="GlowViolet")
+    s += [box("hut", (1.4, 1.2, 0.9), (-0.9, 0.9, 0.29), "HullMid", 0.06),
+          box("hut_glow", (0.9, 0.05, 0.2), (-0.9, 0.28, 0.8), "GlowViolet", 0.0)]
+    for i, (x, y) in enumerate([(0.9, -0.9), (0.9, 0.9), (-0.9, -0.9)]):
+        s += [cyl(f"coil{i}", 0.3, 1.6, (x, y, 0.29), "HullDark", verts=12, bevel=0.03, r_top=0.18)]
+        s += [torus(f"wind{i}_{k}", 0.27 - k * 0.03, 0.04, (x, y, 0.6 + k * 0.4), "Hazard", seg=16, minor_seg=6) for k in range(3)]
+    orbs = [anim(sphere(f"orb{i}", 0.2, (x, y, 2.05), "GlowViolet", seg=12, rings=6), "pulse", speed=2.0 + i * 0.4)
+            for i, (x, y) in enumerate([(0.9, -0.9), (0.9, 0.9), (-0.9, -0.9)])]
+    spark = anim(pipe("arc", (0.9, -0.9, 2.05), (0.9, 0.9, 2.05), 0.03, "GlowViolet", verts=6), "pulse", speed=3.0)
+    return s, orbs + [spark]
+
+
+def driller_yard():
+    """Drillers: a derrick with a spinning drill head over a test bore."""
+    s = pad(accent="GlowGreen")
+    s += [cyl("bore", 0.7, 0.12, (0, 0, 0.29), "GlowGreen", verts=16, bevel=0.0),
+          box("winch", (0.9, 0.7, 0.6), (-1.3, 0.9, 0.29), "HullMid", 0.05),
+          box("crates", (0.8, 0.8, 0.5), (1.3, 1.0, 0.29), "Hazard", 0.04)]
+    for i, (x, y) in enumerate([(-0.8, -0.8), (0.8, -0.8), (0.8, 0.8), (-0.8, 0.8)]):
+        s.append(pipe(f"leg{i}", (x, y, 0.29), (0, 0, 2.9), 0.07, "Steel", verts=8))
+    s += [box("crown", (0.5, 0.5, 0.25), (0, 0, 2.95), "HullDark", 0.03)]
+    drill = anim(cyl("drill", 0.22, 1.6, (0, 0, 0.6), "Steel", verts=8, bevel=0.0, r_top=0.05), "spin", "z", 180)
+    return s, [drill]
+
+
 BUILDINGS = {
     "core_reactor": core_reactor,
     "oxygen_plant": oxygen_plant,
@@ -229,6 +288,10 @@ BUILDINGS = {
     "drone_factory": drone_factory,
     "submarine_dock": submarine_dock,
     "military_dome": military_dome,
+    "armor_yard": armor_yard,
+    "harpoon_yard": harpoon_yard,
+    "arc_yard": arc_yard,
+    "driller_yard": driller_yard,
     "shield_generator": shield_generator,
     "radar_center": radar_center,
     "mega_dome": mega_dome,

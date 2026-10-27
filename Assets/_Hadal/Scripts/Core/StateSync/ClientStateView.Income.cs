@@ -11,6 +11,17 @@ namespace Hadal.Core.StateSync
         /// <summary>Null until the server sent marches (older servers never do).</summary>
         public MarchListDto Marches { get; private set; }
 
+        /// <summary>Troops at home and the training queues; null until the server sends them.</summary>
+        public ArmyDto Army { get; private set; }
+
+        public int ArmyVersion { get; private set; }
+
+        public void ApplyArmy(ArmyDto army)
+        {
+            Army = army;
+            ArmyVersion++;
+        }
+
         /// <summary>Server clock minus this device's clock, ms; march timestamps are server time.</summary>
         public long ServerClockOffsetMs { get; private set; }
 
@@ -47,6 +58,7 @@ namespace Hadal.Core.StateSync
         private void ResetIncome()
         {
             Marches = null;
+            Army = null;
             Expedition = null;
             _diveReports.Clear();
             IncomeVersion++;

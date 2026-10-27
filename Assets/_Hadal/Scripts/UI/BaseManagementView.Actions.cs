@@ -22,7 +22,7 @@ namespace Hadal.UI
         private float _upgradeRefresh;
 
         /// <summary>A modal or the round menu is up (the HUD steps aside).</summary>
-        public bool ModalOpen => (_upgrade != null && _upgrade.activeSelf) || TargetMenu.IsOpen;
+        public bool ModalOpen => (_upgrade != null && _upgrade.activeSelf) || (_training != null && _training.activeSelf) || TargetMenu.IsOpen;
 
         private Vector3 SlotWorld(int ring, int sector) => _grid.GetWorldPosition(new PolarGridSlotId(ring, sector));
 
@@ -59,6 +59,8 @@ namespace Hadal.UI
                 items.Add(new TargetMenu.Item("queue_build", Loc.T("base.upgrade"), () => OpenUpgrade(key)));
             }
 
+            AddMilitaryActions(definition, building, items);
+
             if (definition.Id == ResearchRules.CenterId && building.level > 0)
                 items.Add(new TargetMenu.Item("left_research", Loc.T("hud.research"), () =>
                 {
@@ -66,7 +68,10 @@ namespace Hadal.UI
                     OpenResearch();
                 }));
 
+            var training = TrainingAt(key);
             var status = building.level == 0 ? Loc.F("base.constructing", Loc.Duration(building.constructionEndsAt - Time.realtimeSinceStartup))
+                : training != null ? Loc.F("train.running.short", training.Count, $"T{training.Tier}",
+                    Loc.Duration(Math.Max(0, (training.EndsAtMs - _stateSync.View.ServerNowMs) / 1000f)))
                 : building.IsUnderConstruction ? Loc.F("base.upgrading", building.level + 1, Loc.Duration(building.constructionEndsAt - Time.realtimeSinceStartup))
                 : Rates(definition, building.level);
             TargetMenu.Show(() => Camera.main, () => SlotWorld(ring, sector) + Vector3.up * 3f,

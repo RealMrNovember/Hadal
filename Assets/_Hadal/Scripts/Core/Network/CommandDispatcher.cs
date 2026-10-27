@@ -153,6 +153,8 @@ namespace Hadal.Core.Network
                 AnswerApplicationCommand => CommandType.AnswerApplication,
                 SetProfileCommand => CommandType.SetProfile,
                 ViewProfileCommand => CommandType.ViewProfile,
+                TrainTroopsCommand => CommandType.TrainTroops,
+                CancelTrainingCommand => CommandType.CancelTraining,
                 _ => CommandType.Unknown
             };
         }

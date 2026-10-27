@@ -56,6 +56,8 @@ namespace Hadal.Core.StateSync
                 view.ApplyExpedition(snapshot.Expedition);
             if (snapshot.Profile != null)
                 view.ApplyMyProfile(snapshot.Profile);
+            if (snapshot.Army != null)
+                view.ApplyArmy(snapshot.Army);
             if (!string.IsNullOrEmpty(snapshot.PlayerId))
                 view.PlayerId = snapshot.PlayerId;
 
@@ -144,6 +146,13 @@ namespace Hadal.Core.StateSync
             {
                 if (change.Kind != EntityChangeKind.Delete && TryDeserializePayload(change.Payload, serialization, out HeroRosterDto roster))
                     view.ApplyHeroes(roster);
+                return true;
+            }
+
+            if (id == EntityIds.Army)
+            {
+                if (TryDeserializePayload(change.Payload, serialization, out ArmyDto army))
+                    view.ApplyArmy(army);
                 return true;
             }
 
