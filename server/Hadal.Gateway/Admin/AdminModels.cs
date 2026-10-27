@@ -60,5 +60,9 @@ namespace Hadal.Gateway.Admin
     public sealed record CatalogVersion(int Version, string Json, string CreatedBy, DateTimeOffset CreatedAt, string Note);
 
     public sealed record PlayerSummary(Guid AccountId, string DisplayName, DateTimeOffset CreatedAt, DateTimeOffset LastLoginAt,
-        DateTimeOffset? BannedUntil, string BanReason, IReadOnlyList<string> Providers);
+        DateTimeOffset? BannedUntil, string BanReason, IReadOnlyList<string> Providers, string ClientVersion = "");
+
+    public sealed record DeleteRequest(string? Confirm);
+
+    public sealed record OrphanDeleteRequest(string[]? IdentityKeys, string? Confirm);
 }

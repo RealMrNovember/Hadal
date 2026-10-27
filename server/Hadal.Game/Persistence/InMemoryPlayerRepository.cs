@@ -9,6 +9,13 @@ namespace Hadal.Game.Persistence
 
         public Task InitializeAsync(CancellationToken cancellationToken) => Task.CompletedTask;
 
+        public Task<Guid?> DeleteAsync(string identityKey, CancellationToken cancellationToken) =>
+            Task.FromResult(_byIdentity.TryRemove(identityKey, out var removed) ? removed.PlayerId : (Guid?)null);
+
+        /// <summary>Without an account store every identity counts as accounted for.</summary>
+        public Task<IReadOnlyList<(string IdentityKey, Guid PlayerId, DateTimeOffset CreatedAt)>> ListWithoutAccountAsync(CancellationToken cancellationToken) =>
+            Task.FromResult<IReadOnlyList<(string, Guid, DateTimeOffset)>>(Array.Empty<(string, Guid, DateTimeOffset)>());
+
         public Task<PlayerState?> LoadByIdentityAsync(string identityKey, CancellationToken cancellationToken) =>
             Task.FromResult(_byIdentity.TryGetValue(identityKey, out var stored) ? Loaded(stored) : null);
 

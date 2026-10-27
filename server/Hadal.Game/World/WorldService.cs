@@ -24,6 +24,8 @@ namespace Hadal.Game.World
 
         Task SaveAsync(WorldBaseRecord record, CancellationToken cancellationToken);
 
+        Task DeleteAsync(string playerId, CancellationToken cancellationToken);
+
         /// <summary>Players who have a base but no map tile yet (existing players when the map arrived); X and Y are unset.</summary>
         Task<List<WorldBaseRecord>> LoadUnplacedAsync(CancellationToken cancellationToken);
     }
@@ -43,6 +45,12 @@ namespace Hadal.Game.World
         }
 
         public Task<List<WorldBaseRecord>> LoadUnplacedAsync(CancellationToken cancellationToken) => Task.FromResult(new List<WorldBaseRecord>());
+
+        public Task DeleteAsync(string playerId, CancellationToken cancellationToken)
+        {
+            _bases.TryRemove(playerId, out _);
+            return Task.CompletedTask;
+        }
     }
 
     public sealed partial class PostgresWorldStore : IWorldStore
@@ -106,6 +114,14 @@ GROUP BY p.player_id, a.account_id, a.display_name", connection);
             }
 
             return result;
+        }
+
+        public async Task DeleteAsync(string playerId, CancellationToken cancellationToken)
+        {
+            await using var connection = await _dataSource.OpenConnectionAsync(cancellationToken);
+            await using var command = new NpgsqlCommand("DELETE FROM hadal.world_bases WHERE player_id = @p", connection);
+            command.Parameters.AddWithValue("p", playerId);
+            await command.ExecuteNonQueryAsync(cancellationToken);
         }
 
         public async Task SaveAsync(WorldBaseRecord r, CancellationToken cancellationToken)
@@ -222,6 +238,8 @@ ON CONFLICT (player_id) DO UPDATE SET x = EXCLUDED.x, y = EXCLUDED.y, name = EXC
         /// <summary>Gives a new player a tile and refreshes what others see of this one.</summary>
         public void OnConnected(PlayerSession session)
         {
+            if (session.IsDeleted)
+                return;
             lock (_gate)
             {
                 _online[session.PublicId] = session;
@@ -231,12 +249,29 @@ ON CONFLICT (player_id) DO UPDATE SET x = EXCLUDED.x, y = EXCLUDED.y, name = EXC
 
         public void OnDisconnected(PlayerSession session)
         {
+            if (session.IsDeleted)
+                return;
             lock (_gate)
             {
                 if (_online.TryGetValue(session.PublicId, out var current) && ReferenceEquals(current, session))
                     _online.Remove(session.PublicId);
                 Upsert(session);
             }
+        }
+
+        /// <summary>Takes a removed player's base off the map and frees the nodes their marches held.</summary>
+        public async Task ForgetAsync(string playerId, DateTimeOffset now, CancellationToken cancellationToken)
+        {
+            lock (_gate)
+            {
+                if (_bases.Remove(playerId, out var b))
+                    _taken.Remove((b.X, b.Y));
+                _baseNames.TryRemove(playerId, out _);
+                _online.Remove(playerId);
+                ForgetMarches(playerId, now);
+            }
+
+            await _store.DeleteAsync(playerId, cancellationToken);
         }
 
         /// <summary>The name a base was last seen with; null when the player has no base.</summary>

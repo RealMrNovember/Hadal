@@ -274,11 +274,20 @@ namespace Hadal.Game
         }
 
         /// <summary>Copies state for persistence and clears the unsaved markers. Call outside the save I/O.</summary>
+        /// <summary>The operator removed this player; nothing may write it back.</summary>
+        public bool IsDeleted { get; private set; }
+
+        internal void MarkDeleted()
+        {
+            lock (_gate)
+                IsDeleted = true;
+        }
+
         public PlayerState? TakeSaveSnapshot()
         {
             lock (_gate)
             {
-                if (!_state.IsDirty)
+                if (!_state.IsDirty || IsDeleted)
                     return null;
 
                 var copy = new PlayerState

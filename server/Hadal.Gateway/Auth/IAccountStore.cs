@@ -59,6 +59,20 @@ namespace Hadal.Gateway.Auth
         /// <summary>For the in-memory admin store (Overseer player list in tests and local runs).</summary>
         public IReadOnlyCollection<Guid> AccountIds => _accounts.Keys.ToList();
 
+        /// <summary>Overseer account removal: the account, its tokens and links.</summary>
+        public bool Remove(Guid accountId)
+        {
+            foreach (var token in _tokens.Where(t => t.Value.Account == accountId).ToList())
+                _tokens.TryRemove(token.Key, out _);
+            lock (_linkGate)
+            {
+                foreach (var link in _links.Where(l => l.Value.AccountId == accountId).ToList())
+                    _links.TryRemove(link.Key, out _);
+            }
+
+            return _accounts.TryRemove(accountId, out _);
+        }
+
         public Task<Guid> CreateGuestAsync(string deviceId, string clientVersion, CancellationToken cancellationToken)
         {
             var id = Guid.NewGuid();

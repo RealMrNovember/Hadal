@@ -76,6 +76,7 @@ const ERRORS = {
   CannotDisableSelf: "Kendi hesabını kapatamazsın.",
   InvalidVersion: "Sürüm 1.2.0 biçiminde olmalı.",
   InvalidUrl: "İndirme adresi https:// ile başlamalı.",
+  ConfirmationRequired: "Silme onaylanmadı.",
 };
 const explain = (code) => ERRORS[code] || code || "İşlem başarısız.";
 
@@ -150,28 +151,90 @@ async function overview(root) {
     s.liveOps.announcement ? el("p", { class: "muted" }, "Duyuru: " + s.liveOps.announcement) : null);
 }
 
+// A test leftover: no name, or made by a smoke/load run rather than the game client.
+const looksTest = (p) => !p.displayName || p.clientVersion === "smoke" || p.clientVersion === "";
+
+async function deleteAccounts(ids) {
+  let done = 0;
+  for (const id of ids) {
+    await api(`players/${id}/delete`, { method: "POST", body: { confirm: "DELETE" } });
+    done++;
+  }
+  return done;
+}
+
 async function players(root, selected) {
   const search = el("input", { placeholder: "Ad ya da hesap no ile ara", value: sessionStorage.getItem("overseer.q") || "" });
   const list = el("div");
+  const orphans = el("div");
   const drawer = el("div", { class: "drawer" });
+  const chosen = new Set();
+  const owner = can("owner");
+  let rows = [];
 
-  async function load() {
-    sessionStorage.setItem("overseer.q", search.value);
-    const rows = await api("players?q=" + encodeURIComponent(search.value.trim()));
+  const deleteChosen = el("button", { class: "danger", onclick: async () => {
+    const names = rows.filter((p) => chosen.has(p.accountId)).map((p) => p.displayName || p.accountId.slice(0, 8));
+    if (!names.length) return toast("Önce silinecek hesapları seç.", true);
+    if (!confirm(`${names.length} hesap kalıcı olarak silinecek (üs, binalar, ittifak üyeliği, giriş bağlantıları):\n\n${names.join("\n")}\n\nEmin misin?`)) return;
+    try {
+      const n = await deleteAccounts([...chosen]);
+      toast(`${n} hesap silindi.`);
+      chosen.clear();
+      await load();
+    } catch (e) { toast(e.message, true); }
+  } }, "Seçilenleri sil");
+
+  const selectTests = el("button", { onclick: () => {
+    rows.filter(looksTest).forEach((p) => chosen.add(p.accountId));
+    draw();
+  } }, "Test görünenleri seç");
+
+  function draw() {
+    deleteChosen.textContent = chosen.size ? `Seçilenleri sil (${chosen.size})` : "Seçilenleri sil";
     list.replaceChildren(el("table", {},
-      el("thead", {}, el("tr", {}, ["Oyuncu", "Hesap no", "Durum", "Kayıt", "Son giriş", "Koruma"].map((h) => el("th", {}, h)))),
+      el("thead", {}, el("tr", {}, [owner ? "" : null, "Oyuncu", "Hesap no", "Durum", "Kayıt", "Son giriş", "Koruma", "Sürüm"].filter((h) => h !== null).map((h) => el("th", {}, h)))),
       el("tbody", {}, rows.map((p) => el("tr", { class: "click", onclick: () => (location.hash = "#/players/" + p.accountId) },
-        el("td", {}, p.displayName),
+        owner ? el("td", { onclick: (e) => e.stopPropagation() }, el("input", { type: "checkbox", checked: chosen.has(p.accountId) ? "" : null,
+          onchange: (e) => { e.target.checked ? chosen.add(p.accountId) : chosen.delete(p.accountId); draw(); } })) : null,
+        el("td", {}, p.displayName || el("span", { class: "muted" }, "(adsız)"), looksTest(p) ? el("span", { class: "pill off" }, " test?") : ""),
         el("td", { class: "mono" }, p.accountId.slice(0, 12)),
         el("td", {}, p.bannedUntil && new Date(p.bannedUntil) > new Date() ? el("span", { class: "pill off" }, "Banlı")
           : p.online ? el("span", { class: "pill on" }, "Çevrimiçi") : el("span", { class: "muted" }, "Çevrimdışı")),
         el("td", {}, fmtDate(p.createdAt)),
         el("td", {}, fmtDate(p.lastLoginAt)),
-        el("td", {}, p.providers.length ? p.providers.join(", ") : el("span", { class: "warn" }, "korumasız")))))));
+        el("td", {}, p.providers.length ? p.providers.join(", ") : el("span", { class: "warn" }, "korumasız")),
+        el("td", { class: "mono" }, p.clientVersion || "—"))))));
+  }
+
+  async function load() {
+    sessionStorage.setItem("overseer.q", search.value);
+    rows = await api("players?q=" + encodeURIComponent(search.value.trim()));
+    draw();
+    await loadOrphans();
+  }
+
+  // Player rows with no account at all (left by acceptance and load tests); nobody can sign in to them.
+  async function loadOrphans() {
+    const items = await api("orphans");
+    if (!items.length) return orphans.replaceChildren();
+    orphans.replaceChildren(el("div", { class: "card" },
+      el("h2", {}, `Hesabı olmayan oyuncu kayıtları (${items.length})`),
+      el("p", { class: "muted" }, "Hiçbir hesaba bağlı değiller; kimse bunlarla giriş yapamaz. Test kalıntılarıdır."),
+      el("table", {}, el("tbody", {}, items.map((o) => el("tr", {}, el("td", { class: "mono" }, o.identityKey), el("td", {}, fmtDate(o.createdAt)))))),
+      owner ? el("button", { class: "danger", onclick: async () => {
+        if (!confirm(`${items.length} sahipsiz oyuncu kaydı kalıcı olarak silinecek. Emin misin?`)) return;
+        try {
+          const r = await api("orphans/delete", { method: "POST", body: { identityKeys: items.map((o) => o.identityKey), confirm: "DELETE" } });
+          toast(`${r.deleted} kayıt silindi.`);
+          await loadOrphans();
+        } catch (e) { toast(e.message, true); }
+      } }, "Hepsini sil") : null));
   }
 
   search.addEventListener("keydown", (e) => e.key === "Enter" && load());
-  render(root, el("h1", {}, "Oyuncular"), el("div", { class: "row" }, search, el("button", { onclick: load }, "Ara")), drawer, list);
+  render(root, el("h1", {}, "Oyuncular"),
+    el("div", { class: "row" }, search, el("button", { onclick: load }, "Ara"), owner ? selectTests : null, owner ? deleteChosen : null),
+    drawer, list, orphans);
   await load();
   if (selected) await playerDetail(drawer, selected);
 }
@@ -206,6 +269,17 @@ async function playerDetail(root, id) {
              .then(() => { toast("Oyuncu banlandı."); route(); }, (e) => toast(e.message, true)) }, "Banla")],
       el("button", { onclick: () => api(`players/${id}/kick`, { method: "POST" }).then((r) => toast(r.kicked ? "Oturum kapatıldı." : "Oyuncu çevrimdışı."), (e) => toast(e.message, true)) }, "Oturumu kapat"),
       el("button", { onclick: () => (location.hash = "#/coupons/" + id) }, "Bu oyuncuya kupon")),
+    can("owner") ? [
+      el("h2", {}, "Hesabı sil"),
+      el("p", { class: "muted" }, "Test hesapları için: hesap, üs, binalar, ittifak üyeliği ve giriş bağlantıları kalıcı olarak silinir. Geri alınamaz."),
+      el("button", { class: "danger", onclick: async () => {
+        if (!confirm(`"${p.displayName || id}" hesabı kalıcı olarak silinecek. Emin misin?`)) return;
+        try {
+          await deleteAccounts([id]);
+          toast("Hesap silindi.");
+          location.hash = "#/players";
+        } catch (e) { toast(e.message, true); }
+      } }, "Hesabı kalıcı olarak sil")] : null,
   ] : [];
 
   render(root, el("div", { class: "card" },

@@ -346,6 +346,18 @@ ON CONFLICT (id) DO UPDATE SET type = EXCLUDED.type, level = EXCLUDED.level, x =
             }
         }
 
+        /// <summary>Frees nodes a removed player was working. Caller holds the lock.</summary>
+        private void ForgetMarches(string playerId, DateTimeOffset now)
+        {
+            foreach (var node in _nodes.Values.Where(n => n.BusyBy == playerId))
+            {
+                node.BusyUntil = null;
+                node.BusyBy = string.Empty;
+                node.DepletedAt = node.Remaining <= 0 ? now : null;
+                _nodeWrites.Enqueue(node.Copy());
+            }
+        }
+
         internal WorldNode? NodeForTests(string id)
         {
             lock (_gate)

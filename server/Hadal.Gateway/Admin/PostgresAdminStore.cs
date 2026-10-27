@@ -351,7 +351,8 @@ CREATE TABLE IF NOT EXISTS hadal.catalog_versions (
         // --- Players ---------------------------------------------------------------------------
 
         private const string PlayerColumns = @"a.account_id, a.display_name, a.created_at, a.last_login_at, a.banned_until, a.ban_reason,
-            COALESCE((SELECT array_agg(DISTINCT l.provider ORDER BY l.provider) FROM hadal.account_links l WHERE l.account_id = a.account_id), '{}')";
+            COALESCE((SELECT array_agg(DISTINCT l.provider ORDER BY l.provider) FROM hadal.account_links l WHERE l.account_id = a.account_id), '{}'),
+            a.client_version";
 
         public async Task<IReadOnlyList<PlayerSummary>> SearchPlayersAsync(string query, int limit, CancellationToken cancellationToken)
         {
@@ -378,7 +379,7 @@ CREATE TABLE IF NOT EXISTS hadal.catalog_versions (
 
         private static PlayerSummary ReadPlayer(NpgsqlDataReader r) => new(
             r.GetGuid(0), r.GetString(1), r.GetFieldValue<DateTimeOffset>(2), r.GetFieldValue<DateTimeOffset>(3),
-            r.IsDBNull(4) ? null : r.GetFieldValue<DateTimeOffset>(4), r.GetString(5), r.GetFieldValue<string[]>(6));
+            r.IsDBNull(4) ? null : r.GetFieldValue<DateTimeOffset>(4), r.GetString(5), r.GetFieldValue<string[]>(6), r.GetString(7));
 
         public async Task<(int Total, int Last24h)> CountPlayersAsync(DateTimeOffset now, CancellationToken cancellationToken)
         {
@@ -388,6 +389,28 @@ CREATE TABLE IF NOT EXISTS hadal.catalog_versions (
             await using var reader = await command.ExecuteReaderAsync(cancellationToken);
             await reader.ReadAsync(cancellationToken);
             return ((int)reader.GetInt64(0), (int)reader.GetInt64(1));
+        }
+
+        public async Task<bool> DeleteAccountAsync(Guid accountId, CancellationToken cancellationToken)
+        {
+            // Links and refresh tokens cascade; redemptions keep no foreign key, so they go first.
+            await using var connection = await _dataSource.OpenConnectionAsync(cancellationToken);
+            await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
+            await using (var redemptions = new NpgsqlCommand("DELETE FROM hadal.coupon_redemptions WHERE account_id = @a", connection, transaction))
+            {
+                redemptions.Parameters.AddWithValue("a", accountId);
+                await redemptions.ExecuteNonQueryAsync(cancellationToken);
+            }
+
+            int deleted;
+            await using (var account = new NpgsqlCommand("DELETE FROM hadal.accounts WHERE account_id = @a", connection, transaction))
+            {
+                account.Parameters.AddWithValue("a", accountId);
+                deleted = await account.ExecuteNonQueryAsync(cancellationToken);
+            }
+
+            await transaction.CommitAsync(cancellationToken);
+            return deleted > 0;
         }
 
         public async Task SetBanAsync(Guid accountId, DateTimeOffset? until, string reason, CancellationToken cancellationToken)

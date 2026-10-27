@@ -61,6 +61,29 @@ ALTER TABLE hadal.players ADD COLUMN IF NOT EXISTS extras jsonb NOT NULL DEFAULT
         public Task InitializeAsync(CancellationToken cancellationToken) =>
             PostgresSchema.ApplyAsync(_dataSource, Schema, cancellationToken);
 
+        public async Task<Guid?> DeleteAsync(string identityKey, CancellationToken cancellationToken)
+        {
+            await using var command = _dataSource.CreateCommand("DELETE FROM hadal.players WHERE identity_key = @k RETURNING player_id");
+            command.Parameters.AddWithValue("k", identityKey);
+            var id = await command.ExecuteScalarAsync(cancellationToken);
+            return id is Guid g ? g : null;
+        }
+
+        public async Task<IReadOnlyList<(string IdentityKey, Guid PlayerId, DateTimeOffset CreatedAt)>> ListWithoutAccountAsync(CancellationToken cancellationToken)
+        {
+            // hadal.accounts belongs to the gateway; a server without it has no accounts to compare with.
+            await using var command = _dataSource.CreateCommand(@"
+SELECT p.identity_key, p.player_id, p.created_at FROM hadal.players p
+WHERE to_regclass('hadal.accounts') IS NOT NULL
+  AND NOT EXISTS (SELECT 1 FROM hadal.accounts a WHERE replace(a.account_id::text, '-', '') = p.identity_key)
+ORDER BY p.created_at");
+            var list = new List<(string, Guid, DateTimeOffset)>();
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+            while (await reader.ReadAsync(cancellationToken))
+                list.Add((reader.GetString(0), reader.GetGuid(1), reader.GetFieldValue<DateTimeOffset>(2)));
+            return list;
+        }
+
         public async Task<PlayerState?> LoadByIdentityAsync(string identityKey, CancellationToken cancellationToken)
         {
             await using var connection = await _dataSource.OpenConnectionAsync(cancellationToken);

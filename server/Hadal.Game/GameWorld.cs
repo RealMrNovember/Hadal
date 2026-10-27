@@ -140,6 +140,37 @@ namespace Hadal.Game
                 : await _repository.LoadByIdentityAsync(identityKey, cancellationToken);
 
         /// <summary>Closes the player's connection (ban, forced logout). The client may reconnect unless refused.</summary>
+        /// <summary>
+        /// Removes a player for good (Overseer): closes their session without saving, takes their base off the map,
+        /// drops them from their alliance and deletes the player row with its buildings. Returns false when the
+        /// identity had no player. The account itself belongs to the gateway.
+        /// </summary>
+        public async Task<bool> DeletePlayerAsync(string identityKey, CancellationToken cancellationToken)
+        {
+            var now = _clock.UtcNow;
+            Guid? playerId = null;
+            if (_sessions.TryRemove(identityKey, out var session))
+            {
+                session.MarkDeleted();
+                playerId = session.PlayerId;
+                session.Connection?.Close("account removed");
+            }
+
+            var deleted = await _repository.DeleteAsync(identityKey, cancellationToken);
+            playerId ??= deleted;
+            if (playerId == null)
+                return false;
+
+            var publicId = playerId.Value.ToString("N");
+            Social.ForgetPlayer(publicId, now);
+            await Map.ForgetAsync(publicId, now, cancellationToken);
+            _logger.LogInformation("Deleted player {PlayerId} (identity {IdentityKey}).", publicId, identityKey);
+            return true;
+        }
+
+        public Task<IReadOnlyList<(string IdentityKey, Guid PlayerId, DateTimeOffset CreatedAt)>> PlayersWithoutAccountAsync(CancellationToken cancellationToken) =>
+            _repository.ListWithoutAccountAsync(cancellationToken);
+
         public bool Kick(string identityKey, string reason)
         {
             if (!_sessions.TryGetValue(identityKey, out var session) || session.Connection == null)

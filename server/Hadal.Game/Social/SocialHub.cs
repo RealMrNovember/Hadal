@@ -158,6 +158,8 @@ namespace Hadal.Game.Social
 
         public void OnDisconnected(PlayerSession session, DateTimeOffset now)
         {
+            if (session.IsDeleted)
+                return;
             lock (_gate)
             {
                 if (!_online.TryGetValue(session.PublicId, out var current) || !ReferenceEquals(current, session))
@@ -661,6 +663,21 @@ namespace Hadal.Game.Social
 
             PushHelp(alliance, now);
             return SocialRejectReason.None;
+        }
+
+        /// <summary>A removed player leaves their alliance (the next rank leads) and every invitation and application.</summary>
+        public void ForgetPlayer(string playerId, DateTimeOffset now)
+        {
+            lock (_gate)
+            {
+                if (AllianceOf(playerId) != null)
+                    Leave(playerId, now, kickedBy: "operator");
+                _online.Remove(playerId);
+                ForgetPending(playerId);
+                _names.Remove(playerId);
+                _offlineHelps.Remove(playerId);
+                _lastChat.Remove(playerId);
+            }
         }
 
         /// <summary>The alliance tag shown next to a player (world map), empty without an alliance.</summary>

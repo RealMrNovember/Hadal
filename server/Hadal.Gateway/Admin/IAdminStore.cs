@@ -44,6 +44,9 @@ namespace Hadal.Gateway.Admin
         Task<(int Total, int Last24h)> CountPlayersAsync(DateTimeOffset now, CancellationToken cancellationToken);
         Task SetBanAsync(Guid accountId, DateTimeOffset? until, string reason, CancellationToken cancellationToken);
 
+        /// <summary>Deletes an account with its sign-in links, refresh tokens and coupon redemptions.</summary>
+        Task<bool> DeleteAccountAsync(Guid accountId, CancellationToken cancellationToken);
+
         /// <summary>Ban in force at <paramref name="now"/>, or null.</summary>
         Task<(DateTimeOffset Until, string Reason)?> GetActiveBanAsync(Guid accountId, DateTimeOffset now, CancellationToken cancellationToken);
     }
@@ -236,6 +239,14 @@ namespace Hadal.Gateway.Admin
         {
             var total = _accounts?.AccountIds.Count ?? 0;
             return Task.FromResult((total, total));
+        }
+
+        public Task<bool> DeleteAccountAsync(Guid accountId, CancellationToken cancellationToken)
+        {
+            _bans.TryRemove(accountId, out _);
+            foreach (var key in _redemptions.Keys.Where(k => k.Item2 == accountId).ToList())
+                _redemptions.TryRemove(key, out _);
+            return Task.FromResult(_accounts?.Remove(accountId) ?? false);
         }
 
         public Task SetBanAsync(Guid accountId, DateTimeOffset? until, string reason, CancellationToken cancellationToken)

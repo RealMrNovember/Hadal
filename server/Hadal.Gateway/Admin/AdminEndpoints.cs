@@ -174,6 +174,50 @@ namespace Hadal.Gateway.Admin
                 return Results.Ok(new { ok = true });
             }).RequireAdmin(AdminRoles.GameMaster);
 
+            // Removal (Owner): test accounts and players that no one owns. Needs Confirm = "DELETE".
+            api.MapPost("/players/{id:guid}/delete", async (AdminPrincipal me, Guid id, DeleteRequest request,
+                HttpContext http, GameWorld world, IAdminStore store, CancellationToken ct) =>
+            {
+                if (request.Confirm != "DELETE")
+                    return Results.BadRequest(new { error = "ConfirmationRequired" });
+                var player = await store.GetPlayerAsync(id, ct);
+                if (player == null)
+                    return Results.NotFound();
+
+                var hadBase = await world.DeletePlayerAsync(id.ToString("N"), ct);
+                await store.DeleteAccountAsync(id, ct);
+                await store.AuditAsync(me.Username, "player.delete", id.ToString("N"),
+                    $"{player.DisplayName} {(hadBase ? "account + base" : "account only")}".Trim(), AdminAuth.ClientIp(http), ct);
+                return Results.Ok(new { deleted = true, hadBase });
+            }).RequireAdmin(AdminRoles.Owner);
+
+            api.MapGet("/orphans", async (AdminPrincipal _, GameWorld world, CancellationToken ct) =>
+                Results.Ok((await world.PlayersWithoutAccountAsync(ct)).Select(o => new
+                {
+                    identityKey = o.IdentityKey,
+                    playerId = o.PlayerId.ToString("N"),
+                    createdAt = o.CreatedAt
+                }))).RequireAdmin(AdminRoles.Viewer);
+
+            api.MapPost("/orphans/delete", async (AdminPrincipal me, OrphanDeleteRequest request,
+                HttpContext http, GameWorld world, IAdminStore store, CancellationToken ct) =>
+            {
+                if (request.Confirm != "DELETE")
+                    return Results.BadRequest(new { error = "ConfirmationRequired" });
+
+                // Only identities that really have no account can go this way.
+                var orphans = (await world.PlayersWithoutAccountAsync(ct)).Select(o => o.IdentityKey).ToHashSet(StringComparer.Ordinal);
+                var deleted = 0;
+                foreach (var key in (request.IdentityKeys ?? Array.Empty<string>()).Where(orphans.Contains).Distinct())
+                {
+                    if (await world.DeletePlayerAsync(key, ct))
+                        deleted++;
+                }
+
+                await store.AuditAsync(me.Username, "orphan.delete", $"{deleted}", string.Join(",", request.IdentityKeys ?? Array.Empty<string>()), AdminAuth.ClientIp(http), ct);
+                return Results.Ok(new { deleted });
+            }).RequireAdmin(AdminRoles.Owner);
+
             api.MapPost("/players/{id:guid}/kick", async (AdminPrincipal me, Guid id, HttpContext http, GameWorld world, IAdminStore store, CancellationToken ct) =>
             {
                 var kicked = world.Kick(id.ToString("N"), "kicked by an operator");
@@ -358,6 +402,7 @@ namespace Hadal.Gateway.Admin
             p.LastLoginAt,
             p.BannedUntil,
             p.BanReason,
+            p.ClientVersion,
             providers = p.Providers,
             online = world.IsOnline(p.AccountId.ToString("N"))
         };
