@@ -193,6 +193,14 @@ namespace Hadal.Game
                         RecruitHero(recruit!, now);
                         break;
 
+                    case CommandType.TrainTroops when TryDeserialize(envelope.Payload, out TrainTroopsCommand? train):
+                        TrainTroops(train!, now);
+                        break;
+
+                    case CommandType.CancelTraining when TryDeserialize(envelope.Payload, out CancelTrainingCommand? cancel):
+                        CancelTraining(cancel!, now);
+                        break;
+
                     case CommandType.SetProfile when TryDeserialize(envelope.Payload, out SetProfileCommand? profile):
                         SetProfile(profile!, now);
                         break;
@@ -207,7 +215,7 @@ namespace Hadal.Game
                             or CommandType.BoostBuilding or CommandType.Overdrive or CommandType.StartSalvage or CommandType.ExecuteGacha
                             or CommandType.LevelUpHero or CommandType.PromoteHero or CommandType.AssignHero
                             or CommandType.ClaimQuest or CommandType.ClaimDailyChest or CommandType.OpenItem or CommandType.RecruitHero
-                            or CommandType.DiveStage or CommandType.SetProfile;
+                            or CommandType.DiveStage or CommandType.SetProfile or CommandType.TrainTroops or CommandType.CancelTraining;
                         Reject(envelope.CommandId, envelope.ClientSequence, known ? "MalformedCommand" : "NotSupported", now);
                         break;
                 }
@@ -707,6 +715,9 @@ namespace Hadal.Game
                 foreach (var march in _state.Marches.Where(m => m.HomeAt <= at).ToList())
                     CompleteMarch(march);
 
+                foreach (var training in _state.Training.Where(t => t.EndsAt <= at).ToList())
+                    CompleteTraining(training);
+
                 foreach (var research in _state.ActiveResearch.Where(a => a.EndsAt <= at).ToList())
                 {
                     _state.ActiveResearch.Remove(research);
@@ -722,6 +733,8 @@ namespace Hadal.Game
             var changes = new List<EntityChangeDto>();
             if (_marchesDirty)
                 changes.Add(MarchesChange(now));
+            if (_armyDirty)
+                changes.Add(ArmyChange(now));
             if (changedBuildings.Count == 0 && !researchChanged && changes.Count == 0)
                 return changes;
 
@@ -756,11 +769,16 @@ namespace Hadal.Game
                 Consider(research.EndsAt);
             foreach (var march in _state.Marches)
                 Consider(march.HomeAt);
+            foreach (var training in _state.Training)
+                Consider(training.EndsAt);
             return next;
         }
 
         private void CompleteConstruction(PlacedBuilding building)
         {
+            // A bigger Military Dome holds more troops; a new yard level opens tiers and batch sizes.
+            if (building.DefinitionId == _catalog.Troops.capacityBuilding || TroopRules.IsTrainingBuilding(_catalog.Troops, building.DefinitionId))
+                _armyDirty = true;
             building.Level += 1;
             building.ConstructionEndsAt = null;
             building.ConstructionSeconds = 0;
@@ -949,7 +967,8 @@ namespace Hadal.Game
                 Inventory = InventoryDto(),
                 Marches = MarchListDto(now),
                 Expedition = ExpeditionDto(),
-                Profile = new PlayerProfileDto { PlayerId = PublicId, Name = _displayName, AvatarId = _state.AvatarId }
+                Profile = new PlayerProfileDto { PlayerId = PublicId, Name = _displayName, AvatarId = _state.AvatarId },
+                Army = ArmyDto()
             };
             _questsDirty = false;
 

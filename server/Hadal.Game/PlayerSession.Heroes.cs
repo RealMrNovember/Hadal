@@ -188,7 +188,7 @@ namespace Hadal.Game
                     power += HeroRules.Power(hero, owned.Level, owned.Stars);
             }
 
-            return power;
+            return power + TroopPower();
         }
 
         private EntityChangeDto HeroesChange(DateTimeOffset now) => new()

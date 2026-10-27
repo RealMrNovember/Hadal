@@ -20,7 +20,11 @@ namespace Hadal.Game.Persistence
         private sealed record Doc(
             Dictionary<string, int>? Research, List<ActiveDoc>? Active, Dictionary<string, BuildingDoc>? Buildings,
             List<HeroDoc>? Heroes = null, int SincePity = 0, DateTimeOffset? FreePullAt = null, QuestDoc? Quests = null,
-            List<MarchDoc>? Marches = null, int ExpeditionCleared = 0, string? Avatar = null);
+            List<MarchDoc>? Marches = null, int ExpeditionCleared = 0, string? Avatar = null,
+            Dictionary<string, long>? Troops = null, List<TrainingDoc>? Training = null);
+
+        private sealed record TrainingDoc(string BuildingId, string Type, int Tier, int Count, DateTimeOffset StartedAt, DateTimeOffset EndsAt,
+            Dictionary<string, long>? Cost);
 
         private sealed record MarchDoc(
             string Id, string NodeId, string NodeType, int NodeLevel, int X, int Y, DateTimeOffset StartedAt, DateTimeOffset ArrivesAt,
@@ -57,7 +61,10 @@ namespace Hadal.Game.Persistence
                     m.Rates.ToDictionary(p => p.Key.ToString(), p => p.Value), m.Cargo.ToDictionary(p => p.Key.ToString(), p => p.Value),
                     m.HeroId, m.Crew, m.FromX, m.FromY)).ToList(),
                 state.ExpeditionCleared,
-                state.AvatarId));
+                state.AvatarId,
+                new Dictionary<string, long>(state.Troops),
+                state.Training.Select(t => new TrainingDoc(t.BuildingId, t.Type, t.Tier, t.Count, t.StartedAt, t.EndsAt,
+                    t.Cost.ToDictionary(p => p.Key.ToString(), p => p.Value))).ToList()));
         }
 
         private static Dictionary<ResourceType, T> Resources<T>(Dictionary<string, T>? map)
@@ -128,6 +135,18 @@ namespace Hadal.Game.Persistence
 
             state.ExpeditionCleared = doc.ExpeditionCleared;
             state.AvatarId = doc.Avatar ?? string.Empty;
+            foreach (var pair in doc.Troops ?? new Dictionary<string, long>())
+                state.Troops[pair.Key] = pair.Value;
+            foreach (var t in doc.Training ?? new List<TrainingDoc>())
+            {
+                state.Training.Add(new TrainingState
+                {
+                    BuildingId = t.BuildingId, Type = t.Type, Tier = t.Tier, Count = t.Count, StartedAt = t.StartedAt, EndsAt = t.EndsAt,
+                    Cost = (t.Cost ?? new Dictionary<string, long>())
+                        .Where(p => Enum.TryParse<ResourceType>(p.Key, out _))
+                        .ToDictionary(p => Enum.Parse<ResourceType>(p.Key), p => p.Value)
+                });
+            }
 
             foreach (var b in state.Buildings)
             {

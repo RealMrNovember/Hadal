@@ -56,6 +56,9 @@ namespace HADAL.Shared.Protocol
         /// <summary>A profile card the player asked for (<c>PlayerProfileDto</c>).</summary>
         public const string Profile = "world:profile";
 
+        /// <summary>Troops at home and the training queues (<c>ArmyDto</c>).</summary>
+        public const string Army = Base + "army";
+
         /// <summary>The player's own profile (<c>PlayerProfileDto</c>; avatar choice).</summary>
         public const string MyProfile = Base + "profile";
 

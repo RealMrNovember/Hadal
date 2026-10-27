@@ -46,5 +46,7 @@ namespace HADAL.Shared.Enums
         [ProtoEnum] AnswerApplication = 38,
         [ProtoEnum] SetProfile = 39,
         [ProtoEnum] ViewProfile = 40,
+        [ProtoEnum] TrainTroops = 41,
+        [ProtoEnum] CancelTraining = 42,
     }
 }

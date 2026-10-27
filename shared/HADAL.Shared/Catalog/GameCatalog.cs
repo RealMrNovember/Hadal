@@ -218,6 +218,8 @@ namespace HADAL.Shared.Catalog
 
         public ExpeditionCatalogData Expedition => Data.expedition ?? new ExpeditionCatalogData();
 
+        public TroopCatalogData Troops => Data.troops ?? new TroopCatalogData();
+
         public bool TryGetItem(string id, out ItemData item)
         {
             item = Array.Find(Data.items ?? Array.Empty<ItemData>(), i => i != null && i.id == id)!;

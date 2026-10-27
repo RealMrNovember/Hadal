@@ -43,6 +43,9 @@ namespace HADAL.Shared.DTOs
         /// <summary>The player's own profile (avatar); null from older servers.</summary>
         [ProtoMember(13)] public PlayerProfileDto? Profile { get; set; }
 
+        /// <summary>Troops and training; null from older servers.</summary>
+        [ProtoMember(14)] public ArmyDto? Army { get; set; }
+
         [ProtoBeforeSerialization]
         private void BeforeSerialize() => BuildingsWire = Buildings?.ToArray() ?? System.Array.Empty<BuildingStateDto>();
 

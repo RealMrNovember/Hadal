@@ -39,6 +39,9 @@ namespace HADAL.Shared.Catalog
         public GatherCatalogData gather = new GatherCatalogData();
         public ExpeditionCatalogData expedition = new ExpeditionCatalogData();
 
+        // Troops and training (docs/rehber 07, 19 §2).
+        public TroopCatalogData troops = new TroopCatalogData();
+
         // Balance infrastructure (docs/rehber, Paket A).
         public ReactorRequirementData[] reactorRequirements = Array.Empty<ReactorRequirementData>();
 

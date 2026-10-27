@@ -31,6 +31,20 @@ namespace Hadal.Game
     }
 
     /// <summary>A research level being worked on (docs/24).</summary>
+    /// <summary>A training batch in a training yard (docs/rehber 07 §2.4).</summary>
+    public sealed class TrainingState
+    {
+        public string BuildingId { get; init; } = string.Empty;
+        public string Type { get; init; } = string.Empty;
+        public int Tier { get; init; }
+        public int Count { get; init; }
+        public DateTimeOffset StartedAt { get; init; }
+        public DateTimeOffset EndsAt { get; set; }
+
+        /// <summary>What was paid, refunded in full on cancel.</summary>
+        public Dictionary<ResourceType, long> Cost { get; init; } = new();
+    }
+
     public sealed class ActiveResearch
     {
         public string NodeId { get; init; } = string.Empty;
@@ -106,6 +120,12 @@ namespace Hadal.Game
 
         /// <summary>Gathering marches out on the map (docs/rehber 09 §4).</summary>
         public List<MarchState> Marches { get; } = new();
+
+        /// <summary>Troops at home by "type:tier".</summary>
+        public Dictionary<string, long> Troops { get; } = new(StringComparer.Ordinal);
+
+        /// <summary>Running training batches, one per training yard.</summary>
+        public List<TrainingState> Training { get; } = new();
 
         /// <summary>Chosen avatar (a hero portrait id); empty shows the initial.</summary>
         public string AvatarId { get; set; } = string.Empty;
