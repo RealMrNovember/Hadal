@@ -53,6 +53,6 @@ Sv 50, 5★ güç: **29.952**.
 
 ## Tasarım notları
 
-Erken Zıpkıncı filosunun Kaptanı ve canavar avının ilk uzmanı. Gıda becerisi ordu büyüdükçe değer kazanır. Derindoğanlar kökeninin başlangıç kahramanı.
+Erken Zıpkıncı filosunun Kaptanı ve canavar avının ilk uzmanı. Gıda becerisi ordu büyüdükçe değer kazanır. Derindoğanlar kökeninin köken kahramanı.
 
 ← [05 · Kahramanlar](../05_kahramanlar.md)

@@ -11,7 +11,7 @@
 | --- | --- |
 | Sınıf | Bilim insanı — yatkın olduğu birlik: Ark Askeri |
 | Fraksiyon | Uçurum Tarikatı |
-| Nasıl bulunur | Köken kahramanı önerisi: Uçurum Tarikatı seçenlere başlangıçta (2★); Kriyo-Kapsül, Nadir kartı |
+| Nasıl bulunur | Köken: Uçurum Tarikatı seçenlere başlangıçta (2★); Kriyo-Kapsül, Nadir kartı |
 | Yetenek ağaçları | Beceri, Ark, Destek |
 
 ## Mürettebat becerisi
@@ -53,6 +53,6 @@ Sv 50, 5★ güç: **28.520**.
 
 ## Tasarım notları
 
-Kahraman eğitim bedeli becerisi kadro büyüdükçe kendini öder. Savaşta öfkeyi hızlandıran Subay; Çözücü Bulut Zırhlı hedeflerin savunmasını açar. Uçurum Tarikatı kökeni için önerilen başlangıç kahramanı.
+Kahraman eğitim bedeli becerisi kadro büyüdükçe kendini öder. Savaşta öfkeyi hızlandıran Subay; Çözücü Bulut Zırhlı hedeflerin savunmasını açar. Uçurum Tarikatı kökeninin köken kahramanı.
 
 ← [05 · Kahramanlar](../05_kahramanlar.md)

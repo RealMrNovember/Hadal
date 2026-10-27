@@ -470,7 +470,7 @@ bir oyuncu Ekonomi ve Derinlik'i önde tutar. Her iki yol da ilk yılda bütün 
 | Araştırma | F2P'nin bitirdiği an | Anlamı |
 | --- | ---: | --- |
 | Araştırma Yöntemleri 5 | 4 sa 48 dk | İkinci Tezgâh'ın önkoşulu |
-| İkinci Tezgâh | 4 sa 48 dk | Esnek ikinci kuyruk açılır |
+| İkinci Tezgâh | 4 sa 48 dk | Araştırma Merkezi'nde esnek ikinci tezgâh açılır |
 | İkinci İnşaatçı | 4 sa 48 dk | Aynı anda iki inşaat |
 | Bilim Kubbesi 1 (bina) | 14 sa 24 dk | Kubbe kuyruğu açılır |
 | Kademe IV Doktrini | 2,9. gün | Dört türün T4 kademesi açılır |
@@ -668,10 +668,6 @@ bölen olarak uygulanır.
 
 ## 12. Açık sorular
 
-- **Tezgâh sayısının adı.** [README](README.md), [01](01_temel_kavramlar.md) ve [03](03_binalar.md)
-  "iki kuyruk" ve "Bilim Kubbesi ikinci kuyruktur" diyor; ödüllerdeki hikâye bölümü de öyle. Bu bölümde
-  kodda olan İkinci Tezgâh korunduğu için iki laboratuvarda üç tezgâh vardır. Metinler "iki laboratuvar,
-  üç tezgâh" olarak eşitlenmeli mi, yoksa İkinci Tezgâh kubbe kurulunca kubbeye mi taşınmalı?
 - **Titanyum verimi.** [15 · Ekonomi Akışı](15_ekonomi_akisi.md)'nın verim çarpanı tablosu araştırmadan
   %10–20 Titanyum verimi bekliyor. Kodda olan Titanyum Geri Kazanımı tek başına
   <!--v:hesap.arastirma.titanium_recovery.10.etki|yuzde-->%40<!--/v--> verir (Lab 20'de tamam), Kobalt

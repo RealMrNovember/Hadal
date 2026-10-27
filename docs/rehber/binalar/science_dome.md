@@ -5,7 +5,7 @@
 
 > İkinci laboratuvar: askeri ve ileri teknolojilere ayrılmış kubbe.
 
-**İşlev.** 2. araştırma kuyruğu. Seviyeleri Birlik, Kahraman, Taktik, Filo, Konvoy, Derinlik Ligi, Leviathan Avı ve Kadim Teknoloji dallarını açar.
+**İşlev.** İkinci laboratuvar: kubbe tezgâhı. Seviyeleri Birlik, Kahraman, Taktik, Filo, Konvoy, Derinlik Ligi, Leviathan Avı ve Kadim Teknoloji dallarını açar.
 
 | Özellik | Değer |
 | --- | --- |

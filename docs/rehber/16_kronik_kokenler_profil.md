@@ -157,20 +157,23 @@ Fener seviyesi Kronik'i hızlandırmaz (sunucu ortaktır); fener yükseldikçe K
   kökenin sözünü, kahramanını, mimarisini ve üç pasifini gösterir; "en güçlü" gibi bir etiket yoktur.
 - Herkes hikâyenin başlangıç kahramanı Komutan Elias Rourke (`mara`) ile başlar (K-05). Köken ayrıca
   bir **köken kahramanı** verir; köken kahramanı zaten varsa kart yerine yıldız parçası gelir.
-- **Başlangıç değeri eşitlenir:** köken kahramanı nadirliğine göre farklı yıldızla gelir; Sıradan 3★,
-  Nadir 2★, Destansı 1★. Bir Sıradan kahramanın 3★ hâli ile bir Destansı kahramanın 1★ hâli erken oyunda
-  yakın güçtedir ([05](05_kahramanlar.md)).
+- **Köken kahramanı fraksiyonun Nadir kahramanıdır ve 2★ gelir** (karar bu bölümündür): Atlantik
+  Birliği → Kaptan Amara Okafor, Pasifik Tarikatı → Dr. Orin Hale, Derindoğanlar → Kael, Unutulanlar →
+  Rafael Quispe, Uçurum Tarikatı → Darius Farahani. Böylece beş köken aynı nadirlikte, aynı yıldızda,
+  eşit başlangıç değeriyle başlar. Sıradan kahraman seçilmez: Rourke herkesin başlangıç kahramanıdır,
+  Dr. Lyra Moss ve Tess Ruiz hikâyenin ilk iki bölümünde herkese gelir. Destansı da seçilmez: iki kökene
+  erken bir Destansı vermek dengeyi bozar. Kahramanların kendisi [05](05_kahramanlar.md)'tedir.
 
 ### 3.2 Beş köken
 
 <!-- URET:tablo:kokenler.kokenler -->
 | Köken | Söz | Köken kahramanı | Başlangıç ★ | Pasif 1 | Pasif 2 | Pasif 3 |
 | --- | --- | --- | ---: | --- | --- | --- |
-| Atlantik Birliği | Kimse geride kalmaz. | Komutan Elias Rourke | 3 | +%5 Titanyum üretimi | +%3 Zırhlı Dalgıç savunması | +%5 üs dayanıklılığı |
-| Pasifik Tarikatı | Ölç, anla, iyileştir. | Dr. Lyra Moss | 3 | +%5 iyileştirme hızı | +%5 Oksijen üretimi | +%2 araştırma hızı |
+| Atlantik Birliği | Kimse geride kalmaz. | Kaptan Amara Okafor | 2 | +%5 Titanyum üretimi | +%3 Zırhlı Dalgıç savunması | +%5 üs dayanıklılığı |
+| Pasifik Tarikatı | Ölç, anla, iyileştir. | Dr. Orin Hale | 2 | +%5 iyileştirme hızı | +%5 Oksijen üretimi | +%2 araştırma hızı |
 | Derindoğanlar | Karanlık bizim evimiz. | Kael | 2 | +%5 toplama hızı | +%5 Gıda üretimi | +%3 PvE düşmanlarına hasar |
-| Unutulanlar | Enkaz da bir yoldur. | Juno Vega | 1 | +%5 taşıma kapasitesi | +%5 kurtarma görevi ödülü | +%3 yürüyüş hızı |
-| Uçurum Tarikatı | Dip bizi çağırıyor. | Sable | 1 | +%4 Kadim Muhafız ve Leviathan'lara hasar | +%5 Sonar Enerjisi yenilenmesi | +%5 Basınç Ambarı koruması |
+| Unutulanlar | Enkaz da bir yoldur. | Rafael Quispe | 2 | +%5 taşıma kapasitesi | +%5 kurtarma görevi ödülü | +%3 yürüyüş hızı |
+| Uçurum Tarikatı | Dip bizi çağırıyor. | Darius Farahani | 2 | +%4 Kadim Muhafız ve Leviathan'lara hasar | +%5 Sonar Enerjisi yenilenmesi | +%5 Basınç Ambarı koruması |
 <!-- /URET:tablo:kokenler.kokenler -->
 
 Her kökenin üç pasifi bir ekonomi, bir savaş ve bir koruma/hareket etkisi karışımıdır; hiçbiri inşa
@@ -179,19 +182,19 @@ hızı vermez, böylece tempo simülasyonu kökenden bağımsız kalır.
 ### 3.3 Hikâyeler
 
 **<!--v:veri.kokenler.kokenler.AtlanticUnion.ad-->Atlantik Birliği<!--/v-->.**
-<!--v:veri.kokenler.kokenler.AtlanticUnion.lore-->Kuzey Atlantik'in son tersanelerinden çıkan konvoyların torunlarıdır. Yüzey yaşanmaz hâle geldiğinde ilk inenler onlardı: ağır gövdeler, sıkı vardiyalar ve tek bir yemin, kimse geride kalmaz. Basınç küresini, kaynağı ve perçini iyi bilirler; bir üssü kurmak kadar onu tutmayı da. Komutan Elias Rourke son konvoyun komutanıdır ve hâlâ her gece kayıp gövdelerin listesini okur.<!--/v-->
+<!--v:veri.kokenler.kokenler.AtlanticUnion.lore-->Kuzey Atlantik'in son tersanelerinden çıkan konvoyların torunlarıdır. Yüzey yaşanmaz hâle geldiğinde ilk inenler onlardı: ağır gövdeler, sıkı vardiyalar ve tek bir yemin, kimse geride kalmaz. Basınç küresini, kaynağı ve perçini iyi bilirler; bir üssü kurmak kadar onu tutmayı da. Kaptan Amara Okafor, Porto Riko Çukuru kıyısındaki basınç akademisinin eğitmenidir; bugüne dek tek bir öğrencisini kaybetmedi.<!--/v-->
 
 **<!--v:veri.kokenler.kokenler.PacificOrder.ad-->Pasifik Tarikatı<!--/v-->.**
-<!--v:veri.kokenler.kokenler.PacificOrder.lore-->Pasifik'in derin araştırma istasyonlarında doğan, bilimi bir yemin gibi taşıyan topluluktur. Kemosentezi ilk kez gören dalışların defterlerini kutsal metin gibi saklar, her ölçümü bir dua sabrıyla tekrarlarlar. Şifa, gözlem ve sabır onların silahıdır; gerçek canlılara dokunmazlar, yalnızca kaydederler. Dr. Lyra Moss tarikatın hekimidir.<!--/v-->
+<!--v:veri.kokenler.kokenler.PacificOrder.lore-->Pasifik'in derin araştırma istasyonlarında doğan, bilimi bir yemin gibi taşıyan topluluktur. Kemosentezi ilk kez gören dalışların defterlerini kutsal metin gibi saklar, her ölçümü bir dua sabrıyla tekrarlarlar. Şifa, gözlem ve sabır onların silahıdır; gerçek canlılara dokunmazlar, yalnızca kaydederler. Dr. Orin Hale, çöküşten beri laboratuvarından çıkmayan tarikat araştırmacısıdır.<!--/v-->
 
 **<!--v:veri.kokenler.kokenler.Deepborn.ad-->Derindoğanlar<!--/v-->.**
 <!--v:veri.kokenler.kokenler.Deepborn.lore-->Üslerde doğan üçüncü kuşaktır; hiçbiri güneşi görmedi. Gözleri biyoışıldamaya, kulakları sonarın tıkırtısına alışıktır. Derinin kurallarını en iyi onlar bilir: Uçurum Sürüngenleri avlanır, gerçek canlılara dokunulmaz. Avcıdırlar, iz sürerler, susmayı bilirler. Kael bu kuşağın en iyi iz sürücüsüdür.<!--/v-->
 
 **<!--v:veri.kokenler.kokenler.ForgottenOnes.ad-->Unutulanlar<!--/v-->.**
-<!--v:veri.kokenler.kokenler.ForgottenOnes.lore-->Kubbeler mühürlendiğinde dışarıda kalanlardır. Kimse onları kurtarmaya gelmedi; onlar da enkazdan bir hayat örmeyi öğrendi. Pilot, hurdacı ve kaçakçıdırlar; her batık gövde onlar için bir hazine, her kapalı kapı bir bilmecedir. Juno Vega, akıntıları ezbere bilen bir pilottur ve hiçbir konvoya borcu yoktur.<!--/v-->
+<!--v:veri.kokenler.kokenler.ForgottenOnes.lore-->Kubbeler mühürlendiğinde dışarıda kalanlardır. Kimse onları kurtarmaya gelmedi; onlar da enkazdan bir hayat örmeyi öğrendi. Pilot, hurdacı ve kaçakçıdırlar; her batık gövde onlar için bir hazine, her kapalı kapı bir bilmecedir. Rafael Quispe, terk edilen bir maden istasyonunun çöken tünellerinden çıkış yolunu kaynakla açan hurdacıdır.<!--/v-->
 
 **<!--v:veri.kokenler.kokenler.AbyssCult.ad-->Uçurum Tarikatı<!--/v-->.**
-<!--v:veri.kokenler.kokenler.AbyssCult.lore-->Çukurun dibinden gelen düzenli titreşimi bir çağrı olarak duyanlardır. Hadalit'in yalnızca karanlıkta yanan ışığını kutsal sayar, kadim makinelerin dilini çözmeye çalışırlar. Başkaları Çekirdek'ten korkar; onlar ona doğru yürür. Sable, kadim kabukları söküp yeniden kurabilen tek mühendistir; ne bulduğunu kimseye tam anlatmaz.<!--/v-->
+<!--v:veri.kokenler.kokenler.AbyssCult.lore-->Çukurun dibinden gelen düzenli titreşimi bir çağrı olarak duyanlardır. Hadalit'in yalnızca karanlıkta yanan ışığını kutsal sayar, kadim makinelerin dilini çözmeye çalışırlar. Başkaları Çekirdek'ten korkar; onlar ona doğru yürür. Darius Farahani, Hadalit'in canlı dokuyla etkileşimini araştıran tarikat simyacısıdır; ne bulduğunu kimseye tam anlatmaz.<!--/v-->
 
 ### 3.4 Özel birlikler
 
@@ -403,8 +406,8 @@ Göç, bir kaptanın bir çukur sunucusundan ötekine **Çukur Pasaportu** ile t
   yazılır, kimse cezalandırılmaz.
 - **Köken değişimi ve ittifak savaşı.** Savaş bildirisi altındaki ittifakın üyesi köken değiştiremez;
   savaşın ortasında birlik dönüştürmek yasaktır.
-- **Köken kahramanı zaten varsa** (ör. Atlantik Birliği'nin `mara`'sı): kart yerine o kahramanın
-  yıldız parçası verilir; başlangıç yıldızı kuralı yine uygulanır.
+- **Köken kahramanı zaten varsa** (ör. köken değişiminden önce Kriyo-Kapsül'den çıkmış bir Okafor):
+  kart yerine o kahramanın yıldız parçası verilir; kahraman 2★'ın altındaysa önce 2★'a çıkarılır.
 - **Unvan çakışması.** Egemen kötü unvan verdiğinde kaptanın seçtiği unvan 24 saat ikinci sıraya geçer.
 
 ---
@@ -453,9 +456,6 @@ göstermez, sunucular gerçek çukurlardır.
   ilk sezonun gününü farklı belirlerse aşama günü ona uymalı.
 - **Hadal Titanı** aşama 11'de (240. gün) uyanıyor; [14](14_son_oyun.md)'teki Titan döngüsü ve
   Reaktör 50 sonrası (Çekirdek Rezonansı) ile eşlenmeli.
-- **Köken kahramanı:** `mara` ve `lyra` hikâyede de geliyor (bölüm 1); Atlantik Birliği ve Pasifik
-  Tarikatı için köken kahramanı yerine aynı fraksiyondan ikinci bir kahraman (ör. `tess`, `orin`)
-  daha anlamlı olabilir. [05](05_kahramanlar.md) ile birlikte karar verilmeli.
 - **Özel birlik farkları** (±%2–5) [07](07_birlikler_ve_savas.md)'deki asker istatistikleriyle
   dengelenmeli; Ark Askeri'nin iki kökende özel birliği var.
 - **Güç unvanı eşikleri** referans üs gücüne ([02](02_tempo_ve_denge.md) §9) asker ve araştırma gücü

@@ -13,7 +13,7 @@
     {
       "id": "arastirma",
       "ad": "Araştırma",
-      "gecerli": "Araştırma Merkezi ve Bilim Kubbesi kuyrukları",
+      "gecerli": "Üç araştırma tezgâhı (Araştırma Merkezi ve Bilim Kubbesi)",
       "sim": false,
       "hd_dk": 1.5
     },

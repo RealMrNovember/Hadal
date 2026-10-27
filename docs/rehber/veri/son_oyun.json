@@ -100,7 +100,7 @@
   },
   "donguler_sutunlar": [["dongu", "Döngü"], ["ne", "Reaktör 50'den sonra ne yapılır"], ["kaynak", "Ana kaynak"], ["bolum", "Bölüm"]],
   "donguler": [
-    {"dongu": "Araştırma", "ne": "13 dalın son seviyeleri ve Kadim Teknoloji; ikinci kuyruk sürekli dolu kalır", "kaynak": "Titanyum, Süperalaşım", "bolum": "06"},
+    {"dongu": "Araştırma", "ne": "13 dalın son seviyeleri ve Kadim Teknoloji; üç tezgâh sürekli dolu kalır", "kaynak": "Titanyum, Süperalaşım", "bolum": "06"},
     {"dongu": "Teçhizat", "ne": "Efsanevi setler, Titan Kalıntısı ile mükemmelleştirme", "kaynak": "Titan Kalıntısı, Mahzen Çekirdeği, malzemeler", "bolum": "17"},
     {"dongu": "Kahramanlar", "ne": "5 yıldız, yetenek ağaçları, denizaltı subay kadrosu", "kaynak": "Kart, Kriyo-Kapsül, etkinlik dükkânları", "bolum": "05"},
     {"dongu": "Ordu", "ne": "T10 askerler, Revir ve Kriyo Bakım kapasitesi, sezon için yedek ordu", "kaynak": "Gıda, Süperalaşım", "bolum": "07"},

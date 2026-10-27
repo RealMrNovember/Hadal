@@ -219,7 +219,7 @@ uzatmaz; ödeyen oyuncunun önüne ise yalnız erişim yolu koyar, kesin bir duv
 <!-- URET:tablo:son_oyun.donguler -->
 | Döngü | Reaktör 50'den sonra ne yapılır | Ana kaynak | Bölüm |
 | --- | --- | --- | --- |
-| Araştırma | 13 dalın son seviyeleri ve Kadim Teknoloji; ikinci kuyruk sürekli dolu kalır | Titanyum, Süperalaşım | 06 |
+| Araştırma | 13 dalın son seviyeleri ve Kadim Teknoloji; üç tezgâh sürekli dolu kalır | Titanyum, Süperalaşım | 06 |
 | Teçhizat | Efsanevi setler, Titan Kalıntısı ile mükemmelleştirme | Titan Kalıntısı, Mahzen Çekirdeği, malzemeler | 17 |
 | Kahramanlar | 5 yıldız, yetenek ağaçları, denizaltı subay kadrosu | Kart, Kriyo-Kapsül, etkinlik dükkânları | 05 |
 | Ordu | T10 askerler, Revir ve Kriyo Bakım kapasitesi, sezon için yedek ordu | Gıda, Süperalaşım | 07 |

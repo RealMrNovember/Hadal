@@ -3158,7 +3158,7 @@
       "gun": 0.2,
       "ayrinti": "İkinci Tezgâh'ın önkoşulu"
     },
-    {"id": "second_workbench", "olay": "İkinci Tezgâh", "gun": 0.2, "ayrinti": "Esnek ikinci kuyruk açılır"},
+    {"id": "second_workbench", "olay": "İkinci Tezgâh", "gun": 0.2, "ayrinti": "Araştırma Merkezi'nde esnek ikinci tezgâh açılır"},
     {"id": "second_builder", "olay": "İkinci İnşaatçı", "gun": 0.2, "ayrinti": "Aynı anda iki inşaat"},
     {"id": "science_dome_1", "olay": "Bilim Kubbesi 1 (bina)", "gun": 0.6, "ayrinti": "Kubbe kuyruğu açılır"},
     {

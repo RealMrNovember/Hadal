@@ -61,7 +61,7 @@ Veri: `veri/kahramanlar.json`. Her kahramanın ayrıntılı sayfası [kahramanla
 | Komuta Ekibi | Üs; 3 yuva | Yalnızca mürettebat becerisi | — | — | — | Seviye ve yıldız beceri gücünü belirler |
 | Kaptan | Denizaltı başına 1 | Tüm açık yetenekler (Komuta ve Uyanış dahil) | Komuta bonusu ×1 | Evet | Evet | Filonun sınıf yatkınlığı ve fraksiyon sinerjisi Kaptan'dan sayılır |
 | Subay | Denizaltı başına 2 | Aktif, pasif ve sefer yetenekleri | Komuta bonusu ×0,4 | Hayır | Hayır | Kendi öfke çubuğu vardır; Komuta ve Uyanış çalışmaz |
-| Savunma Kaptanı / Subay | Askeri Kubbe; 1 + 2 koltuk | Kaptan ve Subay kurallarıyla aynı | Kaptan ×1, Subay ×0,4 | Kaptan'da | Kaptan'da | Üs savunmasında garnizonu yönetir; o sırada denizaltıda olamaz (07, 08) |
+| Savunma Kaptanı / Subay | Savunma filosu: üste bekleyen bir filonun Kaptan ve Subayları | Kaptan ve Subay kurallarıyla aynı | Kaptan ×1, Subay ×0,4 | Kaptan'da | Kaptan'da | Ayrı koltuk yoktur; oyuncu seçmezse üsteki en güçlü filo savunur, filo sefere çıkınca görev biter (07 §4.7, 08) |
 <!-- /URET:tablo:kahramanlar.roller -->
 
 ### 3.1 Komuta Ekibi (ekonomi) ✅
@@ -140,9 +140,11 @@ kadronun aynısıdır.
   yalnızca onda etkilidir, filonun sınıf yatkınlığı ve fraksiyon sinerjisi ondan sayılır.
 - **Subay** yetenek taşır: aktif, pasif ve sefer yetenekleri çalışır; Komuta ve Uyanış yetenekleri,
   ağaç ve teçhizat çalışmaz. Subay boş bırakılabilir.
-- Bir kahraman aynı anda **tek yerde** olur: Komuta Ekibi, bir filo ya da Askeri Kubbe'deki
-  **savunma komutası** (Savunma Kaptanı + iki Subay; üs savunmasında garnizonu yönetir,
-  [07](07_birlikler_ve_savas.md) ve [08](08_denizaltilar_basinc_seferler.md)). Ekipteki kahramanı
+- Bir kahraman aynı anda **tek yerde** olur: Komuta Ekibi ya da bir filo. Üs savunmasında ayrı bir
+  koltuk yoktur: garnizonu **savunma filosu**, yani oyuncunun üste bekleyen filolarından seçtiği
+  (seçmezse en güçlüsü) filonun Kaptanı ve Subayları yönetir; "Savunma Kaptanı" bu filonun Kaptanıdır
+  ([07 §4.7](07_birlikler_ve_savas.md#47-üs-savunması-ve-sürü-baskını),
+  [08](08_denizaltilar_basinc_seferler.md)). Ekipteki kahramanı
   filoya koymak için önce ekipten çıkarmak gerekir; arayüz bunu tek dokunuşla takas olarak önerir.
 - **Ralli:** bütün katılımcıların askerleri liderin filosunda birleşir ve liderin Kaptan'ı ile
   Subayları komuta eder; katılımcıların kahramanları savaşmaz (07). Bu yüzden "ralli lideriyken"
@@ -868,13 +870,11 @@ Beş fraksiyon hem kahraman grubudur hem de oyuncunun kökenidir (K-19,
   olması gerekir.
 - **Ekip rezonansı:** Komuta Ekibi'nin üç kahramanı aynı fraksiyondansa tablodaki ekonomi bonusu
   açılır (+<!--v:veri.kahramanlar.sinerji.ekip_bonus|yuzde-->%5<!--/v-->).
-- **Köken kahramanı (öneri):** Oyuncunun seçtiği köken, o fraksiyonun Nadir kahramanını başlangıçta
-  verir: Atlantik Birliği → Kaptan Amara Okafor, Pasifik Tarikatı → Dr. Orin Hale, Derindoğanlar →
-  Kael, Unutulanlar → Rafael Quispe, Uçurum Tarikatı → Darius Farahani. 16'nın eşitleme kuralıyla
-  hepsi 2★ gelir; böylece beş köken aynı nadirlikte, aynı yıldızda başlar. Komutan Elias Rourke
-  herkesin ortak başlangıç kahramanıdır (K-05); Dr. Lyra Moss ve Tess Ruiz hikâyenin ilk iki
-  bölümünde herkese gelir. Köken kahramanı zaten varsa kart yerine yıldız parçası gelir (16).
-  16'nın bugünkü tablosu farklı kahramanlar veriyor; karar iki bölümün ortak kararıdır (Açık sorular).
+- **Köken kahramanı:** Oyuncunun seçtiği köken, o fraksiyonun Nadir kahramanını 2★ olarak
+  başlangıçta verir: Atlantik Birliği → Kaptan Amara Okafor, Pasifik Tarikatı → Dr. Orin Hale,
+  Derindoğanlar → Kael, Unutulanlar → Rafael Quispe, Uçurum Tarikatı → Darius Farahani. Komutan
+  Elias Rourke herkesin ortak başlangıç kahramanıdır (K-05). Kural ve gerekçesi
+  [16 §3.1](16_kronik_kokenler_profil.md)'dedir.
 - Kökenin kendi pasifleri ve birliği [16](16_kronik_kokenler_profil.md)'dadır; kahraman sinerjisi
   köken seçiminden bağımsızdır.
 
@@ -975,7 +975,7 @@ geçer; sahip olunan kahramanın kartı doğrudan yıldız parçasıdır.
 
 **Kuruluş havuzu.** The Syndicate'teki ilk satın almanın Kuruluş Hediyesi, aşağıdaki üç Destansı
 kahramandan birinin kartlarını seçtirir ([12](12_syndicate.md)). Havuz her birlik türünden bir
-kahraman içerir ve önerilen köken kahramanlarıyla (hepsi Nadir) çakışmaz; ilk alım kimsenin
+kahraman içerir ve köken kahramanlarıyla (hepsi Nadir) çakışmaz; ilk alım kimsenin
 kökenini "tamamlamaz", yalnızca bir rol ekler.
 
 <!-- URET:tablo:kahramanlar.kriyo.kurulus_havuzu -->
@@ -1175,7 +1175,7 @@ biyografilerde yalnızca mühendislik dersi olarak anılan araçlar vardır (K-2
 | Uyanış | ⬜ | — |
 | Fraksiyon sinerjisi ve ekip rezonansı | ⬜ | — |
 | 22 yeni kahraman | ⬜ | Kimlikler, portreler, tr.txt metinleri |
-| Kökene bağlı başlangıç kahramanı (K-19) | ⬜ | 16 ile birlikte |
+| Kökene bağlı başlangıç kahramanı (K-19) | ⬜ | Karar 16 §3.1: fraksiyonun Nadir kahramanı, 2★; kodda yok |
 <!-- /URET:tablo:kahramanlar.durum -->
 
 ## 19. Uygulama notları
@@ -1308,27 +1308,22 @@ kurulmuştur.
 
 1. **07 · Birlikler ve Savaş:** 07 bu bölümün `komuta`, `sinerji` ve `ofke` verisini kullanıyor.
    07'nin "öfke ritmi" sorusuna yanıt olarak öfke güncellendi (başlangıç 200, tur başı 150, kayıpta
-   50): kayıplı 10 turluk savaşta iki, boss savaşında üç tetik. 07'deki "9. turun başında" cümlesi
-   buna göre düzeltilmeli. Yetenek değerleri 07'nin "katsayı = filonun turluk normal hasarı" tanımına
+   50): kayıplı 10 turluk savaşta iki, boss savaşında üç tetik; 07 §4.4 aynı ritmi yazar. Yetenek değerleri 07'nin "katsayı = filonun turluk normal hasarı" tanımına
    göre yeniden ölçeklendi; yetenek ağacındaki şans düğümleri belirlenimci yapıldı. Karşı üçgen
    çarpanları yalnızca 07'nin verisinden okunuyor.
 2. **08 · Denizaltılar ve Seferler:** "Sefer / basınç" yeteneklerinin anahtarları (basınç hasarı,
    gövde dayanımı, olay başarı şansı, keşif hızı, kalıntı şansı) sefer sisteminin kavramlarıyla
-   eşleşiyor mu? Seferde kahramanların birim olarak dövüşmesi kararı 08'in. 08'in "üste bekleyen
-   filo savunma filosu olur" ifadesi ile 07'nin Askeri Kubbe'deki Savunma Kaptanı koltuğu tek modele
-   indirilmeli; bu bölüm ikisini de "savunma komutası" diye anar.
+   eşleşiyor mu? Seferde kahramanların birim olarak dövüşmesi kararı 08'in. Üs savunması tek modele
+   indirildi: 07 §4.7'deki savunma filosu (ayrı Askeri Kubbe koltuğu yok); bu bölüm de onu yazar.
 3. **09 · Dünya Haritası:** "Kahraman deneyimi" ödülü burada deneyim puanı olarak tanımlandı
    (1 puan = 1 birim eğitim kaynağı). Miktarlar 09'un tablosunda bu birimle verilmeli. Siren Sürüsü
    ve Fay Çatlağı I'in Anı Kristali şansı burada aylık ~30 olarak hesaplandı.
 4. **15 · Ekonomi Akışı:** Günlük sandığa (100 puan) 2 Anı Kristali eklenmesi; eğitim oranları
    (Gıda 0,03, Biyokütle 0,01) Gıda bütçesine sığıyor mu? F2P'nin Hadalit'inin %60'ının kapsüle
    gittiği varsayımı.
-5. **16 · Köken:** 16'nın bugünkü tablosu köken kahramanı olarak `mara`, `lyra`, `kael`, `juno`,
-   `sable` veriyor. Bu bölüm her fraksiyonun **Nadir** kahramanını öneriyor (Okafor, Hale, Kael,
-   Quispe, Farahani; 16'nın eşitleme kuralıyla 2★): Rourke herkesin başlangıç kahramanı, Moss ve
-   Ruiz hikâyenin ilk iki bölümünde zaten geliyor, Destansı köken kahramanı ise iki kökene erken
-   bir Destansı verip dengeyi bozuyor. Okafor, Quispe ve Farahani bu iş için tasarlandı. 16 ile
-   birlikte karar verilmeli; karar 16'nınsa bu bölümün `kazanim` metinleri güncellenir.
+5. **16 · Köken:** Karar verildi: köken kahramanı her fraksiyonun Nadir kahramanıdır ve 2★ gelir
+   (Okafor, Hale, Kael, Quispe, Farahani; [16 §3.1](16_kronik_kokenler_profil.md)). `kazanim`
+   metinleri buna göre.
 6. **11 · VIP / 12 · The Syndicate:** Kayıtlı dizilim herkese 2 (11 bunu kabul etti). Derinlik
    İzni 15'in haftalık 7 ek çekimi ve Kriyo Serisi'nin haftalık ~120 çekimi, balina tahminini
    (yılda ~6.000 çekim) doğruluyor; Efsanevi parça duvarı balinayı yaklaşık 5. ayda bütün Efsanevi

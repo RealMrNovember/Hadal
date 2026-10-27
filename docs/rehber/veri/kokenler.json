@@ -1,6 +1,6 @@
 {
   "surum": "rehber-1",
-  "_not": "16 · Oyuncu kökenleri (K-19). Pasifler küçük ve kalıcıdır; özel birlik o türün T8–T10'unun yerini alır, bedeli ve eğitim süresi standart birlikle aynıdır, farklar standart birliğe göre yüzdedir (07). Köken kahramanının başlangıç yıldızı nadirliğe göre eşitlenir: Sıradan 3★, Nadir 2★, Destansı 1★.",
+  "_not": "16 · Oyuncu kökenleri (K-19). Pasifler küçük ve kalıcıdır; özel birlik o türün T8–T10'unun yerini alır, bedeli ve eğitim süresi standart birlikle aynıdır, farklar standart birliğe göre yüzdedir (07). Köken kahramanı her kökende o fraksiyonun Nadir kahramanıdır ve 2★ gelir; beş köken aynı nadirlikte, aynı yıldızda başlar.",
   "kokenler_sutunlar": [
     ["ad", "Köken"],
     ["slogan", "Söz"],
@@ -15,25 +15,25 @@
       "id": "AtlanticUnion",
       "ad": "Atlantik Birliği",
       "slogan": "Kimse geride kalmaz.",
-      "kahraman": "mara",
-      "kahraman_ad": "Komutan Elias Rourke",
-      "kahraman_yildiz": 3,
+      "kahraman": "amara",
+      "kahraman_ad": "Kaptan Amara Okafor",
+      "kahraman_yildiz": 2,
       "pasif1": "+%5 Titanyum üretimi",
       "pasif2": "+%3 Zırhlı Dalgıç savunması",
       "pasif3": "+%5 üs dayanıklılığı",
-      "lore": "Kuzey Atlantik'in son tersanelerinden çıkan konvoyların torunlarıdır. Yüzey yaşanmaz hâle geldiğinde ilk inenler onlardı: ağır gövdeler, sıkı vardiyalar ve tek bir yemin, kimse geride kalmaz. Basınç küresini, kaynağı ve perçini iyi bilirler; bir üssü kurmak kadar onu tutmayı da. Komutan Elias Rourke son konvoyun komutanıdır ve hâlâ her gece kayıp gövdelerin listesini okur."
+      "lore": "Kuzey Atlantik'in son tersanelerinden çıkan konvoyların torunlarıdır. Yüzey yaşanmaz hâle geldiğinde ilk inenler onlardı: ağır gövdeler, sıkı vardiyalar ve tek bir yemin, kimse geride kalmaz. Basınç küresini, kaynağı ve perçini iyi bilirler; bir üssü kurmak kadar onu tutmayı da. Kaptan Amara Okafor, Porto Riko Çukuru kıyısındaki basınç akademisinin eğitmenidir; bugüne dek tek bir öğrencisini kaybetmedi."
     },
     {
       "id": "PacificOrder",
       "ad": "Pasifik Tarikatı",
       "slogan": "Ölç, anla, iyileştir.",
-      "kahraman": "lyra",
-      "kahraman_ad": "Dr. Lyra Moss",
-      "kahraman_yildiz": 3,
+      "kahraman": "orin",
+      "kahraman_ad": "Dr. Orin Hale",
+      "kahraman_yildiz": 2,
       "pasif1": "+%5 iyileştirme hızı",
       "pasif2": "+%5 Oksijen üretimi",
       "pasif3": "+%2 araştırma hızı",
-      "lore": "Pasifik'in derin araştırma istasyonlarında doğan, bilimi bir yemin gibi taşıyan topluluktur. Kemosentezi ilk kez gören dalışların defterlerini kutsal metin gibi saklar, her ölçümü bir dua sabrıyla tekrarlarlar. Şifa, gözlem ve sabır onların silahıdır; gerçek canlılara dokunmazlar, yalnızca kaydederler. Dr. Lyra Moss tarikatın hekimidir."
+      "lore": "Pasifik'in derin araştırma istasyonlarında doğan, bilimi bir yemin gibi taşıyan topluluktur. Kemosentezi ilk kez gören dalışların defterlerini kutsal metin gibi saklar, her ölçümü bir dua sabrıyla tekrarlarlar. Şifa, gözlem ve sabır onların silahıdır; gerçek canlılara dokunmazlar, yalnızca kaydederler. Dr. Orin Hale, çöküşten beri laboratuvarından çıkmayan tarikat araştırmacısıdır."
     },
     {
       "id": "Deepborn",
@@ -51,25 +51,25 @@
       "id": "ForgottenOnes",
       "ad": "Unutulanlar",
       "slogan": "Enkaz da bir yoldur.",
-      "kahraman": "juno",
-      "kahraman_ad": "Juno Vega",
-      "kahraman_yildiz": 1,
+      "kahraman": "rafa",
+      "kahraman_ad": "Rafael Quispe",
+      "kahraman_yildiz": 2,
       "pasif1": "+%5 taşıma kapasitesi",
       "pasif2": "+%5 kurtarma görevi ödülü",
       "pasif3": "+%3 yürüyüş hızı",
-      "lore": "Kubbeler mühürlendiğinde dışarıda kalanlardır. Kimse onları kurtarmaya gelmedi; onlar da enkazdan bir hayat örmeyi öğrendi. Pilot, hurdacı ve kaçakçıdırlar; her batık gövde onlar için bir hazine, her kapalı kapı bir bilmecedir. Juno Vega, akıntıları ezbere bilen bir pilottur ve hiçbir konvoya borcu yoktur."
+      "lore": "Kubbeler mühürlendiğinde dışarıda kalanlardır. Kimse onları kurtarmaya gelmedi; onlar da enkazdan bir hayat örmeyi öğrendi. Pilot, hurdacı ve kaçakçıdırlar; her batık gövde onlar için bir hazine, her kapalı kapı bir bilmecedir. Rafael Quispe, terk edilen bir maden istasyonunun çöken tünellerinden çıkış yolunu kaynakla açan hurdacıdır."
     },
     {
       "id": "AbyssCult",
       "ad": "Uçurum Tarikatı",
       "slogan": "Dip bizi çağırıyor.",
-      "kahraman": "sable",
-      "kahraman_ad": "Sable",
-      "kahraman_yildiz": 1,
+      "kahraman": "darius",
+      "kahraman_ad": "Darius Farahani",
+      "kahraman_yildiz": 2,
       "pasif1": "+%4 Kadim Muhafız ve Leviathan'lara hasar",
       "pasif2": "+%5 Sonar Enerjisi yenilenmesi",
       "pasif3": "+%5 Basınç Ambarı koruması",
-      "lore": "Çukurun dibinden gelen düzenli titreşimi bir çağrı olarak duyanlardır. Hadalit'in yalnızca karanlıkta yanan ışığını kutsal sayar, kadim makinelerin dilini çözmeye çalışırlar. Başkaları Çekirdek'ten korkar; onlar ona doğru yürür. Sable, kadim kabukları söküp yeniden kurabilen tek mühendistir; ne bulduğunu kimseye tam anlatmaz."
+      "lore": "Çukurun dibinden gelen düzenli titreşimi bir çağrı olarak duyanlardır. Hadalit'in yalnızca karanlıkta yanan ışığını kutsal sayar, kadim makinelerin dilini çözmeye çalışırlar. Başkaları Çekirdek'ten korkar; onlar ona doğru yürür. Darius Farahani, Hadalit'in canlı dokuyla etkileşimini araştıran tarikat simyacısıdır; ne bulduğunu kimseye tam anlatmaz."
     }
   ],
   "birlikler_sutunlar": [

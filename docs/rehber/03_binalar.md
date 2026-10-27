@@ -98,7 +98,7 @@ seviyeyle nasıl değiştiği: [04 · Bina Evrimi](04_bina_evrimi.md).
 | [Biyo Laboratuvar](./binalar/bio_lab.md) | Üretim | 🟡 | 2 | 3 | 50 | Biyokütle üretir |
 | [Hidroponik Çiftlik](./binalar/hydroponic_farm.md) | Üretim | 🟡 | 3 | 3 | 50 | Gıda üretir, biyokütle ve enerji tüketir |
 | [Dron Fabrikası](./binalar/drone_factory.md) | Üretim | 🟡 | 2 | 5 | 50 | Titanyum üretir |
-| [Araştırma Merkezi](./binalar/research_center.md) | Araştırma | 🟡 | 3 | 1 | 50 | Araştırma kuyruğu (1. kuyruk) |
+| [Araştırma Merkezi](./binalar/research_center.md) | Araştırma | 🟡 | 3 | 1 | 50 | Birinci laboratuvar: merkez tezgâhı ve esnek İkinci Tezgâh |
 | [Denizaltı İskelesi](./binalar/submarine_dock.md) | Askeri | 🟡 | 4 | 1 | 50 | Denizaltı inşası ve onarımı |
 | [Radar Merkezi](./binalar/radar_center.md) | Askeri | 🟡 | 4 | 1 | 50 | Yaklaşan saldırıları erken haber verir, sisi açan sonar dronlarını gönderir, Tür Kataloğu taramaları yapar |
 | [Askeri Kubbe](./binalar/military_dome.md) | Askeri | 🟡 | 5 | 1 | 50 | Asker eğitimi kuyruğu ve ordu kapasitesi |
@@ -117,7 +117,7 @@ seviyeyle nasıl değiştiği: [04 · Bina Evrimi](04_bina_evrimi.md).
 | [Kriyo Bakım Ünitesi](./binalar/cryo_ward.md) | Askeri | ⬜ | 16 | 1 | 50 | Savunmada Revir taştığında ölecek askerlerin %50'sini kurtarır; kurtarılabilecek asker sayısı seviyeyle artar |
 | [Hidrotermal Santral](./binalar/hydrothermal_plant.md) | Üretim | ⬜ | 6 | 3 | 50 | Enerji üretir |
 | [Takas İstasyonu](./binalar/trade_station.md) | Destek | ⬜ | 10 | 1 | 50 | İttifak içi kaynak gönderme (vergi %30'dan %10'a iner) |
-| [Bilim Kubbesi](./binalar/science_dome.md) | Kubbe | ⬜ | 12 | 1 | 5 | 2. araştırma kuyruğu |
+| [Bilim Kubbesi](./binalar/science_dome.md) | Kubbe | ⬜ | 12 | 1 | 5 | İkinci laboratuvar: kubbe tezgâhı |
 | [Savaş Kubbesi](./binalar/war_dome.md) | Kubbe | ⬜ | 16 | 1 | 5 | Basınç Arenası ve ralli (toplu saldırı) kapasitesi. 4. ve 5. seviyeler Basınç Kodeksi ister |
 | [Teçhizat Atölyesi](./binalar/gear_workshop.md) | Destek | ⬜ | 12 | 1 | 50 | Teçhizat üretimi ve malzeme birleştirme; yüksek seviyeler üst nadirlikleri açar |
 | [Dalgıç Anıtı](./binalar/armor_monument.md) | Anıt | ⬜ | 14 | 1 | 50 | Zırhlı Dalgıçların Ark Askerlerine karşı avantajını artırır |
@@ -159,8 +159,10 @@ Asylum'daki üretim binası + koruyan depo ikilisinin Hadal karşılığıdır; 
 depo yerine tek tip, üç örnekli bir ambar vardır: üs kalabalıklaşmaz.
 
 ### Araştırma
-**Araştırma Merkezi** birinci kuyruktur ve reaktör önkoşul zincirindedir. **Bilim Kubbesi** ikinci
-kuyruktur; askeri ve ileri dalları açar. Ayrıntı: [06 · Araştırma](06_arastirma.md).
+Araştırma **iki laboratuvar, üç tezgâhla** yürür. **Araştırma Merkezi** birinci laboratuvardır ve
+reaktör önkoşul zincirindedir; merkez tezgâhını ve araştırmayla açılan esnek İkinci Tezgâh'ı taşır.
+**Bilim Kubbesi** ikinci laboratuvardır; kubbe tezgâhıyla askeri ve ileri dalları açar. Ayrıntı:
+[06 · Araştırma](06_arastirma.md).
 
 ### Askeri
 Askeri Kubbe (kışla), Tatbikat Havuzu (kademe ve parti), Revir (yaralılar), Kriyo Bakım Ünitesi
@@ -195,7 +197,7 @@ Süs Kulesi görseldir ve küçük güç verir.
 | Merkez bina | Her şeyin seviye tavanı | Çekirdek Reaktör |
 | Kaynak üretimi | Çiftlik, kereste, taş, altın | Oksijen, Gıda, Biyo, Hidroponik, Dron, Hidrotermal, Alaşım |
 | Yağmadan koruma | Kaynak başına depo | Basınç Ambarı (tek tip, 3 örnek) |
-| İki laboratuvar | Birinci ve ikinci araştırma kuyruğu | Araştırma Merkezi + Bilim Kubbesi |
+| İki laboratuvar | Birinci ve ikinci araştırma kuyruğu | Araştırma Merkezi (merkez tezgâhı + İkinci Tezgâh) + Bilim Kubbesi (kubbe tezgâhı) |
 | Takımlar 1–4 | Yürüyüş kuyrukları | Denizaltı Hangarı ×4 |
 | Kışla ve eğitim alanı | Asker kapasitesi, kademe | Askeri Kubbe + Tatbikat Havuzu |
 | Revir | Ağır yaralılar | Revir + Kriyo Bakım Ünitesi |

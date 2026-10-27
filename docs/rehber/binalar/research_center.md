@@ -5,7 +5,7 @@
 
 > Üssün birinci laboratuvarı.
 
-**İşlev.** Araştırma kuyruğu (1. kuyruk). Seviyesi hangi teknoloji seviyelerinin açılacağını belirler. Reaktör önkoşul zincirindedir.
+**İşlev.** Birinci laboratuvar: merkez tezgâhı ve esnek İkinci Tezgâh. Seviyesi hangi teknoloji seviyelerinin açılacağını belirler. Reaktör önkoşul zincirindedir.
 
 | Özellik | Değer |
 | --- | --- |

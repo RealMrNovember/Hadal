@@ -798,7 +798,7 @@
       "ad": "Soğuk Sızıntı",
       "reaktor": "11–12",
       "gorev": 8,
-      "tema": "Bilim Kubbesi, ikinci araştırma kuyruğu; ilk soğuk sızıntı taraması.",
+      "tema": "Bilim Kubbesi, ikinci laboratuvar ve üçüncü tezgâh; ilk soğuk sızıntı taraması.",
       "titanyum": 10500,
       "biyokutle": 3690,
       "pay": 61,
@@ -897,7 +897,7 @@
     {
       "bolum": 5,
       "ad": "Soğuk Sızıntı",
-      "tema": "Bilim Kubbesi, ikinci araştırma kuyruğu; ilk soğuk sızıntı taraması."
+      "tema": "Bilim Kubbesi, ikinci laboratuvar ve üçüncü tezgâh; ilk soğuk sızıntı taraması."
     },
     {"bolum": 6, "ad": "Kadim İz", "tema": "Teçhizat Atölyesi ve anıtlar; bir enkazda ilk kadim yazıt."},
     {

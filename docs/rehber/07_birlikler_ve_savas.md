@@ -591,8 +591,10 @@ Avcı ve Pilot → Zıpkıncı; Mühendis ve Bilim insanı → Ark Askeri. Delic
 +<!--v:veri.kahramanlar.ofke.tur_basi-->150<!--/v-->, hasar aldığı her tur
 +<!--v:veri.kahramanlar.ofke.hasar_alinca-->50<!--/v--> kazanır; çubuk
 <!--v:veri.kahramanlar.ofke.tavan-->1.000<!--/v-->'de dolar ve aktif yetenek bir sonraki turun başında
-kendiliğinden tetiklenir. Varsayılan ritimde aktif yetenek 10 turluk bir savaşta bir kez, 9. turun
-başında gelir; pasifler, yetenek ağacı ve teçhizat bu ritmi öne çeker.
+kendiliğinden tetiklenir. Varsayılan ritimde aktif yetenek, kayıp verilen 10 turluk bir savaşta iki
+kez (5. ve 10. turun başında), 15 turluk boss savaşında üç kez gelir; hiç kayıp vermeyen taraf daha
+yavaş dolar. Pasifler, yetenek ağacı ve teçhizat bu ritmi bir tur kadar öne çeker
+([05](05_kahramanlar.md)).
 
 **Normal saldırı ve katsayı.** 05'teki yetenek değerleri **katsayı** ile yazılır:
 <!--v:veri.kahramanlar.ofke.katsayi_birimi-->100<!--/v--> katsayı = bir normal saldırı.
@@ -937,9 +939,8 @@ değildir. Hızlandırma öğeleri ve VIP bonusları: [11 · VIP](11_vip.md), [1
 1. **Kademe araştırmaları.** T4–T10 için "Kademe IV–X Doktrini" adıyla Askeri dalda yedi teknoloji
    önerildi; kimlikler ve Araştırma Merkezi seviyeleri 06 yazarıyla eşlenmeli (öneri: Tatbikat
    seviyesiyle aynı lab seviyesi).
-2. **Öfke ritmi.** 05'in öfke hızıyla aktif yetenek 10 turluk savaşta bir kez, 15 turluk boss savaşında
-   da bir kez gelir. Yetenekler savaşın sonucunu değiştirecek kadar sık olsun isteniyorsa ya taban öfke
-   kazancı ya da tur sayısı birlikte ayarlanmalı (05 ile).
+2. **Öfke ritmi.** Karar verildi: 05 öfkeyi güncelledi (başlangıç 200, tur başı 150, kayıpta 50);
+   kayıplı 10 turluk savaşta iki, boss savaşında üç tetik (4.4).
 3. **Kalkan Jeneratörü değerleri** (dayanıklılık, taret, DEF bonusu) bu bölümde tanımlandı; 09 bu
    dayanıklılığı üssün PvP dayanıklılığının üst sınırı olarak kullanır. `binalar.json`'a `etkiler`
    olarak taşınması ana yazarın kararı.

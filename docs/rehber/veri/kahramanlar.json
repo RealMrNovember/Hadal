@@ -892,12 +892,12 @@
     },
     {
       "rol": "Savunma Kaptanı / Subay",
-      "yer": "Askeri Kubbe; 1 + 2 koltuk",
+      "yer": "Savunma filosu: üste bekleyen bir filonun Kaptan ve Subayları",
       "calisan": "Kaptan ve Subay kurallarıyla aynı",
       "istatistik": "Kaptan ×1, Subay ×0,4",
       "agac": "Kaptan'da",
       "techizat": "Kaptan'da",
-      "not": "Üs savunmasında garnizonu yönetir; o sırada denizaltıda olamaz (07, 08)"
+      "not": "Ayrı koltuk yoktur; oyuncu seçmezse üsteki en güçlü filo savunur, filo sefere çıkınca görev biter (07 §4.7, 08)"
     }
   ],
   "roller_sutunlar": [
@@ -1427,7 +1427,7 @@
     {"konu": "Uyanış", "durum": "⬜", "not": "—"},
     {"konu": "Fraksiyon sinerjisi ve ekip rezonansı", "durum": "⬜", "not": "—"},
     {"konu": "22 yeni kahraman", "durum": "⬜", "not": "Kimlikler, portreler, tr.txt metinleri"},
-    {"konu": "Kökene bağlı başlangıç kahramanı (K-19)", "durum": "⬜", "not": "16 ile birlikte"}
+    {"konu": "Kökene bağlı başlangıç kahramanı (K-19)", "durum": "⬜", "not": "Karar 16 §3.1: fraksiyonun Nadir kahramanı, 2★; kodda yok"}
   ],
   "durum_sutunlar": [["konu", "Konu"], ["durum", "Durum"], ["not", "Kodda / not"]],
   "kahramanlar": [
@@ -1634,7 +1634,7 @@
         }
       ],
       "agaclar": ["avcilik", "zipkin", "akinti"],
-      "notlar": "Erken Zıpkıncı filosunun Kaptanı ve canavar avının ilk uzmanı. Gıda becerisi ordu büyüdükçe değer kazanır. Derindoğanlar kökeninin başlangıç kahramanı."
+      "notlar": "Erken Zıpkıncı filosunun Kaptanı ve canavar avının ilk uzmanı. Gıda becerisi ordu büyüdükçe değer kazanır. Derindoğanlar kökeninin köken kahramanı."
     },
     {
       "id": "orin",
@@ -1646,7 +1646,7 @@
       "nesil": 1,
       "durum": "kodda",
       "biyografi": "Çöküşten beri laboratuvardan çıkmayan Hadalit araştırmacısı. Notları üç arşivi doldurur. Kristalin basınç altında neden ışıdığını açıklayan ilk modeli o kurdu; ikinci modelini henüz kimse anlamadı.",
-      "kazanim": "Köken kahramanı önerisi: Pasifik Tarikatı seçenlere başlangıçta (2★); Kriyo-Kapsül, Nadir kartı",
+      "kazanim": "Köken: Pasifik Tarikatı seçenlere başlangıçta (2★); Kriyo-Kapsül, Nadir kartı",
       "murettebat": {"etki": "researchTime", "taban": -4, "seviye_onda": -3, "yildiz": -3},
       "yetenekler": [
         {
@@ -1675,7 +1675,7 @@
         }
       ],
       "agaclar": ["beceri", "ark", "derinlik"],
-      "notlar": "Araştırma süresi becerisi oyunun en uzun ömürlü mürettebat seçeneklerinden biridir; Dr. Han Seo-yeon gelene kadar ekipten çıkmaz. Savaşta Ark filolarının yetenek Subayı. Pasifik Tarikatı kökeni için önerilen başlangıç kahramanı."
+      "notlar": "Araştırma süresi becerisi oyunun en uzun ömürlü mürettebat seçeneklerinden biridir; Dr. Han Seo-yeon gelene kadar ekipten çıkmaz. Savaşta Ark filolarının yetenek Subayı. Pasifik Tarikatı kökeninin köken kahramanı."
     },
     {
       "id": "amara",
@@ -1687,7 +1687,7 @@
       "nesil": 1,
       "durum": "tasarim",
       "biyografi": "Lagos'ta doğdu, Atlantik Birliği'nin Porto Riko Çukuru kıyısındaki basınç akademisinde yetişti; Atlantik'in en derin çukuru onun sınıfıydı. Her acemi dalgıcın ilk inişinde yanındadır ve o güne dek bir öğrencisini bile kaybetmedi.",
-      "kazanim": "Köken kahramanı önerisi: Atlantik Birliği seçenlere başlangıçta (2★); Kriyo-Kapsül, Nadir kartı",
+      "kazanim": "Köken: Atlantik Birliği seçenlere başlangıçta (2★); Kriyo-Kapsül, Nadir kartı",
       "murettebat": {"etki": "trainingTime", "ad": "Asker eğitim süresi", "taban": -4, "seviye_onda": -3, "yildiz": -3},
       "yetenekler": [
         {
@@ -1716,7 +1716,7 @@
         }
       ],
       "agaclar": ["zirhli", "liderlik", "savunma"],
-      "notlar": "Erken oyunun en sağlam Zırhlı Kaptanı. Asker eğitim süresi becerisi Tatbikat Havuzu açıldıktan sonra ekipte yer bulur. Atlantik Birliği kökeni için önerilen başlangıç kahramanı."
+      "notlar": "Erken oyunun en sağlam Zırhlı Kaptanı. Asker eğitim süresi becerisi Tatbikat Havuzu açıldıktan sonra ekipte yer bulur. Atlantik Birliği kökeninin köken kahramanı."
     },
     {
       "id": "rafa",
@@ -1728,7 +1728,7 @@
       "nesil": 1,
       "durum": "tasarim",
       "biyografi": "Peru açıklarındaki Atacama Çukuru'nda bir maden istasyonunun kaynakçısıydı. İstasyon terk edildiğinde geride kalanlarla birlikte çöken tünellerden çıkış yolunu kaynakla açtı; Unutulanlar'ın 'her şey yeniden kullanılır' sözü ondan çıktı.",
-      "kazanim": "Köken kahramanı önerisi: Unutulanlar seçenlere başlangıçta (2★); Kriyo-Kapsül, Nadir kartı",
+      "kazanim": "Köken: Unutulanlar seçenlere başlangıçta (2★); Kriyo-Kapsül, Nadir kartı",
       "murettebat": {"etki": "salvageReward", "ad": "Kurtarma görevi ödülü", "taban": 4, "seviye_onda": 3, "yildiz": 3},
       "yetenekler": [
         {
@@ -1757,7 +1757,7 @@
         }
       ],
       "agaclar": ["ark", "fetih", "toplama"],
-      "notlar": "Kurtarma ödülü becerisi Dron Fabrikası görevleriyle erken Titanyum akışını büyütür. Fetih ağacına sahip ilk Nadir kahraman; Delicili yağma filolarının ucuz Kaptanı. Unutulanlar kökeni için önerilen başlangıç kahramanı."
+      "notlar": "Kurtarma ödülü becerisi Dron Fabrikası görevleriyle erken Titanyum akışını büyütür. Fetih ağacına sahip ilk Nadir kahraman; Delicili yağma filolarının ucuz Kaptanı. Unutulanlar kökeninin köken kahramanı."
     },
     {
       "id": "darius",
@@ -1769,7 +1769,7 @@
       "nesil": 1,
       "durum": "tasarim",
       "biyografi": "Tahran'da jeokimya okudu; Uçurum Tarikatı'na Hadalit'in canlı dokuyla etkileşimini araştırmak için katıldı ve bir daha dönmedi. Hazırladığı nöral serumlar kahramanların eğitimini kısaltır; tarifini yalnızca tarikat bilir.",
-      "kazanim": "Köken kahramanı önerisi: Uçurum Tarikatı seçenlere başlangıçta (2★); Kriyo-Kapsül, Nadir kartı",
+      "kazanim": "Köken: Uçurum Tarikatı seçenlere başlangıçta (2★); Kriyo-Kapsül, Nadir kartı",
       "murettebat": {"etki": "heroTrainCost", "ad": "Kahraman eğitim bedeli", "taban": -4, "seviye_onda": -3, "yildiz": -3},
       "yetenekler": [
         {
@@ -1798,7 +1798,7 @@
         }
       ],
       "agaclar": ["beceri", "ark", "destek"],
-      "notlar": "Kahraman eğitim bedeli becerisi kadro büyüdükçe kendini öder. Savaşta öfkeyi hızlandıran Subay; Çözücü Bulut Zırhlı hedeflerin savunmasını açar. Uçurum Tarikatı kökeni için önerilen başlangıç kahramanı."
+      "notlar": "Kahraman eğitim bedeli becerisi kadro büyüdükçe kendini öder. Savaşta öfkeyi hızlandıran Subay; Çözücü Bulut Zırhlı hedeflerin savunmasını açar. Uçurum Tarikatı kökeninin köken kahramanı."
     },
     {
       "id": "noa",

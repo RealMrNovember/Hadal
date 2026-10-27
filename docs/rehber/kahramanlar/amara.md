@@ -11,7 +11,7 @@
 | --- | --- |
 | Sınıf | Komutan — yatkın olduğu birlik: Zırhlı Dalgıç |
 | Fraksiyon | Atlantik Birliği |
-| Nasıl bulunur | Köken kahramanı önerisi: Atlantik Birliği seçenlere başlangıçta (2★); Kriyo-Kapsül, Nadir kartı |
+| Nasıl bulunur | Köken: Atlantik Birliği seçenlere başlangıçta (2★); Kriyo-Kapsül, Nadir kartı |
 | Yetenek ağaçları | Zırhlı, Liderlik, Savunma |
 
 ## Mürettebat becerisi
@@ -53,6 +53,6 @@ Sv 50, 5★ güç: **30.900**.
 
 ## Tasarım notları
 
-Erken oyunun en sağlam Zırhlı Kaptanı. Asker eğitim süresi becerisi Tatbikat Havuzu açıldıktan sonra ekipte yer bulur. Atlantik Birliği kökeni için önerilen başlangıç kahramanı.
+Erken oyunun en sağlam Zırhlı Kaptanı. Asker eğitim süresi becerisi Tatbikat Havuzu açıldıktan sonra ekipte yer bulur. Atlantik Birliği kökeninin köken kahramanı.
 
 ← [05 · Kahramanlar](../05_kahramanlar.md)

@@ -344,7 +344,7 @@ görevindedir. Hikâye boyunca toplam
 | 2 | Enkaz Tarlası | Dron Fabrikası, ilk kurtarma, Biyo Laboratuvar; Tess Ruiz ×10 kart. |
 | 3 | Kriyo Salonundaki Uyuyanlar | Kriyo Salonu, ilk çekiliş, ittifaka katılma, Kalkan Jeneratörü. |
 | 4 | Fenerin Işığı | Kronik Feneri kurulur; sunucunun ortak hikâyesi görünür olur. |
-| 5 | Soğuk Sızıntı | Bilim Kubbesi, ikinci araştırma kuyruğu; ilk soğuk sızıntı taraması. |
+| 5 | Soğuk Sızıntı | Bilim Kubbesi, ikinci laboratuvar ve üçüncü tezgâh; ilk soğuk sızıntı taraması. |
 | 6 | Kadim İz | Teçhizat Atölyesi ve anıtlar; bir enkazda ilk kadim yazıt. |
 | 7 | Savaş Kubbesi | Kalıntı Arşivi ve Savaş Kubbesi; Basınç Arenası ve Derinlik Ligi açılır. |
 | 8 | Sürü | Uçurum Sürüngenleri üssü yoklar; ilk Sürü Baskını; ikinci hangar. |

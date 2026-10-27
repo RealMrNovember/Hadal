@@ -449,7 +449,7 @@ en pahalı yoldan ilerler.
 | --- | --- | --- | ---: |
 | Genel | Her kuyruk: inşaat, araştırma, eğitim, iyileştirme, kurtarma görevi | evet | 2 |
 | İnşaat | Bina yükseltme ve halka açma | evet | 1,5 |
-| Araştırma | Araştırma Merkezi ve Bilim Kubbesi kuyrukları | hayır | 1,5 |
+| Araştırma | Üç araştırma tezgâhı (Araştırma Merkezi ve Bilim Kubbesi) | hayır | 1,5 |
 | Eğitim | Askeri Kubbe eğitimi, Tatbikat Havuzu | hayır | 1,5 |
 | İyileştirme | Revir ve Kriyo Bakım Ünitesi | hayır | 1,5 |
 <!-- /URET:tablo:hizlandiricilar.turler -->

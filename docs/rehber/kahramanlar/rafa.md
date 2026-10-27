@@ -11,7 +11,7 @@
 | --- | --- |
 | Sınıf | Mühendis — yatkın olduğu birlik: Ark Askeri |
 | Fraksiyon | Unutulanlar |
-| Nasıl bulunur | Köken kahramanı önerisi: Unutulanlar seçenlere başlangıçta (2★); Kriyo-Kapsül, Nadir kartı |
+| Nasıl bulunur | Köken: Unutulanlar seçenlere başlangıçta (2★); Kriyo-Kapsül, Nadir kartı |
 | Yetenek ağaçları | Ark, Fetih, Toplama |
 
 ## Mürettebat becerisi
@@ -53,6 +53,6 @@ Sv 50, 5★ güç: **30.485**.
 
 ## Tasarım notları
 
-Kurtarma ödülü becerisi Dron Fabrikası görevleriyle erken Titanyum akışını büyütür. Fetih ağacına sahip ilk Nadir kahraman; Delicili yağma filolarının ucuz Kaptanı. Unutulanlar kökeni için önerilen başlangıç kahramanı.
+Kurtarma ödülü becerisi Dron Fabrikası görevleriyle erken Titanyum akışını büyütür. Fetih ağacına sahip ilk Nadir kahraman; Delicili yağma filolarının ucuz Kaptanı. Unutulanlar kökeninin köken kahramanı.
 
 ← [05 · Kahramanlar](../05_kahramanlar.md)

@@ -11,7 +11,7 @@
 | --- | --- |
 | Sınıf | Bilim insanı — yatkın olduğu birlik: Ark Askeri |
 | Fraksiyon | Pasifik Tarikatı |
-| Nasıl bulunur | Köken kahramanı önerisi: Pasifik Tarikatı seçenlere başlangıçta (2★); Kriyo-Kapsül, Nadir kartı |
+| Nasıl bulunur | Köken: Pasifik Tarikatı seçenlere başlangıçta (2★); Kriyo-Kapsül, Nadir kartı |
 | Yetenek ağaçları | Beceri, Ark, Derinlik |
 
 ## Mürettebat becerisi
@@ -53,6 +53,6 @@ Sv 50, 5★ güç: **28.520**.
 
 ## Tasarım notları
 
-Araştırma süresi becerisi oyunun en uzun ömürlü mürettebat seçeneklerinden biridir; Dr. Han Seo-yeon gelene kadar ekipten çıkmaz. Savaşta Ark filolarının yetenek Subayı. Pasifik Tarikatı kökeni için önerilen başlangıç kahramanı.
+Araştırma süresi becerisi oyunun en uzun ömürlü mürettebat seçeneklerinden biridir; Dr. Han Seo-yeon gelene kadar ekipten çıkmaz. Savaşta Ark filolarının yetenek Subayı. Pasifik Tarikatı kökeninin köken kahramanı.
 
 ← [05 · Kahramanlar](../05_kahramanlar.md)
