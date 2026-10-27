@@ -794,3 +794,4 @@ battle.wounded = bị thương
 reason.UnknownMonster = Con quái đó không còn ở đây.
 reason.MonsterBusy = Đã có đội đang tới con quái đó.
 reason.NotEnoughSonar = Không đủ năng lượng sonar.
+world.sonar = Sonar

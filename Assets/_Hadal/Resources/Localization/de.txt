@@ -794,3 +794,4 @@ battle.wounded = verwundet
 reason.UnknownMonster = Dieses Monster ist nicht mehr hier.
 reason.MonsterBusy = Ein Team ist schon zu diesem Monster unterwegs.
 reason.NotEnoughSonar = Nicht genug Sonarenergie.
+world.sonar = Sonar

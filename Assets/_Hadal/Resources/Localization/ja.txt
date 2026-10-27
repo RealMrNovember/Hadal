@@ -794,3 +794,4 @@ battle.wounded = 負傷
 reason.UnknownMonster = そのモンスターはもういません。
 reason.MonsterBusy = そのモンスターにはすでにチームが向かっています。
 reason.NotEnoughSonar = ソナーエネルギーが足りません。
+world.sonar = ソナー

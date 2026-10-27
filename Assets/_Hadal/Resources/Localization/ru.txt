@@ -794,3 +794,4 @@ battle.wounded = ранены
 reason.UnknownMonster = Этого монстра здесь больше нет.
 reason.MonsterBusy = К этому монстру уже идёт отряд.
 reason.NotEnoughSonar = Недостаточно энергии сонара.
+world.sonar = Сонар

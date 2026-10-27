@@ -794,3 +794,4 @@ battle.wounded = جرحى
 reason.UnknownMonster = هذا الوحش لم يعد هنا.
 reason.MonsterBusy = هناك فريق متجه إلى هذا الوحش.
 reason.NotEnoughSonar = طاقة السونار غير كافية.
+world.sonar = السونار

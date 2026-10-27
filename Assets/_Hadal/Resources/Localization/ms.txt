@@ -794,3 +794,4 @@ battle.wounded = cedera
 reason.UnknownMonster = Raksasa itu sudah tiada.
 reason.MonsterBusy = Sudah ada pasukan menuju raksasa itu.
 reason.NotEnoughSonar = Tenaga sonar tidak mencukupi.
+world.sonar = Sonar

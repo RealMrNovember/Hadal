@@ -795,3 +795,4 @@ battle.wounded = yaralı
 reason.UnknownMonster = Bu canavar artık burada değil.
 reason.MonsterBusy = Bu canavara zaten bir takım gidiyor.
 reason.NotEnoughSonar = Sonar Enerjisi yetersiz.
+world.sonar = Sonar

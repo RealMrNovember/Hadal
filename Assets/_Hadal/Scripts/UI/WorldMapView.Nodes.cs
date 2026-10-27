@@ -367,7 +367,7 @@ namespace Hadal.UI
                 sonarShort = SonarNow() < cost;
                 var mine = TroopRules.Power(troops, aboard);
                 text = $"{Loc.F("march.vs", mine.ToString("N0"), monster.Power.ToString("N0"))}\n" +
-                       $"<color={(sonarShort ? "#FF8A80" : "#8CD9FF")}>⚡ {cost} ({SonarNow()})</color>   {Loc.F("world.monster.trip", Loc.Duration(trip))}";
+                       $"<color={(sonarShort ? "#FF8A80" : "#8CD9FF")}>{Loc.T("world.sonar")} {cost} ({SonarNow()})</color>   {Loc.F("world.monster.trip", Loc.Duration(trip))}";
             }
             else
             {
@@ -564,7 +564,7 @@ namespace Hadal.UI
                 var until = now < m.ArrivesAtMs ? m.ArrivesAtMs : now < m.GatheredAtMs ? m.GatheredAtMs : m.HomeAtMs;
                 UiKit.Label("Who", row.transform, $"{TeamName(m)} · {Loc.F("march.crew.short", m.Crew)}", 22, UiKit.Text, TextAnchor.UpperLeft, FontStyle.Bold)
                     .rectTransform.Place(0.23f, 0.52f, 0.98f, 0.95f);
-                UiKit.Label("Where", row.transform, $"{NodeName(m.NodeType)} {m.NodeLevel} · <color=#FFB347>{Loc.F(phase, Loc.Duration(Math.Max(0, (until - now) / 1000f)))}</color>",
+                UiKit.Label("Where", row.transform, $"{(m.Kind == "attack" ? MonsterName(m.NodeType) : NodeName(m.NodeType))} {m.NodeLevel} · <color=#FFB347>{Loc.F(phase, Loc.Duration(Math.Max(0, (until - now) / 1000f)))}</color>",
                     20, UiKit.Muted, TextAnchor.LowerLeft).rectTransform.Place(0.23f, 0.06f, 0.72f, 0.5f);
                 if (now < m.GatheredAtMs)
                 {

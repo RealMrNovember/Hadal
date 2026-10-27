@@ -117,7 +117,7 @@ namespace Hadal.UI
         private void UpdateSonar()
         {
             if (_sonar != null)
-                _sonar.text = $"⚡ {SonarNow()}/{View.Marches?.SonarCapacity ?? MonsterRules.SonarCapacity}";
+                _sonar.text = $"{Loc.T("world.sonar")} {SonarNow()}/{View.Marches?.SonarCapacity ?? MonsterRules.SonarCapacity}";
         }
 
         /// <summary>Pick a level, then glide to the nearest swarm of it in view.</summary>
@@ -181,7 +181,7 @@ namespace Hadal.UI
             var view = View.WorldView;
             var trip = view == null ? 0 : GatherRules.TravelSeconds(ClientCatalog.Catalog.World, view.MyX, view.MyY, m.X, m.Y);
             var cost = kind?.Sonar ?? 40;
-            var info = $"{Loc.F("hero.power", m.Power.ToString("N0"))}   ⚡ {cost}\n{Loc.F("world.monster.trip", Loc.Duration(trip))}";
+            var info = $"{Loc.F("hero.power", m.Power.ToString("N0"))}   {Loc.T("world.sonar")} {cost}\n{Loc.F("world.monster.trip", Loc.Duration(trip))}";
             if (m.Busy)
                 info += $"\n<color=#FFB347>{Loc.T("world.monster.busy")}</color>";
             var items = new List<TargetMenu.Item>

@@ -794,3 +794,4 @@ battle.wounded = บาดเจ็บ
 reason.UnknownMonster = มอนสเตอร์ตัวนั้นไม่อยู่แล้ว
 reason.MonsterBusy = มีทีมกำลังไปหามอนสเตอร์ตัวนั้นแล้ว
 reason.NotEnoughSonar = พลังงานโซนาร์ไม่พอ
+world.sonar = โซนาร์

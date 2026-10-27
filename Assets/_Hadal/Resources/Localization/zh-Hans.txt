@@ -794,3 +794,4 @@ battle.wounded = 受伤
 reason.UnknownMonster = 该怪物已不在此处。
 reason.MonsterBusy = 已有队伍前往该怪物。
 reason.NotEnoughSonar = 声呐能量不足。
+world.sonar = 声呐
