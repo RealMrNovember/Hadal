@@ -865,3 +865,13 @@ reason.NotOpen = กิจกรรมยังไม่เปิดในขณ
 reason.NotEnded = รางวัลอันดับจะเปิดเมื่อกิจกรรมสิ้นสุด
 reason.NoRank = คุณไม่มีรางวัลอันดับ
 reason.UnknownEvent = ไม่พบกิจกรรม
+
+# Overseer gifts
+item.herogift = {0} · Lv {1} · {2}★
+item.herogift.short = Lv{0} {1}★
+item.herogift.desc = ใช้แล้วฮีโร่จะเข้าร่วมด้วยเลเวลและดาวนี้ (พลัง {0}) หากมีอยู่แล้วจะเพิ่มขึ้นอย่างน้อยถึงระดับนี้
+item.troops = {0} × T{1} {2}
+item.troops.desc = ใช้แล้วทหารจะเข้าร่วมกองทัพของคุณ
+reward.troops = {0} × T{1} {2}
+bag.useAll = ใช้ทั้งหมด ({0})
+bag.openAll = เปิดแพ็กทั้งหมด ({0})

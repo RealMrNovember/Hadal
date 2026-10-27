@@ -866,3 +866,13 @@ reason.NotOpen = Etkinlik şu an açık değil.
 reason.NotEnded = Sıralama ödülleri etkinlik bitince açılır.
 reason.NoRank = Sıralama ödülü kazanamadın.
 reason.UnknownEvent = Etkinlik bulunamadı.
+
+# Overseer gifts
+item.herogift = {0} · Sv. {1} · {2}★
+item.herogift.short = Sv.{0} {1}★
+item.herogift.desc = Kullanınca kahraman bu seviye ve yıldızla katılır (güç {0}). Zaten varsa seviyesi ve yıldızı en az bu değere yükselir.
+item.troops = {0} × T{1} {2}
+item.troops.desc = Kullanınca askerler üssündeki orduya katılır.
+reward.troops = {0} × T{1} {2}
+bag.useAll = Tümünü kullan ({0})
+bag.openAll = Tüm paketleri aç ({0})

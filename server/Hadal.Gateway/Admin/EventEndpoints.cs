@@ -25,7 +25,9 @@ namespace Hadal.Gateway.Admin
                     banners = Banners,
                     resources = Enum.GetNames<ResourceType>(),
                     items = (catalog.Data.items ?? Array.Empty<HADAL.Shared.Catalog.ItemData>()).Select(i => new { id = i.id, kind = i.kind, rarity = i.rarity }),
-                    heroes = catalog.Heroes.Select(h => new { id = h.Id, rarity = h.Rarity.id }),
+                    heroes = catalog.Heroes.Select(h => new { id = h.Id, rarity = h.Rarity.id, basePower = h.Rarity.basePower }),
+                    heroRules = new { maxStars = catalog.HeroRules.maxStars, levelCapPerStar = catalog.HeroRules.levelCapPerStar },
+                    troops = new { types = catalog.Troops.types.Select(t => t.id), tiers = catalog.Troops.tiers.Length },
                     rarities = catalog.Heroes.Select(h => h.Rarity.id).Distinct()
                 });
             }).RequireAdmin(AdminRoles.Viewer);

@@ -865,3 +865,13 @@ reason.NotOpen = Acara tidak dibuka sekarang.
 reason.NotEnded = Ganjaran kedudukan dibuka apabila acara tamat.
 reason.NoRank = Tiada ganjaran kedudukan untuk anda.
 reason.UnknownEvent = Acara tidak ditemui.
+
+# Overseer gifts
+item.herogift = {0} · Tahap {1} · {2}★
+item.herogift.short = Tahap{0} {1}★
+item.herogift.desc = Guna dan wira menyertai dengan tahap dan bintang ini (kuasa {0}). Jika sudah ada, naik sekurang-kurangnya ke sini.
+item.troops = {0} × T{1} {2}
+item.troops.desc = Guna dan tentera menyertai angkatan anda.
+reward.troops = {0} × T{1} {2}
+bag.useAll = Guna semua ({0})
+bag.openAll = Buka semua pakej ({0})

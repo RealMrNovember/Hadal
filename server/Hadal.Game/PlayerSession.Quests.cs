@@ -140,8 +140,10 @@ namespace Hadal.Game
             var count = Math.Clamp(command.Count, 1, 50);
 
             // A resource capsule goes straight to the wallet and may pass the cap (docs/rehber 15 §2.2).
+            // Capsules open in any number at once ("use all"); chests stay at 50 a time (each one rolls).
             if (Capsules.TryParse(command.ItemId, out var capsuleResource, out var capsuleAmount))
             {
+                count = Math.Clamp(command.Count, 1, 1_000_000);
                 if ((_state.Items.TryGetValue(command.ItemId, out var held) ? held : 0) < count)
                 {
                     Reject(command.CommandId, command.ClientSequence, QuestRejectReason.NotEnoughItems.ToString(), now);
@@ -153,6 +155,12 @@ namespace Hadal.Game
                 _walletDirty = true;
                 GrantAndReport(command.CommandId, command.ClientSequence,
                     new List<ResolvedReward> { new("resource", capsuleResource.ToString(), capsuleAmount * count) }, now, grant: false);
+                return;
+            }
+
+            if (GiftItems.Is(command.ItemId))
+            {
+                OpenGift(command, count, now);
                 return;
             }
 
@@ -170,6 +178,61 @@ namespace Hadal.Game
             for (var i = 0; i < count; i++)
                 rewards.AddRange(QuestRules.Open(_catalog, item, Random.Shared.Next));
             GrantAndReport(command.CommandId, command.ClientSequence, rewards, now);
+        }
+
+        /// <summary>
+        /// An Overseer gift (GiftItems): a hero joins at its level and stars, or an owned one rises to them (never
+        /// lower); troops join the army at home, past the barracks capacity like gathered resources pass the cap.
+        /// </summary>
+        private void OpenGift(OpenItemCommand command, int count, DateTimeOffset now)
+        {
+            var held = _state.Items.TryGetValue(command.ItemId, out var n) ? n : 0;
+            if (!GiftItems.IsValid(_catalog, command.ItemId))
+            {
+                Reject(command.CommandId, command.ClientSequence, QuestRejectReason.UnknownItem.ToString(), now);
+                return;
+            }
+
+            if (GiftItems.TryParseHero(command.ItemId, out var heroId, out var level, out var stars))
+            {
+                // One hero per use: a second copy of the same gift would change nothing.
+                if (held < 1)
+                {
+                    Reject(command.CommandId, command.ClientSequence, QuestRejectReason.NotEnoughItems.ToString(), now);
+                    return;
+                }
+
+                TakeItem(command.ItemId, 1);
+                var owned = _state.Heroes.FirstOrDefault(h => h.HeroId == heroId);
+                if (owned == null)
+                {
+                    _state.Heroes.Add(new OwnedHeroState { HeroId = heroId, Level = level, Stars = stars, Shards = 0, Slot = -1 });
+                    Score(EventActions.HeroRecruit, 1);
+                }
+                else
+                {
+                    owned.Level = Math.Max(owned.Level, level);
+                    owned.Stars = Math.Max(owned.Stars, stars);
+                }
+
+                RefreshModifiers();
+                GrantAndReport(command.CommandId, command.ClientSequence, new List<ResolvedReward> { new("hero", heroId, 1) }, now, grant: false);
+                return;
+            }
+
+            GiftItems.TryParseTroops(command.ItemId, out var type, out var tier, out var perPack);
+            if (held < count)
+            {
+                Reject(command.CommandId, command.ClientSequence, QuestRejectReason.NotEnoughItems.ToString(), now);
+                return;
+            }
+
+            TakeItem(command.ItemId, count);
+            var key = TroopRules.Key(type, tier);
+            _state.Troops[key] = (_state.Troops.TryGetValue(key, out var home) ? home : 0) + perPack * count;
+            _armyDirty = true;
+            GrantAndReport(command.CommandId, command.ClientSequence, new List<ResolvedReward> { new("troops", key, perPack * count) }, now, grant: false);
+            SendDelta(now, new List<EntityChangeDto> { ArmyChange(now) });
         }
 
         private void RecruitHero(RecruitHeroCommand command, DateTimeOffset now)

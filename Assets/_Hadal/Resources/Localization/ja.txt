@@ -865,3 +865,13 @@ reason.NotOpen = イベントは現在開催されていません。
 reason.NotEnded = 順位報酬はイベント終了後に開放されます。
 reason.NoRank = 順位報酬はありません。
 reason.UnknownEvent = イベントが見つかりません。
+
+# Overseer gifts
+item.herogift = {0}・Lv{1}・{2}★
+item.herogift.short = Lv{0} {1}★
+item.herogift.desc = 使用するとこのレベルと星でヒーローが加入します（戦力{0}）。所持済みなら少なくともここまで上がります。
+item.troops = {0} × T{1} {2}
+item.troops.desc = 使用すると部隊が拠点の軍に加わります。
+reward.troops = {0} × T{1} {2}
+bag.useAll = すべて使用（{0}）
+bag.openAll = すべてのパックを開く（{0}）

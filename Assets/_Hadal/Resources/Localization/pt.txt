@@ -865,3 +865,13 @@ reason.NotOpen = O evento não está aberto agora.
 reason.NotEnded = As recompensas de ranking abrem quando o evento termina.
 reason.NoRank = Sem recompensa de ranking para você.
 reason.UnknownEvent = Evento não encontrado.
+
+# Overseer gifts
+item.herogift = {0} · Nv. {1} · {2}★
+item.herogift.short = Nv.{0} {1}★
+item.herogift.desc = Use e o herói entra com este nível e estrelas (poder {0}). Se já o tiver, ele sobe pelo menos a isso.
+item.troops = {0} × T{1} {2}
+item.troops.desc = Use e as tropas entram no seu exército.
+reward.troops = {0} × T{1} {2}
+bag.useAll = Usar tudo ({0})
+bag.openAll = Abrir todos os pacotes ({0})

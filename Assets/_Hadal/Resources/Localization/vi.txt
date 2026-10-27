@@ -865,3 +865,13 @@ reason.NotOpen = Sự kiện hiện chưa mở.
 reason.NotEnded = Thưởng xếp hạng mở khi sự kiện kết thúc.
 reason.NoRank = Bạn không có thưởng xếp hạng.
 reason.UnknownEvent = Không tìm thấy sự kiện.
+
+# Overseer gifts
+item.herogift = {0} · Cấp {1} · {2}★
+item.herogift.short = Cấp{0} {1}★
+item.herogift.desc = Dùng để anh hùng gia nhập với cấp và sao này (sức mạnh {0}). Nếu đã có, sẽ tăng lên ít nhất mức này.
+item.troops = {0} × T{1} {2}
+item.troops.desc = Dùng để binh lính gia nhập quân đội.
+reward.troops = {0} × T{1} {2}
+bag.useAll = Dùng hết ({0})
+bag.openAll = Mở tất cả gói ({0})

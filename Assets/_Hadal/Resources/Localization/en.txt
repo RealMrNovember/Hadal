@@ -866,3 +866,13 @@ reason.NotOpen = The event is not open right now.
 reason.NotEnded = Rank rewards open when the event ends.
 reason.NoRank = No rank reward for you.
 reason.UnknownEvent = Event not found.
+
+# Overseer gifts
+item.herogift = {0} · Lv {1} · {2}★
+item.herogift.short = Lv{0} {1}★
+item.herogift.desc = Use it and the hero joins at this level and stars (power {0}). If you already have them, they rise to at least this.
+item.troops = {0} × T{1} {2}
+item.troops.desc = Use it and the troops join your army at home.
+reward.troops = {0} × T{1} {2}
+bag.useAll = Use all ({0})
+bag.openAll = Open all packages ({0})

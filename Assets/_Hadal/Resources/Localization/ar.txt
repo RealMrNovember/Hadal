@@ -865,3 +865,13 @@ reason.NotOpen = الفعالية غير مفتوحة حاليًا.
 reason.NotEnded = تُفتح مكافآت الترتيب عند انتهاء الفعالية.
 reason.NoRank = لا توجد مكافأة ترتيب لك.
 reason.UnknownEvent = لم يتم العثور على الفعالية.
+
+# Overseer gifts
+item.herogift = {0} · مستوى {1} · {2}★
+item.herogift.short = مستوى{0} {1}★
+item.herogift.desc = عند الاستخدام ينضم البطل بهذا المستوى والنجوم (القوة {0}). إن كان لديك، يرتفع إلى هذا على الأقل.
+item.troops = {0} × T{1} {2}
+item.troops.desc = عند الاستخدام تنضم القوات إلى جيشك.
+reward.troops = {0} × T{1} {2}
+bag.useAll = استخدام الكل ({0})
+bag.openAll = فتح كل الحزم ({0})

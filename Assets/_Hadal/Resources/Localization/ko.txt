@@ -865,3 +865,13 @@ reason.NotOpen = 이벤트가 현재 열려 있지 않습니다.
 reason.NotEnded = 순위 보상은 이벤트 종료 후 열립니다.
 reason.NoRank = 받을 순위 보상이 없습니다.
 reason.UnknownEvent = 이벤트를 찾을 수 없습니다.
+
+# Overseer gifts
+item.herogift = {0} · Lv {1} · {2}★
+item.herogift.short = Lv{0} {1}★
+item.herogift.desc = 사용하면 이 레벨과 별로 영웅이 합류합니다(전투력 {0}). 이미 있다면 최소 이만큼 올라갑니다.
+item.troops = {0} × T{1} {2}
+item.troops.desc = 사용하면 병력이 기지의 군대에 합류합니다.
+reward.troops = {0} × T{1} {2}
+bag.useAll = 모두 사용 ({0})
+bag.openAll = 모든 꾸러미 열기 ({0})

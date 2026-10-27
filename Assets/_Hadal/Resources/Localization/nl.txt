@@ -865,3 +865,13 @@ reason.NotOpen = Het evenement is nu niet open.
 reason.NotEnded = Rangbeloningen gaan open als het evenement afloopt.
 reason.NoRank = Geen rangbeloning voor jou.
 reason.UnknownEvent = Evenement niet gevonden.
+
+# Overseer gifts
+item.herogift = {0} · Nv. {1} · {2}★
+item.herogift.short = Nv.{0} {1}★
+item.herogift.desc = Gebruik het en de held komt erbij met dit niveau en deze sterren (kracht {0}). Heb je hem al, dan stijgt hij minstens hiernaar.
+item.troops = {0} × T{1} {2}
+item.troops.desc = Gebruik het en de troepen sluiten zich aan bij je leger.
+reward.troops = {0} × T{1} {2}
+bag.useAll = Alles gebruiken ({0})
+bag.openAll = Alle pakketten openen ({0})

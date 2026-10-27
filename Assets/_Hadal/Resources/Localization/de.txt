@@ -865,3 +865,13 @@ reason.NotOpen = Das Event ist gerade nicht geöffnet.
 reason.NotEnded = Rangbelohnungen gibt es nach Ende des Events.
 reason.NoRank = Keine Rangbelohnung für dich.
 reason.UnknownEvent = Event nicht gefunden.
+
+# Overseer gifts
+item.herogift = {0} · St. {1} · {2}★
+item.herogift.short = St.{0} {1}★
+item.herogift.desc = Beim Benutzen tritt der Held mit dieser Stufe und diesen Sternen bei (Macht {0}). Hast du ihn schon, steigt er mindestens darauf.
+item.troops = {0} × T{1} {2}
+item.troops.desc = Beim Benutzen schließen sich die Truppen deiner Armee an.
+reward.troops = {0} × T{1} {2}
+bag.useAll = Alle nutzen ({0})
+bag.openAll = Alle Pakete öffnen ({0})

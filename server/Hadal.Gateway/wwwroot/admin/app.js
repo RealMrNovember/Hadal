@@ -20,7 +20,7 @@ function el(tag, attrs = {}, ...children) {
     else if (key === "value") node.value = value;
     else node.setAttribute(key, value === true ? "" : value);
   }
-  for (const child of children.flat()) {
+  for (const child of children.flat(Infinity)) {
     if (child === null || child === undefined || child === false) continue;
     node.append(child instanceof Node ? child : document.createTextNode(String(child)));
   }
@@ -250,12 +250,53 @@ async function playerDetail(root, id) {
     el("option", { value: "package" }, "Çantaya paket olarak"),
     el("option", { value: "direct" }, "Doğrudan cüzdana"));
   const banHours = el("input", { type: "number", min: "1", value: "24" });
+
+  // Heroes and troop packs (GiftItems): chosen here, they land in the bag and the player uses them.
+  const meta = can("gm") ? await api("events/meta") : null;
+  const gifts = [];
+  const giftList = el("div", { class: "rewards" });
+  const drawGifts = () => render(giftList, gifts.length === 0 ? el("span", { class: "muted" }, "Henüz eklenmedi.") :
+    gifts.map((g, i) => el("div", { class: "reward" }, el("span", {}, `${bagName(g.id)} × ${g.count}`),
+      el("button", { class: "ghost", onclick: () => { gifts.splice(i, 1); drawGifts(); } }, "×"))));
+  let heroForm = null, troopForm = null;
+  if (meta) {
+    const hero = el("select", {}, meta.heroes.map((h) => el("option", { value: h.id }, `${HERO_TR[h.id] || h.id} (${RARITY_NAME[h.rarity] || h.rarity})`)));
+    const stars = el("select", {}, Array.from({ length: meta.heroRules.maxStars }, (_, i) => el("option", { value: i + 1 }, `${i + 1} yıldız`)));
+    const level = el("input", { type: "number", min: "1", value: "1" });
+    const heroCount = el("input", { type: "number", min: "1", value: "1" });
+    const power = el("b", {}, "");
+    const syncHero = () => {
+      const cap = Number(stars.value) * meta.heroRules.levelCapPerStar;
+      level.max = cap;
+      if (Number(level.value) > cap) level.value = cap;
+      if (Number(level.value) < 1) level.value = 1;
+      const h = meta.heroes.find((x) => x.id === hero.value);
+      power.textContent = `Güç ${fmtNum(heroPower(h.basePower, Number(level.value), Number(stars.value)))} · en yüksek seviye ${cap}`;
+    };
+    [hero, stars, level].forEach((n) => n.addEventListener("input", syncHero));
+    [hero, stars].forEach((n) => n.addEventListener("change", syncHero));
+    syncHero();
+    heroForm = el("div", { class: "row" },
+      el("label", {}, "Kahraman", hero), el("label", {}, "Yıldız", stars), el("label", {}, "Seviye", level), el("label", {}, "Adet", heroCount),
+      el("span", { class: "muted" }, power),
+      el("button", { onclick: () => { syncHero(); gifts.push({ id: `herogift_${hero.value}_${level.value}_${stars.value}`, count: Math.max(1, Number(heroCount.value)) }); drawGifts(); } }, "+ Listeye ekle"));
+
+    const type = el("select", {}, meta.troops.types.map((t) => el("option", { value: t }, TROOP_TR[t] || t)));
+    const tier = el("select", {}, Array.from({ length: meta.troops.tiers }, (_, i) => el("option", { value: i + 1 }, `T${i + 1}`)));
+    const perPack = el("input", { type: "number", min: "1", value: "500" });
+    const packs = el("input", { type: "number", min: "1", value: "1" });
+    troopForm = el("div", { class: "row" },
+      el("label", {}, "Asker türü", type), el("label", {}, "Kademe", tier), el("label", {}, "Paket başına asker", perPack), el("label", {}, "Paket sayısı", packs),
+      el("button", { onclick: () => { gifts.push({ id: `troops_${type.value}_${tier.value}_${Math.max(1, Number(perPack.value))}`, count: Math.max(1, Number(packs.value)) }); drawGifts(); } }, "+ Listeye ekle"));
+    drawGifts();
+  }
   const banReason = el("input", { placeholder: "Sebep" });
 
   async function grant() {
     const body = { amounts: {}, note: note.value, packages: delivery.value === "package", items: {} };
     for (const r of RESOURCES) if (amounts[r].value) body.amounts[r] = Number(amounts[r].value);
     for (const [id, input] of Object.entries(itemInputs)) if (Number(input.value) > 0) body.items[id] = Number(input.value);
+    for (const g of gifts) body.items[g.id] = (body.items[g.id] || 0) + g.count;
     await api(`players/${id}/grant`, { method: "POST", body });
     toast(body.packages ? "Paketler oyuncunun çantasına gönderildi." : "Kaynaklar cüzdana eklendi.");
     route();
@@ -266,6 +307,15 @@ async function playerDetail(root, id) {
     el("p", { class: "muted" }, "Paket: her kaynak tam miktarında bir paket olarak çantaya düşer, oyuncu dilediğinde açar (depo sınırını aşabilir). " +
       "Doğrudan: hemen cüzdana eklenir, depo sınırını aşabilir. Hadalit ve Süperalaşım her zaman doğrudan eklenir."),
     el("div", { class: "row" }, RESOURCES.map((r) => el("label", {}, RESOURCE_TR[r], amounts[r])), el("label", {}, "Teslim", delivery), note),
+    heroForm ? [
+      el("h2", {}, "Kahraman gönder (çantaya)"),
+      el("p", { class: "muted" }, "Oyuncu çantasından kullanınca kahraman bu seviye ve yıldızla katılır. Kahramana zaten sahipse, seviyesi ve yıldızı en az bu değere yükselir; asla düşmez."),
+      heroForm,
+      el("h2", {}, "Asker gönder (çantaya)"),
+      el("p", { class: "muted" }, "Oyuncu paketi kullanınca askerler üssündeki orduya katılır (kışla sınırını aşabilir)."),
+      troopForm,
+      el("h2", {}, "Gönderilecek kahraman ve askerler"),
+      giftList] : null,
     el("h2", {}, "Eşya gönder (çantaya)"),
     el("div", { class: "row" }, GRANT_ITEMS.map(([id, name]) => el("label", {}, name, itemInputs[id])),
       el("button", { class: "primary", onclick: () => grant().catch((e) => toast(e.message, true)) }, "Uygula")),
@@ -322,10 +372,21 @@ const GRANT_ITEMS = [
   ["chest_bronze", "Bronz sandık"], ["chest_silver", "Gümüş sandık"], ["chest_gold", "Altın sandık"],
 ];
 
-/** "cap_Titanium_250000" → "Titanyum paketi 250.000"; other items keep their id. */
+const HERO_TR = { mara: "Komutan Elias Rourke", lyra: "Dr. Lyra Moss", tess: "Tess Ruiz", kael: "Kael", orin: "Dr. Orin Hale", juno: "Juno Vega", sable: "Sable", aelis: "Aelis" };
+const TROOP_TR = { armored: "Zırhlı Dalgıç", harpoon: "Zıpkıncı", arc: "Ark Askeri", driller: "Delici" };
+const RARITY_NAME = { common: "Sıradan", rare: "Nadir", epic: "Destansı", legendary: "Efsanevi" };
+
+/** Hero power as the game computes it (HeroRules.Power): rarity base × level × stars. */
+const heroPower = (basePower, level, stars) => Math.round(basePower * (1 + Math.max(0, level - 1) * 0.1) * (1 + Math.max(0, stars - 1) * 0.2));
+
+/** "cap_Titanium_250000" → "Titanyum paketi 250.000"; gifts by their hero or troops; other items keep their id. */
 function bagName(id) {
   const m = /^cap_([A-Za-z]+)_(\d+)$/.exec(id);
   if (m) return `${RESOURCE_TR[m[1]] || m[1]} paketi ${fmtNum(Number(m[2]))}`;
+  const h = /^herogift_([a-z0-9]+)_(\d+)_(\d+)$/.exec(id);
+  if (h) return `Kahraman: ${HERO_TR[h[1]] || h[1]} · Sv. ${h[2]} · ${h[3]}★`;
+  const t = /^troops_([a-z0-9]+)_(\d+)_(\d+)$/.exec(id);
+  if (t) return `Asker paketi: ${fmtNum(Number(t[3]))} × T${t[2]} ${TROOP_TR[t[1]] || t[1]}`;
   const known = GRANT_ITEMS.find(([itemId]) => itemId === id);
   return known ? known[1] : id;
 }

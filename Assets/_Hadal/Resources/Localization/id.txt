@@ -865,3 +865,13 @@ reason.NotOpen = Event sedang tidak dibuka.
 reason.NotEnded = Hadiah peringkat terbuka setelah event berakhir.
 reason.NoRank = Tidak ada hadiah peringkat untukmu.
 reason.UnknownEvent = Event tidak ditemukan.
+
+# Overseer gifts
+item.herogift = {0} · Lv {1} · {2}★
+item.herogift.short = Lv{0} {1}★
+item.herogift.desc = Gunakan dan pahlawan bergabung dengan level dan bintang ini (kekuatan {0}). Jika sudah punya, naik setidaknya ke sini.
+item.troops = {0} × T{1} {2}
+item.troops.desc = Gunakan dan pasukan bergabung dengan pasukanmu.
+reward.troops = {0} × T{1} {2}
+bag.useAll = Gunakan semua ({0})
+bag.openAll = Buka semua paket ({0})

@@ -865,3 +865,13 @@ reason.NotOpen = Событие сейчас закрыто.
 reason.NotEnded = Награды за место откроются после окончания события.
 reason.NoRank = Для вас нет награды за место.
 reason.UnknownEvent = Событие не найдено.
+
+# Overseer gifts
+item.herogift = {0} · Ур. {1} · {2}★
+item.herogift.short = Ур.{0} {1}★
+item.herogift.desc = При использовании герой присоединится с этим уровнем и звёздами (сила {0}). Если он уже есть, поднимется минимум до них.
+item.troops = {0} × T{1} {2}
+item.troops.desc = При использовании войска присоединятся к армии.
+reward.troops = {0} × T{1} {2}
+bag.useAll = Использовать все ({0})
+bag.openAll = Открыть все пакеты ({0})

@@ -865,3 +865,13 @@ reason.NotOpen = 活動目前未開放。
 reason.NotEnded = 排名獎勵將在活動結束後開放。
 reason.NoRank = 你沒有排名獎勵。
 reason.UnknownEvent = 找不到活動。
+
+# Overseer gifts
+item.herogift = {0} · {1}級 · {2}★
+item.herogift.short = {0}級 {1}★
+item.herogift.desc = 使用後英雄以此等級和星級加入（戰力{0}）。若已擁有，則至少提升到此。
+item.troops = {0} × T{1} {2}
+item.troops.desc = 使用後部隊加入基地的軍隊。
+reward.troops = {0} × T{1} {2}
+bag.useAll = 全部使用（{0}）
+bag.openAll = 打開全部資源包（{0}）

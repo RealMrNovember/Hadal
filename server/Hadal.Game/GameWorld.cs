@@ -121,8 +121,8 @@ namespace Hadal.Game
         /// players are loaded, changed and saved under the connect gate so a login cannot race it.
         /// False when the player does not exist.
         /// </summary>
-        /// <summary>Items the Overseer may send: catalog items (chests, cards) and speed-ups.</summary>
-        public bool IsGrantableItem(string id) => _catalog.TryGetItem(id, out _) || Speedups.TryParse(id, out _, out _, out _);
+        /// <summary>Items the Overseer may send: catalog items (chests, cards), speed-ups, heroes and troop packs.</summary>
+        public bool IsGrantableItem(string id) => _catalog.TryGetItem(id, out _) || Speedups.TryParse(id, out _, out _, out _) || GiftItems.IsValid(_catalog, id);
 
         public async Task<bool> GrantAsync(string identityKey, IReadOnlyDictionary<ResourceType, long> amounts, CancellationToken cancellationToken,
             bool asPackages = false, IReadOnlyDictionary<string, int>? items = null)
