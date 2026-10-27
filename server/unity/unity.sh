@@ -13,7 +13,8 @@
 #   unity.sh android       development APK in artifacts/build/ (needs the android editor image)
 #   unity.sh shell         bash inside the editor container
 #
-# The license and the Library cache live in Docker volumes so they survive container restarts.
+# The license, the Library cache and the Gradle cache live in Docker volumes so they survive container
+# restarts. Without the Gradle volume every APK build redid all dexing and transforms (~11 of 12 minutes).
 set -euo pipefail
 
 REPO="$(cd "$(dirname "${BASH_SOURCE[0]}")/../.." && pwd)"
@@ -47,6 +48,7 @@ run() {
     -v "${LIBRARY_VOLUME}:/project/Library" \
     -v hadal_unity_cache:/root/.cache/unity3d \
     -v hadal_unity_android:/root/.android \
+    -v hadal_unity_gradle:/root/.gradle \
     -v "${REPO}/server/unity/gitconfig:/root/.gitconfig:ro" \
     -w /project \
     "${IMAGE}" "$@"
