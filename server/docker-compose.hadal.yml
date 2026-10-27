@@ -47,6 +47,8 @@ services:
       Version__LatestClientVersion: "${HADAL_LATEST_CLIENT_VERSION:-0.0.0}"
       Version__Maintenance: "${HADAL_MAINTENANCE:-false}"
       Version__Message: "${HADAL_MAINTENANCE_MESSAGE:-}"
+      # Highest catalog design version a release publishes by itself (0 = any); lets code ship before its balance.
+      Game__PublishCatalogUpTo: "${HADAL_PUBLISH_CATALOG_UP_TO:-0}"
       # Overseer (docs/22): the proxy key is shared only with the kale nginx that serves
       # hadal.cicibyte.com/admin; the JWT secret signs admin sessions (separate from players').
       Admin__ProxyKey: "${HADAL_ADMIN_PROXY_KEY:?set HADAL_ADMIN_PROXY_KEY in .env}"
