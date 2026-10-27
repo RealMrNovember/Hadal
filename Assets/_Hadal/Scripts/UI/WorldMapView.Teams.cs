@@ -243,7 +243,8 @@ namespace Hadal.UI
             card.gameObject.AddComponent<CanvasGroup>();
             card.gameObject.AddComponent<PopIn>();
 
-            UiKit.Label("Title", card.transform, TeamName(m), 38, UiKit.Text, TextAnchor.MiddleLeft, FontStyle.Bold).rectTransform.Place(0.05f, 0.87f, 0.8f, 0.97f);
+            UiKit.TitleBar(card.transform, 0.86f);
+            UiKit.Stroked(UiKit.Label("Title", card.transform, TeamName(m), 38, UiKit.Text, TextAnchor.MiddleLeft, FontStyle.Bold)).rectTransform.Place(0.05f, 0.87f, 0.8f, 0.97f);
             var close = UiKit.Button("Close", card.transform, "X", ClosePopup, UiKit.Field, 36);
             close.GetComponentInChildren<Text>().color = UiKit.Text;
             ((RectTransform)close.transform).Place(0.85f, 0.88f, 0.96f, 0.97f);

@@ -214,7 +214,10 @@ namespace Hadal.UI
             return rect;
         }
 
-        /// <summary>A rounded box. Panels and cards (the Panel and Field colours) get a thin glowing frame.</summary>
+        /// <summary>
+        /// A rounded box. Panels and cards (the Panel and Field colours) are the skin's light panel and inset: their text
+        /// turns to dark ink by itself (<see cref="InkSurface"/>). A box named "Header" is the navy, brass-trimmed bar.
+        /// </summary>
         public static Image Box(string name, Transform parent, Color color)
         {
             var rect = Rect(name, parent);
@@ -223,24 +226,66 @@ namespace Hadal.UI
             image.type = UnityEngine.UI.Image.Type.Sliced;
             image.color = color;
 
-            if (color == Panel || color == Field)
+            // Section bars wear the header too; cost chips are insets.
+            var bar = name is "Header" or "Section";
+            var skin = color == Panel ? Skin.Get("panel") : color == Field || name == "Cost" ? Skin.Get("inset") : bar ? Skin.Get("header") : null;
+            if (skin != null)
             {
-                var outer = Rect("Frame", rect).gameObject.AddComponent<Image>();
-                outer.sprite = Ring;
-                outer.type = UnityEngine.UI.Image.Type.Sliced;
-                outer.color = new Color(0f, 0f, 0f, 0.55f);
-                outer.raycastTarget = false;
-                ((RectTransform)outer.transform).Place(0, 0, 1, 1);
-
-                var inner = Rect("Edge", rect).gameObject.AddComponent<Image>();
-                inner.sprite = Ring;
-                inner.type = UnityEngine.UI.Image.Type.Sliced;
-                inner.color = new Color(0.55f, 0.85f, 1f, color == Panel ? 0.32f : 0.16f);
-                inner.raycastTarget = false;
-                ((RectTransform)inner.transform).Place(0, 0, 1, 1, 3);
+                image.sprite = skin;
+                image.color = Color.white;
+                if (!bar)
+                    rect.gameObject.AddComponent<InkSurface>();
             }
 
             return image;
+        }
+
+        /// <summary>
+        /// The navy title bar across the top of a panel (from <paramref name="yMin"/> up), drawn behind what is already
+        /// there; returns it so the title can sit on it in white.
+        /// </summary>
+        public static Image TitleBar(Transform panel, float yMin)
+        {
+            var bar = Box("Header", panel, new Color(0.05f, 0.16f, 0.22f, 1f));
+            bar.rectTransform.Place(0, yMin, 1, 1);
+            bar.raycastTarget = false;
+            bar.transform.SetAsFirstSibling();
+            return bar;
+        }
+
+        /// <summary>White bold text with the skin's dark navy stroke (titles on bars, buttons).</summary>
+        public static Text Stroked(Text label)
+        {
+            label.color = Color.white;
+            var stroke = label.GetComponent<Outline>() ?? label.gameObject.AddComponent<Outline>();
+            stroke.effectColor = new Color(0.06f, 0.1f, 0.17f, 0.9f);
+            stroke.effectDistance = new Vector2(2f, -2f);
+            return label;
+        }
+
+        /// <summary>The skin sprite a button of this colour wears (art/ui/make_skin.py).</summary>
+        private static string ButtonSkin(Color c)
+        {
+            if (c == Panel)
+                return "btn_grey"; // disabled
+            if (c == Field)
+                return "btn_navy";
+            if (c == TabOn)
+                return "tab_on";
+            if (c == TabOff)
+                return "tab_off";
+            Color.RGBToHSV(c, out var h, out var s, out var v);
+            if (s < 0.25f || v < 0.3f)
+                return v > 0.7f ? "btn_light" : v < 0.45f ? "btn_navy" : "btn_grey";
+            if (h < 0.04f || h > 0.9f)
+                return "btn_red";
+            if (h < 0.15f)
+                return "btn_gold";
+            if (h < 0.45f)
+                return "btn_green";
+            if (h < 0.53f)
+                return "btn_teal";
+            return "btn_blue";
         }
 
         public static Text Label(string name, Transform parent, string text, int size, Color color, TextAnchor anchor = TextAnchor.MiddleLeft,
@@ -263,8 +308,26 @@ namespace Hadal.UI
         public static Button Button(string name, Transform parent, string text, UnityAction onClick, Color? fill = null, int fontSize = 38)
         {
             var face = fill ?? Accent;
-            var image = Box(name, parent, face);
+            var image = Rect(name, parent).gameObject.AddComponent<Image>();
+            image.type = UnityEngine.UI.Image.Type.Sliced;
+            image.color = face;
             image.sprite = Gloss;
+            // Skinned: the sprite carries the colour, gloss and lip; a lone "X" is the round red close button.
+            var close = text == "X";
+            var skin = Skin.Get(close ? "round_red" : ButtonSkin(face));
+            if (skin != null)
+            {
+                image.sprite = skin;
+                image.color = Color.white;
+                if (close)
+                {
+                    image.type = UnityEngine.UI.Image.Type.Simple;
+                    image.preserveAspect = true;
+                }
+
+                face = skin.name is "btn_light" or "tab_on" ? TabOn : face == Panel || face == Field || face == TabOff ? new Color(0.2f, 0.28f, 0.4f) : face;
+            }
+
             var button = image.gameObject.AddComponent<Button>();
             image.gameObject.AddComponent<PressFeedback>();
             var colors = button.colors;
@@ -276,26 +339,29 @@ namespace Hadal.UI
                 button.onClick.AddListener(onClick);
 
             // Light fills take dark text; dark and coloured fills take white text with an outline (Last Asylum's buttons).
-            var light = 0.299f * face.r + 0.587f * face.g + 0.114f * face.b > 0.62f;
+            var light = skin != null ? face == TabOn : 0.299f * face.r + 0.587f * face.g + 0.114f * face.b > 0.62f;
             var label = Label("Label", image.transform, text, fontSize, light ? new Color(0.06f, 0.1f, 0.14f) : Color.white, TextAnchor.MiddleCenter, FontStyle.Bold);
             if (!light)
-            {
-                var stroke = label.gameObject.AddComponent<Outline>();
-                stroke.effectColor = new Color(0f, 0f, 0f, 0.55f);
-                stroke.effectDistance = new Vector2(1.5f, -1.5f);
-            }
+                Stroked(label);
             label.rectTransform.Place(0, 0, 1, 1, 8);
+            // The skin's lip is part of the sprite: keep the text on the face above it.
+            if (skin != null && !close)
+                label.rectTransform.offsetMin = new Vector2(8, 14);
             // Long translations shrink to fit instead of spilling out of the button.
             label.resizeTextForBestFit = true;
             label.resizeTextMinSize = Mathf.Min(16, label.fontSize);
             label.resizeTextMaxSize = label.fontSize;
-            // The lip: a darker copy of the face just below it reads as a pressable slab.
-            var lip = image.gameObject.AddComponent<Shadow>();
-            lip.effectColor = new Color(face.r * 0.4f, face.g * 0.4f, face.b * 0.4f, Mathf.Max(0.6f, face.a));
-            lip.effectDistance = new Vector2(0, -6);
+            if (skin == null)
+            {
+                // The lip: a darker copy of the face just below it reads as a pressable slab.
+                var lip = image.gameObject.AddComponent<Shadow>();
+                lip.effectColor = new Color(face.r * 0.4f, face.g * 0.4f, face.b * 0.4f, Mathf.Max(0.6f, face.a));
+                lip.effectDistance = new Vector2(0, -6);
+            }
+
             var shadow = image.gameObject.AddComponent<Shadow>();
-            shadow.effectColor = new Color(0, 0, 0, 0.35f);
-            shadow.effectDistance = new Vector2(0, -10);
+            shadow.effectColor = new Color(0, 0, 0, 0.3f);
+            shadow.effectDistance = new Vector2(0, -6);
             label.verticalOverflow = VerticalWrapMode.Truncate;
             return button;
         }
@@ -407,7 +473,11 @@ namespace Hadal.UI
                 var selected = get();
                 for (var i = 0; i < buttons.Length; i++)
                 {
-                    buttons[i].image.color = i == selected ? TabOn : TabOff;
+                    var tab = Skin.Get(i == selected ? "tab_on" : "tab_off");
+                    if (tab != null)
+                        buttons[i].image.sprite = tab;
+                    else
+                        buttons[i].image.color = i == selected ? TabOn : TabOff;
                     var caption = buttons[i].GetComponentInChildren<UnityEngine.UI.Text>();
                     caption.color = i == selected ? new Color(0.08f, 0.13f, 0.2f) : Text;
                     var stroke = caption.GetComponent<Outline>();

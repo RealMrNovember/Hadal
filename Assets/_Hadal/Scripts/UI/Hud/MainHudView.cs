@@ -121,17 +121,15 @@ namespace Hadal.UI.Hud
 
         private void BuildHeader()
         {
-            var header = UiKit.Rect("Header", _safe).Place(0, 0.895f, 1, 1);
-            // A faint shade only: the pills float over the scene instead of sitting in a heavy box.
-            var shade = UiKit.Box("Shade", header, new Color(0f, 0.02f, 0.04f, 0.22f));
-            shade.rectTransform.Place(0, 0, 1, 1);
-            shade.raycastTarget = false;
+            // Pinned to the very top of the screen (not the safe area), like the genre: no dead band above it.
+            var header = UiKit.Rect("Header", _canvas.transform).Place(0, 0.91f, 1, 1);
+            header.offsetMax = new Vector2(0, -6);
 
             // Avatar with the base level under it; opens settings and the profile.
             var avatar = Tap(header, "Avatar", 0.012f, 0.26f, 0.135f, 0.98f, _actions.Profile ?? _actions.Settings, new Color(0.05f, 0.12f, 0.16f, 0.95f));
             Frame(avatar, UiKit.Accent);
             _avatarSlot = UiKit.Rect("Face", avatar).Place(0.06f, 0.06f, 0.94f, 0.94f);
-            var levelBox = UiKit.Box("Level", header, new Color(0.05f, 0.3f, 0.12f, 0.95f));
+            var levelBox = Skinned(UiKit.Box("Level", header, new Color(0.05f, 0.3f, 0.12f, 0.95f)), "btn_green");
             levelBox.rectTransform.Place(0.022f, 0.04f, 0.125f, 0.26f);
             levelBox.raycastTarget = false;
             _level = Outlined(UiKit.Label("Text", levelBox.transform, string.Empty, 26, UiKit.Amber, TextAnchor.MiddleCenter, FontStyle.Bold));
@@ -144,6 +142,7 @@ namespace Hadal.UI.Hud
 
             // Power under the resources (the number players compare), then oxygen and Superalloy (docs/rehber K-01).
             var power = Tap(header, "Power", left, 0.1f, left + 0.25f, 0.48f, () => ShowPowerInfo(), new Color(0.02f, 0.05f, 0.08f, 0.6f));
+            Skinned(power.GetComponent<Image>(), "pill");
             HudIcons.Image(power, "power", -0.04f, -0.08f, 0.24f, 1.08f);
             _power = Outlined(UiKit.Label("Value", power, string.Empty, 30, UiKit.Amber, TextAnchor.MiddleLeft, FontStyle.Bold));
             _power.rectTransform.Place(0.27f, 0, 1, 1);
@@ -152,6 +151,7 @@ namespace Hadal.UI.Hud
 
             // Shop: Hadalite balance; opens the Cryo-Pod until the shop exists.
             var shop = Tap(header, "Shop", 0.78f, 0.5f, 0.988f, 0.95f, _actions.Pod, new Color(0.85f, 0.42f, 0.08f, 0.95f));
+            Skinned(shop.GetComponent<Image>(), "btn_gold");
             HudIcons.Image(shop, "shop", 0.02f, 0.05f, 0.42f, 0.95f);
             _hadalite = Outlined(UiKit.Label("Value", shop, string.Empty, 30, Color.white, TextAnchor.MiddleCenter, FontStyle.Bold));
             _hadalite.rectTransform.Place(0.4f, 0, 1, 1);
@@ -161,6 +161,7 @@ namespace Hadal.UI.Hud
         {
             // A dark pill with the icon spilling over its left end, the value in bold white (Last Asylum).
             var chip = Tap(parent, "Chip_" + type, x0, y0, x1, y1, () => ShowResource(type), new Color(0.02f, 0.05f, 0.08f, 0.6f));
+            Skinned(chip.GetComponent<Image>(), "pill");
             HudIcons.Image(chip, HudIcons.Resource(type), -0.06f, -0.12f, 0.34f, 1.12f);
             var value = Outlined(UiKit.Label("Value", chip, string.Empty, 30, UiKit.Text, TextAnchor.MiddleCenter, FontStyle.Bold));
             value.rectTransform.Place(0.3f, 0, 1, 1);
@@ -170,11 +171,11 @@ namespace Hadal.UI.Hud
         private void BuildRightColumn()
         {
             // Event column under the shop: Cryo-Pod (free pull timer), events and sieges (coming).
-            var pod = SideButton(_lower.transform, "Pod", "event_pod", Loc.T("hud.pod"), 0.835f, 0.80f, 0.985f, 0.875f, _actions.Pod);
+            var pod = SideButton(_lower.transform, "Pod", "event_pod", Loc.T("hud.pod"), 0.835f, 0.83f, 0.985f, 0.905f, _actions.Pod);
             _podLabel = pod.Label;
             _podDot = pod.Dot;
-            SideButton(_lower.transform, "Events", "event_gift", Loc.T("hud.events"), 0.835f, 0.71f, 0.985f, 0.785f, () => Soon("hud.events"));
-            SideButton(_lower.transform, "War", "event_war", Loc.T("hud.expedition"), 0.835f, 0.62f, 0.985f, 0.695f, () => _actions.Expedition?.Invoke());
+            SideButton(_lower.transform, "Events", "event_gift", Loc.T("hud.events"), 0.835f, 0.74f, 0.985f, 0.815f, () => Soon("hud.events"));
+            SideButton(_lower.transform, "War", "event_war", Loc.T("hud.expedition"), 0.835f, 0.65f, 0.985f, 0.725f, () => _actions.Expedition?.Invoke());
         }
 
         /// <summary>Base-only buttons; the world map hides them (its own controls sit there).</summary>
@@ -203,12 +204,13 @@ namespace Hadal.UI.Hud
 
         private void BuildQueue()
         {
-            var title = Tap(_lower.transform, "QueueTitle", 0.012f, 0.845f, 0.45f, 0.88f, () => { _queueOpen = !_queueOpen; _nextRefresh = 0; },
+            var title = Tap(_lower.transform, "QueueTitle", 0.012f, 0.875f, 0.45f, 0.91f, () => { _queueOpen = !_queueOpen; _nextRefresh = 0; },
                 new Color(0.02f, 0.05f, 0.08f, 0.8f));
+            Skinned(title.GetComponent<Image>(), "pill");
             _queueTitle = Outlined(UiKit.Label("Text", title, string.Empty, 28, UiKit.Text, TextAnchor.MiddleLeft, FontStyle.Bold));
             _queueTitle.rectTransform.Place(0.04f, 0, 0.98f, 1);
 
-            _queue = UiKit.Rect("Queue", _lower.transform).Place(0.012f, 0.6f, 0.45f, 0.84f);
+            _queue = UiKit.Rect("Queue", _lower.transform).Place(0.012f, 0.63f, 0.45f, 0.87f);
         }
 
         private void BuildTask()
@@ -222,6 +224,7 @@ namespace Hadal.UI.Hud
                 else if (_taskBuilding.Length > 0)
                     _actions.Building?.Invoke(_taskBuilding);
             }, new Color(0.02f, 0.05f, 0.08f, 0.75f));
+            Skinned(strip.GetComponent<Image>(), "pill");
             HudIcons.Image(strip, "quest", 0.0f, 0.0f, 0.16f, 1f);
             _task = Outlined(UiKit.Label("Text", strip, string.Empty, 26, UiKit.Text, TextAnchor.MiddleLeft));
             _task.rectTransform.Place(0.17f, 0, 0.99f, 1);
@@ -229,19 +232,28 @@ namespace Hadal.UI.Hud
 
         private void BuildBottomBar()
         {
-            var bar = UiKit.Box("BottomBar", _lower.transform, new Color(0.02f, 0.06f, 0.09f, 0.94f));
-            bar.rectTransform.Place(0, 0, 1, 0.115f);
-            var line = UiKit.Box("TopLine", bar.transform, new Color(UiKit.Accent.r, UiKit.Accent.g, UiKit.Accent.b, 0.5f));
-            line.rectTransform.Place(0, 0.97f, 1, 1);
-            line.raycastTarget = false;
+            // A navy bar; Heroes and Territory are buttons the chat panel's height either side of it.
+            var bar = Skinned(UiKit.Box("BottomBar", _lower.transform, new Color(0.02f, 0.06f, 0.09f, 0.94f)), "tab_off");
+            bar.rectTransform.Place(0, 0, 1, 0.1f);
+            bar.rectTransform.offsetMin = new Vector2(-30, -30);
+            bar.rectTransform.offsetMax = new Vector2(30, 0);
+            var content = UiKit.Rect("Content", bar.transform).Place(0, 0, 1, 1);
+            content.offsetMin = new Vector2(30, 30);
+            content.offsetMax = new Vector2(-30, 0);
+            var rule = UiKit.Box("Brass", bar.transform, new Color(0.84f, 0.65f, 0.29f, 1f));
+            rule.rectTransform.Place(0, 1, 1, 1);
+            rule.rectTransform.offsetMin = new Vector2(0, -5);
+            rule.sprite = null;
+            rule.raycastTarget = false;
 
-            var heroes = Tap(bar.transform, "Heroes", 0, 0, 0.24f, 1.18f, _actions.Heroes, new Color(0.06f, 0.20f, 0.30f, 1f));
-            Frame(heroes, UiKit.Accent);
-            HudIcons.Image(heroes, "nav_heroes", 0.1f, 0.3f, 0.9f, 1.0f);
-            Outlined(UiKit.Label("Label", heroes, Loc.T("hud.heroes"), 30, Color.white, TextAnchor.MiddleCenter, FontStyle.Bold)).rectTransform.Place(0, 0.02f, 1, 0.3f);
+            var heroes = Tap(content, "Heroes", 0.012f, 0.1f, 0.2f, 0.88f, _actions.Heroes, new Color(0.06f, 0.20f, 0.30f, 1f));
+            Skinned(heroes.GetComponent<Image>(), "btn_navy");
+            HudIcons.Image(heroes, "nav_heroes", 0.15f, 0.36f, 0.85f, 1.02f);
+            Outlined(UiKit.Label("Label", heroes, Loc.T("hud.heroes"), 26, Color.white, TextAnchor.MiddleCenter, FontStyle.Bold)).rectTransform.Place(0, 0.1f, 1, 0.38f);
             _heroDot = Dot(heroes);
 
-            var chat = Tap(bar.transform, "Chat", 0.245f, 0.04f, 0.755f, 0.94f, _actions.Chat, new Color(0, 0, 0, 0.35f));
+            var chat = Tap(content, "Chat", 0.21f, 0.1f, 0.79f, 0.88f, _actions.Chat, new Color(0, 0, 0, 0.35f));
+            Skinned(chat.GetComponent<Image>(), "pill");
             _chatPreview = UiKit.Label("Lines", chat, string.Empty, 24, UiKit.Text, TextAnchor.MiddleLeft);
             _chatPreview.rectTransform.Place(0.03f, 0.03f, 0.97f, 0.97f);
             _chatPreview.horizontalOverflow = HorizontalWrapMode.Overflow;
@@ -249,11 +261,11 @@ namespace Hadal.UI.Hud
             _chatDot = Dot(chat);
 
             // Territory goes out to the world map; on the map the same button brings you home.
-            var territory = Tap(bar.transform, "Territory", 0.76f, 0, 1, 1.18f, () => _actions.Territory?.Invoke(), new Color(0.06f, 0.20f, 0.30f, 1f));
-            Frame(territory, UiKit.Accent);
-            _territoryIcon = HudIcons.Image(territory, "nav_world", 0.1f, 0.3f, 0.9f, 1.0f);
-            _territoryLabel = Outlined(UiKit.Label("Label", territory, Loc.T("hud.territory"), 30, Color.white, TextAnchor.MiddleCenter, FontStyle.Bold));
-            _territoryLabel.rectTransform.Place(0, 0.02f, 1, 0.3f);
+            var territory = Tap(content, "Territory", 0.8f, 0.1f, 0.988f, 0.88f, () => _actions.Territory?.Invoke(), new Color(0.06f, 0.20f, 0.30f, 1f));
+            Skinned(territory.GetComponent<Image>(), "btn_navy");
+            _territoryIcon = HudIcons.Image(territory, "nav_world", 0.15f, 0.36f, 0.85f, 1.02f);
+            _territoryLabel = Outlined(UiKit.Label("Label", territory, Loc.T("hud.territory"), 26, Color.white, TextAnchor.MiddleCenter, FontStyle.Bold));
+            _territoryLabel.rectTransform.Place(0, 0.1f, 1, 0.38f);
         }
 
         // --- Widgets -------------------------------------------------------------------------
@@ -314,6 +326,18 @@ namespace Hadal.UI.Hud
             dot.raycastTarget = false;
             dot.gameObject.SetActive(false);
             return dot.gameObject;
+        }
+
+        /// <summary>Puts a skin sprite (art/ui/make_skin.py) on a HUD box; without the skin it keeps its flat colour.</summary>
+        private static Image Skinned(Image image, string sprite)
+        {
+            var skin = Skin.Get(sprite);
+            if (skin == null)
+                return image;
+            image.sprite = skin;
+            image.type = Image.Type.Sliced;
+            image.color = sprite == "pill" ? new Color(1f, 1f, 1f, 0.92f) : Color.white;
+            return image;
         }
 
         private static void Frame(Transform parent, Color color)
@@ -449,6 +473,7 @@ namespace Hadal.UI.Hud
                     else
                         _actions.Research?.Invoke();
                 }, new Color(0.03f, 0.10f, 0.14f, 0.85f));
+                Skinned(rect.GetComponent<Image>(), "pill");
                 HudIcons.Image(rect, row.Icon, 0.01f, 0.05f, 0.17f, 0.95f);
                 Outlined(UiKit.Label("Name", rect, row.Text, 22, UiKit.Text, TextAnchor.MiddleLeft)).rectTransform.Place(0.19f, 0.45f, 0.99f, 1f);
                 Outlined(UiKit.Label("Time", rect, Loc.Duration(row.Left), 24, row.Left <= _catalog.Progression.freeFinishSeconds ? UiKit.Accent : UiKit.Amber,
@@ -555,7 +580,6 @@ namespace Hadal.UI.Hud
 
             var card = UiKit.Box("Card", dim.transform, UiKit.Panel);
             card.rectTransform.Place(0.1f, 0.38f, 0.9f, 0.62f);
-            Frame(card.transform, UiKit.Accent);
             HudIcons.Image(card.transform, icon, 0.04f, 0.62f, 0.22f, 0.95f);
             UiKit.Label("Title", card.transform, title, 44, UiKit.Accent, TextAnchor.MiddleLeft, FontStyle.Bold).rectTransform.Place(0.25f, 0.68f, 0.96f, 0.95f);
             UiKit.Label("Body", card.transform, body, 32, UiKit.Text, TextAnchor.UpperLeft).rectTransform.Place(0.06f, 0.06f, 0.94f, 0.62f);

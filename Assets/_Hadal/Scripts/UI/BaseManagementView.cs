@@ -114,10 +114,11 @@ namespace Hadal.UI
             _sheet = sheetImage.gameObject.AddComponent<CanvasGroup>();
             sheetImage.gameObject.AddComponent<PopIn>().Slide = true;
 
-            _title = UiKit.Label("Title", sheetImage.transform, string.Empty, 52, UiKit.Accent, TextAnchor.MiddleLeft, FontStyle.Bold);
-            _title.rectTransform.Place(0.05f, 0.88f, 0.8f, 0.98f);
+            UiKit.TitleBar(sheetImage.transform, 0.87f);
+            _title = UiKit.Stroked(UiKit.Label("Title", sheetImage.transform, string.Empty, 48, UiKit.Accent, TextAnchor.MiddleLeft, FontStyle.Bold));
+            _title.rectTransform.Place(0.05f, 0.885f, 0.8f, 0.985f);
             _subtitle = UiKit.Label("Subtitle", sheetImage.transform, string.Empty, 32, UiKit.Muted);
-            _subtitle.rectTransform.Place(0.05f, 0.81f, 0.95f, 0.88f);
+            _subtitle.rectTransform.Place(0.05f, 0.8f, 0.95f, 0.865f);
 
             var close = UiKit.Button("Close", sheetImage.transform, "X", Close, UiKit.Field, 40);
             close.GetComponentInChildren<Text>().color = UiKit.Text;

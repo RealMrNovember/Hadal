@@ -100,16 +100,18 @@ namespace Hadal.UI
 
             var safe = UiKit.Rect("Safe", _canvas.transform).Place(0, 0, 1, 1);
             safe.gameObject.AddComponent<Hud.SafeArea>();
-            var sheetImage = UiKit.Box("Sheet", safe, UiKit.Panel);
-            sheetImage.rectTransform.Place(0.01f, 0.005f, 0.99f, 0.89f);
+            // The sheet reaches up to the HUD header, which sits at the very top of the screen.
+            var sheetImage = UiKit.Box("Sheet", _canvas.transform, UiKit.Panel);
+            sheetImage.rectTransform.Place(0.01f, 0.005f, 0.99f, 0.905f);
             _sheet = sheetImage.gameObject;
             _sheet.AddComponent<CanvasGroup>();
             _sheet.AddComponent<PopIn>().From = 0.94f;
 
-            _title = UiKit.Label("Title", sheetImage.transform, string.Empty, 52, UiKit.Accent, TextAnchor.MiddleLeft, FontStyle.Bold);
-            _title.rectTransform.Place(0.05f, 0.93f, 0.8f, 0.99f);
+            UiKit.TitleBar(sheetImage.transform, 0.928f);
+            _title = UiKit.Stroked(UiKit.Label("Title", sheetImage.transform, string.Empty, 48, UiKit.Accent, TextAnchor.MiddleLeft, FontStyle.Bold));
+            _title.rectTransform.Place(0.05f, 0.936f, 0.8f, 0.992f);
             _subtitle = UiKit.Label("Subtitle", sheetImage.transform, string.Empty, 30, UiKit.Muted);
-            _subtitle.rectTransform.Place(0.05f, 0.885f, 0.95f, 0.93f);
+            _subtitle.rectTransform.Place(0.05f, 0.882f, 0.95f, 0.925f);
 
             var close = UiKit.Button("Close", sheetImage.transform, "X", Close, UiKit.Field, 40);
             close.GetComponentInChildren<Text>().color = UiKit.Text;
@@ -155,7 +157,7 @@ namespace Hadal.UI
 
         public void Close()
         {
-            _title.color = UiKit.Accent;
+            _title.color = Color.white;
             _stage?.Hide();
             _sheet.SetActive(false);
             _footer.gameObject.SetActive(false);

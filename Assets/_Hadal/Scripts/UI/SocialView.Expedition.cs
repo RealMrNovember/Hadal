@@ -48,7 +48,7 @@ namespace Hadal.UI
                 var open = reactor >= chapter.reactor && chapter.chapter <= current;
                 var done = Mathf.Clamp(state.Cleared - (chapter.chapter - 1) * expedition.stages, 0, expedition.stages);
                 var card = Card(130);
-                card.color = chapter.chapter == _chapter ? new Color(0.05f, 0.22f, 0.3f, 1f) : UiKit.Field;
+                card.color = chapter.chapter == _chapter ? new Color(0.62f, 0.8f, 1f, 1f) : Color.white;
                 CardText(card.transform, Loc.F("exp.chapter", chapter.chapter, Loc.T("exp.ch." + chapter.id)), 34,
                     open ? UiKit.Text : UiKit.Muted, 0.04f, 0.5f, 0.75f, 0.95f, TextAnchor.MiddleLeft, FontStyle.Bold);
                 var status = reactor < chapter.reactor ? Loc.F("exp.locked.reactor", chapter.reactor)
@@ -104,7 +104,7 @@ namespace Hadal.UI
             var dive = _dive ?? new DiveReportDto();
             var chapter = ExpeditionRules.Chapter(_catalog.Expedition, dive.Chapter);
             _title.text = dive.Won ? Loc.T("exp.won") : Loc.T("exp.lost");
-            _title.color = dive.Won ? UiKit.Accent : UiKit.Danger;
+            _title.color = dive.Won ? Color.white : UiKit.Danger;
             _subtitle.text = chapter == null ? string.Empty
                 : $"{Loc.F("exp.chapter", dive.Chapter, Loc.T("exp.ch." + chapter.id))} · " +
                   (ExpeditionRules.IsBoss(_catalog.Expedition, dive.Stage) ? Loc.T("exp.boss") : Loc.F("exp.stage", dive.Stage));
@@ -136,7 +136,7 @@ namespace Hadal.UI
             var done = Card(110);
             CardButton(done.transform, Loc.T("hero.pod.done"), true, () =>
             {
-                _title.color = UiKit.Accent;
+                _title.color = Color.white;
                 Open(Page.Expedition);
             }, null, 0.25f, 0.1f, 0.75f, 0.9f);
         }

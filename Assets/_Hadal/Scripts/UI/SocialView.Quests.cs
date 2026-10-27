@@ -251,15 +251,18 @@ namespace Hadal.UI
             return _catalog.TryGetItem(id, out var item) && item.kind == "heroCard" ? 3 : 0;
         }
 
-        /// <summary>Frame colour: rarity for items, package size for resources (green, blue, purple, orange).</summary>
+        /// <summary>Frame tone: rarity for items, package size for resources (common, rare, epic, legendary).</summary>
+        private string BagTone(string id)
+        {
+            if (Capsules.TryParse(id, out _, out var amount))
+                return amount >= 1_000_000 ? "legendary" : amount >= 100_000 ? "epic" : amount >= 10_000 ? "rare" : "common";
+            return _catalog.TryGetItem(id, out var item) && !string.IsNullOrEmpty(item.rarity) ? item.rarity : "common";
+        }
+
+        /// <summary>Frame colour for the tone (green, blue, purple, orange), when the skin is missing.</summary>
         private Color BagFrame(string id)
         {
-            string tone;
-            if (Capsules.TryParse(id, out _, out var amount))
-                tone = amount >= 1_000_000 ? "legendary" : amount >= 100_000 ? "epic" : amount >= 10_000 ? "rare" : "common";
-            else
-                tone = _catalog.TryGetItem(id, out var item) ? item.rarity : "common";
-            return tone switch
+            return BagTone(id) switch
             {
                 "legendary" => new Color(0.91f, 0.55f, 0.16f, 1f),
                 "epic" => new Color(0.6f, 0.33f, 0.86f, 1f),
@@ -273,6 +276,12 @@ namespace Hadal.UI
             var chosen = id == _bagSelected;
             var frame = UiKit.Box("Tile", row, BagFrame(id));
             frame.rectTransform.Place(x0, 0.04f, x1, 0.96f);
+            var slot = Skin.Get("slot_" + BagTone(id));
+            if (slot != null)
+            {
+                frame.sprite = slot;
+                frame.color = Color.white;
+            }
             if (chosen)
             {
                 var outline = frame.gameObject.AddComponent<Outline>();
@@ -281,9 +290,13 @@ namespace Hadal.UI
             }
 
             // A soft inner shade and the icon in the middle, Last Asylum's card look.
-            var inner = UiKit.Box("Inner", frame.transform, new Color(1f, 1f, 1f, 0.12f));
-            inner.rectTransform.Place(0.06f, 0.06f, 0.94f, 0.94f);
-            inner.raycastTarget = false;
+            if (slot == null)
+            {
+                var inner = UiKit.Box("Inner", frame.transform, new Color(1f, 1f, 1f, 0.12f));
+                inner.rectTransform.Place(0.06f, 0.06f, 0.94f, 0.94f);
+                inner.raycastTarget = false;
+            }
+
             _catalog.TryGetItem(id, out var item);
             HudIconImage(frame.transform, QuestText.ItemIcon(id, item?.kind), 0.18f, 0.16f, 0.82f, 0.8f);
             var top = Capsules.TryParse(id, out _, out var amount) ? CostChips.Compact(amount)
