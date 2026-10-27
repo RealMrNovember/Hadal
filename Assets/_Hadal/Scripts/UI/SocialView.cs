@@ -229,7 +229,7 @@ namespace Hadal.UI
         {
             Page.Heroes or Page.HeroDetail => $"{_page}|{_heroId}|{HeroesKey()}|{View.QuestVersion}",
             Page.Alliance => $"{_page}|{View.AllianceVersion}|{_confirmLeave}|{_allianceTab}",
-            Page.Chat => $"{_page}|{View.ChatVersion}|{_chatChannel}|{_chatPeer}",
+            Page.Chat => $"{_page}|{View.ChatVersion}|{_chatChannel}|{_chatPeer}|{View.ProfileVersion}",
             Page.Quests or Page.Bag => $"{_page}|{QuestKey()}",
             Page.Expedition => $"{_page}|{ExpeditionKey()}",
             _ => _page.ToString()

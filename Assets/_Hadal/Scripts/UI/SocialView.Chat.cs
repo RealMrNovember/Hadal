@@ -123,10 +123,11 @@ namespace Hadal.UI
             var name = line.SenderName ?? string.Empty;
             var avatar = UiKit.Rect("Avatar", row);
             avatar.Place(mine ? 0.87f : 0.01f, Mathf.Max(0f, 1f - 100f / (96 + 40 * lines)), mine ? 0.99f : 0.13f, 1f);
-            AvatarDisc.Draw(avatar, line.SenderAvatar, name, line.SenderId, mine ? new Color(0.13f, 0.52f, 0.86f, 1f) : null);
+            // My own lines show the face I have now, not the one sent with older lines.
+            var senderAvatar = mine ? View.MyProfile?.AvatarId ?? string.Empty : line.SenderAvatar;
+            AvatarDisc.Draw(avatar, senderAvatar, name, line.SenderId, mine ? new Color(0.13f, 0.52f, 0.86f, 1f) : null);
             avatar.gameObject.AddComponent<Image>().color = new Color(0, 0, 0, 0);
             var senderId = line.SenderId;
-            var senderAvatar = line.SenderAvatar;
             avatar.gameObject.AddComponent<Button>().onClick.AddListener(() => ProfileCard.Instance?.Show(senderId, name, senderAvatar));
             avatar.gameObject.AddComponent<PressFeedback>();
 
