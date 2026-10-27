@@ -212,6 +212,7 @@ namespace Hadal.UI
             ((RectTransform)home.transform).Place(0.54f, 0.19f, 0.8f, 0.23f);
 
             BuildMarches(safe);
+            BuildSearch(safe);
             BuildHomeArrow();
 
             // Base details open above the HUD.
@@ -276,6 +277,7 @@ namespace Hadal.UI
             }
 
             ApplyNodes(view);
+            ApplyMonsters(view);
         }
 
         private GameObject BuildBase(WorldBaseDto b)
@@ -426,6 +428,8 @@ namespace Hadal.UI
             ScatterDecor();
             UpdatePlates();
             UpdateNodePlates();
+            UpdateMonsterPlates();
+            UpdateSonar();
             UpdateMarches();
 
             var tile = WorldToTile(_focus);

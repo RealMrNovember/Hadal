@@ -213,6 +213,13 @@ namespace Hadal.Core.StateSync
                 return true;
             }
 
+            if (id.StartsWith(EntityIds.BattleReport, StringComparison.Ordinal))
+            {
+                if (TryDeserializePayload(change.Payload, serialization, out BattleReportDto battle))
+                    view.AddBattleReport(battle);
+                return true;
+            }
+
             if (id.StartsWith(EntityIds.RewardReport, StringComparison.Ordinal))
             {
                 if (TryDeserializePayload(change.Payload, serialization, out RewardReportDto report))

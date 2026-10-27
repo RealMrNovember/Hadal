@@ -164,6 +164,7 @@ namespace Hadal.UI
             var speedups = new GameObject("SpeedupWindow");
             speedups.transform.SetParent(transform, false);
             speedups.AddComponent<SpeedupWindow>().Initialize(_stateSync, _commands, _localBus);
+            speedups.AddComponent<BattleReportWindow>().Initialize(_stateSync);
 
             // Profile cards over every screen: from chat faces, member lists and bases on the map.
             var profile = new GameObject("ProfileCard");

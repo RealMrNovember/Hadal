@@ -46,7 +46,7 @@ namespace Hadal.UI
 
         private void OnCommandResolved(CommandResolvedEvent result)
         {
-            if (result.Type is not (CommandType.MarchGather or CommandType.RecallMarch or CommandType.InviteToAlliance))
+            if (result.Type is not (CommandType.MarchGather or CommandType.RecallMarch or CommandType.InviteToAlliance or CommandType.MarchAttack))
                 return;
             if (result.Result == CommandResultCode.Rejected)
             {
@@ -57,6 +57,7 @@ namespace Hadal.UI
             _toast?.Invoke(Loc.T(result.Type switch
             {
                 CommandType.MarchGather => "world.march.sent",
+                CommandType.MarchAttack => "world.attack.sent",
                 CommandType.RecallMarch => "world.march.recalled",
                 _ => "alliance.invited"
             }), UiKit.Accent);
@@ -247,7 +248,10 @@ namespace Hadal.UI
         /// The genre's march setup (Last Asylum): up to five heroes, each leading their command of troops from home; the
         /// troop count under every portrait, the team's load, trip and gathering time, then send.
         /// </summary>
-        private void OpenMarchSetup(WorldNodeDto n, List<string> team = null)
+        /// <summary>The same setup in attack mode: the swarm's power against the team's, the Sonar it costs.</summary>
+        private void OpenAttackSetup(WorldMonsterDto monster) => OpenMarchSetup(null, null, monster);
+
+        private void OpenMarchSetup(WorldNodeDto n, List<string> team = null, WorldMonsterDto monster = null)
         {
             var fresh = team == null;
             ClosePopup();
@@ -305,7 +309,7 @@ namespace Hadal.UI
             var header = UiKit.Box("Header", card.transform, new Color(0.05f, 0.16f, 0.22f, 1f));
             header.rectTransform.Place(0, 0.91f, 1, 1);
             UiKit.Label("Title", header.transform, Loc.T("march.setup"), 42, UiKit.Text, TextAnchor.MiddleLeft, FontStyle.Bold).rectTransform.Place(0.05f, 0.45f, 0.8f, 1f);
-            UiKit.Label("Target", header.transform, $"{Loc.F("base.level", n.Level)}  {NodeName(n.Type)}", 28, UiKit.Accent, TextAnchor.MiddleLeft, FontStyle.Bold)
+            UiKit.Label("Target", header.transform, monster != null ? $"{Loc.F("base.level", monster.Level)}  {MonsterName(monster.Type)}" : $"{Loc.F("base.level", n.Level)}  {NodeName(n.Type)}", 28, UiKit.Accent, TextAnchor.MiddleLeft, FontStyle.Bold)
                 .rectTransform.Place(0.05f, 0.02f, 0.8f, 0.5f);
             var close = UiKit.Button("Close", header.transform, "X", ClosePopup, UiKit.Field, 40);
             close.GetComponentInChildren<Text>().color = UiKit.Text;
@@ -334,7 +338,7 @@ namespace Hadal.UI
                 seat.gameObject.AddComponent<Button>().onClick.AddListener(() =>
                 {
                     var next = _setupTeam.Where(id => id != drop).ToList();
-                    OpenMarchSetup(n, next);
+                    OpenMarchSetup(n, next, monster);
                 });
             }
 
@@ -346,16 +350,31 @@ namespace Hadal.UI
             UiKit.Label("Text", bar.transform, Loc.F("march.troops", troopCount.ToString("N0"), capacity.ToString("N0")), 22, Color.white, TextAnchor.MiddleCenter, FontStyle.Bold)
                 .rectTransform.Place(0, 0, 1, 1);
 
-            // Load, trip and gathering time for this team.
-            var rates = GatherRules.Rates(world, catalog.Gather, n.Type, n.Level, reactor);
-            var load = Math.Min(TroopRules.MarchLoad(troops, aboard), n.Remaining);
+            // Load, trip and gathering time for this team; in attack mode the two powers and the Sonar cost.
             var speed = TroopRules.MarchSpeed(troops, aboard.Keys);
-            var trip = view == null ? 0 : (int)Math.Ceiling(GatherRules.TravelSeconds(world, view.MyX, view.MyY, n.X, n.Y) * 100.0 / speed);
+            var tx = monster?.X ?? n.X;
+            var ty = monster?.Y ?? n.Y;
+            var trip = view == null ? 0 : (int)Math.Ceiling(GatherRules.TravelSeconds(world, view.MyX, view.MyY, tx, ty) * 100.0 / speed);
             var info = UiKit.Box("Info", card.transform, new Color(0.04f, 0.11f, 0.15f, 1f));
             info.rectTransform.Place(0.04f, 0.53f, 0.96f, 0.645f);
-            var text = troopCount <= 0
-                ? $"<color=#FF8A80>{Loc.T("march.notroops")}</color>"
-                : $"{Loc.F("march.load", CostChips.Compact(load))}\n{Loc.F("march.trip", Loc.Duration(trip), Loc.Duration(GatherRules.GatherSeconds(world, rates, load)))}";
+            string text;
+            var sonarShort = false;
+            if (troopCount <= 0)
+                text = $"<color=#FF8A80>{Loc.T("march.notroops")}</color>";
+            else if (monster != null)
+            {
+                var cost = MonsterRules.Kind(monster.Type)?.Sonar ?? 40;
+                sonarShort = SonarNow() < cost;
+                var mine = TroopRules.Power(troops, aboard);
+                text = $"{Loc.F("march.vs", mine.ToString("N0"), monster.Power.ToString("N0"))}\n" +
+                       $"<color={(sonarShort ? "#FF8A80" : "#8CD9FF")}>⚡ {cost} ({SonarNow()})</color>   {Loc.F("world.monster.trip", Loc.Duration(trip))}";
+            }
+            else
+            {
+                var rates = GatherRules.Rates(world, catalog.Gather, n.Type, n.Level, reactor);
+                var load = Math.Min(TroopRules.MarchLoad(troops, aboard), n.Remaining);
+                text = $"{Loc.F("march.load", CostChips.Compact(load))}\n{Loc.F("march.trip", Loc.Duration(trip), Loc.Duration(GatherRules.GatherSeconds(world, rates, load)))}";
+            }
             UiKit.Label("Text", info.transform, text, 28, UiKit.Text, TextAnchor.MiddleLeft).rectTransform.Place(0.04f, 0.05f, 0.96f, 0.95f);
 
             // Every hero: tap to put in or take out (at most five); heroes already out are dimmed.
@@ -384,19 +403,22 @@ namespace Hadal.UI
                             next.Remove(pick);
                         else if (next.Count < maxHeroes)
                             next.Add(pick);
-                        OpenMarchSetup(n, next);
+                        OpenMarchSetup(n, next, monster);
                     });
             }
 
             if (heroes.Count == 0)
                 UiKit.Label("None", card.transform, Loc.T("march.noheroes"), 28, UiKit.Muted, TextAnchor.MiddleCenter).rectTransform.Place(0.05f, 0.2f, 0.95f, 0.45f);
 
-            var can = _setupTeam.Count > 0 && troopCount > 0;
-            var go = UiKit.Button("Go", card.transform, Loc.T("march.go"), () =>
+            var can = _setupTeam.Count > 0 && troopCount > 0 && !sonarShort;
+            var go = UiKit.Button("Go", card.transform, monster != null ? Loc.T("world.attack") : Loc.T("march.go"), () =>
             {
-                Gather(n.Id, _setupTeam.ToArray());
+                if (monster != null)
+                    Attack(monster.Id, _setupTeam.ToArray());
+                else
+                    Gather(n.Id, _setupTeam.ToArray());
                 ClosePopup();
-            }, can ? UiKit.Ok : UiKit.Panel, 40);
+            }, can ? (monster != null ? new Color(0.86f, 0.3f, 0.27f, 1f) : UiKit.Ok) : UiKit.Panel, 40);
             go.interactable = can;
             ((RectTransform)go.transform).Place(0.2f, 0.02f, 0.8f, 0.12f);
         }

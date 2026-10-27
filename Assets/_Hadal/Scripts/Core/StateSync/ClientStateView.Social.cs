@@ -139,6 +139,16 @@ namespace Hadal.Core.StateSync
 
         public bool TryTakeRewardReport(out RewardReportDto report) => _rewardReports.TryDequeue(out report);
 
+        private readonly Queue<BattleReportDto> _battleReports = new();
+
+        public bool TryTakeBattleReport(out BattleReportDto report) => _battleReports.TryDequeue(out report);
+
+        public void AddBattleReport(BattleReportDto report)
+        {
+            if (report != null)
+                _battleReports.Enqueue(report);
+        }
+
         public void AddRewardReport(RewardReportDto report)
         {
             if (report != null)
