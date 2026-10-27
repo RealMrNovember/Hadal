@@ -211,6 +211,8 @@ namespace Hadal.UI
                 Bag = () => { Close(); _social.OpenBag(); },
                 Expedition = () => { Close(); _map.Close(); _social.OpenExpedition(); },
                 Events = () => { Close(); _social.OpenEvents(); },
+                Vip = () => { Close(); _social.OpenVip(); },
+                Shop = () => { Close(); _social.OpenShop(); },
                 ClaimQuest = id => _social.ClaimQuest(id),
                 Building = key => { _social.Close(); _map.Close(); OpenBuilding(key); },
                 Toast = Toast,

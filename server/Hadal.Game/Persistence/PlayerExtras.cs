@@ -23,7 +23,9 @@ namespace Hadal.Game.Persistence
             List<MarchDoc>? Marches = null, int ExpeditionCleared = 0, string? Avatar = null,
             Dictionary<string, long>? Troops = null, List<TrainingDoc>? Training = null,
             Dictionary<string, long>? Wounded = null, HealDoc? Healing = null,
-            double? Sonar = null, DateTimeOffset? SonarAt = null, List<int>? MonsterWins = null);
+            double? Sonar = null, DateTimeOffset? SonarAt = null, List<int>? MonsterWins = null, VipDoc? Vip = null);
+
+        private sealed record VipDoc(long Points, int Streak, long LoginDay, long ChestDay);
 
         private sealed record HealDoc(Dictionary<string, long>? Troops, DateTimeOffset StartedAt, DateTimeOffset EndsAt, Dictionary<string, long>? Cost);
 
@@ -79,7 +81,8 @@ namespace Hadal.Game.Persistence
                 new Dictionary<string, long>(state.Wounded),
                 state.Healing == null ? null : new HealDoc(new Dictionary<string, long>(state.Healing.Troops), state.Healing.StartedAt, state.Healing.EndsAt,
                     state.Healing.Cost.ToDictionary(p => p.Key.ToString(), p => p.Value)),
-                state.SonarStored, state.SonarAt, state.MonsterWins.ToList()));
+                state.SonarStored, state.SonarAt, state.MonsterWins.ToList(),
+                new VipDoc(state.VipPoints, state.VipStreak, state.VipLoginDay, state.VipChestDay)));
         }
 
         private static Dictionary<ResourceType, T> Resources<T>(Dictionary<string, T>? map)
@@ -170,6 +173,13 @@ namespace Hadal.Game.Persistence
             }
 
             state.MonsterWins.UnionWith(doc.MonsterWins ?? new List<int>());
+            if (doc.Vip is { } vip)
+            {
+                state.VipPoints = vip.Points;
+                state.VipStreak = vip.Streak;
+                state.VipLoginDay = vip.LoginDay;
+                state.VipChestDay = vip.ChestDay;
+            }
             foreach (var pair in doc.Wounded ?? new Dictionary<string, long>())
                 state.Wounded[pair.Key] = pair.Value;
             if (doc.Healing is { } heal)

@@ -46,6 +46,9 @@ namespace HADAL.Shared.DTOs
         /// <summary>Troops and training; null from older servers.</summary>
         [ProtoMember(14)] public ArmyDto? Army { get; set; }
 
+        /// <summary>VIP standing (VipRules).</summary>
+        [ProtoMember(15)] public VipStateDto? Vip { get; set; }
+
         [ProtoBeforeSerialization]
         private void BeforeSerialize() => BuildingsWire = Buildings?.ToArray() ?? System.Array.Empty<BuildingStateDto>();
 

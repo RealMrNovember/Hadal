@@ -36,7 +36,9 @@ namespace Hadal.UI
             Expedition,
             DiveResult,
             Events,
-            EventRanking
+            EventRanking,
+            Vip,
+            Shop
         }
 
         private static readonly CommandType[] OwnCommands =
@@ -46,7 +48,8 @@ namespace Hadal.UI
             CommandType.KickMember, CommandType.RequestHelp, CommandType.HelpAll,
             CommandType.ClaimQuest, CommandType.ClaimDailyChest, CommandType.OpenItem, CommandType.RecruitHero,
             CommandType.DiveStage, CommandType.SetMemberRank, CommandType.TransferLeadership, CommandType.SetAllianceSettings,
-            CommandType.AnswerInvite, CommandType.AnswerApplication, CommandType.ClaimEventStage, CommandType.ClaimEventRank
+            CommandType.AnswerInvite, CommandType.AnswerApplication, CommandType.ClaimEventStage, CommandType.ClaimEventRank,
+            CommandType.ClaimVipLogin, CommandType.ClaimVipChest
         };
 
         private IStateSyncService _stateSync;
@@ -214,6 +217,8 @@ namespace Hadal.UI
                 // Event rewards return to the event page when the player taps Done.
                 if (_page is Page.Events or Page.EventRanking)
                     _afterReward = Page.Events;
+                else if (_page is Page.Vip)
+                    _afterReward = Page.Vip;
                 _reward = report;
                 Open(Page.Reward);
             }
@@ -242,6 +247,7 @@ namespace Hadal.UI
             Page.Quests or Page.Bag => $"{_page}|{QuestKey()}",
             Page.Expedition => $"{_page}|{ExpeditionKey()}",
             Page.Events or Page.EventRanking => $"{_page}|{EventsKey()}",
+            Page.Vip or Page.Shop => $"{_page}|{VipKey()}",
             _ => _page.ToString()
         };
 
@@ -302,6 +308,8 @@ namespace Hadal.UI
                 case Page.DiveResult: RenderDiveResult(); break;
                 case Page.Events: RenderEvents(); break;
                 case Page.EventRanking: RenderEventRanking(); break;
+                case Page.Vip: RenderVip(); break;
+                case Page.Shop: RenderShop(); break;
             }
 
             if (_page == Page.Chat && atBottom)

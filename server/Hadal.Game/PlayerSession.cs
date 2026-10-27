@@ -214,6 +214,14 @@ namespace Hadal.Game
                         UseSpeedup(speedup!, now);
                         break;
 
+                    case CommandType.ClaimVipLogin when TryDeserialize(envelope.Payload, out ClaimVipLoginCommand? vipLogin):
+                        ClaimVipLogin(vipLogin!, now);
+                        break;
+
+                    case CommandType.ClaimVipChest when TryDeserialize(envelope.Payload, out ClaimVipChestCommand? vipChest):
+                        ClaimVipChest(vipChest!, now);
+                        break;
+
                     case CommandType.HealTroops when TryDeserialize(envelope.Payload, out HealTroopsCommand? heal):
                         HealTroops(heal!, now);
                         break;
@@ -237,7 +245,8 @@ namespace Hadal.Game
                             or CommandType.LevelUpHero or CommandType.PromoteHero or CommandType.AssignHero
                             or CommandType.ClaimQuest or CommandType.ClaimDailyChest or CommandType.OpenItem or CommandType.RecruitHero
                             or CommandType.DiveStage or CommandType.SetProfile or CommandType.TrainTroops or CommandType.CancelTraining
-                            or CommandType.HealTroops or CommandType.CancelHeal or CommandType.UseSpeedup;
+                            or CommandType.HealTroops or CommandType.CancelHeal or CommandType.UseSpeedup
+                            or CommandType.ClaimVipLogin or CommandType.ClaimVipChest;
                         Reject(envelope.CommandId, envelope.ClientSequence, known ? "MalformedCommand" : "NotSupported", now);
                         break;
                 }
@@ -962,6 +971,7 @@ namespace Hadal.Game
         {
             var modifiers = ResearchRules.Modifiers(_catalog, _state.ResearchLevels);
             HeroRules.AddCrew(_catalog, modifiers, Crew());
+            VipRules.Apply(modifiers, VipLevel);
             _modifiers = modifiers;
         }
 
@@ -1055,7 +1065,8 @@ namespace Hadal.Game
                 Marches = MarchListDto(now),
                 Expedition = ExpeditionDto(),
                 Profile = new PlayerProfileDto { PlayerId = PublicId, Name = _displayName, AvatarId = _state.AvatarId },
-                Army = ArmyDto()
+                Army = ArmyDto(),
+                Vip = VipDto(now)
             };
             _questsDirty = false;
 

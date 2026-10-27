@@ -32,7 +32,8 @@ namespace Hadal.UI
 
         /// <summary>Bag item name; resource capsules read "Titanium Capsule · 1,500".</summary>
         public static string Item(string id) =>
-            GiftItems.TryParseHero(id, out var heroId, out var level, out var stars) ? Loc.F("item.herogift", Hero(heroId), level, stars)
+            VipRules.TryParseItem(id, out var vipPoints) ? Loc.F("item.vip", vipPoints.ToString("N0"))
+            : GiftItems.TryParseHero(id, out var heroId, out var level, out var stars) ? Loc.F("item.herogift", Hero(heroId), level, stars)
             : GiftItems.TryParseTroops(id, out var type, out var tier, out var count) ? Loc.F("item.troops", count.ToString("N0"), tier, Loc.T("troop." + type))
             : Capsules.TryParse(id, out var resource, out var amount)
                 ? Loc.F("item.capsule", Loc.Resource(resource.ToString()), amount.ToString("N0"))
@@ -44,7 +45,8 @@ namespace Hadal.UI
         public static string SpeedupAmount(int value, bool percent) => percent ? $"%{value}" : Loc.Duration(value * 60f);
 
         public static string ItemDescription(string id) =>
-            GiftItems.TryParseHero(id, out var heroId, out var level, out var stars)
+            VipRules.TryParseItem(id, out _) ? Loc.T("item.vip.desc")
+            : GiftItems.TryParseHero(id, out var heroId, out var level, out var stars)
                 ? Loc.F("item.herogift.desc", ClientCatalog.Catalog.TryGetHero(heroId, out var hero) ? HeroRules.Power(hero, level, stars).ToString("N0") : "?")
             : GiftItems.TryParseTroops(id, out _, out _, out _) ? Loc.T("item.troops.desc")
             : Capsules.TryParse(id, out _, out _) ? Loc.T("item.capsule.desc")
@@ -53,7 +55,8 @@ namespace Hadal.UI
 
         /// <summary>Icon of a bag item: the resource for capsules, a card stack or a gift otherwise.</summary>
         public static string ItemIcon(string id, string kind) =>
-            GiftItems.TryParseHero(id, out _, out _, out _) ? "nav_heroes"
+            VipRules.TryParseItem(id, out _) ? "vip"
+            : GiftItems.TryParseHero(id, out _, out _, out _) ? "nav_heroes"
             : GiftItems.TryParseTroops(id, out _, out _, out _) ? "event_war"
             : Capsules.TryParse(id, out var resource, out _) ? Hud.HudIcons.Resource(resource)
             : Speedups.TryParse(id, out var speed, out _, out _) ? speed == SpeedupKind.March ? "nav_world" : speed == SpeedupKind.Build ? "queue_build"
@@ -70,6 +73,7 @@ namespace Hadal.UI
             "shards" when string.IsNullOrEmpty(id) => Loc.F("reward.cards.random", Loc.T("rarity." + rarity), amount),
             "shards" => Loc.F("reward.cards", Hero(id), amount),
             "hero" => Loc.F("reward.hero", Hero(id)),
+            "vip" => Loc.F("reward.vip", amount.ToString("N0")),
             "troops" when TroopRules.TryParseKey(id, out var troop, out var troopTier) => Loc.F("reward.troops", amount.ToString("N0"), troopTier, Loc.T("troop." + troop)),
             _ => id
         };
@@ -282,6 +286,8 @@ namespace Hadal.UI
                 return amount >= 1_000_000 ? "legendary" : amount >= 100_000 ? "epic" : amount >= 10_000 ? "rare" : "common";
             if (GiftItems.TryParseHero(id, out var heroId, out _, out _))
                 return _catalog.TryGetHero(heroId, out var hero) ? hero.Rarity.id : "rare";
+            if (VipRules.TryParseItem(id, out var vip))
+                return vip >= 5000 ? "legendary" : vip >= 1000 ? "epic" : vip >= 500 ? "rare" : "common";
             if (GiftItems.TryParseTroops(id, out _, out var tier, out _))
                 return tier >= 9 ? "legendary" : tier >= 7 ? "epic" : tier >= 4 ? "rare" : "common";
             return _catalog.TryGetItem(id, out var item) && !string.IsNullOrEmpty(item.rarity) ? item.rarity : "common";
@@ -332,6 +338,7 @@ namespace Hadal.UI
                 HudIconImage(frame.transform, QuestText.ItemIcon(id, item?.kind), 0.18f, 0.16f, 0.82f, 0.8f);
             var top = GiftItems.TryParseHero(id, out _, out giftLevel, out giftStars) ? Loc.F("item.herogift.short", giftLevel, giftStars)
                 : GiftItems.TryParseTroops(id, out _, out var giftTier, out var giftCount) ? $"T{giftTier} ×{CostChips.Compact(giftCount)}"
+                : VipRules.TryParseItem(id, out var vipTop) ? "VIP " + CostChips.Compact(vipTop)
                 : Capsules.TryParse(id, out _, out var amount) ? CostChips.Compact(amount)
                 : Speedups.TryParse(id, out _, out var minutes, out var percent) ? QuestText.SpeedupAmount(minutes, percent) : null;
             if (top != null)
@@ -489,7 +496,7 @@ namespace Hadal.UI
                     Portrait(card.transform, hero, true, 0.01f, 0.04f, 0.17f, 0.96f);
                 else
                     HudIconImage(card.transform, type == "resource" && GameCatalog.TryParseResource(id, out var resource) ? Hud.HudIcons.Resource(resource)
-                        : type == "item" ? QuestText.ItemIcon(id, string.Empty) : type == "troops" ? "event_war" : "nav_heroes", 0.02f, 0.1f, 0.16f, 0.9f);
+                        : type == "item" ? QuestText.ItemIcon(id, string.Empty) : type == "troops" ? "event_war" : type == "vip" ? "vip" : "nav_heroes", 0.02f, 0.1f, 0.16f, 0.9f);
                 CardText(card.transform, QuestText.Reward(type, id, total), 32, type == "hero" ? UiKit.Amber : UiKit.Text, 0.2f, 0.1f, 0.97f, 0.9f,
                     TextAnchor.MiddleLeft, FontStyle.Bold);
             }

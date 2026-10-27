@@ -55,5 +55,7 @@ namespace HADAL.Shared.Enums
         [ProtoEnum] ClaimEventStage = 47,
         [ProtoEnum] ClaimEventRank = 48,
         [ProtoEnum] ViewEventRanking = 49,
+        [ProtoEnum] ClaimVipLogin = 50,
+        [ProtoEnum] ClaimVipChest = 51,
     }
 }

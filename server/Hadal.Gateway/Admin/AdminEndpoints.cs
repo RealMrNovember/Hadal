@@ -4,6 +4,7 @@ using System.Threading.RateLimiting;
 using Hadal.Game;
 using HADAL.Shared.Auth;
 using HADAL.Shared.Enums;
+using HADAL.Shared.Simulation;
 using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.Extensions.FileProviders;
 
@@ -13,6 +14,7 @@ namespace Hadal.Gateway.Admin
     /// <param name="Packages">True: each resource goes to the bag as a package; false: straight to the wallet (past the cap).</param>
     public sealed record GrantRequest(Dictionary<string, long> Amounts, string Note, bool Packages = false, Dictionary<string, int>? Items = null);
     public sealed record BanRequest(int Hours, string Reason);
+    public sealed record PurchaseRequest(string PackId, string Note);
     public sealed record CouponRequest(string Code, Dictionary<string, long> Rewards, int MaxRedemptions, DateTimeOffset? ExpiresAt, string Note,
         DateTimeOffset? StartsAt = null, string? TargetAccountId = null);
     public sealed record ActiveRequest(bool Active);
@@ -140,7 +142,8 @@ namespace Hadal.Gateway.Admin
                         b.BuildingId, b.DefinitionId, b.Ring, b.Sector, b.Level,
                         constructionEndsAt = b.ConstructionEndsAt
                     }) ?? Enumerable.Empty<object>(),
-                    serverTick = state?.ServerTick ?? 0
+                    serverTick = state?.ServerTick ?? 0,
+                    vip = new { points = state?.VipPoints ?? 0, level = VipRules.Level(state?.VipPoints ?? 0) }
                 });
             }).RequireAdmin(AdminRoles.Viewer);
 
@@ -158,6 +161,23 @@ namespace Hadal.Gateway.Admin
                 await store.AuditAsync(me.Username, "player.grant", id.ToString("N"),
                     $"{(request.Packages ? "[paket] " : string.Empty)}{Describe(amounts)} {string.Join(" ", items.Select(p => $"{p.Key}x{p.Value}"))} {request.Note}".Trim(),
                     AdminAuth.ClientIp(http), ct);
+                return Results.Ok(new { ok = true });
+            }).RequireAdmin(AdminRoles.GameMaster);
+
+            // A shop pack credited by hand (support, tests, until store payments exist): Hadalite plus VIP points.
+            api.MapGet("/store/packs", (AdminPrincipal _) => Results.Ok(StorePacks.All.Select(p => new
+            {
+                id = p.Id, hadalite = p.Hadalite, bonus = p.Bonus, priceCents = p.PriceCents, vipPoints = p.VipPoints
+            }))).RequireAdmin(AdminRoles.Viewer);
+
+            api.MapPost("/players/{id:guid}/purchase", async (AdminPrincipal me, Guid id, PurchaseRequest request,
+                HttpContext http, GameWorld world, IAdminStore store, CancellationToken ct) =>
+            {
+                if (StorePacks.Find(request.PackId ?? string.Empty) == null)
+                    return Results.BadRequest(new { error = "UnknownPack" });
+                if (!await world.CreditPurchaseAsync(id.ToString("N"), request.PackId!, ct))
+                    return Results.NotFound(new { error = "PlayerNotStarted" });
+                await store.AuditAsync(me.Username, "player.purchase", id.ToString("N"), $"{request.PackId} {request.Note}".Trim(), AdminAuth.ClientIp(http), ct);
                 return Results.Ok(new { ok = true });
             }).RequireAdmin(AdminRoles.GameMaster);
 

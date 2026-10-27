@@ -122,7 +122,40 @@ namespace Hadal.Game
         /// False when the player does not exist.
         /// </summary>
         /// <summary>Items the Overseer may send: catalog items (chests, cards), speed-ups, heroes and troop packs.</summary>
-        public bool IsGrantableItem(string id) => _catalog.TryGetItem(id, out _) || Speedups.TryParse(id, out _, out _, out _) || GiftItems.IsValid(_catalog, id);
+        public bool IsGrantableItem(string id) => _catalog.TryGetItem(id, out _) || Speedups.TryParse(id, out _, out _, out _) || GiftItems.IsValid(_catalog, id)
+            || VipRules.TryParseItem(id, out _);
+
+        /// <summary>
+        /// Credits a shop pack (a purchase, or the Overseer granting one): Hadalite plus as many VIP points, live or
+        /// offline. False when the player or the pack does not exist.
+        /// </summary>
+        public async Task<bool> CreditPurchaseAsync(string identityKey, string packId, CancellationToken cancellationToken)
+        {
+            var pack = StorePacks.Find(packId);
+            if (pack == null)
+                return false;
+            await _connectGate.WaitAsync(cancellationToken);
+            try
+            {
+                if (_sessions.TryGetValue(identityKey, out var session))
+                {
+                    session.CreditPurchase(pack, _clock.UtcNow);
+                    return true;
+                }
+
+                var state = await _repository.LoadByIdentityAsync(identityKey, cancellationToken);
+                if (state == null)
+                    return false;
+                PlayerSession.ApplyPurchase(state, pack);
+                state.ExtrasJson = PlayerExtras.Write(state);
+                await _repository.SaveAsync(state, cancellationToken);
+                return true;
+            }
+            finally
+            {
+                _connectGate.Release();
+            }
+        }
 
         public async Task<bool> GrantAsync(string identityKey, IReadOnlyDictionary<ResourceType, long> amounts, CancellationToken cancellationToken,
             bool asPackages = false, IReadOnlyDictionary<string, int>? items = null)

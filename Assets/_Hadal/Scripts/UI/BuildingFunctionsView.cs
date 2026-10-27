@@ -26,6 +26,7 @@ namespace Hadal.UI
         {
             var modifiers = ResearchRules.Modifiers(_catalog, _stateSync.View.ResearchLevels);
             HeroRules.AddCrew(_catalog, modifiers, _stateSync.View.Heroes.Select(h => new OwnedHero(h.HeroId, h.Level, h.Stars, h.Shards, h.Slot)));
+            VipRules.Apply(modifiers, _stateSync.View.Vip.Level);
             return modifiers;
         }
 

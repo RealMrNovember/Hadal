@@ -164,6 +164,12 @@ namespace Hadal.Game
                 return;
             }
 
+            if (VipRules.TryParseItem(command.ItemId, out var vipPoints))
+            {
+                OpenVipItem(command, vipPoints, count, now);
+                return;
+            }
+
             var verdict = !_catalog.TryGetItem(command.ItemId, out var item) ? QuestRejectReason.UnknownItem
                 : (_state.Items.TryGetValue(command.ItemId, out var have) ? have : 0) < count ? QuestRejectReason.NotEnoughItems
                 : QuestRejectReason.None;

@@ -77,6 +77,7 @@ const ERRORS = {
   InvalidVersion: "Sürüm 1.2.0 biçiminde olmalı.",
   InvalidUrl: "İndirme adresi https:// ile başlamalı.",
   ConfirmationRequired: "Silme onaylanmadı.",
+  UnknownPack: "Mağaza paketi bulunamadı.",
 };
 const explain = (code) => ERRORS[code] || code || "İşlem başarısız.";
 
@@ -250,6 +251,10 @@ async function playerDetail(root, id) {
     el("option", { value: "package" }, "Çantaya paket olarak"),
     el("option", { value: "direct" }, "Doğrudan cüzdana"));
   const banHours = el("input", { type: "number", min: "1", value: "24" });
+  const packs = can("gm") ? await api("store/packs") : [];
+  const pack = el("select", {}, packs.map((k) => el("option", { value: k.id },
+    `${fmtNum(k.hadalite)}${k.bonus ? " + " + fmtNum(k.bonus) : ""} Hadalit · $${(k.priceCents / 100).toFixed(2)} · ${fmtNum(k.vipPoints)} VIP puanı`)));
+  const packNote = el("input", { placeholder: "Not (ör. test satın alması, destek)" });
 
   // Heroes and troop packs (GiftItems): chosen here, they land in the bag and the player uses them.
   const meta = can("gm") ? await api("events/meta") : null;
@@ -319,6 +324,11 @@ async function playerDetail(root, id) {
     el("h2", {}, "Eşya gönder (çantaya)"),
     el("div", { class: "row" }, GRANT_ITEMS.map(([id, name]) => el("label", {}, name, itemInputs[id])),
       el("button", { class: "primary", onclick: () => grant().catch((e) => toast(e.message, true)) }, "Uygula")),
+    el("h2", {}, "Mağaza paketi ver (satın alma gibi)"),
+    el("p", { class: "muted" }, "Paketin Hadalit'i doğrudan cüzdana, aynı miktarda VIP puanı da hesaba eklenir. Ödeme sistemi gelene kadar test ve destek için."),
+    el("div", { class: "row" }, el("label", {}, "Paket", pack), el("label", {}, "Not", packNote),
+      el("button", { class: "primary", onclick: () => confirm("Paket oyuncuya verilsin mi?") && api(`players/${id}/purchase`, { method: "POST", body: { packId: pack.value, note: packNote.value } })
+        .then(() => { toast("Paket verildi."); route(); }, (e) => toast(e.message, true)) }, "Paketi ver")),
     el("h2", {}, "Yaptırım"),
     el("div", { class: "row" },
       banned
@@ -345,6 +355,7 @@ async function playerDetail(root, id) {
     el("h1", {}, p.displayName, " ", el("span", { class: "muted mono" }, p.accountId)),
     el("p", { class: "muted" },
       `Kayıt ${fmtDate(p.createdAt)} · Son giriş ${fmtDate(p.lastLoginAt)} · ${p.online ? "Çevrimiçi" : "Çevrimdışı"}`,
+      d.vip ? el("span", { class: "pill on" }, ` VIP ${d.vip.level} · ${fmtNum(d.vip.points)} puan `) : "",
       banned ? el("span", { class: "bad" }, ` · Banlı: ${fmtDate(p.bannedUntil)} (${p.banReason})`) : ""),
     el("div", { class: "grid2" },
       el("div", {},
@@ -370,6 +381,7 @@ const GRANT_ITEMS = [
   ["speed_build_60", "İnşa hızlandırma 1 sa"], ["speed_train_60", "Eğitim hızlandırma 1 sa"], ["speed_heal_60", "İyileştirme hızlandırma 1 sa"],
   ["speed_research_60", "Araştırma hızlandırma 1 sa"], ["speed_march_p25", "Yürüyüş hızlandırma %25"], ["speed_march_p50", "Yürüyüş hızlandırma %50"],
   ["chest_bronze", "Bronz sandık"], ["chest_silver", "Gümüş sandık"], ["chest_gold", "Altın sandık"],
+  ["vip_100", "VIP puanı 100"], ["vip_500", "VIP puanı 500"], ["vip_1000", "VIP puanı 1.000"], ["vip_5000", "VIP puanı 5.000"],
 ];
 
 const HERO_TR = { mara: "Komutan Elias Rourke", lyra: "Dr. Lyra Moss", tess: "Tess Ruiz", kael: "Kael", orin: "Dr. Orin Hale", juno: "Juno Vega", sable: "Sable", aelis: "Aelis" };
@@ -385,6 +397,8 @@ function bagName(id) {
   if (m) return `${RESOURCE_TR[m[1]] || m[1]} paketi ${fmtNum(Number(m[2]))}`;
   const h = /^herogift_([a-z0-9]+)_(\d+)_(\d+)$/.exec(id);
   if (h) return `Kahraman: ${HERO_TR[h[1]] || h[1]} · Sv. ${h[2]} · ${h[3]}★`;
+  const v = /^vip_(\d+)$/.exec(id);
+  if (v) return `VIP puanı ${fmtNum(Number(v[1]))}`;
   const t = /^troops_([a-z0-9]+)_(\d+)_(\d+)$/.exec(id);
   if (t) return `Asker paketi: ${fmtNum(Number(t[3]))} × T${t[2]} ${TROOP_TR[t[1]] || t[1]}`;
   const known = GRANT_ITEMS.find(([itemId]) => itemId === id);

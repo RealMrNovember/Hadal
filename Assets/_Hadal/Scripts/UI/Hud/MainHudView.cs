@@ -45,6 +45,10 @@ namespace Hadal.UI.Hud
             /// <summary>The event centre (docs/29).</summary>
             public Action Events;
 
+            /// <summary>VIP page and the Hadalite shop.</summary>
+            public Action Vip;
+            public Action Shop;
+
             /// <summary>The Depth Map campaign (docs/rehber 08 §5).</summary>
             public Action Expedition;
             public Func<bool> InWorld;
@@ -80,6 +84,8 @@ namespace Hadal.UI.Hud
         private bool _shownInWorld;
         private GameObject _bagDot;
         private GameObject _eventsDot;
+        private Text _vipLabel;
+        private GameObject _vipDot;
         private string _taskQuest = string.Empty;
         private bool _taskDone;
         private Text _chatPreview;
@@ -154,11 +160,19 @@ namespace Hadal.UI.Hud
                 Chip(header, RowTwo[i], left + 0.258f + i * step, 0.1f, left + 0.258f + (i + 1) * step - 0.008f, 0.48f);
 
             // Shop: Hadalite balance; opens the Cryo-Pod until the shop exists.
-            var shop = Tap(header, "Shop", 0.78f, 0.5f, 0.988f, 0.95f, _actions.Pod, new Color(0.85f, 0.42f, 0.08f, 0.95f));
+            var shop = Tap(header, "Shop", 0.78f, 0.5f, 0.988f, 0.95f, () => (_actions.Shop ?? _actions.Pod)?.Invoke(), new Color(0.85f, 0.42f, 0.08f, 0.95f));
             Skinned(shop.GetComponent<Image>(), "btn_gold");
             HudIcons.Image(shop, "shop", 0.02f, 0.05f, 0.42f, 0.95f);
             _hadalite = Outlined(UiKit.Label("Value", shop, string.Empty, 30, Color.white, TextAnchor.MiddleCenter, FontStyle.Bold));
             _hadalite.rectTransform.Place(0.4f, 0, 1, 1);
+
+            // VIP under the shop: the level, a red dot when today's points or chest wait.
+            var vip = Tap(header, "Vip", 0.80f, 0.1f, 0.988f, 0.46f, () => _actions.Vip?.Invoke(), new Color(0.5f, 0.12f, 0.1f, 0.95f));
+            Skinned(vip.GetComponent<Image>(), "btn_red");
+            HudIcons.Image(vip, "vip", 0.02f, 0.02f, 0.38f, 0.98f);
+            _vipLabel = Outlined(UiKit.Label("Value", vip, "VIP 0", 28, UiKit.Gold, TextAnchor.MiddleCenter, FontStyle.Bold));
+            _vipLabel.rectTransform.Place(0.36f, 0.1f, 1, 1);
+            _vipDot = Dot(vip);
         }
 
         private void Chip(RectTransform parent, ResourceType type, float x0, float y0, float x1, float y1)
@@ -401,6 +415,8 @@ namespace Hadal.UI.Hud
             }
 
             _hadalite.text = Compact(wallet.TryGetValue(ResourceType.Hadalite, out var h) ? h : 0);
+            _vipLabel.text = "VIP " + View.Vip.Level;
+            _vipDot.SetActive(View.Vip.LoginReady || View.Vip.ChestReady);
             _level.text = Loc.F("hud.level", ReactorLevel());
             RefreshAvatar();
             _power.text = Power().ToString("N0");
@@ -604,6 +620,7 @@ namespace Hadal.UI.Hud
         {
             var modifiers = ResearchRules.Modifiers(_catalog, View.ResearchLevels);
             HeroRules.AddCrew(_catalog, modifiers, View.Heroes.Select(h => new OwnedHero(h.HeroId, h.Level, h.Stars, h.Shards, h.Slot)));
+            VipRules.Apply(modifiers, View.Vip.Level);
             return modifiers;
         }
 

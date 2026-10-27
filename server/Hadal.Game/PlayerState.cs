@@ -144,6 +144,12 @@ namespace Hadal.Game
         /// <summary>Monster levels already beaten once (the first win pays more).</summary>
         public HashSet<int> MonsterWins { get; } = new();
 
+        /// <summary>VIP points, the sign-in streak and the UTC days of the last sign-in and chest claims (VipRules).</summary>
+        public long VipPoints { get; set; }
+        public int VipStreak { get; set; }
+        public long VipLoginDay { get; set; }
+        public long VipChestDay { get; set; }
+
         /// <summary>Wounded troops in the Med Bays by "type:tier".</summary>
         public Dictionary<string, long> Wounded { get; } = new(StringComparer.Ordinal);
 

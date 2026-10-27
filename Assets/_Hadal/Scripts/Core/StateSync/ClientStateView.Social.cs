@@ -139,6 +139,18 @@ namespace Hadal.Core.StateSync
 
         public bool TryTakeRewardReport(out RewardReportDto report) => _rewardReports.TryDequeue(out report);
 
+        /// <summary>VIP standing (VipRules).</summary>
+        public VipStateDto Vip { get; private set; } = new VipStateDto();
+        public int VipVersion { get; private set; }
+        public float VipReceivedAt { get; private set; }
+
+        public void ApplyVip(VipStateDto vip)
+        {
+            Vip = vip ?? new VipStateDto();
+            VipReceivedAt = UnityEngine.Time.realtimeSinceStartup;
+            VipVersion++;
+        }
+
         /// <summary>Events the player can see, with their progress (docs/29).</summary>
         public EventListDto Events { get; private set; } = new EventListDto();
         public int EventsVersion { get; private set; }

@@ -161,6 +161,8 @@ namespace Hadal.Core.Network
                 ClaimEventStageCommand => CommandType.ClaimEventStage,
                 ClaimEventRankCommand => CommandType.ClaimEventRank,
                 ViewEventRankingCommand => CommandType.ViewEventRanking,
+                ClaimVipLoginCommand => CommandType.ClaimVipLogin,
+                ClaimVipChestCommand => CommandType.ClaimVipChest,
                 MarchAttackCommand => CommandType.MarchAttack,
                 _ => CommandType.Unknown
             };

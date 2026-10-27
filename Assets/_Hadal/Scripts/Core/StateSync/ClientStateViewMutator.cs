@@ -58,6 +58,8 @@ namespace Hadal.Core.StateSync
                 view.ApplyMyProfile(snapshot.Profile);
             if (snapshot.Army != null)
                 view.ApplyArmy(snapshot.Army);
+            if (snapshot.Vip != null)
+                view.ApplyVip(snapshot.Vip);
             if (!string.IsNullOrEmpty(snapshot.PlayerId))
                 view.PlayerId = snapshot.PlayerId;
 
@@ -217,6 +219,12 @@ namespace Hadal.Core.StateSync
             {
                 if (TryDeserializePayload(change.Payload, serialization, out BattleReportDto battle))
                     view.AddBattleReport(battle);
+                return true;
+            }
+
+            if (id == EntityIds.Vip)
+            {
+                view.ApplyVip(TryDeserializePayload(change.Payload, serialization, out VipStateDto vip) ? vip : new VipStateDto());
                 return true;
             }
 
