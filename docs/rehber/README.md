@@ -35,6 +35,7 @@ yapı ve mekanik alır, gerçek derin deniz bilimine dayanır ve Hadal'ın kendi
 | 16 | [Kronik, Köken, Profil](16_kronik_kokenler_profil.md) | Derinlik Kroniği, 5 köken, kaptan profili, göç |
 | 17 | [Teçhizat](17_techizat.md) | Malzemeler, nadirlikler, setler |
 | 18 | [Bilim Temeli](18_bilim_temeli.md) | Hadal'ın dayandığı gerçek okyanus verisi ve kaynakça |
+| 19 | [Ordu, Sefer ve Geçişler: Uygulama](19_ordu_sefer_ve_gecisler_uygulama.md) | 07–09'un oyunda nasıl görüneceği: eğitim, Revir, takımlar, sefer, hızlandırma, açılış ve geçişler; paket sırası |
 | 90 | [Durum ve Yol Haritası](90_durum_ve_yol_haritasi.md) | Kodda ne var, ne sırayla yapılır |
 | — | [Sözlük](sozluk.md) | Terimler ve kimlikler |
 
