@@ -60,7 +60,7 @@ namespace Hadal.UI
 
             // Today's VIP chest.
             var chest = Card(190);
-            CardText(chest.transform, Loc.F("vip.chest", level), 30, UiKit.Text, 0.04f, 0.68f, 0.62f, 0.95f, TextAnchor.MiddleLeft, FontStyle.Bold);
+            CardText(chest.transform, Loc.F("vip.chest", Math.Max(1, level)), 30, UiKit.Text, 0.04f, 0.68f, 0.62f, 0.95f, TextAnchor.MiddleLeft, FontStyle.Bold);
             var rewards = VipRules.DailyChest(Math.Max(1, level))
                 .Select(r => new RewardEntryDto { Type = r.type, Id = r.id, Amount = r.amount }).ToArray();
             RewardStrip(chest.transform, rewards, 0.03f, 0.08f, 0.64f, 0.64f, 190);
