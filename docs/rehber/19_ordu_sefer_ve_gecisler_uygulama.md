@@ -52,6 +52,57 @@ sınırı eğitim alanından gelir (bir alanda 512, ötekinde 596). Bizim 07 §3
 5 kahramanlı takımın kapasitesi 1.573 askerdi; 1,35M'lik yatağın tamamını (1,4M yük) taşıyordu, toplama
 süresi 4 sa 6 dk, yol 50 sn idi.
 
+### 1.2 Kahraman ve takım: askerler kahramanla gider
+
+İkinci gözlem (aynı gün, aynı hesap). Takım ekranında bir kahraman takımdan çıkarıldı ve geri kondu;
+kahraman ekranının üç sekmesi ve istatistik dökümü okundu.
+
+**Askeri kahraman taşır.** Takımda 5 kahraman vardır ve her birinin altında kendi asker sayısı yazar
+(320, 320, 293, 320, 320); takım kapasitesi bunların toplamıdır (1.573). Bir kahraman çıkarılınca
+onun 320 askeri de takımdan düşer: 1.573 → 1.253 asker, güç 5,14M → 4,0M. Boş koltuk "+" olur.
+Askerler otomatik doldurulur, en yüksek açık kademeden ("Birlik Ayrıntıları: T7 · 1573"). Takım
+ekranında her kahramanın yanında küçük asker figürleri durur; kahraman askerleriyle birlikte savaşır.
+
+**Komuta Kapasitesi** kahramanın dördüncü temel özelliğidir (SAL, SP, SAV, Komuta Kap.):
+
+| Kahraman | Seviye | Komuta Kap. | Döküm |
+|---|---:|---:|---|
+| Grenwald (SSR) | 65 | 220 | Seviye bonusu 180 + Bina bonusu 40 + Hayatta Kalan 0 + Teknoloji 0 |
+| Gölge (UR) | 100 | 293 | — |
+| Diğer dört kahraman | 100 | 320 | — |
+
+Kapasite seviyeyle neredeyse doğrusal büyür (Sv 65 → 180, Sv 100 → ~280 seviye payı); üstüne bir
+bina, araştırma ve "hayatta kalan" (yardımcı karakter) sistemi ekler. Kahramanı yükseltmek böylece
+hem kendini hem taşıdığı orduyu büyütür.
+
+**Hizip üçgeni ve kadro bonusu.** Kahramanlar üç hizipte (Savaşçı, Korucu, Büyücü): her biri
+yendiği hizipten %20 daha az hasar alır. Aynı hizipten 3 kahraman +%5, 3 + başka hizipten 2 +%10,
+4 kahraman +%15, 5 kahraman +%20 SP/SAL/SAV verir ("Kadrom" satırı hangisinin etkin olduğunu
+gösterir). Bizde bu, sınıf yatkınlığı ve fraksiyon sinerjisidir ([05 §9–10](05_kahramanlar.md#9-sınıf-yatkınlığı-karşı-üçgen-ve-anıtlar)).
+
+**Kahraman ekranı** (portre, nadirlik harfi, hizip ve rol rozetleri, takım numarası, 4 teçhizat yuvası:
+silah, eldiven, zırh, bot; güç; altta üç sekme):
+
+| Sekme | İçerik |
+|---|---|
+| Özellikler | Seviye, SAL · SP · SAV · Komuta Kap., **Yükselt** (deneyim iksiriyle). Sağ üstteki çubuk simgesi "Kahraman İstatistikleri"ni açar: her değerin kaynak dökümü (seviye, yıldız seviyesi, teçhizat, bina, evcil hayvan, yıldız sistemi, uyanış, özel silah, hayatta kalan, teknoloji) ve yüzdelik satırlar: sınıfa özel SAL/SP/SAV ↑, sınıfa özel hasar ↑, kritik oranı ve kritik hasar, beceri bekleme hızı, canavarlara verilen hasar ↑, karşı saldırı hasarı, alınan kritik ↓, canavardan alınan hasar ↓, **Fiziksel** ve **Enerji** hasar direnci (iki hasar türü). |
+| Yıldızlar | Yıldızlar çeyrek çeyrek dolar (4★ + ¼); her adımda SAL/SP/SAV önizlemesi (eski → yeni). İki **Terfi** yolu: kahramanın kendi parçası (95/8) ya da genel parça (0/8). Beş beceri simgesi; 5. beceri 5★'da açılır. Yıldız tavanı 10. |
+| Beceri | Beş beceri, her biri Sv x/6 ve **beceri kitabıyla** yükselir (450 kitap/seviye): **Otomatik Saldırı** (tek hedef, SAL'ın %108'i), **Nihai** (9 sn bekleme, menzildeki herkese %456), **Aktif** (5 sn bekleme, tek hedef %418), **Pasif** (canavarlara verilen hasar +%13), **Destek** (5★'da açılır, SAL/SP/SAV +%10). Her becerinin altında yıldızla açılan üç güçlenme satırı (ör. "ekstra hasar %25 → %60 [5★] → %120 [10★]"). |
+
+**Hadal'a çıkan sonuç.** Bizim rehberdeki filo (Kaptan + 2 Subay, asker kapasitesi hangardan) ile
+Last Asylum'un takımı (5 kahraman, kapasite kahramanların Komuta Kapasitesi toplamı) aynı yere
+varır ama oyuncuya farklı hissettirir: Last Asylum'da **her kahraman kendi askerini getirir**, bu
+yüzden kahraman yükseltmek orduyu büyütür. Kullanıcının istediği budur ("her kahraman yanına
+askerler alabilmeli"). D3'te uygulanacak düzen:
+
+- Kahramana **Komuta Kapasitesi** eklenir: seviye payı + bina payı (Askeri Kubbe) + araştırma.
+- Takım = denizaltı + 1–5 kahraman; takımın asker kapasitesi kahramanların Komuta Kapasitesi
+  toplamıdır (hangar takım sayısını açar, kapasite vermez ya da küçük bir taban verir).
+- Hazırlık ekranında her kahramanın altında asker sayısı; boş koltuk "+"; "otomatik doldur" en
+  yüksek kademeden başlar, tür dağılımı kahramanın yatkın türüne göre.
+- Kahraman ekranına **Komuta Kap.** satırı ve kaynak dökümü eklenir; beceri ve yıldız ekranları
+  bugünkü kahraman ekranından bu düzene genişletilir (05 §5–6).
+
 ## 2. Askeri Kubbe, Tatbikat Havuzu ve eğitim
 
 ### 2.1 Askeri Kubbe ve eğitim kuyrukları
@@ -226,7 +277,10 @@ bu oyunlardan alınmaz; yapılar alınır, sayılar rehberin veri dosyalarından
 
 ## 9. Açık sorular
 
-- **Eğitim binası düzeni.** Last Asylum gibi tür başına bir eğitim binası (4 bina, her biri kendi
-  kuyruğu ve kendi kademe kilidi) mı, rehberdeki tek Askeri Kubbe + kuyruk eşikleri mi? İlki şehri
-  canlı gösterir ve kademe ilerlemesini türe böler; ikincisi bina sayısını düşük tutar.
+- ~~Eğitim binası düzeni~~ **Karar (27 Ekim 2026):** tür başına ayrı eğitim binası (Zırhlı, Zıpkıncı,
+  Ark, Delici); her biri kendi kuyruğu, kendi parti sınırı ve kendi kademe kilidi. Askeri Kubbe ordu
+  kapasitesini (Last Asylum'daki Kışla) verir.
+- ~~Takım büyüklüğü~~ **Karar (27 Ekim 2026):** takımda 5 kahraman; her kahraman Komuta Kapasitesi
+  kadar asker taşır, takımın kapasitesi bunların toplamıdır ([1.2](#12-kahraman-ve-takım-askerler-kahramanla-gider)).
+  05 §3.2'deki Kaptan + 2 Subay filosu bununla değişir; ilk koltuktaki kahraman Kaptan sayılır.
 - **Mesafe birimi.** Ekranda kare mi, deniz mili mi (Last Asylum "km" yazıyor)?
