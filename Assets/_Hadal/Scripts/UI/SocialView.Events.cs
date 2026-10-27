@@ -286,7 +286,7 @@ namespace Hadal.UI
                 var card = Card(170);
                 CardText(card.transform, Loc.F("event.stage", i + 1), 24, UiKit.Muted, 0.03f, 0.66f, 0.4f, 0.94f, TextAnchor.MiddleLeft, FontStyle.Bold);
                 ProgressBar(card.transform, Math.Min(e.MyPoints, stage.Points), stage.Points, 0.03f, 0.42f, 0.4f, 0.62f);
-                RewardStrip(card.transform, stage.Rewards, 0.43f, 0.1f, 0.74f, 0.9f);
+                RewardStrip(card.transform, stage.Rewards, 0.43f, 0.1f, 0.74f, 0.9f, 170);
 
                 var index = i;
                 var done = claimed.Contains(i);
@@ -312,8 +312,8 @@ namespace Hadal.UI
                 if (band == mine)
                     card.color = new Color(1f, 0.93f, 0.7f, 1f);
                 var label = band.From == band.To ? $"#{band.From}" : $"#{band.From}–{band.To}";
-                CardText(card.transform, label, 34, UiKit.Text, 0.03f, 0.1f, 0.25f, 0.9f, TextAnchor.MiddleLeft, FontStyle.Bold);
-                RewardStrip(card.transform, band.Rewards, 0.26f, 0.1f, 0.97f, 0.9f);
+                CardText(card.transform, label, 34, UiKit.Text, 0.03f, 0.1f, 0.19f, 0.9f, TextAnchor.MiddleLeft, FontStyle.Bold);
+                RewardStrip(card.transform, band.Rewards, 0.2f, 0.1f, 0.97f, 0.9f, 130);
             }
 
             var phase = EventRules.Phase(e, NowMs);
@@ -389,18 +389,25 @@ namespace Hadal.UI
 
         // --- Rewards -----------------------------------------------------------------------
 
-        /// <summary>Up to five reward tiles side by side; tapping the strip names them all.</summary>
-        private void RewardStrip(Transform card, RewardEntryDto[] rewards, float x0, float y0, float x1, float y1)
+        /// <summary>
+        /// Square reward tiles in a row from the left, as many as fit; tapping the strip names them all.
+        /// <paramref name="cardHeight"/> is the card's row height, so the tiles can be sized before layout.
+        /// </summary>
+        private void RewardStrip(Transform card, RewardEntryDto[] rewards, float x0, float y0, float x1, float y1, float cardHeight)
         {
             var strip = UiKit.Rect("Rewards", card).Place(x0, y0, x1, y1);
-            var shown = Math.Min(5, rewards.Length);
-            var width = 1f / 5;
+            var size = (y1 - y0) * cardHeight * UiKit.Scale;
+            var room = (x1 - x0) * 1000f; // the list is about 1000 reference pixels wide
+            var shown = Math.Min(rewards.Length, Math.Max(1, (int)((room + 8) / (size + 8))));
             for (var i = 0; i < shown; i++)
             {
                 var r = rewards[i];
                 var slot = Skin.Slot(strip, RewardTone(r));
-                slot.rectTransform.Place(i * width + 0.01f, 0, (i + 1) * width - 0.01f, 1);
-                slot.preserveAspect = false;
+                var rect = slot.rectTransform;
+                rect.anchorMin = rect.anchorMax = new Vector2(0f, 0.5f);
+                rect.pivot = new Vector2(0f, 0.5f);
+                rect.sizeDelta = new Vector2(size, size);
+                rect.anchoredPosition = new Vector2(i * (size + 8f), 0f);
                 RewardIcon(slot.transform, r, 0.12f, 0.24f, 0.88f, 0.92f);
                 UiKit.Stroked(UiKit.Label("Amount", slot.transform, RewardAmount(r), 20, Color.white, TextAnchor.LowerCenter, FontStyle.Bold))
                     .rectTransform.Place(0, 0.02f, 1, 0.34f);
