@@ -210,7 +210,7 @@ ON CONFLICT (id) DO UPDATE SET type = EXCLUDED.type, level = EXCLUDED.level, x =
                 node.Level = GatherRules.PickLevel(world, belt, type, d, _random);
                 node.X = x;
                 node.Y = y;
-                node.Capacity = GatherRules.Capacity(world, type.id, node.Level);
+                node.Capacity = GatherRules.Capacity(world, Catalog.Gather, type.id, node.Level);
                 node.Remaining = node.Capacity;
                 node.BusyUntil = null;
                 node.BusyBy = string.Empty;

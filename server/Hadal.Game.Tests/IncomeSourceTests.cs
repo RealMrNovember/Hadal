@@ -66,7 +66,7 @@ namespace Hadal.Game.Tests
             {
                 var belt = GatherRules.BeltOf(world, n.X, n.Y)!;
                 Assert.InRange(n.Level, belt.nodeMin, belt.nodeMax);
-                Assert.Equal(GatherRules.Capacity(world, n.Type, n.Level), n.Capacity);
+                Assert.Equal(GatherRules.Capacity(world, Catalog.Gather, n.Type, n.Level), n.Capacity);
             });
 
             // A new base lands on the Hadal Threshold (K-08) with nodes in view.
@@ -131,6 +131,25 @@ namespace Hadal.Game.Tests
             var after = _world.Map.NodeForTests(node.Id)!;
             Assert.Null(after.BusyUntil);
             Assert.Equal(node.Remaining - GatherRules.LoadOf(Catalog.World, recalled.Cargo), after.Remaining);
+        }
+
+        [Fact]
+        public void Yield_scale_shrinks_loads_and_yields_but_not_trip_times_or_hadalite()
+        {
+            var scaled = new HADAL.Shared.Catalog.GatherCatalogData
+            {
+                queueReactors = Catalog.Gather.queueReactors, loadByReactor = Catalog.Gather.loadByReactor,
+                alloyReactor = Catalog.Gather.alloyReactor, yieldScale = 0.02
+            };
+            var full = GatherRules.Rates(Catalog.World, Catalog.Gather, "enkaz_alani", 3, 20);
+            var low = GatherRules.Rates(Catalog.World, scaled, "enkaz_alani", 3, 20);
+            Assert.Equal(full[ResourceType.Titanium] * 0.02, low[ResourceType.Titanium], 3);
+            Assert.Equal(Math.Round(GatherRules.Load(Catalog.Gather, 24) * 0.02), GatherRules.Load(scaled, 24));
+            Assert.InRange(GatherRules.GatherSeconds(Catalog.World, low, GatherRules.Load(scaled, 24)),
+                GatherRules.GatherSeconds(Catalog.World, full, GatherRules.Load(Catalog.Gather, 24)) - 2,
+                GatherRules.GatherSeconds(Catalog.World, full, GatherRules.Load(Catalog.Gather, 24)) + 2);
+            Assert.Equal(GatherRules.Rates(Catalog.World, Catalog.Gather, "hadalit_damari", 7, 40)[ResourceType.Hadalite],
+                GatherRules.Rates(Catalog.World, scaled, "hadalit_damari", 7, 40)[ResourceType.Hadalite]);
         }
 
         [Fact]

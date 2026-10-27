@@ -30,7 +30,10 @@ namespace HADAL.Shared.Simulation
         public static int Queues(GatherCatalogData gather, int reactorLevel) => gather.queueReactors.Count(r => r <= reactorLevel);
 
         public static long Load(GatherCatalogData gather, int reactorLevel) =>
-            gather.loadByReactor.Length == 0 ? 0 : gather.loadByReactor[Math.Clamp(reactorLevel, 0, gather.loadByReactor.Length - 1)];
+            gather.loadByReactor.Length == 0 ? 0
+                : (long)Math.Round(gather.loadByReactor[Math.Clamp(reactorLevel, 0, gather.loadByReactor.Length - 1)] * Scale(gather));
+
+        private static double Scale(GatherCatalogData gather) => gather.yieldScale > 0 ? gather.yieldScale : 1;
 
         public static int TravelSeconds(WorldCatalogData world, int x1, int y1, int x2, int y2) =>
             Math.Max(1, Tiles(x1, y1, x2, y2)) * Math.Max(1, world.marchSecondsPerTile);
@@ -48,8 +51,8 @@ namespace HADAL.Shared.Simulation
         public static NodeLevelData? Level(WorldCatalogData world, int level) => world.nodeLevels.FirstOrDefault(l => l.level == level);
 
         /// <summary>Load a fresh node of this kind and level holds.</summary>
-        public static long Capacity(WorldCatalogData world, string typeId, int level) =>
-            (long)Math.Round((Level(world, level)?.capacity ?? 0) * (Type(world, typeId)?.capacityFactor ?? 1));
+        public static long Capacity(WorldCatalogData world, GatherCatalogData gather, string typeId, int level) =>
+            (long)Math.Round((Level(world, level)?.capacity ?? 0) * (Type(world, typeId)?.capacityFactor ?? 1) * Scale(gather));
 
         /// <summary>
         /// Units per hour one march gathers at a node: the guide's yield with the typical bonus of the level.
@@ -66,7 +69,7 @@ namespace HADAL.Shared.Simulation
             {
                 if (!Enum.TryParse(rate.resource, out ResourceType resource))
                     continue;
-                var perHour = rate.perHour * bonus;
+                var perHour = rate.perHour * bonus * (resource == ResourceType.Hadalite ? 1 : Scale(gather));
                 if (resource == ResourceType.Alloy && reactorLevel < gather.alloyReactor)
                 {
                     resource = ResourceType.Titanium;

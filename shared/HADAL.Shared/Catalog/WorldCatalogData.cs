@@ -125,6 +125,13 @@ namespace HADAL.Shared.Catalog
 
         /// <summary>Below this reactor level the Superalloy share of a node comes as Titanium (Alloy Foundry gate).</summary>
         public int alloyReactor = 30;
+
+        /// <summary>
+        /// Scales node yields, march loads and node sizes together (trip times stay the same). 1 for the guide's
+        /// v9 economy; the live v8 economy runs nodes at 0.02 so a trip pays a few upgrades, not a flood.
+        /// Hadalite is never scaled (it has its own daily limit).
+        /// </summary>
+        public double yieldScale = 1;
     }
 
     /// <summary>The Depth Map campaign (docs/rehber 08 §5).</summary>
