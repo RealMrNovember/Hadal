@@ -107,13 +107,6 @@ namespace Hadal.UI
                 model.transform.localRotation = Quaternion.Euler(0f, (n.X * 37 + n.Y * 11) % 360, 0f);
             }
 
-            // A soft ring on the seabed in the node's colour marks it from afar.
-            var ring = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-            Destroy(ring.GetComponent<Collider>());
-            ring.transform.SetParent(root.transform, false);
-            ring.transform.localScale = new Vector3(5.5f, 0.02f, 5.5f);
-            var renderer = ring.GetComponent<Renderer>();
-            renderer.material.color = new Color(look.Item2.r, look.Item2.g, look.Item2.b, 1f) * 0.6f;
             return root;
         }
 

@@ -109,7 +109,8 @@ namespace Hadal.Core.Network
                 _placementAckSimulator?.SchedulePlacementAck(placeBuilding);
         }
 
-        private static CommandType ResolveCommandType<T>(T command) where T : ICommand
+        /// <summary>Every command the client can send must be listed here (EditMode test: Every_command_type_is_mapped).</summary>
+        public static CommandType ResolveCommandType<T>(T command) where T : ICommand
         {
             return command switch
             {
@@ -141,6 +142,15 @@ namespace Hadal.Core.Network
                 OpenItemCommand => CommandType.OpenItem,
                 RecruitHeroCommand => CommandType.RecruitHero,
                 ViewWorldCommand => CommandType.ViewWorld,
+                MarchGatherCommand => CommandType.MarchGather,
+                RecallMarchCommand => CommandType.RecallMarch,
+                DiveStageCommand => CommandType.DiveStage,
+                SetMemberRankCommand => CommandType.SetMemberRank,
+                TransferLeadershipCommand => CommandType.TransferLeadership,
+                SetAllianceSettingsCommand => CommandType.SetAllianceSettings,
+                InviteToAllianceCommand => CommandType.InviteToAlliance,
+                AnswerInviteCommand => CommandType.AnswerInvite,
+                AnswerApplicationCommand => CommandType.AnswerApplication,
                 _ => CommandType.Unknown
             };
         }
