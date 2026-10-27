@@ -164,6 +164,7 @@ namespace Hadal.UI
 
         private static Font _builtin;
         private static Font _world;
+        private static Font _roundFont;
 
         /// <summary>The font for the current language (switching language restarts the scene).</summary>
         public static Font Font => FontFor(Loc.Current);
@@ -179,6 +180,15 @@ namespace Hadal.UI
                 _world = _world != null ? _world : Resources.Load<Font>("Fonts/HadalSansWorld-Regular");
                 if (_world != null)
                     return _world;
+            }
+
+            // Latin-script languages get the game's rounded face (art/ui/make_font.py); Cyrillic, CJK and Vietnamese
+            // are outside it and stay on the built-in font.
+            if (language is not ("ru" or "ja" or "ko" or "zh-Hans" or "zh-Hant" or "vi"))
+            {
+                _roundFont = _roundFont != null ? _roundFont : Resources.Load<Font>("Fonts/Fredoka-SemiBold");
+                if (_roundFont != null)
+                    return _roundFont;
             }
 
             return _builtin = _builtin != null ? _builtin : Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");

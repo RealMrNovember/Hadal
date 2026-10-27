@@ -10,6 +10,15 @@ namespace Hadal.EditorTools
     /// </summary>
     public sealed class HadalIconImporter : AssetPostprocessor
     {
+        /// <summary>The UI font (Fredoka): symbols it lacks (arrows, ✓, ★) come from the phone's own fonts.</summary>
+        private void OnPreprocessAsset()
+        {
+            if (!assetPath.EndsWith("Fonts/Fredoka-SemiBold.ttf") || assetImporter is not TrueTypeFontImporter font)
+                return;
+            font.fontNames = new[] { "Roboto", "Noto Sans", "Noto Sans Symbols", "Noto Sans Symbols 2", "Arial" };
+            font.includeFontData = true;
+        }
+
         private void OnPreprocessTexture()
         {
             var skin = assetPath.StartsWith("Assets/_Hadal/Resources/UiSkin/");
