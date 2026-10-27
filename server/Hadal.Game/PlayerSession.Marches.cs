@@ -115,6 +115,17 @@ namespace Hadal.Game
                 var armed = troops.types.Length > 0;
                 var shares = armed ? TroopRules.FillTeam(troops, _state.Troops, team.Select(h => (Affinity(h.HeroId), CommandOf(h))).ToList())
                     : team.Select(_ => new Dictionary<string, long>()).ToList();
+                // An automatic team keeps only heroes who get troops (a hero with nobody to lead stays home).
+                if (asked.Count == 0 && armed)
+                {
+                    var keep = shares.Select((share, i) => (share, i)).Where(x => x.share.Values.Sum() > 0).Select(x => x.i).ToList();
+                    if (keep.Count > 0)
+                    {
+                        team = keep.Select(i => team[i]).ToList();
+                        shares = keep.Select(i => shares[i]).ToList();
+                    }
+                }
+
                 var aboard = new Dictionary<string, long>(StringComparer.Ordinal);
                 foreach (var share in shares)
                     foreach (var pair in share)

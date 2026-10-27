@@ -176,7 +176,8 @@ namespace Hadal.UI
             if (view != null)
             {
                 var trip = GatherRules.TravelSeconds(world, view.MyX, view.MyY, n.X, n.Y);
-                var load = Math.Min(GatherRules.Load(catalog.Gather, reactor), n.Remaining);
+                var homeTroops = (View.Army?.Troops ?? Array.Empty<TroopStackDto>()).ToDictionary(t => TroopRules.Key(t.Type, t.Tier), t => t.Count);
+                var load = Math.Min(catalog.Troops.types.Length > 0 ? TroopRules.MarchLoad(catalog.Troops, homeTroops) : GatherRules.Load(catalog.Gather, reactor), n.Remaining);
                 lines.Add(Loc.F("world.node.trip", Loc.Duration(trip), Loc.Duration(GatherRules.GatherSeconds(world, rates, load)), CostChips.Compact(load)));
             }
 
@@ -271,6 +272,15 @@ namespace Hadal.UI
             var home = (army.Troops ?? Array.Empty<TroopStackDto>()).ToDictionary(t => TroopRules.Key(t.Type, t.Tier), t => t.Count);
             var members = _setupTeam.Select(id => heroes.First(h => h.View.HeroId == id)).ToList();
             var shares = TroopRules.FillTeam(troops, home, members.Select(m => (TroopRules.Affinity(troops, m.Def.HeroClass), m.Command)).ToList());
+
+            // The first suggestion keeps only heroes who get troops; a hero with nobody to lead stays free.
+            if (team == null && shares.Any(sh => sh.Values.Sum() > 0))
+            {
+                var keep = shares.Select((sh, i) => (sh, i)).Where(x => x.sh.Values.Sum() > 0).Select(x => x.i).ToList();
+                members = keep.Select(i => members[i]).ToList();
+                shares = keep.Select(i => shares[i]).ToList();
+                _setupTeam = members.Select(m => m.View.HeroId).ToList();
+            }
             var aboard = new Dictionary<string, long>();
             foreach (var share in shares)
                 foreach (var pair in share)
