@@ -757,6 +757,39 @@ namespace Hadal.Game.Tests
         }
 
         [Fact]
+        public async Task A_battle_mails_both_sides_into_the_battle_tab_with_the_report_as_data()
+        {
+            var (a, aConnection) = await Connect("tab-a");
+            var (b, bConnection) = await Connect("tab-b", troops: 50);
+            Attack(a, b.PublicId);
+            At(Pvp(a).ArrivesAt);
+
+            MailListDto Box(RecordingConnection connection) => TestSupport.Serializer.Deserialize<MailListDto>(connection.Messages
+                .Where(m => m.Delta != null).SelectMany(m => m.Delta().Changes).Last(c => c.EntityId == EntityIds.Mail).Payload);
+
+            foreach (var (session, connection, kind, opponent) in new[] { (a, aConnection, "attack", "tab-b"), (b, bConnection, "defence", "tab-a") })
+            {
+                var box = Box(connection);
+                var mail = Assert.Single(box.Mails, m => m.Kind == "battle");
+                Assert.Equal(MailRules.TabBattle, MailRules.TabOf(mail.Kind));
+                Assert.Equal(1, box.Tabs.Single(t => t.Tab == MailRules.TabBattle).Unread);
+
+                // The card is drawn from data: the same report the war log holds, both armies and the loot.
+                var report = mail.Report!;
+                var logged = LastReport(session);
+                Assert.Equal((logged.Id, kind, opponent), (report.Id, report.Kind, report.OpponentName));
+                Assert.Equal((logged.Outcome, logged.Rounds, logged.Dead, logged.Wounded), (report.Outcome, report.Rounds, report.Dead, report.Wounded));
+                Assert.NotEmpty(report.Attacker);
+                Assert.NotEmpty(report.Defender);
+                Assert.Equal(logged.Plunder.Sum(p => p.Value), report.Plunder.Sum(p => p.Value));
+                Assert.True(report.Plunder.Sum(p => p.Value) > 0);
+            }
+
+            Assert.Equal("won", Box(aConnection).Mails.Single(m => m.Kind == "battle").Report!.Outcome);
+            Assert.Equal("lost", Box(bConnection).Mails.Single(m => m.Kind == "battle").Report!.Outcome);
+        }
+
+        [Fact]
         public async Task A_scout_mails_the_report_and_tells_the_target_who_scouted_them()
         {
             var (a, _) = await Connect("smail-a");

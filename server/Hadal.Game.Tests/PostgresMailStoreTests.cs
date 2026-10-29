@@ -1,4 +1,5 @@
 using Hadal.Game.Mailbox;
+using HADAL.Shared.DTOs;
 using HADAL.Shared.Enums;
 using HADAL.Shared.Simulation;
 using Npgsql;
@@ -29,9 +30,20 @@ namespace Hadal.Game.Tests
                 Attachments = MailAttachments.From(new Dictionary<ResourceType, long> { [ResourceType.Hadalite] = 50 }, new Dictionary<string, int> { ["vip_100"] = 1 }),
                 CreatedAt = now, ExpiresAt = now + MailRules.Lifetime
             };
-            await store.InsertAsync(new[] { mail }, default);
+            var battle = new Mail
+            {
+                Id = Guid.NewGuid().ToString("N"), PlayerId = player, Kind = MailKinds.Battle, Title = "Rapor",
+                Report = new PvpReportDto { Id = "b7", Kind = "defence", Outcome = "lost", Rounds = 2, Defender = new[] { new BattleStackDto { Type = "arc", Tier = 3, Start = 40, Lost = 5 } } },
+                CreatedAt = now.AddSeconds(-1), ExpiresAt = now + MailRules.Lifetime
+            };
+            await store.InsertAsync(new[] { mail, battle }, default);
+            var report = (await store.LoadAsync(player, now, default)).Single(m => m.Id == battle.Id).Report!;
+            Assert.Equal(("b7", "defence", 2, 35L), (report.Id, report.Kind, report.Rounds, report.Defender[0].Start - report.Defender[0].Lost));
+            battle.Deleted = true;
+            await store.UpdateAsync(new[] { battle }, default);
 
             var loaded = Assert.Single(await store.LoadAsync(player, now, default));
+            Assert.Null(loaded.Report);
             Assert.Equal(("Hediye", 50L, 1), (loaded.Title, loaded.Attachments.Amounts["Hadalite"], loaded.Attachments.Items["vip_100"]));
             Assert.Null(loaded.ClaimedAt);
 

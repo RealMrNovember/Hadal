@@ -134,6 +134,7 @@ namespace Hadal.Game.Mailbox
                 Title = Clip(draft.Title, MailRules.MaxTitle),
                 Body = Clip(draft.Body, MailRules.MaxBody),
                 Attachments = draft.Attachments,
+                Report = draft.Report,
                 CreatedAt = now,
                 ExpiresAt = now + MailRules.Lifetime
             }).ToList();
@@ -194,18 +195,19 @@ namespace Hadal.Game.Mailbox
             lock (_gate)
             {
                 var box = BoxOf(session);
-                var mail = box?.Find(m => m.Id == command.MailId && !m.Deleted && !m.Expired(now));
-                if (box == null || mail == null)
+                // An empty id marks every unread mail of the tab read ("mark all read", docs/37).
+                var all = string.IsNullOrEmpty(command.MailId);
+                var marked = box?.Where(m => !m.Deleted && !m.Expired(now) && (all ? MailRules.InTab(m.Kind, command.Tab) : m.Id == command.MailId)).ToList();
+                if (box == null || marked == null || (!all && marked.Count == 0))
                 {
                     session.Acknowledge(command.CommandId, command.ClientSequence, "UnknownMail", now);
                     return;
                 }
 
-                if (mail.ReadAt == null)
-                {
+                var unread = marked.Where(m => m.ReadAt == null).ToList();
+                foreach (var mail in unread)
                     mail.ReadAt = now;
-                    Save(new[] { mail });
-                }
+                Save(unread);
 
                 session.Acknowledge(command.CommandId, command.ClientSequence, null, now, new List<EntityChangeDto> { Change(box, now) });
             }
@@ -225,7 +227,7 @@ namespace Hadal.Game.Mailbox
                 List<Mail> taken;
                 if (string.IsNullOrEmpty(command.MailId))
                 {
-                    taken = box.Where(m => m.Claimable(now)).ToList();
+                    taken = box.Where(m => m.Claimable(now) && MailRules.InTab(m.Kind, command.Tab)).ToList();
                     if (taken.Count == 0)
                     {
                         session.Acknowledge(command.CommandId, command.ClientSequence, "NothingToClaim", now);
@@ -284,7 +286,7 @@ namespace Hadal.Game.Mailbox
                 if (string.IsNullOrEmpty(command.MailId))
                 {
                     // "Delete read": every opened mail with nothing left to take.
-                    gone = box.Where(m => m.ReadAt != null && !m.Claimable(now)).ToList();
+                    gone = box.Where(m => m.ReadAt != null && !m.Claimable(now) && MailRules.InTab(m.Kind, command.Tab)).ToList();
                 }
                 else
                 {
@@ -432,7 +434,13 @@ namespace Hadal.Game.Mailbox
                 {
                     Mails = live.OrderByDescending(m => m.CreatedAt).Take(MailRules.MaxShown).Select(m => Dto(m, now)).ToArray(),
                     Unread = live.Count(m => m.ReadAt == null),
-                    Unclaimed = live.Count(m => m.Claimable(now))
+                    Unclaimed = live.Count(m => m.Claimable(now)),
+                    Tabs = MailRules.Tabs.Select(tab => new MailTabDto
+                    {
+                        Tab = tab,
+                        Unread = live.Count(m => m.ReadAt == null && MailRules.TabOf(m.Kind) == tab),
+                        Unclaimed = live.Count(m => m.Claimable(now) && MailRules.TabOf(m.Kind) == tab)
+                    }).ToArray()
                 })
             };
         }
@@ -449,6 +457,7 @@ namespace Hadal.Game.Mailbox
             Read = m.ReadAt != null,
             Claimed = m.HasAttachments && m.ClaimedAt != null,
             SenderId = m.SenderId,
+            Report = m.Report,
             Attachments = m.Attachments.Amounts.Where(p => p.Value > 0).Select(p => new RewardEntryDto { Type = "resource", Id = p.Key, Amount = p.Value })
                 .Concat(m.Attachments.Items.Where(p => p.Value > 0).Select(p => new RewardEntryDto { Type = "item", Id = p.Key, Amount = p.Value }))
                 .ToArray()

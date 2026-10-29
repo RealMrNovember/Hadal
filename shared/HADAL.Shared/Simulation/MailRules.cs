@@ -71,6 +71,33 @@ namespace HADAL.Shared.Simulation
             return FullAllowance(resource) * level / FullAllowanceLevel;
         }
 
+        // --- Tabs (docs/37) ---------------------------------------------------------------------
+
+        public const string TabBattle = "battle";
+        public const string TabAlliance = "alliance";
+        public const string TabEvent = "event";
+        public const string TabSystem = "system";
+        public const string TabPersonal = "personal";
+
+        /// <summary>The mailbox tabs in display order, as in Last Asylum: battle and scout reports first.</summary>
+        public static readonly string[] Tabs = { TabBattle, TabAlliance, TabEvent, TabSystem, TabPersonal };
+
+        /// <summary>
+        /// The tab a mail of this kind sits in: battle reports (scouts and shield-blocked attacks too), alliance, events
+        /// and boss prizes, player mail; the game's and the Overseer's notices (and any kind not known yet) under system.
+        /// </summary>
+        public static string TabOf(string? kind) => kind switch
+        {
+            "battle" => TabBattle,
+            "alliance" => TabAlliance,
+            "event" => TabEvent,
+            "player" => TabPersonal,
+            _ => TabSystem
+        };
+
+        /// <summary>Whether a mail of this kind belongs to the tab; an empty tab means the whole box.</summary>
+        public static bool InTab(string? kind, string? tab) => string.IsNullOrEmpty(tab) || TabOf(kind) == tab;
+
         /// <summary>The UTC day number allowances are counted in.</summary>
         public static long Day(long unixMs) => unixMs / 86_400_000L;
 

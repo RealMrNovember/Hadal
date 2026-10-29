@@ -8,7 +8,7 @@ namespace HADAL.Shared.DTOs
     {
         [ProtoMember(1)] public string Id { get; set; } = string.Empty;
 
-        /// <summary>"system", "admin", "event", "alliance" or "player".</summary>
+        /// <summary>"system", "admin", "event", "alliance", "player" or "battle"; its tab is <c>MailRules.TabOf</c>.</summary>
         [ProtoMember(2)] public string Kind { get; set; } = string.Empty;
         [ProtoMember(3)] public string Sender { get; set; } = string.Empty;
         [ProtoMember(4)] public string Title { get; set; } = string.Empty;
@@ -25,6 +25,21 @@ namespace HADAL.Shared.DTOs
 
         /// <summary>The sending player's public id (player mails; reply goes there); empty otherwise.</summary>
         [ProtoMember(11)] public string SenderId { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Battle and scout mails (docs/37): the report itself, so the mailbox draws the report card from data rather than
+        /// text. Null for every other mail and for battle mails sent before reports travelled with them.
+        /// </summary>
+        [ProtoMember(12)] public PvpReportDto? Report { get; set; }
+    }
+
+    /// <summary>One mailbox tab (MailRules.Tabs) and what waits in it.</summary>
+    [ProtoContract]
+    public sealed class MailTabDto
+    {
+        [ProtoMember(1)] public string Tab { get; set; } = string.Empty;
+        [ProtoMember(2)] public int Unread { get; set; }
+        [ProtoMember(3)] public int Unclaimed { get; set; }
     }
 
     /// <summary>What the player may still send today (MailRules); counted per UTC day.</summary>
@@ -48,5 +63,8 @@ namespace HADAL.Shared.DTOs
 
         /// <summary>Mails with attachments still to take.</summary>
         [ProtoMember(3)] public int Unclaimed { get; set; }
+
+        /// <summary>Unread and unclaimed per tab, in MailRules.Tabs order (counted over every live mail, not just the shown ones).</summary>
+        [ProtoMember(4)] public MailTabDto[] Tabs { get; set; } = System.Array.Empty<MailTabDto>();
     }
 }

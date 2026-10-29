@@ -8,7 +8,8 @@ namespace Hadal.Game.World
     /// <summary>
     /// Every PvP report also goes out as a mail (docs/30 §5.5): result, both armies, losses, loot with the protected share
     /// and fatigue, contribution, coordinates and the battle id the client opens the result screen with. The text is
-    /// "loc:key|args" lines so each player reads it in their language. One mail per player, battle and report kind.
+    /// "loc:key|args" lines so each player reads it in their language, and the report itself rides along as data (docs/37).
+    /// One mail per player, battle and report kind.
     /// </summary>
     public sealed partial class WorldService
     {
@@ -106,7 +107,8 @@ namespace Hadal.Game.World
             var body = string.Join("\n", lines);
             if (body.Length > MailRules.MaxBody)
                 body = string.Join("\n", lines.Where(l => !l.StartsWith("loc:mail.pvp.stack", StringComparison.Ordinal)));
-            return new MailDraft(MailKinds.Battle, string.Empty, title, body, new MailAttachments());
+            // The report travels with the mail so the mailbox draws a report card (docs/37); the text stays for older clients.
+            return new MailDraft(MailKinds.Battle, string.Empty, title, body, new MailAttachments(), Report: r);
 
             void Army(string side, BattleStackDto[]? stacks)
             {

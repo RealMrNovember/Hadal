@@ -230,6 +230,97 @@ namespace Hadal.Game.Tests
             Assert.Equal("Herkese", Assert.Single(Box(other).Mails).Title);
         }
 
+        private static MailDraft Of(string kind, bool gift = false) => new(kind, string.Empty, "T-" + kind, "B",
+            gift ? MailAttachments.From(new Dictionary<ResourceType, long> { [ResourceType.Hadalite] = 10 }, null) : new MailAttachments());
+
+        private static MailTabDto Tab(MailListDto box, string tab) => box.Tabs.Single(t => t.Tab == tab);
+
+        [Fact]
+        public void Every_kind_has_a_tab_and_unknown_kinds_fall_under_system()
+        {
+            Assert.Equal(new[] { "battle", "alliance", "event", "system", "personal" }, MailRules.Tabs);
+            Assert.Equal(MailRules.TabBattle, MailRules.TabOf(MailKinds.Battle));
+            Assert.Equal(MailRules.TabAlliance, MailRules.TabOf(MailKinds.Alliance));
+            Assert.Equal(MailRules.TabEvent, MailRules.TabOf(MailKinds.Event));
+            Assert.Equal(MailRules.TabSystem, MailRules.TabOf(MailKinds.System));
+            Assert.Equal(MailRules.TabSystem, MailRules.TabOf(MailKinds.Admin));
+            Assert.Equal(MailRules.TabPersonal, MailRules.TabOf(MailKinds.Player));
+            Assert.Equal(MailRules.TabSystem, MailRules.TabOf("something-new"));
+            Assert.True(MailRules.InTab(MailKinds.Player, string.Empty));
+        }
+
+        [Fact]
+        public async Task The_box_counts_unread_and_unclaimed_per_tab()
+        {
+            var (_, connection) = await Connect("mail-tabs");
+            await _world.SendMailAsync("mail-tabs", Of(MailKinds.Event, gift: true), default);
+            await _world.SendMailAsync("mail-tabs", Of(MailKinds.Admin, gift: true), default);
+            await _world.SendMailAsync("mail-tabs", Of(MailKinds.System), default);
+            await _world.SendMailAsync("mail-tabs", Of(MailKinds.Alliance), default);
+
+            var box = Box(connection);
+            Assert.Equal(MailRules.Tabs, box.Tabs.Select(t => t.Tab));
+            Assert.Equal((2, 1), (Tab(box, "system").Unread, Tab(box, "system").Unclaimed));
+            Assert.Equal((1, 1), (Tab(box, "event").Unread, Tab(box, "event").Unclaimed));
+            Assert.Equal((1, 0), (Tab(box, "alliance").Unread, Tab(box, "alliance").Unclaimed));
+            Assert.Equal((0, 0), (Tab(box, "battle").Unread, Tab(box, "personal").Unread));
+            Assert.Equal(box.Unread, box.Tabs.Sum(t => t.Unread));
+        }
+
+        [Fact]
+        public async Task Read_all_claim_all_and_delete_read_act_on_one_tab_only()
+        {
+            var (session, connection) = await Connect("mail-tabacts");
+            await _world.SendMailAsync("mail-tabacts", Of(MailKinds.Event, gift: true), default);
+            await _world.SendMailAsync("mail-tabacts", Of(MailKinds.Admin, gift: true), default);
+            await _world.SendMailAsync("mail-tabacts", Of(MailKinds.System), default);
+
+            // Mark all read: only the system tab, and attachments stay waiting.
+            Send(session, new ReadMailCommand { CommandId = "ra", Tab = MailRules.TabSystem }, CommandType.ReadMail);
+            Assert.Equal(CommandResultCode.Accepted, LastAck(connection).Result);
+            var box = Box(connection);
+            Assert.Equal((0, 1, 1), (Tab(box, "system").Unread, Tab(box, "system").Unclaimed, Tab(box, "event").Unread));
+
+            // Claim all in the event tab leaves the system tab's gift alone.
+            var hadalite = Hadalite(session);
+            Send(session, new ClaimMailCommand { CommandId = "ca", Tab = MailRules.TabEvent }, CommandType.ClaimMail);
+            box = Box(connection);
+            Assert.Equal((0, 1), (Tab(box, "event").Unclaimed, Tab(box, "system").Unclaimed));
+            Assert.Equal(hadalite + 10, Hadalite(session));
+
+            // Delete read in the system tab: the plain notice goes, the unclaimed gift stays; the event mail stays.
+            Send(session, new DeleteMailCommand { CommandId = "da", Tab = MailRules.TabSystem }, CommandType.DeleteMail);
+            box = Box(connection);
+            Assert.Equal(new[] { "T-admin", "T-event" }, box.Mails.Select(m => m.Title).OrderBy(t => t));
+
+            // A tab with nothing to claim says so.
+            Send(session, new ClaimMailCommand { CommandId = "cb", Tab = MailRules.TabBattle }, CommandType.ClaimMail);
+            Assert.Equal("NothingToClaim", LastAck(connection).Reason);
+        }
+
+        [Fact]
+        public async Task A_battle_report_travels_with_its_mail_and_survives_a_restart()
+        {
+            await Create("mail-report");
+            var report = new PvpReportDto
+            {
+                Id = "b1", Kind = "defence", Outcome = "lost", OpponentName = "Kraken", OpponentTag = "DEEP", X = 4, Y = 5, Rounds = 3,
+                Attacker = new[] { new BattleStackDto { Type = "Light", Tier = 2, Start = 100, Lost = 10 } },
+                Plunder = new[] { new ResourceAmountEntry { Key = ResourceType.Titanium, Value = 500 } }
+            };
+            await _world.SendMailAsync("mail-report", new MailDraft(MailKinds.Battle, string.Empty, "t", "b", new MailAttachments(), Report: report), default);
+
+            _world = NewWorld();
+            var (_, connection) = await Connect("mail-report");
+            var shown = Assert.Single(Box(connection).Mails).Report!;
+            Assert.Equal(("b1", "defence", "Kraken", 3), (shown.Id, shown.Kind, shown.OpponentName, shown.Rounds));
+            Assert.Equal(90, shown.Attacker[0].Start - shown.Attacker[0].Lost);
+            Assert.Equal(500, shown.Plunder.Single(p => p.Key == ResourceType.Titanium).Value);
+            Assert.Equal(1, Tab(Box(connection), "battle").Unread);
+            Assert.Null(MailReports.FromJson("not json"));
+            Assert.Equal(string.Empty, MailReports.ToJson(null));
+        }
+
         [Fact]
         public void Attachments_keep_only_positive_amounts_and_round_trip_as_json()
         {

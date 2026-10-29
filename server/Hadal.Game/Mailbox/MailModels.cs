@@ -1,4 +1,5 @@
 using System.Text.Json;
+using HADAL.Shared.DTOs;
 using HADAL.Shared.Enums;
 
 namespace Hadal.Game.Mailbox
@@ -54,8 +55,35 @@ namespace Hadal.Game.Mailbox
         }
     }
 
-    /// <summary>The text and attachments of a mail before it is addressed; <paramref name="SenderId"/> for player mails.</summary>
-    public sealed record MailDraft(string Kind, string Sender, string Title, string Body, MailAttachments Attachments, string SenderId = "");
+    /// <summary>
+    /// The text and attachments of a mail before it is addressed; <paramref name="SenderId"/> for player mails,
+    /// <paramref name="Report"/> for battle and scout mails (docs/37).
+    /// </summary>
+    public sealed record MailDraft(string Kind, string Sender, string Title, string Body, MailAttachments Attachments, string SenderId = "",
+        PvpReportDto? Report = null);
+
+    /// <summary>A battle mail's report as stored with the mail (JSON); empty text for none.</summary>
+    public static class MailReports
+    {
+        private static readonly JsonSerializerOptions Json = new(JsonSerializerDefaults.Web);
+
+        public static string ToJson(PvpReportDto? report) => report == null ? string.Empty : JsonSerializer.Serialize(report, Json);
+
+        public static PvpReportDto? FromJson(string? json)
+        {
+            if (string.IsNullOrWhiteSpace(json))
+                return null;
+            try
+            {
+                return JsonSerializer.Deserialize<PvpReportDto>(json, Json);
+            }
+            catch (JsonException)
+            {
+                // An unreadable report leaves the mail as text (its body still says everything).
+                return null;
+            }
+        }
+    }
 
     /// <summary>One stored mail. Attachments stay on the server until claimed (once: <see cref="ClaimedAt"/>).</summary>
     public sealed class Mail
@@ -72,6 +100,9 @@ namespace Hadal.Game.Mailbox
         public string Title { get; set; } = string.Empty;
         public string Body { get; set; } = string.Empty;
         public MailAttachments Attachments { get; set; } = new();
+
+        /// <summary>Battle and scout mails: the report the mailbox draws its card from (never changed once sent).</summary>
+        public PvpReportDto? Report { get; set; }
         public DateTimeOffset CreatedAt { get; set; }
         public DateTimeOffset ExpiresAt { get; set; }
         public DateTimeOffset? ReadAt { get; set; }
@@ -88,7 +119,7 @@ namespace Hadal.Game.Mailbox
         public Mail Copy() => new()
         {
             Id = Id, PlayerId = PlayerId, Kind = Kind, Sender = Sender, SenderId = SenderId, Title = Title, Body = Body,
-            Attachments = MailAttachments.FromJson(Attachments.ToJson()),
+            Attachments = MailAttachments.FromJson(Attachments.ToJson()), Report = Report,
             CreatedAt = CreatedAt, ExpiresAt = ExpiresAt, ReadAt = ReadAt, ClaimedAt = ClaimedAt, Deleted = Deleted
         };
     }

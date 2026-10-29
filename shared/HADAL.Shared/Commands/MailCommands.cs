@@ -3,22 +3,31 @@ using ProtoBuf;
 
 namespace HADAL.Shared.Commands
 {
-    /// <summary>Marks a mail as read (opening it).</summary>
+    /// <summary>Marks a mail as read (opening it); an empty <see cref="MailId"/> marks every mail of <see cref="Tab"/> read.</summary>
     [ProtoContract]
     public sealed class ReadMailCommand : ICommand
     {
         [ProtoMember(1)] public string CommandId { get; set; } = string.Empty;
         [ProtoMember(2)] public ulong ClientSequence { get; set; }
         [ProtoMember(3)] public string MailId { get; set; } = string.Empty;
+
+        /// <summary>With an empty <see cref="MailId"/>: the mailbox tab (MailRules.Tabs) to act on; empty = the whole box.</summary>
+        [ProtoMember(4)] public string Tab { get; set; } = string.Empty;
     }
 
-    /// <summary>Takes a mail's attachments into the bag and wallet; an empty <see cref="MailId"/> claims every mail.</summary>
+    /// <summary>
+    /// Takes a mail's attachments into the bag and wallet; an empty <see cref="MailId"/> claims every mail of
+    /// <see cref="Tab"/>.
+    /// </summary>
     [ProtoContract]
     public sealed class ClaimMailCommand : ICommand
     {
         [ProtoMember(1)] public string CommandId { get; set; } = string.Empty;
         [ProtoMember(2)] public ulong ClientSequence { get; set; }
         [ProtoMember(3)] public string MailId { get; set; } = string.Empty;
+
+        /// <summary>With an empty <see cref="MailId"/>: the mailbox tab (MailRules.Tabs) to act on; empty = the whole box.</summary>
+        [ProtoMember(4)] public string Tab { get; set; } = string.Empty;
     }
 
     /// <summary>
@@ -48,5 +57,8 @@ namespace HADAL.Shared.Commands
         [ProtoMember(1)] public string CommandId { get; set; } = string.Empty;
         [ProtoMember(2)] public ulong ClientSequence { get; set; }
         [ProtoMember(3)] public string MailId { get; set; } = string.Empty;
+
+        /// <summary>With an empty <see cref="MailId"/>: the mailbox tab (MailRules.Tabs) to act on; empty = the whole box.</summary>
+        [ProtoMember(4)] public string Tab { get; set; } = string.Empty;
     }
 }
