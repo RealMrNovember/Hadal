@@ -48,10 +48,11 @@ namespace Hadal.Game
         /// </summary>
         internal static string? PayRename(PlayerState state, DateTimeOffset now)
         {
-            if (state.RenamedAt is { } last && now - last < RenameRules.Cooldown)
-                return "RenameCooldown";
+            // The free changes come without a wait; the day between changes applies to paid ones.
             if (state.RenameCount >= RenameRules.FreeRenames)
             {
+                if (state.RenamedAt is { } last && now - last < RenameRules.Cooldown)
+                    return "RenameCooldown";
                 if (state.Items.TryGetValue(RenameRules.Item, out var cards) && cards > 0)
                 {
                     if (cards == 1)
