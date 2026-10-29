@@ -76,6 +76,27 @@ namespace Hadal.UI
             }
         }
 
+        /// <summary>
+        /// The boss's damage board for my alliance (server-ranked like the payout): the top five and my own line. Ranks 1–3
+        /// get the biggest prizes when it dies or its event ends; everyone who hit it gets something.
+        /// </summary>
+        private static string BossBoardText(WorldMonsterDto m)
+        {
+            var board = m.Board ?? Array.Empty<BossBoardEntryDto>();
+            var text = $"\n<b>{Loc.T("world.boss.board")}</b>";
+            if (board.Length == 0)
+                return text + $"\n<color=#8CA3AD>{Loc.T("world.boss.noboard")}</color>";
+            foreach (var e in board.Where(e => e.Rank > 0 && e.Rank <= 5))
+            {
+                var medal = e.Rank switch { 1 => "#FFD54F", 2 => "#CFD8DC", 3 => "#D7A86E", _ => "#8CA3AD" };
+                text += $"\n<color={medal}>{e.Rank}.</color> {Escape(e.Name)}  {e.Damage:N0}";
+            }
+
+            text += m.MyRank > 5 ? $"\n<color=#8CD9FF>{Loc.F("world.boss.myrank", m.MyRank, m.MyDamage.ToString("N0"))}</color>"
+                : m.MyRank == 0 && m.MyDamage > 0 ? $"\n<color=#8CD9FF>{Loc.F("world.boss.mydamage", m.MyDamage.ToString("N0"))}</color>" : string.Empty;
+            return text;
+        }
+
         private static int BossPercent(WorldMonsterDto m) => m.HpMax <= 0 ? 0 : (int)Math.Ceiling(100.0 * m.HpLeft / m.HpMax);
 
         /// <summary>A thin bar under a boss's plate: what is left of its shared body.</summary>
@@ -308,6 +329,7 @@ namespace Hadal.UI
                 // An event boss: one shared body for everyone, here until its event ends.
                 info += $"\n<color=#C9A6FF>{Loc.F("world.boss.body", BossPercent(m))}</color>   {Loc.F("world.boss.leaves", Loc.Duration(Math.Max(0, (m.EndsAtMs - View.ServerNowMs) / 1000f)))}";
                 info += $"\n{Loc.T("world.boss.hint")}";
+                info += BossBoardText(m);
             }
             else if (m.Busy)
                 info += $"\n<color=#FFB347>{Loc.T("world.monster.busy")}</color>";

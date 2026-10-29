@@ -381,13 +381,7 @@ namespace Hadal.UI
             else if (pvp != null)
                 text = PvpSetupText(pvp, aboard, members.Select(m => m.Power).ToList(), trip);
             else if (monster != null)
-            {
-                var cost = MonsterRules.Kind(monster.Type)?.Sonar ?? 40;
-                sonarShort = SonarNow() < cost;
-                var mine = TroopRules.Power(troops, aboard);
-                text = $"{Loc.F("march.vs", mine.ToString("N0"), monster.Power.ToString("N0"))}\n" +
-                       $"<color={(sonarShort ? "#FF8A80" : "#8CD9FF")}>{Loc.T("world.sonar")} {cost} ({SonarNow()})</color>   {Loc.F("world.monster.trip", Loc.Duration(trip))}";
-            }
+                text = MonsterSetupText(monster, aboard, members.Select(m => m.Power).ToList(), trip, out sonarShort);
             else
             {
                 var rates = GatherRules.Rates(world, catalog.Gather, n.Type, n.Level, reactor);

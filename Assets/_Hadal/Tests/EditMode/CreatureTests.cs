@@ -27,7 +27,8 @@ namespace Hadal.Tests.EditMode
 
             foreach (var action in EventActions.All)
                 Assert.IsTrue(english.ContainsKey("event.action." + action), $"en: event.action.{action}");
-            foreach (var key in new[] { "world.boss.tag", "world.boss.body", "world.boss.leaves", "world.boss.hint" })
+            foreach (var key in new[] { "world.boss.tag", "world.boss.body", "world.boss.leaves", "world.boss.hint", "world.boss.board", "world.boss.myrank",
+                         "world.estimate.damage", "world.estimate.nodamage", "mail.boss.killed", "mail.boss.gone", "mail.boss.ranked", "mail.boss.joined" })
                 Assert.IsTrue(turkish.ContainsKey(key), key);
         }
 
@@ -167,6 +168,28 @@ namespace Hadal.Tests.EditMode
             finally
             {
                 Object.DestroyImmediate(wildlife.gameObject);
+            }
+        }
+
+        [Test]
+        public void Boss_prize_mails_read_in_the_players_language()
+        {
+            var before = Loc.Current;
+            try
+            {
+                Loc.Use("en");
+                Assert.AreEqual("Chasm Maw defeated!", MailText.Show("loc:mail.boss.killed|monster.chasm_maw", "event"));
+                StringAssert.StartsWith("In the fight against Depth Kraken you ranked 2 in your alliance (640 damage)",
+                    MailText.Show("loc:mail.boss.ranked|monster.depth_kraken|2|640", "event"));
+                Loc.Use("tr");
+                Assert.AreEqual("Uçurum Ağzı yenildi!", MailText.Show("loc:mail.boss.killed|monster.chasm_maw", "event"));
+                // A player's mail is shown as written, whatever it starts with.
+                Assert.AreEqual("loc:mail.boss.killed|x", MailText.Show("loc:mail.boss.killed|x", "player"));
+                Assert.AreEqual("Merhaba", MailText.Show("Merhaba", "system"));
+            }
+            finally
+            {
+                Loc.Use(before);
             }
         }
 

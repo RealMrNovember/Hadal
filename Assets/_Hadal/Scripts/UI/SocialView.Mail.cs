@@ -119,7 +119,7 @@ namespace Hadal.UI
                 CardText(card.transform, MailSender(m), 24, m.Read ? UiKit.Muted : UiKit.Accent, 0.17f, 0.62f, 0.7f, 0.94f, TextAnchor.MiddleLeft, FontStyle.Bold)
                     .raycastTarget = false;
                 CardText(card.transform, MailAge(m), 22, UiKit.Muted, 0.7f, 0.62f, 0.97f, 0.94f, TextAnchor.MiddleRight).raycastTarget = false;
-                Plain(CardText(card.transform, m.Title, 30, UiKit.Text, 0.17f, 0.3f, 0.97f, 0.64f, TextAnchor.MiddleLeft, m.Read ? FontStyle.Normal : FontStyle.Bold), m)
+                Plain(CardText(card.transform, MailText.Show(m.Title, m.Kind), 30, UiKit.Text, 0.17f, 0.3f, 0.97f, 0.64f, TextAnchor.MiddleLeft, m.Read ? FontStyle.Normal : FontStyle.Bold), m)
                     .raycastTarget = false;
 
                 // Up to five attachment icons; a tick once taken.
@@ -159,7 +159,7 @@ namespace Hadal.UI
 
             var head = Card(170);
             HudIconImage(head.transform, MailIcon(m), 0.02f, 0.15f, 0.14f, 0.85f);
-            Plain(CardText(head.transform, m.Title, 34, UiKit.Text, 0.17f, 0.42f, 0.97f, 0.95f, TextAnchor.MiddleLeft, FontStyle.Bold), m);
+            Plain(CardText(head.transform, MailText.Show(m.Title, m.Kind), 34, UiKit.Text, 0.17f, 0.42f, 0.97f, 0.95f, TextAnchor.MiddleLeft, FontStyle.Bold), m);
             var daysLeft = (int)Math.Floor(TimeSpan.FromMilliseconds(Math.Max(0, m.ExpiresAtMs - NowMs)).TotalDays);
             var expiry = daysLeft >= 1 ? Loc.F("mail.expires", daysLeft) : Loc.T("mail.expiresToday");
             CardText(head.transform, $"{MailSender(m)} · {MailAge(m)} · {expiry}", 22, UiKit.Muted, 0.17f, 0.06f, 0.97f, 0.42f, TextAnchor.MiddleLeft);
@@ -168,7 +168,7 @@ namespace Hadal.UI
             {
                 var lines = m.Body.Split('\n').Sum(l => 1 + l.Length / 40);
                 var body = Card(Mathf.Clamp(50 + lines * 40, 120, 1400));
-                Plain(CardText(body.transform, m.Body, 28, UiKit.Text, 0.04f, 0.04f, 0.96f, 0.96f), m);
+                Plain(CardText(body.transform, MailText.Show(m.Body, m.Kind), 28, UiKit.Text, 0.04f, 0.04f, 0.96f, 0.96f), m);
             }
 
             if (m.Attachments.Length > 0)
