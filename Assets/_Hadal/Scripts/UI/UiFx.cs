@@ -209,7 +209,7 @@ namespace Hadal.UI
                 var fadeOut = age > Life ? 1f - (age - Life) / Fade : 1f;
                 e.Group.alpha = fadeIn * fadeOut;
                 var rise = age > Life ? (age - Life) / Fade * 30f : (1f - fadeIn) * -20f;
-                e.Rect.anchoredPosition = Vector2.Lerp(e.Rect.anchoredPosition, new Vector2(0f, -y + rise), 0.35f);
+                e.Rect.anchoredPosition = Vector2.Lerp(e.Rect.anchoredPosition, new Vector2(0f, -y + rise), UiKit.Damp(24f));
                 y += e.Rect.sizeDelta.y + 12f;
             }
         }
@@ -269,8 +269,8 @@ namespace Hadal.UI
         }
 
         public static string Compact(long value) =>
-            value >= 1_000_000 ? (value / 1_000_000f).ToString(value >= 10_000_000 ? "0" : "0.#") + "M"
-            : value >= 10_000 ? (value / 1000f).ToString(value >= 100_000 ? "0" : "0.#") + "K"
-            : value.ToString("N0");
+            value >= 1_000_000 ? (value / 1_000_000f).ToString(value >= 10_000_000 ? "0" : "0.#", System.Globalization.CultureInfo.InvariantCulture) + "M"
+            : value >= 10_000 ? (value / 1000f).ToString(value >= 100_000 ? "0" : "0.#", System.Globalization.CultureInfo.InvariantCulture) + "K"
+            : value.ToString("N0", System.Globalization.CultureInfo.InvariantCulture);
     }
 }

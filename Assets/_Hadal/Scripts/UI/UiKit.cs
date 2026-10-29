@@ -25,6 +25,21 @@ namespace Hadal.UI
         /// <summary>Corner radius of boxes, cards and buttons (reference pixels).</summary>
         public const int Radius = 22;
 
+        /// <summary>
+        /// The type scale (docs/40 §3.1): one ratio (~1.25) from caption to display, in the reference sizes
+        /// <see cref="Label(string, Transform, string, int, Color, TextAnchor, FontStyle)"/> takes (it applies
+        /// <see cref="Scale"/>). New screens pick from these instead of ad-hoc sizes.
+        /// </summary>
+        public static class TypeScale
+        {
+            public const int Micro = 18;
+            public const int Caption = 22;
+            public const int Body = 28;
+            public const int Subtitle = 34;
+            public const int Title = 42;
+            public const int Display = 52;
+        }
+
         private static Sprite _rounded;
         private static Sprite _ring;
 
@@ -449,7 +464,12 @@ namespace Hadal.UI
             viewport.gameObject.AddComponent<RectMask2D>();
             var scroll = viewport.gameObject.AddComponent<ScrollRect>();
             scroll.horizontal = false;
-            scroll.movementType = ScrollRect.MovementType.Clamped;
+            // Phone-native feel (docs/40 §3.2): a soft rubber band at the ends and momentum that glides to a stop,
+            // instead of a hard clamp that makes lists feel dead under the thumb.
+            scroll.movementType = ScrollRect.MovementType.Elastic;
+            scroll.elasticity = 0.12f;
+            scroll.inertia = true;
+            scroll.decelerationRate = 0.12f;
             scroll.scrollSensitivity = 30f;
 
             var content = Column("Content", viewport.transform, spacing);
@@ -568,13 +588,13 @@ namespace Hadal.UI
             return slider;
         }
 
-        /// <summary>Fades a CanvasGroup on unscaled time; deactivates the object when it reaches 0.</summary>
+        /// <summary>Fades a CanvasGroup on unscaled time (eased in and out); deactivates the object when it reaches 0.</summary>
         public static System.Collections.IEnumerator Fade(CanvasGroup group, float to, float seconds, Action done = null)
         {
             var from = group.alpha;
             for (var t = 0f; t < seconds; t += Time.unscaledDeltaTime)
             {
-                group.alpha = Mathf.Lerp(from, to, t / seconds);
+                group.alpha = Mathf.Lerp(from, to, EaseInOut(t / seconds));
                 yield return null;
             }
 
@@ -584,5 +604,25 @@ namespace Hadal.UI
                 group.gameObject.SetActive(false);
             done?.Invoke();
         }
+
+        /// <summary>Smoothstep (ease-in-out) of 0..1: the default curve for fades and slides.</summary>
+        public static float EaseInOut(float t)
+        {
+            t = Mathf.Clamp01(t);
+            return t * t * (3f - 2f * t);
+        }
+
+        /// <summary>Ease-out cubic of 0..1: things arriving (slides, counters settling).</summary>
+        public static float EaseOut(float t)
+        {
+            var u = 1f - Mathf.Clamp01(t);
+            return 1f - u * u * u;
+        }
+
+        /// <summary>
+        /// Frame-rate independent smoothing factor for <c>Lerp(current, target, Damp(sharpness))</c>: the same feel at
+        /// 30 and 60 fps (a bare <c>Lerp(a, b, 0.35f)</c> per frame moves twice as fast at 60 fps).
+        /// </summary>
+        public static float Damp(float sharpness) => 1f - Mathf.Exp(-sharpness * Time.unscaledDeltaTime);
     }
 }
