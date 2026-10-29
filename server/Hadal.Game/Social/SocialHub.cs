@@ -71,6 +71,24 @@ namespace Hadal.Game.Social
         /// <summary>Avatars of players who are not online (the world map remembers every base's).</summary>
         public Func<string, string?>? AvatarLookup { get; set; }
 
+        /// <summary>
+        /// A player's kingdom (docs/39): world chat is per kingdom ("world" is Kingdom #1, "world:w{n}" the others), and an
+        /// alliance belongs to its leader's kingdom, so only that kingdom's players find, join or are invited into it.
+        /// </summary>
+        public Func<string, string>? KingdomOf { get; set; }
+
+        private string Kingdom(string playerId) => KingdomOf?.Invoke(playerId) ?? HADAL.Shared.Simulation.AllianceLandRules.DefaultWorld;
+
+        private string WorldChannelOf(string playerId)
+        {
+            var kingdom = Kingdom(playerId);
+            return kingdom == HADAL.Shared.Simulation.AllianceLandRules.DefaultWorld ? WorldChannel : WorldChannel + ":" + kingdom;
+        }
+
+        private static bool IsWorldChannel(string channel) => channel == WorldChannel || channel.StartsWith(WorldChannel + ":", StringComparison.Ordinal);
+
+        private bool SameKingdom(Alliance alliance, string playerId) => Kingdom(alliance.Record.LeaderId) == Kingdom(playerId);
+
         /// <summary>Names of players who are not online and not in an alliance (the world map knows every base).</summary>
         public Func<string, string?>? NameLookup { get; set; }
 
@@ -213,7 +231,7 @@ namespace Hadal.Game.Social
                         Done(session, leave!.CommandId, leave.ClientSequence, Leave(session.PublicId, now, kickedBy: null), now);
                         break;
                     case CommandType.BrowseAlliances when TryDeserialize(envelope.Payload, out BrowseAlliancesCommand? browse):
-                        session.Acknowledge(browse!.CommandId, browse.ClientSequence, null, now, new List<EntityChangeDto> { ListChange(browse.Query) });
+                        session.Acknowledge(browse!.CommandId, browse.ClientSequence, null, now, new List<EntityChangeDto> { ListChange(browse.Query, session.PublicId) });
                         break;
                     case CommandType.KickMember when TryDeserialize(envelope.Payload, out KickMemberCommand? kick):
                         Done(session, kick!.CommandId, kick.ClientSequence, Kick(session.PublicId, kick.MemberId, now), now);
@@ -302,7 +320,7 @@ namespace Hadal.Game.Social
             }
             else
             {
-                channel = WorldChannel;
+                channel = WorldChannelOf(session.PublicId);
             }
 
             if (_lastChat.TryGetValue(session.PublicId, out var last) && (now - last).TotalSeconds < rules.minIntervalSeconds)
@@ -357,7 +375,7 @@ namespace Hadal.Game.Social
         {
             if (AllianceOf(session.PublicId) != null)
                 return SocialRejectReason.AlreadyInAlliance;
-            if (!_alliances.TryGetValue(allianceId ?? string.Empty, out var alliance))
+            if (!_alliances.TryGetValue(allianceId ?? string.Empty, out var alliance) || !SameKingdom(alliance, session.PublicId))
                 return SocialRejectReason.UnknownAlliance;
             if (alliance.Members.Count >= Math.Max(1, Catalog.Alliance.maxMembers))
                 return SocialRejectReason.AllianceFull;
@@ -533,7 +551,7 @@ namespace Hadal.Game.Social
                 return SocialRejectReason.NotInAlliance;
             if (!AlliancePermissions.CanInvite(RankOf(alliance, session.PublicId)))
                 return SocialRejectReason.NotAllowed;
-            if (string.IsNullOrEmpty(playerId) || playerId == session.PublicId || NameOf(playerId).Length == 0)
+            if (string.IsNullOrEmpty(playerId) || playerId == session.PublicId || NameOf(playerId).Length == 0 || !SameKingdom(alliance, playerId))
                 return SocialRejectReason.UnknownPlayer;
             if (AllianceOf(playerId) != null)
                 return SocialRejectReason.AlreadyInAlliance;
@@ -905,8 +923,8 @@ namespace Hadal.Game.Social
 
         private IEnumerable<PlayerSession> Readers(string channel)
         {
-            if (channel == WorldChannel)
-                return _online.Values.ToList();
+            if (IsWorldChannel(channel))
+                return _online.Values.Where(s => WorldChannelOf(s.PublicId) == channel).ToList();
             if (channel.StartsWith(PrivatePrefix, StringComparison.Ordinal))
             {
                 var (a, b) = PrivatePair(channel);
@@ -945,7 +963,7 @@ namespace Hadal.Game.Social
 
         private EntityChangeDto HistoryChange(string playerId)
         {
-            var lines = new List<ChatRecord>(Lines(WorldChannel));
+            var lines = new List<ChatRecord>(Lines(WorldChannelOf(playerId)));
             var alliance = AllianceOf(playerId);
             if (alliance != null)
                 lines.AddRange(Lines(AllianceChannel(alliance.Record.Id)));
@@ -1006,10 +1024,11 @@ namespace Hadal.Game.Social
             return new EntityChangeDto { EntityId = EntityIds.MyAlliance, Kind = EntityChangeKind.Update, Payload = _serializer.Serialize(dto) };
         }
 
-        private EntityChangeDto ListChange(string? query)
+        private EntityChangeDto ListChange(string? query, string viewerId)
         {
             var q = (query ?? string.Empty).Trim();
             var list = _alliances.Values
+                .Where(a => SameKingdom(a, viewerId))
                 .Where(a => q.Length == 0 || a.Record.Name.Contains(q, StringComparison.OrdinalIgnoreCase) || a.Record.Tag.Contains(q, StringComparison.OrdinalIgnoreCase))
                 .Select(a => new AllianceSummaryDto
                 {
@@ -1158,7 +1177,7 @@ namespace Hadal.Game.Social
         private static ChatMessageDto ToDtoBase(ChatRecord line) => new()
         {
             Id = line.Id,
-            Channel = line.Channel == WorldChannel ? (int)ChatChannel.World : (int)ChatChannel.Alliance,
+            Channel = IsWorldChannel(line.Channel) ? (int)ChatChannel.World : (int)ChatChannel.Alliance,
             SenderId = line.SenderId,
             SenderName = line.SenderName,
             AllianceTag = line.AllianceTag,

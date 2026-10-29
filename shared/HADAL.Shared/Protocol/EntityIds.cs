@@ -127,6 +127,12 @@ namespace HADAL.Shared.Protocol
         /// <summary>Strongholds, owners and every base as a dot, for the strategic map (docs/30 §6.4).</summary>
         public const string Territory = "world:territory";
 
+        /// <summary>The player's own kingdom (<c>KingdomDto</c>, docs/39), pushed on login.</summary>
+        public const string MyKingdom = Base + "kingdom";
+
+        /// <summary>Every kingdom (<c>KingdomListDto</c>).</summary>
+        public const string Kingdoms = "world:kingdoms";
+
         public const string Event = "event:";
 
         /// <summary>Every event the player can see with their progress (<c>EventListDto</c>).</summary>

@@ -1,5 +1,8 @@
 using System.Collections.Concurrent;
 using Hadal.Game.Events;
+using Hadal.Game.Kingdoms;
+using HADAL.Shared.DTOs;
+using HADAL.Shared.Protocol;
 using Hadal.Game.Mailbox;
 using Hadal.Game.Onboarding;
 using Hadal.Game.Persistence;
@@ -64,7 +67,8 @@ namespace Hadal.Game
             ILogger<GameWorld> logger,
             IEventStore? eventStore = null,
             IMailStore? mailStore = null,
-            IOnboardingStore? onboardingStore = null)
+            IOnboardingStore? onboardingStore = null,
+            IKingdomStore? kingdomStore = null)
         {
             _runtime = runtime;
             _repository = repository;
@@ -72,26 +76,29 @@ namespace Hadal.Game
             _serializer = serializer;
             _logger = logger;
             Social = new SocialHub(socialStore, runtime, serializer, logger);
+            Kingdoms = new KingdomService(kingdomStore ?? new InMemoryKingdomStore(), logger);
+            _worldStore = worldStore;
             Map = new WorldService(worldStore, runtime, serializer, Social, logger, clock);
-            Map.SessionOf = id => _byPublic.TryGetValue(id, out var loaded) ? loaded : null;
-            Map.Summon = id => _ = SummonAsync(id, CancellationToken.None);
-            Social.NameLookup = Map.NameOf;
-            Social.AvatarLookup = Map.AvatarOf;
+            _maps[Map.WorldId] = Map;
+            Social.NameLookup = NameOf;
+            Social.AvatarLookup = AvatarOf;
+            Social.KingdomOf = id => Kingdoms.KingdomOf(id) ?? Map.WorldId;
             Events = new EventService(eventStore ?? new InMemoryEventStore(), runtime, serializer, logger)
             {
-                NameLookup = Map.NameOf,
-                AvatarLookup = Map.AvatarOf,
+                NameLookup = NameOf,
+                AvatarLookup = AvatarOf,
                 AllianceIdOf = Social.AllianceIdOf,
+                KingdomOf = id => Kingdoms.KingdomOf(id) ?? Map.WorldId,
                 TagOf = Social.TagOf,
                 AllianceInfo = Social.AllianceInfo,
                 DropGift = Social.DropGift
             };
-            Map.EventBosses = Events.LiveBosses;
-            Map.BossHit = Events.RecordBossHit;
+            WireMap(Map);
             Mail = new MailService(mailStore ?? new InMemoryMailStore(), serializer, logger)
             {
-                NameLookup = Map.NameOf,
-                AllianceIdOf = Social.AllianceIdOf
+                NameLookup = NameOf,
+                AllianceIdOf = Social.AllianceIdOf,
+                KingdomOf = id => Kingdoms.KingdomOf(id) ?? Map.WorldId
             };
             Onboarding = new OnboardingLog(onboardingStore ?? new InMemoryOnboardingStore(), logger);
         }
@@ -106,7 +113,94 @@ namespace Hadal.Game
         public EventService Events { get; }
 
         /// <summary>The outer world map (docs/28).</summary>
+        /// <summary>Kingdom #1's map (docs/39); every kingdom's is <see cref="MapOf(string)"/>.</summary>
         public WorldService Map { get; }
+
+        public KingdomService Kingdoms { get; }
+
+        private readonly IWorldStore _worldStore;
+        private readonly ConcurrentDictionary<string, WorldService> _maps = new(StringComparer.Ordinal);
+
+        /// <summary>Every kingdom's map that is loaded.</summary>
+        public IReadOnlyCollection<WorldService> Maps => _maps.Values.ToList();
+
+        /// <summary>A kingdom's map, created (not yet initialised) on first use.</summary>
+        public WorldService MapOf(string kingdomId) => _maps.GetOrAdd(kingdomId, id =>
+        {
+            var map = new WorldService(_worldStore.ForWorld(id), _runtime, _serializer, Social, _logger, _clock, id);
+            WireMap(map);
+            return map;
+        });
+
+        public WorldService MapOf(PlayerSession session) => MapOf(session.KingdomId);
+
+        private void WireMap(WorldService map)
+        {
+            map.SessionOf = id => _byPublic.TryGetValue(id, out var loaded) ? loaded : null;
+            map.Summon = id => _ = SummonAsync(id, CancellationToken.None);
+            map.EventBosses = () => Events.LiveBosses().Where(b => b.Kingdom == map.WorldId).ToList();
+            map.BossHit = Events.RecordBossHit;
+        }
+
+        private string? NameOf(string playerId) => MapOfPlayer(playerId).NameOf(playerId) ?? _maps.Values.Select(m => m.NameOf(playerId)).FirstOrDefault(n => n != null);
+
+        private string? AvatarOf(string playerId) => MapOfPlayer(playerId).AvatarOf(playerId);
+
+        private WorldService MapOfPlayer(string playerId) => Kingdoms.KingdomOf(playerId) is { } id && _maps.TryGetValue(id, out var map) ? map : Map;
+
+        /// <summary>Kingdoms, then every kingdom's map (docs/39). Call once at startup, after the social hub.</summary>
+        public async Task InitializeWorldAsync(CancellationToken cancellationToken)
+        {
+            await Kingdoms.InitializeAsync(cancellationToken);
+            await Map.InitializeAsync(cancellationToken);
+            foreach (var (kingdom, _, _) in Kingdoms.List(_clock.UtcNow).Where(k => k.Kingdom.Id != Map.WorldId))
+                await MapOf(kingdom.Id).InitializeAsync(cancellationToken);
+            _worldReady = true;
+        }
+
+        private bool _worldReady;
+
+        /// <summary>The player's kingdom (joining a new player to the newest open one) and its map, ready to use.</summary>
+        private async Task JoinKingdomAsync(PlayerSession session, DateTimeOffset now, CancellationToken cancellationToken)
+        {
+            var (kingdomId, opened) = await Kingdoms.AssignAsync(session.PublicId, now, cancellationToken);
+            session.KingdomId = kingdomId;
+            Kingdoms.Seen(session.PublicId, now);
+            if (opened != null || !_maps.ContainsKey(kingdomId))
+            {
+                var map = MapOf(kingdomId);
+                if (_worldReady)
+                    await map.InitializeAsync(cancellationToken);
+            }
+        }
+
+        private void HandleViewKingdoms(PlayerSession session, CommandEnvelope envelope, DateTimeOffset now)
+        {
+            if (!_serializer.TryDeserialize(envelope.Payload, out ViewKingdomsCommand? command) || command == null)
+                return;
+            var list = new KingdomListDto
+            {
+                Kingdoms = Kingdoms.List(now).Select(k => new KingdomDto
+                {
+                    Id = k.Kingdom.Id, Number = k.Kingdom.Number, Name = k.Kingdom.Name, OpenedAtMs = k.Kingdom.OpenedAt.ToUnixTimeMilliseconds(),
+                    Status = k.Kingdom.Status, Players = k.Members, Mine = k.Kingdom.Id == session.KingdomId
+                }).ToArray()
+            };
+            session.Acknowledge(command.CommandId, command.ClientSequence, null, now, new List<EntityChangeDto>
+            {
+                new() { EntityId = EntityIds.Kingdoms, Kind = EntityChangeKind.Update, Payload = _serializer.Serialize(list) }
+            });
+        }
+
+        /// <summary>Admin: opens the next kingdom and its map now.</summary>
+        public async Task<Kingdom> OpenKingdomAsync(CancellationToken cancellationToken)
+        {
+            var opened = await Kingdoms.OpenNextAsync(_clock.UtcNow, cancellationToken);
+            var map = MapOf(opened.Id);
+            if (_worldReady)
+                await map.InitializeAsync(cancellationToken);
+            return opened;
+        }
 
         /// <summary>Chat, alliances and alliance help (docs/25).</summary>
         public SocialHub Social { get; }
@@ -289,7 +383,7 @@ namespace Hadal.Game
         /// </summary>
         private void PayBosses(DateTimeOffset now)
         {
-            foreach (var outcome in Map.TakeFinishedBosses(now))
+            foreach (var outcome in _maps.Values.SelectMany(m => m.TakeFinishedBosses(now)).ToList())
             {
                 foreach (var prize in Events.ClaimBossPrizes(outcome, now))
                 {
@@ -309,7 +403,8 @@ namespace Hadal.Game
         /// <summary>The battle reports the world settled, as mails to every side (docs/30 §5.5).</summary>
         private void SendBattleMails(DateTimeOffset now)
         {
-            while (Map.TryTakeBattleMail(out var playerId, out var draft))
+            foreach (var map in _maps.Values)
+            while (map.TryTakeBattleMail(out var playerId, out var draft))
             {
                 var send = Mail.SendAsync(new[] { playerId }, draft, now, CancellationToken.None);
                 if (!send.IsCompleted)
@@ -360,7 +455,8 @@ namespace Hadal.Game
             var publicId = playerId.Value.ToString("N");
             Social.ForgetPlayer(publicId, now);
             Mail.Forget(publicId);
-            await Map.ForgetAsync(publicId, now, cancellationToken);
+            await MapOfPlayer(publicId).ForgetAsync(publicId, now, cancellationToken);
+            await Kingdoms.ForgetAsync(publicId, cancellationToken);
             _logger.LogInformation("Deleted player {PlayerId} (identity {IdentityKey}).", publicId, identityKey);
             return true;
         }
@@ -392,13 +488,15 @@ namespace Hadal.Game
                                 ?? await CreatePlayerAsync(identityKey, cancellationToken);
 
                     session = new PlayerSession(state, _runtime, _serializer) { OnboardingLog = Onboarding.Record };
+                    await JoinKingdomAsync(session, _clock.UtcNow, cancellationToken);
                     _sessions[identityKey] = session;
                     _byPublic[session.PublicId] = session;
                 }
 
                 var now = _clock.UtcNow;
+                Kingdoms.Seen(session.PublicId, now);
                 // Battles due before this login happen first, on the server's timeline (docs/30 §2).
-                Map.Settle(now);
+                MapOf(session).Settle(now);
                 SendBattleMails(now);
                 try
                 {
@@ -422,7 +520,7 @@ namespace Hadal.Game
                 }
 
                 Social.OnConnected(session, now);
-                Map.OnConnected(session);
+                MapOf(session).OnConnected(session);
                 Events.OnConnected(session, now);
                 Mail.OnConnected(session, now);
 
@@ -441,12 +539,16 @@ namespace Hadal.Game
                 return;
 
             // Every battle that arrived before this command is settled before the command can change anything.
-            Map.Settle(_clock.UtcNow);
+            MapOf(session).Settle(_clock.UtcNow);
             SendBattleMails(_clock.UtcNow);
             if (SocialHub.Handles(envelope.Type))
                 Social.Handle(session, envelope, _clock.UtcNow);
+            else if (envelope.Type == CommandType.ViewKingdoms)
+                HandleViewKingdoms(session, envelope, _clock.UtcNow);
+            else if (envelope.Type == CommandType.ViewProfile && _serializer.TryDeserialize(envelope.Payload, out ViewProfileCommand? profile) && profile != null)
+                MapOfPlayer(profile.PlayerId ?? string.Empty).Handle(session, envelope, _clock.UtcNow); // a card from another kingdom too
             else if (WorldService.Handles(envelope.Type))
-                Map.Handle(session, envelope, _clock.UtcNow);
+                MapOf(session).Handle(session, envelope, _clock.UtcNow);
             else if (EventService.Handles(envelope.Type))
                 Events.Handle(session, envelope, _clock.UtcNow);
             else if (MailService.Handles(envelope.Type))
@@ -462,14 +564,14 @@ namespace Hadal.Game
                 return;
 
             Social.OnDisconnected(session, _clock.UtcNow);
-            Map.OnDisconnected(session);
+            MapOf(session).OnDisconnected(session);
             Events.OnDisconnected(session);
             Mail.OnDisconnected(session);
 
             await SaveAsync(session, cancellationToken);
 
             // Unload only if nobody reattached while we were saving, and no battle needs the player.
-            if (session.Connection == null && !Map.NeedsResident(session.PublicId))
+            if (session.Connection == null && !MapOf(session).NeedsResident(session.PublicId))
                 Unload(session);
         }
 
@@ -478,7 +580,8 @@ namespace Hadal.Game
             var now = _clock.UtcNow;
             try
             {
-                Map.Settle(now);
+                foreach (var map in _maps.Values)
+                    map.Settle(now);
             }
             catch (Exception exception)
             {
@@ -564,6 +667,7 @@ namespace Hadal.Game
                     if (state == null)
                         return;
                     var session = new PlayerSession(state, _runtime, _serializer) { OnboardingLog = Onboarding.Record };
+                    await JoinKingdomAsync(session, _clock.UtcNow, cancellationToken);
                     _sessions[identity] = session;
                     _byPublic[session.PublicId] = session;
                     _logger.LogInformation("Player {PlayerId} loaded for a battle.", publicId);
@@ -588,10 +692,10 @@ namespace Hadal.Game
         {
             foreach (var session in _sessions.Values.Where(s => s.Connection == null).ToList())
             {
-                if (Map.NeedsResident(session.PublicId))
+                if (MapOf(session).NeedsResident(session.PublicId))
                     continue;
                 await SaveAsync(session, cancellationToken);
-                if (session.Connection == null && !Map.NeedsResident(session.PublicId))
+                if (session.Connection == null && !MapOf(session).NeedsResident(session.PublicId))
                     Unload(session);
             }
         }

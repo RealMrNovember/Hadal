@@ -16,5 +16,8 @@ namespace HADAL.Shared.DTOs
         [ProtoMember(8)] public int X { get; set; }
         [ProtoMember(9)] public int Y { get; set; }
         [ProtoMember(10)] public bool Online { get; set; }
+
+        /// <summary>The player's kingdom number (docs/39); 0 = not known.</summary>
+        [ProtoMember(11)] public int Kingdom { get; set; }
     }
 }

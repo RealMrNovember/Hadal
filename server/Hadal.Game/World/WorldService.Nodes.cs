@@ -82,7 +82,8 @@ CREATE TABLE IF NOT EXISTS hadal.world_nodes (
             var result = new List<WorldNode>();
             await using var connection = await _dataSource.OpenConnectionAsync(cancellationToken);
             await using var command = new NpgsqlCommand(
-                "SELECT id, type, level, x, y, remaining, capacity, busy_until, busy_by, fades_at, depleted_at FROM hadal.world_nodes", connection);
+                "SELECT id, type, level, x, y, remaining, capacity, busy_until, busy_by, fades_at, depleted_at FROM hadal.world_nodes WHERE world_id = @world", connection);
+            command.Parameters.AddWithValue("world", _world);
             await using var reader = await command.ExecuteReaderAsync(cancellationToken);
             while (await reader.ReadAsync(cancellationToken))
             {
@@ -114,12 +115,13 @@ CREATE TABLE IF NOT EXISTS hadal.world_nodes (
             foreach (var n in nodes)
             {
                 await using var command = new NpgsqlCommand(@"
-INSERT INTO hadal.world_nodes (id, type, level, x, y, remaining, capacity, busy_until, busy_by, fades_at, depleted_at)
-VALUES (@id, @t, @l, @x, @y, @r, @c, @bu, @bb, @f, @d)
-ON CONFLICT (id) DO UPDATE SET type = EXCLUDED.type, level = EXCLUDED.level, x = EXCLUDED.x, y = EXCLUDED.y,
+INSERT INTO hadal.world_nodes (id, world_id, type, level, x, y, remaining, capacity, busy_until, busy_by, fades_at, depleted_at)
+VALUES (@id, @world, @t, @l, @x, @y, @r, @c, @bu, @bb, @f, @d)
+ON CONFLICT (world_id, id) DO UPDATE SET type = EXCLUDED.type, level = EXCLUDED.level, x = EXCLUDED.x, y = EXCLUDED.y,
     remaining = EXCLUDED.remaining, capacity = EXCLUDED.capacity, busy_until = EXCLUDED.busy_until, busy_by = EXCLUDED.busy_by,
     fades_at = EXCLUDED.fades_at, depleted_at = EXCLUDED.depleted_at", connection, transaction);
                 command.Parameters.AddWithValue("id", n.Id);
+                command.Parameters.AddWithValue("world", _world);
                 command.Parameters.AddWithValue("t", n.Type);
                 command.Parameters.AddWithValue("l", n.Level);
                 command.Parameters.AddWithValue("x", n.X);

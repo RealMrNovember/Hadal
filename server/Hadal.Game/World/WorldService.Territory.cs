@@ -73,7 +73,8 @@ CREATE TABLE IF NOT EXISTS hadal.world_regions (
         {
             var result = new List<WorldRegion>();
             await using var connection = await _dataSource.OpenConnectionAsync(cancellationToken);
-            await using var command = new NpgsqlCommand("SELECT region, alliance_id, hub, share, share_at, hub_moved_at FROM hadal.world_regions", connection);
+            await using var command = new NpgsqlCommand("SELECT region, alliance_id, hub, share, share_at, hub_moved_at FROM hadal.world_regions WHERE world_id = @world", connection);
+            command.Parameters.AddWithValue("world", _world);
             await using var reader = await command.ExecuteReaderAsync(cancellationToken);
             while (await reader.ReadAsync(cancellationToken))
                 result.Add(new WorldRegion
@@ -93,10 +94,11 @@ CREATE TABLE IF NOT EXISTS hadal.world_regions (
             foreach (var r in regions)
             {
                 await using var command = new NpgsqlCommand(@"
-INSERT INTO hadal.world_regions (region, alliance_id, hub, share, share_at, hub_moved_at) VALUES (@r, @a, @h, @s, @t, @m)
-ON CONFLICT (region) DO UPDATE SET alliance_id = EXCLUDED.alliance_id, hub = EXCLUDED.hub, share = EXCLUDED.share,
+INSERT INTO hadal.world_regions (region, world_id, alliance_id, hub, share, share_at, hub_moved_at) VALUES (@r, @world, @a, @h, @s, @t, @m)
+ON CONFLICT (world_id, region) DO UPDATE SET alliance_id = EXCLUDED.alliance_id, hub = EXCLUDED.hub, share = EXCLUDED.share,
     share_at = EXCLUDED.share_at, hub_moved_at = EXCLUDED.hub_moved_at", connection, transaction);
                 command.Parameters.AddWithValue("r", r.Index);
+                command.Parameters.AddWithValue("world", _world);
                 command.Parameters.AddWithValue("a", r.AllianceId);
                 command.Parameters.AddWithValue("h", r.Hub);
                 command.Parameters.AddWithValue("s", r.Share);

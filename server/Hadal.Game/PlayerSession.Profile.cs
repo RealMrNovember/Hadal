@@ -26,7 +26,7 @@ namespace Hadal.Game
                     {
                         EntityId = EntityIds.MyProfile,
                         Kind = EntityChangeKind.Update,
-                        Payload = _serializer.Serialize(new PlayerProfileDto { PlayerId = PublicId, Name = name, AvatarId = _state.AvatarId })
+                        Payload = _serializer.Serialize(new PlayerProfileDto { PlayerId = PublicId, Name = name, AvatarId = _state.AvatarId, Kingdom = KingdomNaming.NumberOf(KingdomId) })
                     }
                 };
                 if (hadCard && (_state.Items.TryGetValue(RenameRules.Item, out var left) ? left : 0) < cards)
@@ -93,7 +93,7 @@ namespace Hadal.Game
                 {
                     EntityId = EntityIds.MyProfile,
                     Kind = EntityChangeKind.Update,
-                    Payload = _serializer.Serialize(new PlayerProfileDto { PlayerId = PublicId, Name = _displayName, AvatarId = avatar })
+                    Payload = _serializer.Serialize(new PlayerProfileDto { PlayerId = PublicId, Name = _displayName, AvatarId = avatar, Kingdom = KingdomNaming.NumberOf(KingdomId) })
                 },
                 Accepted(command.CommandId, command.ClientSequence)
             });

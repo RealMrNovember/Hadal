@@ -37,6 +37,12 @@ namespace Hadal.Game.Events
         /// <summary>Points a player needs for a rank reward.</summary>
         public long MinRankPoints { get; set; }
 
+        /// <summary>
+        /// Kingdom ids that see the event (docs/39); empty = every kingdom. Rankings are per kingdom; event bosses spawn on
+        /// the targeted kingdom's map (Kingdom #1 when none is named), so a boss event names at most one.
+        /// </summary>
+        public List<string> Kingdoms { get; set; } = new();
+
         public List<EventActionConfig> Actions { get; set; } = new();
         public List<EventPhaseConfig> Phases { get; set; } = new();
 
@@ -130,7 +136,7 @@ namespace Hadal.Game.Events
     /// (<paramref name="Left"/>, -1 = untouched) and its damage by player.
     /// </summary>
     public sealed record EventBossSpawn(string EventId, int Index, string Kind, int Level, int X, int Y, DateTimeOffset EndsAt,
-        long Left = -1, IReadOnlyDictionary<string, long>? Damage = null);
+        long Left = -1, IReadOnlyDictionary<string, long>? Damage = null, string Kingdom = "w1");
 
     /// <summary>A boss's stored progress (EventDefinition.BossProgress).</summary>
     public sealed class EventBossProgress

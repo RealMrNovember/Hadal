@@ -20,6 +20,9 @@ namespace Hadal.Game.World
     {
         Task InitializeAsync(CancellationToken cancellationToken);
 
+        /// <summary>The same store for another kingdom's map (docs/39): every read and write is that kingdom's.</summary>
+        IWorldStore ForWorld(string worldId);
+
         Task<List<WorldBaseRecord>> LoadAsync(CancellationToken cancellationToken);
 
         Task SaveAsync(WorldBaseRecord record, CancellationToken cancellationToken);
@@ -33,8 +36,12 @@ namespace Hadal.Game.World
     public sealed partial class InMemoryWorldStore : IWorldStore
     {
         private readonly ConcurrentDictionary<string, WorldBaseRecord> _bases = new();
+        private readonly ConcurrentDictionary<string, InMemoryWorldStore> _kingdoms = new(StringComparer.Ordinal);
 
         public Task InitializeAsync(CancellationToken cancellationToken) => Task.CompletedTask;
+
+        public IWorldStore ForWorld(string worldId) =>
+            worldId == AllianceLandRules.DefaultWorld ? this : _kingdoms.GetOrAdd(worldId, _ => new InMemoryWorldStore());
 
         public Task<List<WorldBaseRecord>> LoadAsync(CancellationToken cancellationToken) => Task.FromResult(_bases.Values.ToList());
 
@@ -70,10 +77,20 @@ ALTER TABLE hadal.world_bases ADD COLUMN IF NOT EXISTS avatar text NOT NULL DEFA
 
         private readonly NpgsqlDataSource _dataSource;
 
-        public PostgresWorldStore(NpgsqlDataSource dataSource)
+        /// <summary>The kingdom this store reads and writes (docs/39); "w1" is Kingdom #1.</summary>
+        private readonly string _world;
+
+        public PostgresWorldStore(NpgsqlDataSource dataSource) : this(dataSource, AllianceLandRules.DefaultWorld)
+        {
+        }
+
+        private PostgresWorldStore(NpgsqlDataSource dataSource, string world)
         {
             _dataSource = dataSource;
+            _world = world;
         }
+
+        public IWorldStore ForWorld(string worldId) => new PostgresWorldStore(_dataSource, worldId);
 
         public async Task InitializeAsync(CancellationToken cancellationToken)
         {
@@ -82,13 +99,15 @@ ALTER TABLE hadal.world_bases ADD COLUMN IF NOT EXISTS avatar text NOT NULL DEFA
             await InitializePvpAsync(cancellationToken);
             await InitializeRegionsAsync(cancellationToken);
             await InitializeStructuresAsync(cancellationToken);
+            await PostgresSchema.ApplyAsync(_dataSource, Hadal.Game.Kingdoms.KingdomSchema.Tables + Hadal.Game.Kingdoms.KingdomSchema.WorldKeys, cancellationToken);
         }
 
         public async Task<List<WorldBaseRecord>> LoadAsync(CancellationToken cancellationToken)
         {
             var result = new List<WorldBaseRecord>();
             await using var connection = await _dataSource.OpenConnectionAsync(cancellationToken);
-            await using var command = new NpgsqlCommand("SELECT player_id, x, y, name, level, power, avatar FROM hadal.world_bases", connection);
+            await using var command = new NpgsqlCommand("SELECT player_id, x, y, name, level, power, avatar FROM hadal.world_bases WHERE world_id = @world", connection);
+            command.Parameters.AddWithValue("world", _world);
             await using var reader = await command.ExecuteReaderAsync(cancellationToken);
             while (await reader.ReadAsync(cancellationToken))
                 result.Add(new WorldBaseRecord(reader.GetString(0), reader.GetInt32(1), reader.GetInt32(2), reader.GetString(3), reader.GetInt32(4), reader.GetInt64(5),
@@ -99,6 +118,9 @@ ALTER TABLE hadal.world_bases ADD COLUMN IF NOT EXISTS avatar text NOT NULL DEFA
         public async Task<List<WorldBaseRecord>> LoadUnplacedAsync(CancellationToken cancellationToken)
         {
             var result = new List<WorldBaseRecord>();
+            // Players from before the map existed are all Kingdom #1's (docs/39); later kingdoms place on connect.
+            if (_world != AllianceLandRules.DefaultWorld)
+                return result;
             await using var connection = await _dataSource.OpenConnectionAsync(cancellationToken);
             await using var command = new NpgsqlCommand(@"
 SELECT p.player_id, a.account_id, coalesce(a.display_name, ''),
@@ -108,6 +130,7 @@ FROM hadal.players p
 LEFT JOIN hadal.accounts a ON replace(a.account_id::text, '-', '') = p.identity_key
 LEFT JOIN hadal.buildings b ON b.player_id = p.player_id
 WHERE replace(p.player_id::text, '-', '') NOT IN (SELECT player_id FROM hadal.world_bases)
+  AND replace(p.player_id::text, '-', '') NOT IN (SELECT player_id FROM hadal.kingdom_members WHERE kingdom_id <> 'w1')
 GROUP BY p.player_id, a.account_id, a.display_name", connection);
             await using var reader = await command.ExecuteReaderAsync(cancellationToken);
             while (await reader.ReadAsync(cancellationToken))
@@ -133,8 +156,8 @@ GROUP BY p.player_id, a.account_id, a.display_name", connection);
         {
             await using var connection = await _dataSource.OpenConnectionAsync(cancellationToken);
             await using var command = new NpgsqlCommand(@"
-INSERT INTO hadal.world_bases (player_id, x, y, name, level, power, avatar) VALUES (@p, @x, @y, @n, @l, @w, @a)
-ON CONFLICT (player_id) DO UPDATE SET x = EXCLUDED.x, y = EXCLUDED.y, name = EXCLUDED.name, level = EXCLUDED.level, power = EXCLUDED.power,
+INSERT INTO hadal.world_bases (player_id, world_id, x, y, name, level, power, avatar) VALUES (@p, @world, @x, @y, @n, @l, @w, @a)
+ON CONFLICT (player_id) DO UPDATE SET world_id = EXCLUDED.world_id, x = EXCLUDED.x, y = EXCLUDED.y, name = EXCLUDED.name, level = EXCLUDED.level, power = EXCLUDED.power,
     avatar = EXCLUDED.avatar", connection);
             command.Parameters.AddWithValue("p", r.PlayerId);
             command.Parameters.AddWithValue("x", r.X);
@@ -143,6 +166,7 @@ ON CONFLICT (player_id) DO UPDATE SET x = EXCLUDED.x, y = EXCLUDED.y, name = EXC
             command.Parameters.AddWithValue("l", r.Level);
             command.Parameters.AddWithValue("w", r.Power);
             command.Parameters.AddWithValue("a", r.Avatar ?? string.Empty);
+            command.Parameters.AddWithValue("world", _world);
             await command.ExecuteNonQueryAsync(cancellationToken);
         }
     }
@@ -168,8 +192,10 @@ ON CONFLICT (player_id) DO UPDATE SET x = EXCLUDED.x, y = EXCLUDED.y, name = EXC
         private readonly Dictionary<string, PlayerSession> _online = new(StringComparer.Ordinal);
         private readonly Channel<WorldBaseRecord> _writes = Channel.CreateUnbounded<WorldBaseRecord>(new UnboundedChannelOptions { SingleReader = true });
 
-        public WorldService(IWorldStore store, CatalogRuntime runtime, INetworkSerializer serializer, SocialHub social, ILogger logger, IClock? clock = null)
+        public WorldService(IWorldStore store, CatalogRuntime runtime, INetworkSerializer serializer, SocialHub social, ILogger logger, IClock? clock = null,
+            string worldId = AllianceLandRules.DefaultWorld)
         {
+            WorldId = worldId;
             _clock = clock ?? new SystemClock();
             _store = store;
             _runtime = runtime;
@@ -376,7 +402,8 @@ ON CONFLICT (player_id) DO UPDATE SET x = EXCLUDED.x, y = EXCLUDED.y, name = EXC
                         AllianceName = name,
                         X = b.X,
                         Y = b.Y,
-                        Online = online
+                        Online = online,
+                        Kingdom = KingdomNaming.NumberOf(WorldId)
                     };
                 }
             }

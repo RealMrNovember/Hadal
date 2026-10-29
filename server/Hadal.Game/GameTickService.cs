@@ -29,7 +29,7 @@ namespace Hadal.Game
         {
             await _repository.InitializeAsync(cancellationToken);
             await _world.Social.InitializeAsync(cancellationToken);
-            await _world.Map.InitializeAsync(cancellationToken);
+            await _world.InitializeWorldAsync(cancellationToken);
             await _world.Events.InitializeAsync(DateTimeOffset.UtcNow, cancellationToken);
             await _world.Mail.InitializeAsync(DateTimeOffset.UtcNow, cancellationToken);
             await _world.Onboarding.InitializeAsync(cancellationToken);

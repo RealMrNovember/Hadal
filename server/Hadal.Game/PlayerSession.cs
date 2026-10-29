@@ -1080,7 +1080,7 @@ namespace Hadal.Game
                 Inventory = InventoryDto(),
                 Marches = MarchListDto(now),
                 Expedition = ExpeditionDto(),
-                Profile = new PlayerProfileDto { PlayerId = PublicId, Name = _displayName, AvatarId = _state.AvatarId },
+                Profile = new PlayerProfileDto { PlayerId = PublicId, Name = _displayName, AvatarId = _state.AvatarId, Kingdom = KingdomNaming.NumberOf(KingdomId) },
                 Army = ArmyDto(),
                 Vip = VipDto(now)
             };

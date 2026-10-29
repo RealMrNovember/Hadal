@@ -26,6 +26,9 @@ namespace Hadal.Game.Events
             public readonly Dictionary<string, long> Alliances = new(StringComparer.Ordinal);
             public Dictionary<string, int>? PlayerRanks;
             public Dictionary<string, int>? AllianceRanks;
+
+            /// <summary>Each scoring alliance's kingdom (that of the members who scored for it).</summary>
+            public Dictionary<string, string>? AllianceKingdoms;
             public List<EventScore>? Sorted;
             public List<KeyValuePair<string, long>>? SortedAlliances;
             public bool Dirty = true;
@@ -52,6 +55,11 @@ namespace Hadal.Game.Events
         public Func<string, string?>? NameLookup { get; set; }
         public Func<string, string?>? AvatarLookup { get; set; }
         public Func<string, string>? AllianceIdOf { get; set; }
+
+        /// <summary>A player's kingdom (docs/39): rankings and rank rewards are per kingdom.</summary>
+        public Func<string, string>? KingdomOf { get; set; }
+
+        private string Kingdom(string playerId) => KingdomOf?.Invoke(playerId) ?? HADAL.Shared.Simulation.AllianceLandRules.DefaultWorld;
         public Func<string, string>? TagOf { get; set; }
         public Func<string, (string Tag, string Name, string Emblem)?>? AllianceInfo { get; set; }
 
@@ -84,7 +92,8 @@ namespace Hadal.Game.Events
                     {
                         var progress = e.Def.BossProgress.FirstOrDefault(p => p.Index == i);
                         return new EventBossSpawn(e.Def.Id, i, b.Kind, b.Level, b.X, b.Y, e.Def.EndsAt, progress?.Left ?? -1,
-                            progress == null ? null : new Dictionary<string, long>(progress.Damage, StringComparer.Ordinal));
+                            progress == null ? null : new Dictionary<string, long>(progress.Damage, StringComparer.Ordinal),
+                            e.Def.Kingdoms.FirstOrDefault() ?? HADAL.Shared.Simulation.AllianceLandRules.DefaultWorld);
                     })
                     .Where(b => !e.Def.PaidBosses.Contains(b.Index)))
                 .ToArray();
@@ -503,9 +512,12 @@ namespace Hadal.Game.Events
                     return null;
                 Sort(live, now, force: false);
                 var result = new EventRankingDto { EventId = live.Def.Id, Alliance = live.Def.Template == EventTemplates.Alliance };
+                // Players see their own kingdom's ranking (docs/39); the Overseer (no player) sees every kingdom.
+                var kingdom = playerId == null ? null : Kingdom(playerId);
                 if (result.Alliance)
                 {
-                    result.Entries = live.SortedAlliances!.Take(top).Select((p, i) => AllianceEntry(i + 1, p.Key, p.Value)).ToArray();
+                    result.Entries = live.SortedAlliances!.Where(p => kingdom == null || live.AllianceKingdoms!.GetValueOrDefault(p.Key) == kingdom).Take(top)
+                        .Select(p => AllianceEntry(live.AllianceRanks![p.Key], p.Key, p.Value)).ToArray();
                     var mine = playerId == null ? null : ScoreOf(live, playerId, create: false);
                     var allianceId = mine?.AllianceId.Length > 0 ? mine.AllianceId : playerId == null ? string.Empty : AllianceIdOf?.Invoke(playerId) ?? string.Empty;
                     if (allianceId.Length > 0 && live.AllianceRanks!.TryGetValue(allianceId, out var rank))
@@ -513,7 +525,8 @@ namespace Hadal.Game.Events
                 }
                 else
                 {
-                    result.Entries = live.Sorted!.Take(top).Select((s, i) => PlayerEntry(i + 1, s)).ToArray();
+                    result.Entries = live.Sorted!.Where(s => kingdom == null || Kingdom(s.PlayerId) == kingdom).Take(top)
+                        .Select(s => PlayerEntry(live.PlayerRanks![s.PlayerId], s)).ToArray();
                     var mine = playerId == null ? null : ScoreOf(live, playerId, create: false);
                     if (mine != null && mine.Points > 0)
                         result.Mine = PlayerEntry(RankOf(live, mine), mine);
@@ -548,13 +561,25 @@ namespace Hadal.Game.Events
                 return;
             // Ties go to whoever got there first.
             live.Sorted = live.Scores.Values.Where(s => s.Points > 0).OrderByDescending(s => s.Points).ThenBy(s => s.UpdatedAt).ThenBy(s => s.PlayerId, StringComparer.Ordinal).ToList();
+            // Ranks count within each kingdom (docs/39): every kingdom has its own first place.
+            var places = new Dictionary<string, int>(StringComparer.Ordinal);
             live.PlayerRanks = new Dictionary<string, int>(StringComparer.Ordinal);
-            for (var i = 0; i < live.Sorted.Count; i++)
-                live.PlayerRanks[live.Sorted[i].PlayerId] = i + 1;
+            foreach (var s in live.Sorted)
+            {
+                var kingdom = Kingdom(s.PlayerId);
+                live.PlayerRanks[s.PlayerId] = places[kingdom] = places.GetValueOrDefault(kingdom) + 1;
+            }
+
+            live.AllianceKingdoms = live.Scores.Values.Where(s => s.AllianceId.Length > 0).GroupBy(s => s.AllianceId)
+                .ToDictionary(g => g.Key, g => Kingdom(g.First().PlayerId), StringComparer.Ordinal);
             live.SortedAlliances = live.Alliances.Where(p => p.Value > 0).OrderByDescending(p => p.Value).ThenBy(p => p.Key, StringComparer.Ordinal).ToList();
             live.AllianceRanks = new Dictionary<string, int>(StringComparer.Ordinal);
-            for (var i = 0; i < live.SortedAlliances.Count; i++)
-                live.AllianceRanks[live.SortedAlliances[i].Key] = i + 1;
+            places.Clear();
+            foreach (var pair in live.SortedAlliances)
+            {
+                var kingdom = live.AllianceKingdoms.GetValueOrDefault(pair.Key) ?? HADAL.Shared.Simulation.AllianceLandRules.DefaultWorld;
+                live.AllianceRanks[pair.Key] = places[kingdom] = places.GetValueOrDefault(kingdom) + 1;
+            }
             live.Dirty = false;
             live.SortedAt = now;
         }
@@ -589,6 +614,8 @@ namespace Hadal.Game.Events
             if (def.Status != EventStatus.Published)
                 return false;
             if (def.TestAccounts.Count > 0 && !def.TestAccounts.Contains(session.IdentityKey, StringComparer.OrdinalIgnoreCase))
+                return false;
+            if (def.Kingdoms.Count > 0 && !def.Kingdoms.Contains(session.KingdomId, StringComparer.Ordinal))
                 return false;
             if (def.MinLevel > 0 || def.MaxLevel > 0)
             {
@@ -861,6 +888,9 @@ namespace Hadal.Game.Events
                 return "InvalidRange";
             if (string.IsNullOrWhiteSpace(def.Banner) || def.Banner.Length > 32)
                 return "InvalidBanner";
+            def.Kingdoms = (def.Kingdoms ?? new List<string>()).Select(k => k.Trim()).Where(k => k.Length > 0).Distinct(StringComparer.Ordinal).ToList();
+            if (def.Kingdoms.Any(k => k.Length > 12) || (def.Bosses.Count > 0 && def.Kingdoms.Count > 1))
+                return "InvalidKingdoms";
 
             var length = (def.EndsAt - def.StartsAt).TotalHours;
             if (def.Template == EventTemplates.Login)

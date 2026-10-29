@@ -99,7 +99,8 @@ CREATE TABLE IF NOT EXISTS hadal.world_fairness (
         {
             var result = new Dictionary<string, List<DateTimeOffset>>(StringComparer.Ordinal);
             await using var connection = await _dataSource.OpenConnectionAsync(cancellationToken);
-            await using var command = new NpgsqlCommand("SELECT key, doc FROM hadal.world_fairness", connection);
+            await using var command = new NpgsqlCommand("SELECT key, doc FROM hadal.world_fairness WHERE world_id = @world", connection);
+            command.Parameters.AddWithValue("world", _world);
             await using var reader = await command.ExecuteReaderAsync(cancellationToken);
             while (await reader.ReadAsync(cancellationToken))
                 if (JsonSerializer.Deserialize<List<DateTimeOffset>>(reader.GetString(1)) is { } times)
@@ -112,8 +113,9 @@ CREATE TABLE IF NOT EXISTS hadal.world_fairness (
             await using var connection = await _dataSource.OpenConnectionAsync(cancellationToken);
             await using var command = times == null
                 ? new NpgsqlCommand("DELETE FROM hadal.world_fairness WHERE key = @k", connection)
-                : new NpgsqlCommand("INSERT INTO hadal.world_fairness (key, doc) VALUES (@k, @d) ON CONFLICT (key) DO UPDATE SET doc = EXCLUDED.doc", connection);
+                : new NpgsqlCommand("INSERT INTO hadal.world_fairness (key, world_id, doc) VALUES (@k, @world, @d) ON CONFLICT (key) DO UPDATE SET doc = EXCLUDED.doc, world_id = EXCLUDED.world_id", connection);
             command.Parameters.AddWithValue("k", key);
+            command.Parameters.AddWithValue("world", _world);
             if (times != null)
                 command.Parameters.AddWithValue("d", JsonSerializer.Serialize(times));
             await command.ExecuteNonQueryAsync(cancellationToken);
@@ -125,7 +127,8 @@ CREATE TABLE IF NOT EXISTS hadal.world_fairness (
         {
             var result = new List<PvpRecord>();
             await using var connection = await _dataSource.OpenConnectionAsync(cancellationToken);
-            await using var command = new NpgsqlCommand("SELECT doc FROM hadal.world_pvp", connection);
+            await using var command = new NpgsqlCommand("SELECT doc FROM hadal.world_pvp WHERE world_id = @world", connection);
+            command.Parameters.AddWithValue("world", _world);
             await using var reader = await command.ExecuteReaderAsync(cancellationToken);
             while (await reader.ReadAsync(cancellationToken))
                 if (JsonSerializer.Deserialize<PvpRecord>(reader.GetString(0)) is { } record)
@@ -138,8 +141,9 @@ CREATE TABLE IF NOT EXISTS hadal.world_fairness (
             await using var connection = await _dataSource.OpenConnectionAsync(cancellationToken);
             await using var command = record == null
                 ? new NpgsqlCommand("DELETE FROM hadal.world_pvp WHERE id = @i", connection)
-                : new NpgsqlCommand("INSERT INTO hadal.world_pvp (id, doc) VALUES (@i, @d) ON CONFLICT (id) DO UPDATE SET doc = EXCLUDED.doc", connection);
+                : new NpgsqlCommand("INSERT INTO hadal.world_pvp (id, world_id, doc) VALUES (@i, @world, @d) ON CONFLICT (id) DO UPDATE SET doc = EXCLUDED.doc, world_id = EXCLUDED.world_id", connection);
             command.Parameters.AddWithValue("i", id);
+            command.Parameters.AddWithValue("world", _world);
             if (record != null)
                 command.Parameters.AddWithValue("d", JsonSerializer.Serialize(record));
             await command.ExecuteNonQueryAsync(cancellationToken);

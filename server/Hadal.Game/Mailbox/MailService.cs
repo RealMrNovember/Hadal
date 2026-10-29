@@ -42,6 +42,9 @@ namespace Hadal.Game.Mailbox
         public Func<string, string?>? NameLookup { get; set; }
         public Func<string, string>? AllianceIdOf { get; set; }
 
+        /// <summary>A player's kingdom (docs/39): players write only within their own kingdom.</summary>
+        public Func<string, string>? KingdomOf { get; set; }
+
         public static bool Handles(CommandType type) =>
             type is CommandType.ReadMail or CommandType.ClaimMail or CommandType.DeleteMail or CommandType.SendMail;
 
@@ -337,6 +340,7 @@ namespace Hadal.Game.Mailbox
                 : body.Length > MailRules.MaxPlayerBody ? "InvalidMailBody"
                 : to == session.PublicId ? "CannotMailSelf"
                 : NameLookup?.Invoke(to) == null ? "UnknownPlayer"
+                : KingdomOf != null && KingdomOf(to) != KingdomOf(session.PublicId) ? "OtherKingdom"
                 : null;
             if (reason == null && amounts.Count > 0)
             {

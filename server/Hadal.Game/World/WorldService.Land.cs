@@ -87,7 +87,8 @@ ALTER TABLE hadal.world_regions ADD COLUMN IF NOT EXISTS world_id text NOT NULL 
         {
             var result = new List<AllianceStructure>();
             await using var connection = await _dataSource.OpenConnectionAsync(cancellationToken);
-            await using var command = new NpgsqlCommand("SELECT doc FROM hadal.world_structures", connection);
+            await using var command = new NpgsqlCommand("SELECT doc FROM hadal.world_structures WHERE world_id = @world", connection);
+            command.Parameters.AddWithValue("world", _world);
             await using var reader = await command.ExecuteReaderAsync(cancellationToken);
             while (await reader.ReadAsync(cancellationToken))
                 if (JsonSerializer.Deserialize<AllianceStructure>(reader.GetString(0)) is { } s)
@@ -121,8 +122,8 @@ ON CONFLICT (id) DO UPDATE SET world_id = EXCLUDED.world_id, alliance_id = EXCLU
     /// </summary>
     public sealed partial class WorldService
     {
-        /// <summary>This world's id (docs/32 §2.7); one world today.</summary>
-        public string WorldId { get; } = AllianceLandRules.DefaultWorld;
+        /// <summary>This map's kingdom (docs/39); "w1" is Kingdom #1.</summary>
+        public string WorldId { get; }
 
         private readonly Dictionary<string, AllianceStructure> _structures = new(StringComparer.Ordinal);
         private readonly Dictionary<(int, int), AllianceStructure> _structureAt = new();
