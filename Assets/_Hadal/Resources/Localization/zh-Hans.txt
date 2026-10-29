@@ -935,3 +935,5 @@ error.NeedRenameCard = 改名需要背包中有改名卡或500哈达石。
 item.rename_card = 改名卡
 item.rename_card.desc = 可更改一次玩家名字。
 account.rename.rule = 首次改名免费。之后每次需要改名卡或{0}哈达石，间隔24小时。
+vip.perk.build = 建造速度+{0}%
+vip.perk.research = 研究速度+{0}%

@@ -935,3 +935,5 @@ error.NeedRenameCard = Ganti nama butuh Kartu Ganti Nama atau 500 Hadalit.
 item.rename_card = Kartu Ganti Nama
 item.rename_card.desc = Memungkinkanmu mengganti nama pemain sekali.
 account.rename.rule = Ganti nama pertama gratis. Setelah itu tiap ganti butuh Kartu Ganti Nama atau {0} Hadalit, berjarak 24 jam.
+vip.perk.build = Kecepatan bangun +{0}%
+vip.perk.research = Kecepatan riset +{0}%

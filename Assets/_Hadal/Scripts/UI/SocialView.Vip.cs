@@ -82,11 +82,17 @@ namespace Hadal.UI
                     card.color = new Color(1f, 0.93f, 0.7f, 1f);
                 CardText(card.transform, Loc.F("vip.level", l), 34, l <= level ? UiKit.Amber : UiKit.Text, 0.03f, 0.5f, 0.3f, 0.92f, TextAnchor.MiddleLeft, FontStyle.Bold);
                 CardText(card.transform, Loc.F("vip.points", VipRules.Thresholds[l].ToString("N0")), 22, UiKit.Muted, 0.03f, 0.1f, 0.3f, 0.5f, TextAnchor.MiddleLeft);
-                var lines = Loc.F("vip.perk.speed", perks.BuildSpeed, perks.ResearchSpeed);
+                // Only the bonuses a level actually gives.
+                var parts = new System.Collections.Generic.List<string>();
+                if (perks.BuildSpeed > 0)
+                    parts.Add(Loc.F("vip.perk.build", perks.BuildSpeed));
+                if (perks.ResearchSpeed > 0)
+                    parts.Add(Loc.F("vip.perk.research", perks.ResearchSpeed));
                 if (perks.Production > 0)
-                    lines += "\n" + Loc.F("vip.perk.production", perks.Production);
+                    parts.Add(Loc.F("vip.perk.production", perks.Production));
+                var lines = string.Join("\n", parts);
                 if (perks.MarchSpeed > 0)
-                    lines += "\n" + Loc.F("vip.perk.march", perks.MarchSpeed);
+                    lines += (lines.Length > 0 ? "\n" : "") + Loc.F("vip.perk.march", perks.MarchSpeed);
                 if (perks.Capacity > 0)
                     lines += "\n" + Loc.F("vip.perk.capacity", perks.Capacity);
                 if (perks.ExtraBuilders > 0)

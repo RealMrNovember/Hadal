@@ -376,7 +376,7 @@ namespace Hadal.UI
             var max = hero || teleport ? 1 : Math.Max(1, capsule ? count : Math.Min(count, MaxOpenAtOnce));
             var countable = max > 1 && !speedup;
             var button = !speedup && id != TeleportRules.TargetItem;
-            var height = 150 + (countable ? 90 : 0) + (button ? 100 : 40);
+            var height = 190 + (countable ? 110 : 0) + (button ? 120 : 40);
 
             var holder = UiKit.Rect("Use", _list).Row(height + 18);
             var dark = new Color(0.12f, 0.17f, 0.24f, 1f);
@@ -385,10 +385,11 @@ namespace Hadal.UI
             // The little pointer up to the tile it belongs to.
             var pointer = UiKit.Box("Pointer", holder, paper);
             pointer.rectTransform.anchorMin = pointer.rectTransform.anchorMax = new Vector2(column * 0.25f + 0.125f, 1f);
-            pointer.rectTransform.sizeDelta = new Vector2(34f, 34f);
+            pointer.rectTransform.sizeDelta = new Vector2(40f, 40f);
             pointer.rectTransform.anchoredPosition = new Vector2(0f, -16f);
             pointer.rectTransform.localRotation = Quaternion.Euler(0f, 0f, 45f);
             pointer.raycastTarget = false;
+            pointer.gameObject.AddComponent<Outline>().effectColor = new Color(0.55f, 0.65f, 0.78f, 0.8f);
 
             var panel = UiKit.Box("Card", holder, paper);
             panel.rectTransform.Place(0.01f, 0f, 0.99f, 1f);
@@ -397,7 +398,7 @@ namespace Hadal.UI
             panel.gameObject.AddComponent<Outline>().effectColor = new Color(0.55f, 0.65f, 0.78f, 0.8f);
 
             float Y(float px) => 1f - px / height;
-            UiKit.Label("Name", panel.transform, QuestText.Item(id), 32, dark, TextAnchor.MiddleCenter, FontStyle.Bold).rectTransform.Place(0.04f, Y(62), 0.96f, Y(10));
+            UiKit.Label("Name", panel.transform, QuestText.Item(id), 36, dark, TextAnchor.MiddleCenter, FontStyle.Bold).rectTransform.Place(0.04f, Y(70), 0.96f, Y(12));
             var desc = capsule && Capsules.TryParse(id, out var resource, out var amount)
                 ? Loc.F("bag.capsule.gives", CostChips.Compact(amount), Loc.Resource(resource.ToString()))
                 : QuestText.ItemDescription(id);
@@ -405,20 +406,20 @@ namespace Hadal.UI
                 desc += "\n" + Loc.T("bag.teleport.target");
             else if (speedup)
                 desc += "\n" + Loc.T("bag.speedup.how");
-            UiKit.Label("Desc", panel.transform, desc, 23, new Color(0.3f, 0.38f, 0.46f, 1f), TextAnchor.MiddleCenter).rectTransform.Place(0.05f, Y(146), 0.95f, Y(62));
+            UiKit.Label("Desc", panel.transform, desc, 27, new Color(0.3f, 0.38f, 0.46f, 1f), TextAnchor.MiddleCenter).rectTransform.Place(0.05f, Y(184), 0.95f, Y(72));
 
             if (_bagCount <= 0 || _bagCount > max)
                 _bagCount = max;
             if (countable)
             {
-                float top = Y(150), bottom = Y(232);
+                float top = Y(196), bottom = Y(290);
                 var blue = new Color(0.25f, 0.5f, 0.85f, 1f);
                 var minus = UiKit.Button("Minus", panel.transform, "−", () => { _bagCount = Math.Max(1, _bagCount - 1); Render(force: true); }, blue, 40);
                 ((RectTransform)minus.transform).Place(0.04f, bottom, 0.14f, top);
                 var box = UiKit.Box("CountBox", panel.transform, Color.white);
                 box.rectTransform.Place(0.78f, bottom + 0.02f, 0.96f, top - 0.02f);
                 box.gameObject.AddComponent<Outline>().effectColor = new Color(0.55f, 0.62f, 0.72f, 1f);
-                var countText = UiKit.Label("CountText", box.transform, _bagCount.ToString("N0"), 28, dark, TextAnchor.MiddleCenter, FontStyle.Bold);
+                var countText = UiKit.Label("CountText", box.transform, _bagCount.ToString("N0"), 32, dark, TextAnchor.MiddleCenter, FontStyle.Bold);
                 countText.rectTransform.Place(0, 0, 1, 1);
                 var slider = UiKit.Slider("Count", panel.transform, (_bagCount - 1f) / (max - 1f), v =>
                 {
@@ -447,9 +448,9 @@ namespace Hadal.UI
                     _commands.Dispatch(new TeleportCommand { CommandId = NewId(), ClientSequence = NextSequence(), Mode = TeleportRules.Alliance });
                 else
                     OpenItems(id, n);
-            }, new Color(0.25f, 0.5f, 0.85f, 1f), 34);
+            }, new Color(0.25f, 0.5f, 0.85f, 1f), 38);
             use.GetComponentInChildren<Text>().color = Color.white;
-            ((RectTransform)use.transform).Place(0.3f, Y(height - 14), 0.7f, Y(height - 92));
+            ((RectTransform)use.transform).Place(0.3f, Y(height - 16), 0.7f, Y(height - 108));
         }
 
         /// <summary>Last Asylum's resource overview: what the bag holds, what is owned, and both together.</summary>

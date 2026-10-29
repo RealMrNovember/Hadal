@@ -935,3 +935,5 @@ error.NeedRenameCard = Voor een naamswijziging heb je een Naamkaart of 500 Hadal
 item.rename_card = Naamkaart
 item.rename_card.desc = Hiermee wijzig je je spelersnaam één keer.
 account.rename.rule = De eerste naamswijziging is gratis. Daarna kost elke wijziging een Naamkaart of {0} Hadaliet, met 24 uur ertussen.
+vip.perk.build = Bouwsnelheid +{0}%
+vip.perk.research = Onderzoekssnelheid +{0}%

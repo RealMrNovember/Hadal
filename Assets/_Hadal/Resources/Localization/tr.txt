@@ -936,3 +936,5 @@ error.NeedRenameCard = İsim değiştirmek için çantanda İsim Kartı ya da 50
 item.rename_card = İsim Kartı
 item.rename_card.desc = Oyuncu adını bir kez değiştirmeni sağlar.
 account.rename.rule = İlk isim değişikliği ücretsiz. Sonrakiler İsim Kartı ya da {0} Hadalit ister; değişiklikler arasında 24 saat olmalı.
+vip.perk.build = İnşaat hızı +%{0}
+vip.perk.research = Araştırma hızı +%{0}

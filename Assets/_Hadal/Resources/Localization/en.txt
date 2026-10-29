@@ -936,3 +936,5 @@ error.NeedRenameCard = Changing your name needs a Rename Card in your bag or 500
 item.rename_card = Rename Card
 item.rename_card.desc = Lets you change your player name once.
 account.rename.rule = Your first name change is free. After that each change takes a Rename Card or {0} Hadalite, 24 hours apart.
+vip.perk.build = Build speed +{0}%
+vip.perk.research = Research speed +{0}%

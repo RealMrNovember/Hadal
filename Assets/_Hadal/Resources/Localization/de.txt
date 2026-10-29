@@ -935,3 +935,5 @@ error.NeedRenameCard = Zum Umbenennen brauchst du eine Namenskarte oder 500 Hada
 item.rename_card = Namenskarte
 item.rename_card.desc = Ändert deinen Spielernamen einmal.
 account.rename.rule = Die erste Namensänderung ist kostenlos. Danach kostet jede eine Namenskarte oder {0} Hadalit, mit 24 Stunden Abstand.
+vip.perk.build = Baugeschwindigkeit +{0}%
+vip.perk.research = Forschungsgeschwindigkeit +{0}%

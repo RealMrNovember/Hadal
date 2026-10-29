@@ -935,3 +935,5 @@ error.NeedRenameCard = Per cambiare nome serve una Carta rinomina o 500 Hadalite
 item.rename_card = Carta rinomina
 item.rename_card.desc = Ti permette di cambiare una volta il nome del giocatore.
 account.rename.rule = Il primo cambio di nome è gratuito. Poi ogni cambio richiede una Carta rinomina o {0} Hadalite, a 24 ore di distanza.
+vip.perk.build = Velocità di costruzione +{0}%
+vip.perk.research = Velocità di ricerca +{0}%

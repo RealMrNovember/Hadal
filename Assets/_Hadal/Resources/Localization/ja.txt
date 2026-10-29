@@ -935,3 +935,5 @@ error.NeedRenameCard = 名前の変更には改名カードか500ハダライト
 item.rename_card = 改名カード
 item.rename_card.desc = プレイヤー名を1回変更できます。
 account.rename.rule = 最初の名前変更は無料です。以降は改名カードか{0}ハダライトが必要で、24時間おきに変更できます。
+vip.perk.build = 建設速度+{0}%
+vip.perk.research = 研究速度+{0}%

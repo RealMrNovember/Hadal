@@ -97,33 +97,33 @@ namespace Hadal.UI
         {
             var go = new GameObject("Bubbles");
             go.transform.SetParent(pivot, false);
-            go.transform.localPosition = new Vector3(0f, 0.3f, -SubScale * 0.9f);
+            go.transform.localPosition = new Vector3(0f, 0.6f, -SubScale * 1.3f);
             go.transform.localRotation = Quaternion.Euler(0f, 180f, 0f);
 
             var ps = go.AddComponent<ParticleSystem>();
             ps.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
             var main = ps.main;
             main.simulationSpace = ParticleSystemSimulationSpace.World;
-            main.startLifetime = new ParticleSystem.MinMaxCurve(1.2f, 2.2f);
-            main.startSpeed = new ParticleSystem.MinMaxCurve(0.2f, 0.8f);
-            main.startSize = new ParticleSystem.MinMaxCurve(0.18f, 0.55f);
+            main.startLifetime = new ParticleSystem.MinMaxCurve(1.6f, 3f);
+            main.startSpeed = new ParticleSystem.MinMaxCurve(0.6f, 1.8f);
+            main.startSize = new ParticleSystem.MinMaxCurve(0.5f, 1.5f);
             main.startColor = new ParticleSystem.MinMaxGradient(new Color(0.75f, 0.95f, 1f, 0.85f), new Color(0.55f, 0.85f, 1f, 0.6f));
-            main.gravityModifier = -0.06f;
+            main.gravityModifier = -0.15f;
             main.maxParticles = 160;
 
             var emission = ps.emission;
-            emission.rateOverTime = 3f;
-            emission.rateOverDistance = 7f;
+            emission.rateOverTime = 5f;
+            emission.rateOverDistance = 2.5f;
 
             var shape = ps.shape;
             shape.shapeType = ParticleSystemShapeType.Cone;
             shape.angle = 18f;
-            shape.radius = 0.25f;
+            shape.radius = 0.7f;
 
             // A little wobble on the way up, then they shrink and fade.
             var noise = ps.noise;
             noise.enabled = true;
-            noise.strength = 0.35f;
+            noise.strength = 0.8f;
             noise.frequency = 0.8f;
 
             var size = ps.sizeOverLifetime;

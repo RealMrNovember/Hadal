@@ -935,3 +935,5 @@ error.NeedRenameCard = Đổi tên cần Thẻ đổi tên hoặc 500 Hadalit.
 item.rename_card = Thẻ đổi tên
 item.rename_card.desc = Cho phép đổi tên người chơi một lần.
 account.rename.rule = Lần đổi tên đầu tiên miễn phí. Sau đó mỗi lần cần Thẻ đổi tên hoặc {0} Hadalit, cách nhau 24 giờ.
+vip.perk.build = Tốc độ xây dựng +{0}%
+vip.perk.research = Tốc độ nghiên cứu +{0}%
