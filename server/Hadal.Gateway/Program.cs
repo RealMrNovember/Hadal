@@ -63,6 +63,20 @@ builder.Services.AddSingleton<GatewaySessionHandler>();
 
 var app = builder.Build();
 
+// Phone push (docs/36): Firebase Cloud Messaging only when the service-account key file (on the CT, never in git) and
+// the Firebase project id are both configured; otherwise the no-op sender keeps push off.
+var fcmKey = builder.Configuration["HADAL_FCM_SERVICE_ACCOUNT_JSON_PATH"];
+var fcmProject = builder.Configuration["HADAL_FCM_PROJECT_ID"];
+if (!string.IsNullOrWhiteSpace(fcmKey) && !string.IsNullOrWhiteSpace(fcmProject))
+{
+    var pushLogger = app.Services.GetRequiredService<ILogger<Hadal.Game.PushNotifications.PushService>>();
+    if (Hadal.Game.PushNotifications.FcmPushSender.TryCreate(fcmKey, fcmProject, pushLogger) is { } fcm)
+    {
+        app.Services.GetRequiredService<GameWorld>().Push.Sender = fcm;
+        pushLogger.LogInformation("Push: Firebase Cloud Messaging on for project {Project}.", fcmProject);
+    }
+}
+
 app.UseWebSockets(new WebSocketOptions { KeepAliveInterval = TimeSpan.FromSeconds(20) });
 
 app.MapHadalAdmin();

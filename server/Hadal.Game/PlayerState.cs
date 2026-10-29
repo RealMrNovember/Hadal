@@ -216,9 +216,24 @@ namespace Hadal.Game
         /// <summary>Fractions of a unit (thousandths) carried between economy steps; not persisted.</summary>
         public Dictionary<ResourceType, long> CarryMilli { get; } = new();
 
+        /// <summary>Phone notification choices (docs/36); null = never set (everything on).</summary>
+        public HADAL.Shared.DTOs.NotificationPrefsDto? NotifyPrefs { get; set; }
+
+        /// <summary>The player's phones that take push notifications (Firebase tokens), newest last.</summary>
+        public List<PushDevice> PushDevices { get; } = new();
+
         /// <summary>Research and building-function state for the save (PlayerExtras), set by the save snapshot.</summary>
         public string ExtrasJson { get; set; } = string.Empty;
 
         public bool IsDirty { get; set; }
+    }
+
+    /// <summary>One phone's push registration (docs/36).</summary>
+    public sealed class PushDevice
+    {
+        public string DeviceId { get; set; } = string.Empty;
+        public string Token { get; set; } = string.Empty;
+        public string Platform { get; set; } = string.Empty;
+        public DateTimeOffset UpdatedAt { get; set; }
     }
 }

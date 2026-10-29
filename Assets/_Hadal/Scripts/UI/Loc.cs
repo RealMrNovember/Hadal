@@ -101,6 +101,17 @@ namespace Hadal.UI
             return IsRightToLeft ? ArabicText.Shape(text) : text;
         }
 
+        /// <summary>
+        /// Text for the phone's own UI (notifications, channel names): never shaped, since Android lays out Arabic itself.
+        /// </summary>
+        public static string Plain(string key, params object[] args)
+        {
+            _ = Current;
+            if (!_strings.TryGetValue(key, out var value) && !_fallback.TryGetValue(key, out value))
+                return key;
+            return args == null || args.Length == 0 ? value : string.Format(value, args);
+        }
+
         /// <summary>Player-facing text for a server reject reason (PlacementRejectReason / ConstructionRejectReason).</summary>
         public static string Reason(string code) => Has("reason." + code) ? T("reason." + code) : F("error.generic", code);
 

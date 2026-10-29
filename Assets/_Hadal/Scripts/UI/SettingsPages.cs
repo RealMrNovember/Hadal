@@ -1,5 +1,8 @@
 using System;
+using HADAL.Shared.DTOs;
+using HADAL.Shared.Simulation;
 using Hadal.Core.Services;
+using Hadal.Core.Services.Notifications;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -131,14 +134,86 @@ namespace Hadal.UI
             Back(column, () => Show(_home));
         }
 
+        /// <summary>
+        /// Phone notifications (docs/36): the master switch, the timer categories the phone schedules, the alerts the
+        /// server will push (shown as "soon" until push is live) and quiet hours. Choices are kept on this device and
+        /// on the server (PhoneNotifications syncs them).
+        /// </summary>
         private void BuildNotifications(Transform column)
         {
-            UiKit.Label("Hint", column, Loc.T("notify.hint"), 34, UiKit.Muted).Row(80);
-            UiKit.Switch("Construction", column, Loc.T("notify.construction"), () => GameSettings.NotifyConstruction, v => GameSettings.NotifyConstruction = v).Row(110);
-            UiKit.Switch("Storage", column, Loc.T("notify.storage"), () => GameSettings.NotifyStorageFull, v => GameSettings.NotifyStorageFull = v).Row(110);
-            UiKit.Switch("Events", column, Loc.T("notify.events"), () => GameSettings.NotifyEvents, v => GameSettings.NotifyEvents = v).Row(110);
-            UiKit.Rect("Spacer", column).Row(40);
+            UiKit.Label("Hint", column, Loc.T("notify.hint"), 30, UiKit.Muted).Row(60);
+            _notifyBlocked = UiKit.Button("Blocked", column, Loc.T("notify.permission.open"), PhoneNotifications.OpenPhoneSettings, UiKit.Danger, 30);
+            _notifyBlocked.Row(90);
+            var list = UiKit.ScrollList("List", column, 10f);
+            list.parent.gameObject.AddComponent<LayoutElement>().flexibleHeight = 1;
+
+            UiKit.Switch("Master", list, Loc.T("notify.master"), () => !NotificationPrefsStore.Current.Off, on =>
+            {
+                var prefs = NotificationPrefsStore.Current;
+                prefs.Off = !on;
+                NotificationPrefsStore.Save(prefs);
+                if (on)
+                    PhoneNotifications.OnPlayerEnabledSomething();
+            }).Row(110);
+
+            for (var i = 0; i < NotificationRules.CategoryCount; i++)
+            {
+                var category = (NotificationCategory)i;
+                if (category == NotificationCategory.Attack)
+                    UiKit.Label("PushHeader", list, Loc.T("notify.section.push"), 30, UiKit.Muted).Row(60);
+                var row = UiKit.Switch(category.ToString(), list, Loc.T(NotificationTexts.CategoryKey(category)),
+                    () => NotificationPrefsStore.IsEnabled(category), on =>
+                    {
+                        NotificationPrefsStore.SetEnabled(category, on);
+                        if (on)
+                            PhoneNotifications.OnPlayerEnabledSomething();
+                    });
+                row.Row(100);
+                if (NotificationRules.IsPush(category))
+                    Soon(row);
+            }
+
+            UiKit.Switch("Quiet", list, Loc.T("notify.quiet"), () => NotificationPrefsStore.Current.QuietHours, on =>
+            {
+                var prefs = NotificationPrefsStore.Current;
+                prefs.QuietHours = on;
+                NotificationPrefsStore.Save(prefs);
+            }).Row(110);
+            UiKit.Label("QuietFrom", list, Loc.T("notify.quiet.from"), 28, UiKit.Muted).Row(44);
+            QuietChoice("From", list, QuietStarts, p => p.QuietStartMinute, (p, m) => p.QuietStartMinute = m);
+            UiKit.Label("QuietTo", list, Loc.T("notify.quiet.to"), 28, UiKit.Muted).Row(44);
+            QuietChoice("To", list, QuietEnds, p => p.QuietEndMinute, (p, m) => p.QuietEndMinute = m);
+
+            UiKit.Rect("Spacer", column).Row(10);
             Back(column, () => Show(_home));
+        }
+
+        private static readonly int[] QuietStarts = { 21 * 60, 22 * 60, 23 * 60, 0 };
+        private static readonly int[] QuietEnds = { 6 * 60, 7 * 60, 8 * 60, 9 * 60 };
+
+        private Button _notifyBlocked;
+
+        private static void QuietChoice(string name, Transform list, int[] minutes, Func<NotificationPrefsDto, int> get,
+            Action<NotificationPrefsDto, int> set)
+        {
+            var labels = Array.ConvertAll(minutes, m => $"{m / 60:00}:{m % 60:00}");
+            UiKit.Choice(name, list, labels, () => Math.Max(0, Array.IndexOf(minutes, get(NotificationPrefsStore.Current))), i =>
+            {
+                var prefs = NotificationPrefsStore.Current;
+                set(prefs, minutes[i]);
+                NotificationPrefsStore.Save(prefs);
+            }).Row(96);
+        }
+
+        /// <summary>A push category before phase 2: greyed out, "soon" instead of on/off.</summary>
+        private static void Soon(Button row)
+        {
+            row.interactable = false;
+            row.transform.Find("Label").GetComponent<Text>().color = UiKit.Muted;
+            row.transform.Find("Pill").GetComponent<Image>().color = new Color(0.12f, 0.24f, 0.3f, 1f);
+            var state = row.transform.Find("Pill/State").GetComponent<Text>();
+            state.text = Loc.T("notify.soon");
+            state.color = UiKit.Muted;
         }
 
         private void BuildSupport(Transform column)
@@ -189,6 +264,10 @@ namespace Hadal.UI
             {
                 _supportId.text = ShortAccountId;
                 _supportCopy.GetComponentInChildren<Text>().text = Loc.T("support.copy");
+            }
+            else if (page == _notifications)
+            {
+                _notifyBlocked.gameObject.SetActive(PhoneNotifications.Blocked);
             }
             else if (page == _about)
             {

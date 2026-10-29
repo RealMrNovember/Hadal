@@ -202,6 +202,21 @@ namespace Hadal.UI
             audio.transform.SetParent(transform, false);
             audio.AddComponent<AudioDirector>().Initialize(_stateSync, _localBus);
 
+            // Phone notifications for the timers above while the game is closed; a tap opens its screen (docs/36).
+            var phone = new GameObject("PhoneNotifications");
+            phone.transform.SetParent(transform, false);
+            phone.AddComponent<PhoneNotifications>().Initialize(_stateSync, _commands, new PhoneNotifications.Actions
+            {
+                Base = () => { Close(); _social.Close(); _map.Close(); },
+                Research = OpenResearchFromHud,
+                Map = () => { Close(); _social.Close(); _map.Open(); },
+                Vip = () => { Close(); _map.Close(); _social.OpenVip(); },
+                Events = () => { Close(); _map.Close(); _social.OpenEvents(); },
+                Mail = () => { Close(); _map.Close(); _social.OpenMail(); },
+                Alliance = () => { Close(); _map.Close(); _social.OpenAlliance(); },
+                Chat = () => { Close(); _map.Close(); _social.OpenChat(); }
+            });
+
             // Profile cards over every screen: from chat faces, member lists and bases on the map.
             var profile = new GameObject("ProfileCard");
             profile.transform.SetParent(transform, false);

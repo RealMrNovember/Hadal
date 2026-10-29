@@ -92,6 +92,9 @@ namespace Hadal.Game.Social
         /// <summary>Names of players who are not online and not in an alliance (the world map knows every base).</summary>
         public Func<string, string?>? NameLookup { get; set; }
 
+        /// <summary>Push (docs/36): (recipient ids, kind, name) for help requests and chat mentions; called under the lock.</summary>
+        public Action<IReadOnlyList<string>, PushNotifications.PushKind, string>? PushTo { get; set; }
+
         public SocialHub(ISocialStore store, CatalogRuntime runtime, INetworkSerializer serializer, ILogger logger)
         {
             _store = store;
@@ -331,6 +334,12 @@ namespace Hadal.Game.Social
             if (command.Channel == (int)ChatChannel.Alliance)
                 session.RecordEvent("allianceChat", 1, now);
             Post(new ChatRecord(_nextChatId++, channel, session.PublicId, session.DisplayName, alliance?.Record.Tag ?? string.Empty, text, now, false), now);
+            // A private line or an "@Name" of an alliance mate reaches the phone (docs/36).
+            var mentioned = command.Channel == (int)ChatChannel.Private ? new List<string> { command.TargetId! }
+                : PushNotifications.PushService.Mentions(text, alliance?.Members.Select(m => (m.PlayerId, NameOf(m.PlayerId))) ?? Enumerable.Empty<(string, string)>());
+            mentioned.Remove(session.PublicId);
+            if (mentioned.Count > 0)
+                PushTo?.Invoke(mentioned, PushNotifications.PushKind.ChatMention, session.DisplayName);
             return SocialRejectReason.None;
         }
 
@@ -716,6 +725,8 @@ namespace Hadal.Game.Social
             _help[request.Id] = request;
             session.RecordEvent("helpAsk", 1, now);
             PushHelp(alliance, now);
+            PushTo?.Invoke(alliance.Members.Select(m => m.PlayerId).Where(id => id != session.PublicId).ToList(),
+                PushNotifications.PushKind.AllianceHelp, session.DisplayName);
             return SocialRejectReason.None;
         }
 
@@ -1112,6 +1123,13 @@ namespace Hadal.Game.Social
         {
             lock (_gate)
                 return AllianceOf(playerId)?.Record.Id ?? string.Empty;
+        }
+
+        /// <summary>The other members of a player's alliance (push to a rally's alliance, docs/36); empty without one.</summary>
+        public List<string> MatesOf(string playerId)
+        {
+            lock (_gate)
+                return AllianceOf(playerId)?.Members.Select(m => m.PlayerId).Where(id => id != playerId).ToList() ?? new List<string>();
         }
 
         /// <summary>A player's rank in their alliance (1–5), 0 without one (territory claims).</summary>
