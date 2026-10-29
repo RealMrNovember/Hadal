@@ -139,6 +139,16 @@ muster countdown and a *Katıl* button). Each row: who → whom, arrival countdo
   nearest the Hub; with no territory it keeps the old rule (next to the leader).
 - Alliance colour: picked from 12 colours by the alliance id hash (no setting yet).
 
+### 6.3.1 Rally point prompt (Last Asylum, seen 2026-10-29)
+Right after joining an alliance, Last Asylum shows "İttifak Seferberlik Noktası" with the rally point's coordinates
+(a tappable link), "you are very far, use Alliance Teleport", a map preview (alliance flag, glowing circle, the
+player's avatar at the edge with the distance in km), the Alliance Teleport item with have/need ("3/1") and a gold
+**Taşı** button. Taşı is instant: the camera recentres on a free tile in the alliance cluster within a second and the
+base pops in there; no travel animation. HADAL: show the same prompt on joining (or opening the alliance page) when
+the base is more than 30 km from the hub; the server already lands the jump on the free tile nearest the hub inside
+the territory, falling back to the leader's base while there is no hub (`WorldService.Teleport.cs`, `TerritoryTile`).
+Client prompt: not built yet.
+
 ### 6.4 Map
 - Zoom far out (strategic view, past ~3× the old limit): regions filled with their owner's colour, bright borders,
   `[TAG] Kale Lv.N` labels, the hub as a flag, bases as dots (cyan mine, blue alliance, red/white others).
