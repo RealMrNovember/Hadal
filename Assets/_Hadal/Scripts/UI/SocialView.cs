@@ -27,6 +27,7 @@ namespace Hadal.UI
             None,
             Heroes,
             HeroDetail,
+            Pod,
             PodResult,
             Alliance,
             Chat,
@@ -170,6 +171,8 @@ namespace Hadal.UI
             _stage?.Hide();
             _sheet.SetActive(false);
             _footer.gameObject.SetActive(false);
+            if (_heroBar != null)
+                _heroBar.gameObject.SetActive(false);
             if (_chatTabs != null)
                 _chatTabs.gameObject.SetActive(false);
             _page = Page.None;
@@ -239,15 +242,16 @@ namespace Hadal.UI
             if (Time.unscaledTime - _lastPointerTime <= 0.3f)
                 return;
 
-            // Hero pages tick once a second (free pull timer); the others only when their data changed.
+            // The Cryo-Pod ticks once a second (free pull timer); the others, the living hero card among them, only when
+            // their data changed.
             var key = PageKey();
-            if (key != _renderedKey || ((_page is Page.Heroes or Page.HeroDetail) && Time.unscaledTime >= _nextRefresh))
+            if (key != _renderedKey || (_page is Page.Pod && Time.unscaledTime >= _nextRefresh))
                 Render(force: false);
         }
 
         private string PageKey() => _page switch
         {
-            Page.Heroes or Page.HeroDetail => $"{_page}|{_heroId}|{HeroesKey()}|{View.QuestVersion}",
+            Page.Heroes or Page.HeroDetail or Page.Pod => $"{_page}|{_heroId}|{HeroesKey()}|{View.QuestVersion}",
             Page.Alliance => $"{_page}|{View.AllianceVersion}|{_confirmLeave}|{_allianceTab}",
             Page.Chat => $"{_page}|{View.ChatVersion}|{_chatChannel}|{_chatPeer}|{View.ProfileVersion}",
             Page.Quests or Page.Bag => $"{_page}|{QuestKey()}",
@@ -294,7 +298,9 @@ namespace Hadal.UI
             // Chat is a full page (Last Asylum): it covers the HUD header and leaves room for the input bar.
             ((RectTransform)_sheet.transform).Place(0.01f, 0.005f, 0.99f, _page == Page.Chat ? 0.995f : 0.905f);
             var listRect = (RectTransform)_list.parent;
-            listRect.Place(0.03f, _page == Page.Chat ? 0.1f : 0.02f, 0.97f, _page == Page.Chat ? 0.865f : 0.875f);
+            listRect.Place(0.03f, _page == Page.Chat ? 0.1f : _page == Page.Heroes ? 0.1f : 0.02f, 0.97f, _page == Page.Chat ? 0.865f : 0.875f);
+            if (_heroBar != null)
+                _heroBar.gameObject.SetActive(false); // the hero list turns its "Get heroes" bar back on
             if (_page != Page.Chat && _chatTabs != null)
                 _chatTabs.gameObject.SetActive(false);
             _footer.gameObject.SetActive(_page == Page.Chat && !(_chatChannel == ChatChannel.Private && _chatPeer.Length == 0));
@@ -306,6 +312,7 @@ namespace Hadal.UI
             {
                 case Page.Heroes: RenderHeroes(); break;
                 case Page.HeroDetail: RenderHeroDetail(); break;
+                case Page.Pod: RenderPod(); break;
                 case Page.PodResult: RenderPodResult(); break;
                 case Page.Alliance: RenderAlliance(); break;
                 case Page.Chat: RenderChat(force); break;

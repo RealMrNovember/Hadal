@@ -1,0 +1,51 @@
+{
+  "_note": "Painted bag item icons (Last Asylum style item tiles), one per item family read by QuestText.ItemIcon. Cut out by cards.py, scaled to 256x256 and copied to Assets/_Hadal/Resources/Icons/item_<id>.png. Amounts are drawn by the UI on top, so icons carry no text or numbers.",
+  "size": [
+    1024,
+    1024
+  ],
+  "final": [
+    256,
+    256
+  ],
+  "anchor": "center",
+  "pad": 0.04,
+  "style": "single game item icon, one object, centered, full view, mobile strategy game inventory icon, glossy hand-painted stylized render, bold readable silhouette, soft studio light, deep sea sci-fi, plain light grey background",
+  "negative": "text, letters, numbers, watermark, logo, multiple objects, cropped, busy background, scenery, floor, shadow on floor, blurry, photo, hands, people",
+  "entries": [
+    { "id": "teleport_random", "seed": 5101, "prompt": "glowing cyan sci-fi teleport beacon device with swirling random question mark energy vortex, small metal capsule" },
+    { "id": "teleport_target", "seed": 5102, "prompt": "glowing orange sci-fi teleport beacon device with a crosshair target reticle hologram above it" },
+    { "id": "teleport_alliance", "seed": 5103, "prompt": "glowing green sci-fi teleport beacon device with a shield banner flag hologram above it" },
+    { "id": "rename_card", "seed": 5104, "prompt": "metallic name tag identity card with a quill pen, brass frame, blank plate" },
+    { "id": "vip_small", "seed": 5105, "prompt": "small golden crown badge coin with a single gem" },
+    { "id": "vip_mid", "seed": 5106, "prompt": "golden royal crown with blue sapphire gems" },
+    { "id": "vip_large", "seed": 5107, "prompt": "ornate large golden royal crown covered in glowing purple and red gems, radiant" },
+    { "id": "cap_titanium", "seed": 5108, "prompt": "sealed glass supply canister filled with stacked silver titanium ingots, steel caps" },
+    { "id": "cap_biomass", "seed": 5109, "prompt": "sealed glass supply canister filled with glowing green kelp and algae biomass, steel caps" },
+    { "id": "cap_food", "seed": 5110, "prompt": "sealed glass supply canister filled with canned food rations and fish, steel caps" },
+    { "id": "cap_oxygen", "seed": 5111, "prompt": "sealed glass supply canister filled with blue oxygen bubbles, steel caps" },
+    { "id": "cap_energy", "seed": 5112, "prompt": "sealed glass supply canister filled with crackling yellow electric energy, steel caps" },
+    { "id": "speed_any", "seed": 5113, "prompt": "glowing golden hourglass with cyan sand and a winged motif" },
+    { "id": "speed_build", "seed": 5114, "prompt": "brass hourglass with a construction hammer crossed in front of it, amber sand" },
+    { "id": "speed_train", "seed": 5115, "prompt": "brass hourglass with crossed harpoons in front of it, red sand" },
+    { "id": "speed_heal", "seed": 5116, "prompt": "brass hourglass with a medical red cross emblem, green glowing sand" },
+    { "id": "speed_research", "seed": 5117, "prompt": "brass hourglass with a glowing chemistry flask in front of it, violet sand" },
+    { "id": "speed_march", "seed": 5118, "prompt": "brass hourglass with a small yellow submarine propeller in front of it, blue sand" },
+    { "id": "chest_bronze", "seed": 5119, "prompt": "closed wooden treasure chest with bronze trim, barnacles" },
+    { "id": "chest_silver", "seed": 5120, "prompt": "closed treasure chest with polished silver trim and blue gem lock" },
+    { "id": "chest_gold", "seed": 5121, "prompt": "closed ornate golden treasure chest with glowing red gem lock, radiant" },
+    { "id": "card_common", "seed": 5222, "prompt": "one single upright hero trading card with a silver grey frame and a diver helmet emblem on its face" },
+    { "id": "card_rare", "seed": 5223, "prompt": "one single upright hero trading card with a blue frame, blue glow and a diver helmet emblem on its face" },
+    { "id": "card_epic", "seed": 5124, "prompt": "stack of purple hero trading cards with a diver helmet silhouette emblem, purple glow" },
+    { "id": "card_legendary", "seed": 5125, "prompt": "stack of golden hero trading cards with a diver helmet silhouette emblem, radiant golden glow", "largest": true },
+    { "id": "herogift", "seed": 5126, "prompt": "gift box wrapped in teal paper with a gold ribbon and a brass diving helmet on top" },
+    { "id": "troops_armored", "seed": 5127, "prompt": "heavy armored deep sea diving helmet with riveted steel plates, small shield" },
+    { "id": "troops_harpoon", "seed": 5128, "prompt": "deep sea harpoon gun crossed with a diving knife" },
+    { "id": "troops_arc", "seed": 5129, "prompt": "electric arc stun lance with crackling blue lightning tip" },
+    { "id": "troops_driller", "seed": 5130, "prompt": "industrial rock drill with a spiral steel bit and yellow hazard stripes" },
+    { "id": "shield_8h", "seed": 5131, "prompt": "small round energy shield emblem, glowing green force field dome over a steel shield" },
+    { "id": "shield_24h", "seed": 5132, "prompt": "round energy shield emblem, glowing blue force field dome over a steel and silver shield" },
+    { "id": "shield_48h", "seed": 5133, "prompt": "ornate energy shield emblem, glowing purple force field dome over a silver shield with gems" },
+    { "id": "shield_7d", "seed": 5134, "prompt": "ornate golden energy shield emblem, radiant golden force field dome over a gold shield with red gems" }
+  ]
+}

@@ -53,17 +53,26 @@ namespace Hadal.UI
             : Speedups.TryParse(id, out var kind, out _, out _) ? Loc.T(kind == SpeedupKind.March ? "item.speedup.march.desc" : "item.speedup.desc")
             : Loc.T("item." + id + ".desc");
 
-        /// <summary>Icon of a bag item: the resource for capsules, a card stack or a gift otherwise.</summary>
-        public static string ItemIcon(string id, string kind) =>
-            TeleportRules.IsItem(id) ? "nav_world"
-            : RenameRules.IsItem(id) ? "avatar"
-            : VipRules.TryParseItem(id, out _) ? "vip"
-            : GiftItems.TryParseHero(id, out _, out _, out _) ? "nav_heroes"
-            : GiftItems.TryParseTroops(id, out _, out _, out _) ? "event_war"
-            : Capsules.TryParse(id, out var resource, out _) ? Hud.HudIcons.Resource(resource)
-            : Speedups.TryParse(id, out var speed, out _, out _) ? speed == SpeedupKind.March ? "nav_world" : speed == SpeedupKind.Build ? "queue_build"
-                : speed == SpeedupKind.Research ? "left_research" : speed == SpeedupKind.Heal ? "left_help" : "power"
-            : kind == "heroCard" ? "nav_heroes" : "event_gift";
+        /// <summary>
+        /// Icon of a bag item: its own painted icon (art/gpu/items.json → Icons/item_*), the gift box for anything
+        /// without one.
+        /// </summary>
+        public static string ItemIcon(string id, string kind)
+        {
+            var icon = OwnIcon(id, kind);
+            return Hud.HudIcons.Get(icon) != null ? icon : "event_gift";
+        }
+
+        private static string OwnIcon(string id, string kind) =>
+            TeleportRules.IsItem(id) || RenameRules.IsItem(id) ? "item_" + id
+            : VipRules.TryParseItem(id, out var vip) ? vip <= 100 ? "item_vip_small" : vip <= 1000 ? "item_vip_mid" : "item_vip_large"
+            : GiftItems.TryParseHero(id, out _, out _, out _) ? "item_herogift"
+            : GiftItems.TryParseTroops(id, out var troop, out _, out _) ? "item_troops_" + troop
+            : Capsules.TryParse(id, out var resource, out _) ? "item_cap_" + resource.ToString().ToLowerInvariant()
+            : Speedups.TryParse(id, out var speed, out _, out _) ? "item_speed_" + speed.ToString().ToLowerInvariant()
+            : kind is "chest" or "heroCard" || id.StartsWith("chest_", StringComparison.Ordinal) || id.StartsWith("card_", StringComparison.Ordinal)
+              || id.StartsWith("shield_", StringComparison.Ordinal) ? "item_" + id // shields (planned): shield_8h, _24h, _48h, _7d
+            : "event_gift";
 
         public static string Hero(string id) => Loc.T("hero." + id);
 
@@ -292,6 +301,21 @@ namespace Hadal.UI
                 return vip >= 5000 ? "legendary" : vip >= 1000 ? "epic" : vip >= 500 ? "rare" : "common";
             if (GiftItems.TryParseTroops(id, out _, out var tier, out _))
                 return tier >= 9 ? "legendary" : tier >= 7 ? "epic" : tier >= 4 ? "rare" : "common";
+            // Speed-ups by the time they take off: up to an hour green, 8 hours blue, a day purple, more gold.
+            if (Speedups.TryParse(id, out _, out var minutes, out var percent))
+                return percent ? minutes >= 50 ? "epic" : "rare"
+                    : minutes > 1440 ? "legendary" : minutes > 480 ? "epic" : minutes > 60 ? "rare" : "common";
+            if (TeleportRules.IsItem(id))
+                return id == TeleportRules.TargetItem ? "epic" : id == TeleportRules.AllianceItem ? "rare" : "common";
+            if (RenameRules.IsItem(id))
+                return "rare";
+            switch (id)
+            {
+                case "shield_8h": return "common";
+                case "shield_24h": return "rare";
+                case "shield_48h": return "epic";
+                case "shield_7d": return "legendary";
+            }
             return _catalog.TryGetItem(id, out var item) && !string.IsNullOrEmpty(item.rarity) ? item.rarity : "common";
         }
 

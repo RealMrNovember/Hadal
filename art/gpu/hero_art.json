@@ -1,0 +1,19 @@
+{
+  "_note": "Tall full-body hero card art (Last Asylum style hero list and hero card), one per catalog hero id (shared/catalog/catalog.json heroes.list), matching hero.<id> and hero.<id>.bio in the loc files. Cut out by cards.py and copied to Assets/_Hadal/Resources/HeroArt/<id>.png. Seeds are fixed; change one to get a different design. The first style is longer than CLIP's 77 tokens (its background words are cut off); entries with their own shorter \"style\" were re-rolled for a full figure.",
+  "size": [832, 1216],
+  "final": [600, 1000],
+  "anchor": "bottom",
+  "pad": 0.02,
+  "style": "full body character standing, entire figure visible from head to boots, heroic confident pose, deep sea diver explorer, mobile strategy game hero card art, stylized semi-realistic painterly digital illustration, high detail face, cinematic rim light, cyan and amber accents, plain flat dark grey studio background",
+  "negative": "text, watermark, logo, signature, frame, border, cropped feet, cropped head, close-up, portrait crop, extra limbs, extra fingers, deformed hands, blurry, lowres, jpeg artifacts, nsfw, multiple people, busy background, scenery",
+  "entries": [
+    { "id": "mara", "seed": 4101, "prompt": "grizzled middle-aged male naval commander Elias Rourke, short grey beard, scar across eyebrow, armored dark navy pressure suit with brass insignia and shoulder plates, long dark coat, holding a diving helmet under one arm, stern determined expression" },
+    { "id": "lyra", "seed": 4224, "prompt": "full length standing, kind young woman field medic Dr. Lyra Moss, braided auburn hair, white and teal medical pressure suit with a red cross emblem, oxygen tanks on her back", "style": "full body, head to boots, plain grey background, painterly game hero card art" },
+    { "id": "tess", "seed": 4303, "prompt": "young female salvage engineer Tess Ruiz, short black hair, welding goggles pushed up on her forehead, orange hazard diving work suit with tool harness and heavy boots, big wrench over her shoulder, confident grin" },
+    { "id": "kael", "seed": 4404, "prompt": "lean male deep sea hunter Kael, patched dark diving armor made of salvaged metal plates, long harpoon gun in hands, rebreather mask at his neck, glowing sonar goggles, weathered face, piercing eyes" },
+    { "id": "orin", "seed": 4505, "prompt": "older male hadalite researcher Dr. Orin Hale, round glasses, grey hair, long lab coat over a slim pressure suit, holding a glowing violet hadalite crystal in a sample jar, satchel of notes" },
+    { "id": "juno", "seed": 4617, "prompt": "full length standing, cocky young female submarine pilot Juno Vega, undercut hair, sleek black flight pressure suit with cyan piping and glowing lines, pilot helmet with visor held at her hip", "style": "full body, head to boots, plain grey background, painterly game hero card art" },
+    { "id": "sable", "seed": 4707, "prompt": "mysterious female engineer Sable, ex-cult, dark hooded coat woven with kelp and fiber optic threads over a riveted bronze diving suit, barnacle crusted half mask, glowing red eyes, mechanical gauntlet" },
+    { "id": "aelis", "seed": 4819, "prompt": "full length standing, ethereal woman Aelis, marine biologist resurrected by glowing hadalite crystals, half human half bioluminescent energy, crystalline veins glowing cyan on her skin", "style": "full body, head to boots, plain grey background, painterly game hero card art" }
+  ]
+}

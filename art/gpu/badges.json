@@ -1,0 +1,21 @@
+{
+  "_note": "Hero class badges and the hero card's gear slot icons (Last Asylum style), copied to Assets/_Hadal/Resources/Icons/class_<class>.png and gear_<slot>.png.",
+  "size": [1024, 1024],
+  "final": [256, 256],
+  "anchor": "center",
+  "pad": 0.04,
+  "style": "single game emblem icon, one object, centered, full view, mobile strategy game class badge, glossy hand-painted stylized render, bold readable silhouette, soft studio light, deep sea sci-fi, plain light grey background",
+  "negative": "text, letters, numbers, watermark, logo, multiple objects, cropped, busy background, scenery, floor, shadow on floor, blurry, photo, hands, people",
+  "entries": [
+    { "id": "class_commander", "seed": 6101, "prompt": "golden naval anchor emblem with a red star, military badge" },
+    { "id": "class_scientist", "seed": 6102, "prompt": "glowing cyan chemistry flask emblem with bubbles, round badge" },
+    { "id": "class_engineer", "seed": 6103, "prompt": "orange steel wrench crossed with a gear cog emblem" },
+    { "id": "class_hunter", "seed": 6104, "prompt": "green harpoon arrow with crosshair emblem" },
+    { "id": "class_medic", "seed": 6105, "prompt": "white shield emblem with a red medical cross" },
+    { "id": "class_pilot", "seed": 6106, "prompt": "blue ship steering wheel helm emblem with small wings" },
+    { "id": "gear_helmet", "seed": 6107, "prompt": "brass deep sea diving helmet with round glass portholes" },
+    { "id": "gear_suit", "seed": 6108, "prompt": "armored deep sea diving suit chest plate, riveted steel" },
+    { "id": "gear_weapon", "seed": 6109, "prompt": "sci-fi deep sea harpoon rifle" },
+    { "id": "gear_tank", "seed": 6110, "prompt": "twin oxygen tanks backpack with gauges and hoses" }
+  ]
+}
