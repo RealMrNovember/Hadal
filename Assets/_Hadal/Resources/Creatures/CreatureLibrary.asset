@@ -1,0 +1,58 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: a3253e6a2b251bd4697cab023c337062, type: 3}
+  m_Name: CreatureLibrary
+  m_EditorClassIdentifier: 
+  _entries:
+  - id: creature_abyss_angler
+    model: {fileID: 919132149155446097, guid: 04b5cebc0794cca92906cbe85172afce, type: 3}
+    material: {fileID: 2100000, guid: 13aefb0661d51bc128595257e59d7db9, type: 2}
+    boundsMin: {x: -0.4630986, y: -0.70003325, z: -1.0899763}
+    boundsSize: {x: 0.9261972, y: 1.4000665, z: 2.1799526}
+    triangles: 7825
+  - id: creature_lantern_maw
+    model: {fileID: 919132149155446097, guid: 80c060dd4f8dd9d4197ff9193f905233, type: 3}
+    material: {fileID: 2100000, guid: 8a7ae9dd1fc0d3aabbdd0f508157edde, type: 2}
+    boundsMin: {x: -1.30025, y: -1.2000465, z: -1.5233438}
+    boundsSize: {x: 2.600957, y: 2.400093, z: 3.0466876}
+    triangles: 11999
+  - id: creature_armored_crab
+    model: {fileID: 919132149155446097, guid: ea602828b41b97fe3835e6565ccadf82, type: 3}
+    material: {fileID: 2100000, guid: 06827bd1d7d23ad579a0934cd3cf91c7, type: 2}
+    boundsMin: {x: -0.79771423, y: -0.000032007694, z: -0.56561697}
+    boundsSize: {x: 1.5941788, y: 1.3000641, z: 1.1303097}
+    triangles: 9999
+  - id: creature_glow_angelfish
+    model: {fileID: 919132149155446097, guid: d2dec2ce166e66bfa9932b956ce687fa, type: 3}
+    material: {fileID: 2100000, guid: 4310823c990f118809c2ac07ec04482e, type: 2}
+    boundsMin: {x: -0.11522457, y: -0.29989684, z: -0.3761706}
+    boundsSize: {x: 0.22989883, y: 0.6000793, z: 0.7532435}
+    triangles: 1499
+  - id: creature_drift_jelly
+    model: {fileID: 919132149155446097, guid: 2336b74f1c09163178c66d103f0b43d2, type: 3}
+    material: {fileID: 2100000, guid: 085a516f0c9fa21f28748a21a3c8620d, type: 2}
+    boundsMin: {x: -0.36883247, y: -0.50017524, z: -0.37026083}
+    boundsSize: {x: 0.74257904, y: 0.9972335, z: 0.74432904}
+    triangles: 2000
+  - id: creature_chasm_maw
+    model: {fileID: 919132149155446097, guid: 22c27533e01b2a0e3b34ed9237d6cb5d, type: 3}
+    material: {fileID: 2100000, guid: d03ad0d3654bca7b2a9afac3eeacd255, type: 2}
+    boundsMin: {x: -1.3400346, y: -1.5000671, z: -2.1976619}
+    boundsSize: {x: 2.6800692, y: 3.0001342, z: 4.3953238}
+    triangles: 7341
+  - id: creature_depth_kraken
+    model: {fileID: 919132149155446097, guid: ba5f69b1913f0fd43890cf01ad0ab427, type: 3}
+    material: {fileID: 2100000, guid: a5ce32f6f037c1f06bd655d18f55ac95, type: 2}
+    boundsMin: {x: -1.6194785, y: -2.000061, z: -1.6195594}
+    boundsSize: {x: 3.238957, y: 4.000122, z: 3.2391188}
+    triangles: 15000
+  _lure: {fileID: 2100000, guid: 1f4f153c6fa514ef7ac3219440dbd98a, type: 2}

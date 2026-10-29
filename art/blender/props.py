@@ -7,6 +7,11 @@ Per asset (art/gpu/assets.json): import <source>/<id>/<id>_textured.glb, keep on
 roster height (metres), put the origin at the bottom centre (decor, crawlers) or the volume centre
 (swimmers), decimate to the kind's triangle budget, downscale the baked texture, export
 Assets/_Hadal/Art/Props/<id>.fbx + <id>_albedo.png and render a preview.
+
+Map creatures (art/gpu/creatures.json) go to their own folder and are turned so the head points +Z in Unity
+(the shader and CreatureMotion assume it); a roster entry may set its own "budget" (triangles) and "texture" (px):
+
+    blender -b --factory-startup --python art/blender/props.py -- --project /opt/hadal         --source /opt/hadal-thirdparty/trellis/creatures --roster art/gpu/creatures.json         --out-dir Assets/_Hadal/Art/Creatures --bake-yaw
 """
 import argparse
 import json
@@ -34,6 +39,8 @@ def parse_args():
     p.add_argument("--roster", default=os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "gpu", "assets.json"))
     p.add_argument("--only", default="")
     p.add_argument("--no-preview", action="store_true")
+    p.add_argument("--out-dir", default="Assets/_Hadal/Art/Props", help="project-relative output folder")
+    p.add_argument("--bake-yaw", action="store_true", help="turn the mesh by the roster yaw so the head points +Z in Unity")
     return p.parse_args(argv)
 
 
@@ -73,6 +80,16 @@ def normalise(obj, height, swimmer):
         v.co = (v.co - pivot) * scale
 
 
+def bake_yaw(obj, yaw):
+    """Unity yaw (clockwise from above, degrees) -> Blender turn about Z (counter-clockwise): head ends up on Blender -Y,
+    which is Unity +Z (Blender -> Unity is (x, y, z) -> (-x, z, -y))."""
+    from mathutils import Matrix
+    import math
+    turn = Matrix.Rotation(math.radians(-yaw), 4, "Z")
+    for v in obj.data.vertices:
+        v.co = turn @ v.co
+
+
 def decimate(obj, budget):
     tris = sum(len(p.vertices) - 2 for p in obj.data.polygons)
     if tris > budget:
@@ -84,7 +101,7 @@ def decimate(obj, budget):
     return sum(len(p.vertices) - 2 for p in obj.data.polygons)
 
 
-def bake_texture(obj, asset_id, out_dir):
+def bake_texture(obj, asset_id, out_dir, size=TEXTURE_SIZE):
     """Saves the baked base colour as a small PNG next to the FBX and points the material at it."""
     material = obj.data.materials[0] if obj.data.materials else None
     image = None
@@ -93,8 +110,8 @@ def bake_texture(obj, asset_id, out_dir):
     if image is None:
         raise RuntimeError(f"{asset_id}: no baked texture in the GLB")
 
-    if max(image.size) > TEXTURE_SIZE:
-        image.scale(TEXTURE_SIZE, TEXTURE_SIZE)
+    if max(image.size) > size:
+        image.scale(size, size)
     path = os.path.join(out_dir, f"{asset_id}_albedo.png")
     image.filepath_raw = path
     image.file_format = "PNG"
@@ -131,7 +148,7 @@ def main():
     args = parse_args()
     roster = json.load(open(args.roster))
     only = {s for s in args.only.split(",") if s}
-    out_dir = os.path.join(args.project, "Assets/_Hadal/Art/Props")
+    out_dir = os.path.join(args.project, args.out_dir)
     out_preview = os.path.join(args.project, "artifacts/art-preview")
     os.makedirs(out_dir, exist_ok=True)
     os.makedirs(out_preview, exist_ok=True)
@@ -149,9 +166,12 @@ def main():
         swimmer = asset["motion"] in SWIMMERS
         obj = import_mesh(source, asset_id)
         normalise(obj, asset["height"], swimmer)
-        budget = BIG_BUDGET if asset["height"] > 3.5 else BUDGET[asset["kind"]]
+        if args.bake_yaw:
+            bake_yaw(obj, asset.get("yaw", 0))
+        budget = asset.get("budget") or (BIG_BUDGET if asset["height"] > 3.5 else BUDGET[asset["kind"]])
         tris = decimate(obj, budget)
-        bake_texture(obj, asset_id, out_dir)
+        texture = asset.get("texture", TEXTURE_SIZE)
+        bake_texture(obj, asset_id, out_dir, texture)
         export(obj, os.path.join(out_dir, asset_id + ".fbx"))
 
         if not args.no_preview:
@@ -161,10 +181,14 @@ def main():
                                floor=not swimmer)
             if swimmer or asset["motion"] == "crawl":
                 render_top(os.path.join(out_preview, f"prop_{asset_id}_top.png"), h)
-        report[asset_id] = {"triangles": tris, "height_m": asset["height"], "motion": asset["motion"], "kind": asset["kind"]}
+        lo, hi = bounds(obj)
+        report[asset_id] = {"triangles": tris, "texture": texture, "height_m": asset["height"], "motion": asset["motion"], "kind": asset["kind"],
+                            "size_m": [round(hi.x - lo.x, 3), round(hi.y - lo.y, 3), round(hi.z - lo.z, 3)],
+                            "min_m": [round(lo.x, 3), round(lo.y, 3), round(lo.z, 3)]}
         print(f"[props] {asset_id}: {tris} tris", flush=True)
 
-    with open(os.path.join(out_preview, "props.json"), "w") as f:
+    report_name = "props.json" if args.out_dir.rstrip("/").endswith("Props") else os.path.basename(args.out_dir.rstrip("/")).lower() + ".json"
+    with open(os.path.join(out_preview, report_name), "w") as f:
         json.dump(report, f, indent=2)
 
 

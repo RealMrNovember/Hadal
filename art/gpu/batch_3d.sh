@@ -3,17 +3,19 @@
 # TRELLIS textured 3D per asset, strictly one heavy job at a time under run_3d.sh's memory cap.
 #
 #   nohup ~/hadal-gpu/repo/art/gpu/batch_3d.sh set1 [id,id,...] > ~/hadal-gpu/out/set1.log 2>&1 &
+#   ROSTER=creatures.json nohup ~/hadal-gpu/repo/art/gpu/batch_3d.sh creatures > ~/hadal-gpu/out/creatures.log 2>&1 &
 #
 # Output: ~/hadal-gpu/out/<set>/concept/<id>{,_rgba}.png and ~/hadal-gpu/out/<set>/3d/<id>/<id>_textured.glb
 # Finished assets are skipped, so a stopped batch resumes where it left off.
 set -uo pipefail
 SET=${1:?usage: batch_3d.sh <set-name> [ids]}
 ONLY=${2:-}
-ROSTER=/work/repo/art/gpu/assets.json
+ROSTER_FILE=${ROSTER:-assets.json}
+ROSTER=/work/repo/art/gpu/$ROSTER_FILE
 HOST_OUT=$HOME/hadal-gpu/out/$SET
 mkdir -p "$HOST_OUT/concept" "$HOST_OUT/3d"
 
-ids=$(python3 -c "import json; r=json.load(open('$HOME/hadal-gpu/repo/art/gpu/assets.json')); o=set(filter(None,'$ONLY'.split(','))); print(' '.join(a['id'] for a in r['assets'] if not o or a['id'] in o))")
+ids=$(python3 -c "import json; r=json.load(open('$HOME/hadal-gpu/repo/art/gpu/$ROSTER_FILE')); o=set(filter(None,'$ONLY'.split(','))); print(' '.join(a['id'] for a in r['assets'] if not o or a['id'] in o))")
 
 # One container per image for both stages: SDXL with CPU offload (~10 GB RAM) and onnxruntime's
 # BiRefNet session both grow across images and a multi-image run is OOM-killed under the cap.

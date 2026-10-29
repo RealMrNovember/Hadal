@@ -22,6 +22,9 @@ namespace Hadal.EditorTools
         public const string CharactersRoot = ArtRoot + "Characters/";
         public const string PropsRoot = ArtRoot + "Props/";
 
+        /// <summary>World-map creatures (props.py --out-dir, art/gpu/creatures.json): imported like props.</summary>
+        public const string CreaturesRoot = ArtRoot + "Creatures/";
+
         /// <summary>Clips that cycle; everything else (Wave, Death, HitReact...) plays once.</summary>
         public static readonly string[] LoopingClips =
         {
@@ -30,7 +33,7 @@ namespace Hadal.EditorTools
 
         private static bool IsFbx(string path) => path.EndsWith(".fbx", StringComparison.OrdinalIgnoreCase);
         private static bool IsCharacter(string path) => path.StartsWith(CharactersRoot) && IsFbx(path);
-        private static bool IsProp(string path) => path.StartsWith(PropsRoot) && IsFbx(path);
+        private static bool IsProp(string path) => (path.StartsWith(PropsRoot) || path.StartsWith(CreaturesRoot)) && IsFbx(path);
         private static bool IsHadalArt(string path) => path.StartsWith(ArtRoot) && IsFbx(path) && !IsCharacter(path) && !IsProp(path);
 
         /// <summary>"crew_engineer|Walk" (Blender take name) -> "Walk".</summary>
@@ -145,6 +148,16 @@ namespace Hadal.EditorTools
                 prop.maxTextureSize = 512;
                 prop.mipmapEnabled = true;
                 prop.textureCompression = TextureImporterCompression.Compressed;
+                return;
+            }
+
+            if (assetPath.StartsWith(CreaturesRoot) && assetPath.EndsWith("_albedo.png", StringComparison.OrdinalIgnoreCase))
+            {
+                // Map creatures: bosses and the big monsters carry a 1024 bake, the small ones 512 (props.py sizes the PNG).
+                var creature = (TextureImporter)assetImporter;
+                creature.maxTextureSize = 1024;
+                creature.mipmapEnabled = true;
+                creature.textureCompression = TextureImporterCompression.Compressed;
                 return;
             }
 

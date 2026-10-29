@@ -1,0 +1,82 @@
+{
+  "_note": "World-map sea creatures (docs/09, docs/28): attackable monsters, event bosses and cosmetic schools. Same TRELLIS path as assets.json (ROSTER=creatures.json art/gpu/batch_3d.sh creatures), then art/blender/props.py --roster art/gpu/creatures.json --out-dir Assets/_Hadal/Art/Creatures. Designs are our own text prompts; the sample models in the user's Downloads folder were only looked at for silhouettes and none of their meshes or textures are used. \"yaw\" turns the mesh in Blender so its head points +Z in Unity; \"budget\" is the triangle cap and \"texture\" the albedo size.",
+  "style": "stylized game creature, single animal, centered, full body, side view, plain light grey background, clean silhouette, hand-painted colors, soft studio light, deep sea sci-fi, bioluminescent, dark teal and violet palette",
+  "negative": "multiple animals, cropped, text, watermark, busy background, scenery, water surface, bubbles, floor, shadow on floor, blurry, photo, human, rider",
+  "assets": [
+    {
+      "id": "creature_abyss_angler",
+      "kind": "creature",
+      "motion": "swim",
+      "height": 1.4,
+      "seed": 3101,
+      "budget": 9000,
+      "texture": 512,
+      "prompt": "deep sea anglerfish monster, round dark teal body with violet glowing spots, huge underbite jaw with long needle teeth, small riveted metal plates on its back, one glowing cyan lure bulb hanging on a curved stalk from its forehead",
+      "yaw": 90
+    },
+    {
+      "id": "creature_lantern_maw",
+      "kind": "creature",
+      "motion": "swim",
+      "height": 2.4,
+      "seed": 3202,
+      "budget": 12000,
+      "texture": 1024,
+      "prompt": "huge armored lantern anglerfish, cavernous gaping maw with glassy fangs, black and deep violet hide with biomechanical bone armor plates, a big glowing amber lantern on a long stalk above the mouth, glowing teal eyes",
+      "yaw": 0
+    },
+    {
+      "id": "creature_armored_crab",
+      "kind": "creature",
+      "motion": "crawl",
+      "height": 1.3,
+      "seed": 3313,
+      "budget": 10000,
+      "texture": 1024,
+      "prompt": "one single giant armored crab, thick dark teal shell with glowing violet seams, two huge serrated claws, spiky legs",
+      "yaw": 180
+    },
+    {
+      "id": "creature_glow_angelfish",
+      "kind": "creature",
+      "motion": "swim",
+      "height": 0.6,
+      "seed": 3404,
+      "budget": 1500,
+      "texture": 512,
+      "prompt": "small angelfish, tall flat disc shaped body, long trailing dorsal and anal fins, deep violet with glowing cyan vertical stripes",
+      "yaw": 0
+    },
+    {
+      "id": "creature_drift_jelly",
+      "kind": "creature",
+      "motion": "pulse_swim",
+      "height": 1.0,
+      "seed": 3505,
+      "budget": 2000,
+      "texture": 512,
+      "prompt": "small bioluminescent jellyfish, round translucent teal bell with a glowing violet rim, short frilly glowing tentacles hanging below"
+    },
+    {
+      "id": "creature_chasm_maw",
+      "kind": "creature",
+      "motion": "swim",
+      "height": 3.0,
+      "seed": 3616,
+      "budget": 15000,
+      "texture": 1024,
+      "prompt": "one whole giant goosefish monkfish, full body with tail, very wide flat head, huge open toothy mouth, mottled teal and violet skin, glowing cyan jaw fringe",
+      "yaw": 0
+    },
+    {
+      "id": "creature_depth_kraken",
+      "kind": "creature",
+      "motion": "pulse_swim",
+      "height": 4.0,
+      "seed": 3707,
+      "budget": 15000,
+      "texture": 1024,
+      "prompt": "giant kraken squid monster, big upright cone mantle with violet and teal glowing spots, eight thick curling tentacles spreading out below, large glowing cyan eyes, biomechanical armor rings on the tentacles, front view"
+    }
+  ]
+}
