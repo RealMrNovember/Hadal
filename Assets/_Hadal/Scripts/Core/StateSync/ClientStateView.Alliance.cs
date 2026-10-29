@@ -29,6 +29,16 @@ namespace Hadal.Core.StateSync
             AllianceCoinsVersion++;
         }
 
+        /// <summary>The alliance's gift level and this member's gifts (docs/31 step 5).</summary>
+        public AllianceGiftsDto AllianceGifts { get; private set; } = new AllianceGiftsDto();
+        public int AllianceGiftsVersion { get; private set; }
+
+        public void ApplyAllianceGifts(AllianceGiftsDto gifts)
+        {
+            AllianceGifts = gifts ?? new AllianceGiftsDto();
+            AllianceGiftsVersion++;
+        }
+
         /// <summary>The log of a kind ("log" or "battle"), or null before it was fetched.</summary>
         public AllianceLogDto AllianceLog(string kind) => _allianceLogs.TryGetValue(kind ?? string.Empty, out var log) ? log : null;
     }

@@ -1200,3 +1200,16 @@ alliance.shop.price = {0} munten
 alliance.shop.how = Munten verdien je met helpen (tot 1.000 per dag) en met alliantiegeschenken. De voorraad vult elke maandag aan.
 reason.SoldOut = Deze week uitverkocht.
 reason.NotEnoughCoins = Niet genoeg alliantiemunten.
+
+# Alliance gifts (docs/31 §2)
+alliance.gifts.level = Geschenkniveau {0}
+alliance.gifts.points = Geschenkpunten: {0}
+alliance.gifts.how = Monsteroverwinningen, Hadaliet-aankopen en evenementplaatsen van leden geven iedereen een kist.
+alliance.gifts.all = Alles ophalen
+alliance.gifts.none = Nu geen geschenken.
+alliance.gifts.expires = Verdwijnt over {0}
+alliance.gifts.collect = Ophalen
+alliance.gifts.monster = {0} versloeg een monster nv. {1}
+alliance.gifts.purchase = {0} kocht Hadaliet
+alliance.gifts.event = {0} eindigde hoog in een evenement
+reason.NothingToCollect = Geen geschenken om op te halen.

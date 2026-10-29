@@ -1200,3 +1200,16 @@ alliance.shop.price = {0}コイン
 alliance.shop.how = コインは同盟の仲間を支援する（1日最大1,000）と同盟ギフトで手に入ります。在庫は毎週月曜に補充されます。
 reason.SoldOut = 今週は売り切れです。
 reason.NotEnoughCoins = 同盟コインが足りません。
+
+# Alliance gifts (docs/31 §2)
+alliance.gifts.level = ギフトレベル{0}
+alliance.gifts.points = ギフトポイント：{0}
+alliance.gifts.how = メンバーのモンスター討伐、ハダライト購入、イベント入賞で全員に宝箱が届きます。
+alliance.gifts.all = 一括受取
+alliance.gifts.none = 受け取れるギフトはありません。
+alliance.gifts.expires = あと{0}で消滅
+alliance.gifts.collect = 受取
+alliance.gifts.monster = {0}がLv.{1}のモンスターを討伐
+alliance.gifts.purchase = {0}がハダライトを購入
+alliance.gifts.event = {0}がイベントで入賞
+reason.NothingToCollect = 受け取れるギフトがありません。

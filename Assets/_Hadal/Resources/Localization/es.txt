@@ -1200,3 +1200,16 @@ alliance.shop.price = {0} monedas
 alliance.shop.how = Las monedas se ganan ayudando a la alianza (hasta 1.000 al día) y con los regalos de alianza. El stock se repone cada lunes.
 reason.SoldOut = Agotado esta semana.
 reason.NotEnoughCoins = No tienes suficientes monedas de alianza.
+
+# Alliance gifts (docs/31 §2)
+alliance.gifts.level = Nivel de regalos {0}
+alliance.gifts.points = Puntos de regalo: {0}
+alliance.gifts.how = Las victorias contra monstruos, las compras de Hadalita y los puestos en eventos traen un cofre para todos.
+alliance.gifts.all = Recoger todo
+alliance.gifts.none = Ahora no hay regalos.
+alliance.gifts.expires = Desaparece en {0}
+alliance.gifts.collect = Recoger
+alliance.gifts.monster = {0} derrotó a un monstruo Nv. {1}
+alliance.gifts.purchase = {0} compró Hadalita
+alliance.gifts.event = {0} logró un puesto en un evento
+reason.NothingToCollect = No hay regalos que recoger.

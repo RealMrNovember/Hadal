@@ -1200,3 +1200,16 @@ alliance.shop.price = {0} монет
 alliance.shop.how = Монеты дают за помощь союзникам (до 1000 в день) и из подарков альянса. Запасы обновляются каждый понедельник.
 reason.SoldOut = На этой неделе распродано.
 reason.NotEnoughCoins = Недостаточно монет альянса.
+
+# Alliance gifts (docs/31 §2)
+alliance.gifts.level = Уровень подарков {0}
+alliance.gifts.points = Очки подарков: {0}
+alliance.gifts.how = Победы участников над монстрами, покупки Хадалита и места в событиях приносят всем сундук.
+alliance.gifts.all = Забрать все
+alliance.gifts.none = Сейчас подарков нет.
+alliance.gifts.expires = Исчезнет через {0}
+alliance.gifts.collect = Забрать
+alliance.gifts.monster = {0} победил монстра ур. {1}
+alliance.gifts.purchase = {0} купил Хадалит
+alliance.gifts.event = {0} занял место в событии
+reason.NothingToCollect = Нет подарков.

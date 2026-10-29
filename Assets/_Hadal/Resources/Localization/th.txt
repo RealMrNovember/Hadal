@@ -1200,3 +1200,16 @@ alliance.shop.price = {0} เหรียญ
 alliance.shop.how = ได้เหรียญจากการช่วยเพื่อนพันธมิตร (สูงสุด 1,000 ต่อวัน) และจากของขวัญพันธมิตร สินค้าเติมใหม่ทุกวันจันทร์
 reason.SoldOut = สินค้าหมดสำหรับสัปดาห์นี้
 reason.NotEnoughCoins = เหรียญพันธมิตรไม่พอ
+
+# Alliance gifts (docs/31 §2)
+alliance.gifts.level = ระดับของขวัญ {0}
+alliance.gifts.points = แต้มของขวัญ: {0}
+alliance.gifts.how = การชนะมอนสเตอร์ การซื้อฮาดาไลต์ และอันดับในกิจกรรมของสมาชิกจะได้หีบให้ทุกคน
+alliance.gifts.all = รับทั้งหมด
+alliance.gifts.none = ยังไม่มีของขวัญ
+alliance.gifts.expires = หายไปใน {0}
+alliance.gifts.collect = รับ
+alliance.gifts.monster = {0} ชนะมอนสเตอร์ระดับ {1}
+alliance.gifts.purchase = {0} ซื้อฮาดาไลต์
+alliance.gifts.event = {0} ได้อันดับในกิจกรรม
+reason.NothingToCollect = ไม่มีของขวัญให้รับ

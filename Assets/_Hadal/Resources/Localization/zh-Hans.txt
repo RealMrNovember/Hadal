@@ -1200,3 +1200,16 @@ alliance.shop.price = {0} 联盟币
 alliance.shop.how = 帮助盟友（每天最多1,000）和联盟礼物可获得联盟币。库存每周一补充。
 reason.SoldOut = 本周已售罄。
 reason.NotEnoughCoins = 联盟币不足。
+
+# Alliance gifts (docs/31 §2)
+alliance.gifts.level = 礼物等级 {0}
+alliance.gifts.points = 礼物点数：{0}
+alliance.gifts.how = 成员击败怪物、购买深渊晶和在活动中获得名次，都会给所有人带来宝箱。
+alliance.gifts.all = 全部领取
+alliance.gifts.none = 暂时没有礼物。
+alliance.gifts.expires = {0}后消失
+alliance.gifts.collect = 领取
+alliance.gifts.monster = {0}击败了{1}级怪物
+alliance.gifts.purchase = {0}购买了深渊晶
+alliance.gifts.event = {0}在活动中获得名次
+reason.NothingToCollect = 没有可领取的礼物。

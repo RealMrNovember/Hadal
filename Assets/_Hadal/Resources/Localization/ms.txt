@@ -1200,3 +1200,16 @@ alliance.shop.price = {0} syiling
 alliance.shop.how = Syiling diperoleh dengan membantu rakan pakatan (sehingga 1,000 sehari) dan daripada hadiah pakatan. Stok diisi semula setiap Isnin.
 reason.SoldOut = Habis untuk minggu ini.
 reason.NotEnoughCoins = Syiling pakatan tidak mencukupi.
+
+# Alliance gifts (docs/31 §2)
+alliance.gifts.level = Tahap hadiah {0}
+alliance.gifts.points = Mata hadiah: {0}
+alliance.gifts.how = Kemenangan ahli ke atas raksasa, pembelian Hadalit dan kedudukan acara membawa peti untuk semua.
+alliance.gifts.all = Kutip semua
+alliance.gifts.none = Tiada hadiah buat masa ini.
+alliance.gifts.expires = Hilang dalam {0}
+alliance.gifts.collect = Kutip
+alliance.gifts.monster = {0} menewaskan raksasa Tahap {1}
+alliance.gifts.purchase = {0} membeli Hadalit
+alliance.gifts.event = {0} mendapat kedudukan dalam acara
+reason.NothingToCollect = Tiada hadiah untuk dikutip.

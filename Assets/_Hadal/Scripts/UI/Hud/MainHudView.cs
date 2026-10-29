@@ -561,8 +561,11 @@ namespace Hadal.UI.Hud
             _questDot.SetActive(questReady);
             _bagDot.SetActive(View.Items.Any(p => p.Value > 0)
                 || View.HeroCards.Any(p => _catalog.TryGetHero(p.Key, out var h) && p.Value >= QuestRules.RecruitShards(h)));
-            _allianceDot.SetActive(View.MyAlliance != null && View.HelpRequests.Any(r => !r.HelpedByMe));
-            _helpDot.SetActive(_allianceDot.activeSelf);
+            // The alliance button also lights for alliance gifts waiting to be collected (docs/31 step 5).
+            var helpWaiting = View.MyAlliance != null && View.HelpRequests.Any(r => !r.HelpedByMe);
+            var giftsWaiting = View.MyAlliance != null && View.AllianceGifts.Gifts.Any(g => !g.Collected && g.ExpiresAtMs > View.ServerNowMs);
+            _allianceDot.SetActive(helpWaiting || giftsWaiting);
+            _helpDot.SetActive(helpWaiting);
             var nowMs = View.ServerNowMs;
             _warDot.SetActive((View.Pvp?.Incoming ?? Array.Empty<IncomingDto>()).Any(i => i.ArrivesAtMs > nowMs));
             _eventsDot.SetActive(View.Events.Events.Any(e => EventRules.HasClaim(e, nowMs)));

@@ -90,7 +90,7 @@ namespace Hadal.Game.Social
             or CommandType.LeaveAlliance or CommandType.BrowseAlliances or CommandType.KickMember or CommandType.RequestHelp or CommandType.HelpAll
             or CommandType.SetMemberRank or CommandType.TransferLeadership or CommandType.SetAllianceSettings or CommandType.InviteToAlliance
             or CommandType.AnswerInvite or CommandType.AnswerApplication or CommandType.SetAllianceInfo or CommandType.ViewAllianceLog
-            or CommandType.BuyAllianceItem;
+            or CommandType.BuyAllianceItem or CommandType.CollectAllianceGift;
 
         /// <summary>Loads alliances and recent chat. Call once at startup, after the schema exists.</summary>
         public async Task InitializeAsync(CancellationToken cancellationToken)
@@ -164,7 +164,8 @@ namespace Hadal.Game.Social
                     MyAllianceChange(session.PublicId),
                     HelpChange(session.PublicId, now),
                     InvitesChange(session.PublicId, now),
-                    CoinsChange(session.PublicId, now)
+                    CoinsChange(session.PublicId, now),
+                    GiftsChange(session.PublicId, now)
                 }, now);
             }
         }
@@ -226,6 +227,12 @@ namespace Hadal.Game.Social
                         break;
                     case CommandType.TransferLeadership when TryDeserialize(envelope.Payload, out TransferLeadershipCommand? transfer):
                         Done(session, transfer!.CommandId, transfer.ClientSequence, Transfer(session.PublicId, transfer.MemberId, now), now);
+                        break;
+                    case CommandType.CollectAllianceGift when TryDeserialize(envelope.Payload, out CollectAllianceGiftCommand? collect):
+                        // Collected gifts answer with their reward report; only a refusal is acknowledged here.
+                        var collected = Collect(session, collect!, now);
+                        if (collected != SocialRejectReason.None)
+                            Done(session, collect!.CommandId, collect.ClientSequence, collected, now);
                         break;
                     case CommandType.BuyAllianceItem when TryDeserialize(envelope.Payload, out BuyAllianceItemCommand? buy):
                         // A purchase answers itself with its reward report; only a refusal is acknowledged here.

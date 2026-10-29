@@ -1200,3 +1200,16 @@ alliance.shop.price = {0} عملة
 alliance.shop.how = تُكسب العملات بمساعدة رفاق التحالف (حتى 1,000 يوميًا) ومن هدايا التحالف. يتجدد المخزون كل يوم اثنين.
 reason.SoldOut = نفد المخزون هذا الأسبوع.
 reason.NotEnoughCoins = لا تملك عملات تحالف كافية.
+
+# Alliance gifts (docs/31 §2)
+alliance.gifts.level = مستوى الهدايا {0}
+alliance.gifts.points = نقاط الهدايا: {0}
+alliance.gifts.how = انتصارات الأعضاء على الوحوش ومشترياتهم من الهاداليت ومراتبهم في الفعاليات تجلب صندوقًا للجميع.
+alliance.gifts.all = جمع الكل
+alliance.gifts.none = لا توجد هدايا الآن.
+alliance.gifts.expires = تختفي بعد {0}
+alliance.gifts.collect = جمع
+alliance.gifts.monster = هزم {0} وحشًا من المستوى {1}
+alliance.gifts.purchase = اشترى {0} الهاداليت
+alliance.gifts.event = حصل {0} على مرتبة في فعالية
+reason.NothingToCollect = لا توجد هدايا للجمع.

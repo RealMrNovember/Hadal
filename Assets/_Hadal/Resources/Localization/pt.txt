@@ -1200,3 +1200,16 @@ alliance.shop.price = {0} moedas
 alliance.shop.how = As moedas vêm de ajudar a aliança (até 1.000 por dia) e dos presentes da aliança. O estoque renova toda segunda-feira.
 reason.SoldOut = Esgotado nesta semana.
 reason.NotEnoughCoins = Moedas da aliança insuficientes.
+
+# Alliance gifts (docs/31 §2)
+alliance.gifts.level = Nível de presentes {0}
+alliance.gifts.points = Pontos de presente: {0}
+alliance.gifts.how = Vitórias contra monstros, compras de Hadalita e colocações em eventos dos membros trazem um baú para todos.
+alliance.gifts.all = Coletar tudo
+alliance.gifts.none = Nenhum presente agora.
+alliance.gifts.expires = Some em {0}
+alliance.gifts.collect = Coletar
+alliance.gifts.monster = {0} derrotou um monstro Nv. {1}
+alliance.gifts.purchase = {0} comprou Hadalita
+alliance.gifts.event = {0} ficou bem colocado em um evento
+reason.NothingToCollect = Nenhum presente para coletar.

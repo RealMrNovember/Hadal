@@ -1201,3 +1201,16 @@ alliance.shop.price = {0} coins
 alliance.shop.how = Coins come from helping alliance mates (up to 1,000 a day) and from alliance gifts. Stock refills every Monday.
 reason.SoldOut = Sold out for this week.
 reason.NotEnoughCoins = Not enough alliance coins.
+
+# Alliance gifts (docs/31 §2)
+alliance.gifts.level = Gift level {0}
+alliance.gifts.points = Gift points: {0}
+alliance.gifts.how = Members' monster wins, Hadalite purchases and event ranks bring everyone a chest.
+alliance.gifts.all = Collect all
+alliance.gifts.none = No gifts to collect right now.
+alliance.gifts.expires = Gone in {0}
+alliance.gifts.collect = Collect
+alliance.gifts.monster = {0} defeated a Lv.{1} monster
+alliance.gifts.purchase = {0} bought Hadalite
+alliance.gifts.event = {0} placed in an event
+reason.NothingToCollect = No gifts to collect.

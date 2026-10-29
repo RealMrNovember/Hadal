@@ -54,6 +54,9 @@ namespace Hadal.Game.Events
         public Func<string, string>? TagOf { get; set; }
         public Func<string, (string Tag, string Name, string Emblem)?>? AllianceInfo { get; set; }
 
+        /// <summary>Drops an alliance gift for a player (docs/31 step 5): set by the world to SocialHub.DropGift.</summary>
+        public Action<string, string, long, DateTimeOffset>? DropGift { get; set; }
+
         public EventService(IEventStore store, CatalogRuntime runtime, INetworkSerializer serializer, ILogger logger)
         {
             _store = store;
@@ -312,7 +315,11 @@ namespace Hadal.Game.Events
             if (reject != null)
                 session.Acknowledge(command.CommandId, command.ClientSequence, reject, now);
             else
+            {
                 session.GrantEventRewards(command.CommandId, command.ClientSequence, rewards!, now);
+                // An event rank drops an alliance gift for the player's mates.
+                DropGift?.Invoke(session.PublicId, AllianceGiftRules.Event, 0, now);
+            }
         }
 
         private string? TryClaimRank(PlayerSession session, string eventId, DateTimeOffset now, out List<RewardData>? rewards)

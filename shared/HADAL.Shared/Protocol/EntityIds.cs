@@ -97,6 +97,9 @@ namespace HADAL.Shared.Protocol
         /// <summary>The player's alliance coins and this week's alliance shop (<c>AllianceCoinsDto</c>).</summary>
         public const string AllianceCoins = Alliance + "coins";
 
+        /// <summary>The alliance's gift level and the member's gifts (<c>AllianceGiftsDto</c>).</summary>
+        public const string AllianceGifts = Alliance + "gifts";
+
         /// <summary>VIP points, level and today's claims (<c>VipStateDto</c>).</summary>
         public const string Vip = Base + "vip";
 

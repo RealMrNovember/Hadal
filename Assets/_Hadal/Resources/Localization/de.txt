@@ -1200,3 +1200,16 @@ alliance.shop.price = {0} Münzen
 alliance.shop.how = Münzen gibt es fürs Helfen (bis zu 1.000 am Tag) und aus Allianzgeschenken. Der Bestand füllt sich jeden Montag auf.
 reason.SoldOut = Für diese Woche ausverkauft.
 reason.NotEnoughCoins = Nicht genug Allianzmünzen.
+
+# Alliance gifts (docs/31 §2)
+alliance.gifts.level = Geschenkstufe {0}
+alliance.gifts.points = Geschenkpunkte: {0}
+alliance.gifts.how = Monstersiege, Hadalit-Käufe und Event-Platzierungen der Mitglieder bringen allen eine Truhe.
+alliance.gifts.all = Alle abholen
+alliance.gifts.none = Gerade keine Geschenke.
+alliance.gifts.expires = Verschwindet in {0}
+alliance.gifts.collect = Abholen
+alliance.gifts.monster = {0} hat ein Monster St. {1} besiegt
+alliance.gifts.purchase = {0} hat Hadalit gekauft
+alliance.gifts.event = {0} hat sich in einem Event platziert
+reason.NothingToCollect = Keine Geschenke zum Abholen.

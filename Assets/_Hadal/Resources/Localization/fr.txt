@@ -1200,3 +1200,16 @@ alliance.shop.price = {0} pièces
 alliance.shop.how = Les pièces s'obtiennent en aidant l'alliance (jusqu'à 1 000 par jour) et avec les cadeaux d'alliance. Le stock se renouvelle chaque lundi.
 reason.SoldOut = Épuisé cette semaine.
 reason.NotEnoughCoins = Pas assez de pièces d'alliance.
+
+# Alliance gifts (docs/31 §2)
+alliance.gifts.level = Niveau des cadeaux {0}
+alliance.gifts.points = Points de cadeau : {0}
+alliance.gifts.how = Les victoires sur les monstres, les achats d'Hadalite et les classements d'événements offrent un coffre à tous.
+alliance.gifts.all = Tout récupérer
+alliance.gifts.none = Aucun cadeau pour l'instant.
+alliance.gifts.expires = Disparaît dans {0}
+alliance.gifts.collect = Récupérer
+alliance.gifts.monster = {0} a vaincu un monstre niv. {1}
+alliance.gifts.purchase = {0} a acheté de l'Hadalite
+alliance.gifts.event = {0} s'est classé dans un événement
+reason.NothingToCollect = Aucun cadeau à récupérer.

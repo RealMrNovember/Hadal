@@ -1200,3 +1200,16 @@ alliance.shop.price = {0} monete
 alliance.shop.how = Le monete si guadagnano aiutando l'alleanza (fino a 1.000 al giorno) e con i regali d'alleanza. Le scorte si rinnovano ogni lunedì.
 reason.SoldOut = Esaurito per questa settimana.
 reason.NotEnoughCoins = Monete d'alleanza insufficienti.
+
+# Alliance gifts (docs/31 §2)
+alliance.gifts.level = Livello regali {0}
+alliance.gifts.points = Punti regalo: {0}
+alliance.gifts.how = Vittorie sui mostri, acquisti di Hadalite e piazzamenti negli eventi dei membri portano a tutti un forziere.
+alliance.gifts.all = Raccogli tutto
+alliance.gifts.none = Nessun regalo al momento.
+alliance.gifts.expires = Scompare tra {0}
+alliance.gifts.collect = Raccogli
+alliance.gifts.monster = {0} ha sconfitto un mostro liv. {1}
+alliance.gifts.purchase = {0} ha acquistato Hadalite
+alliance.gifts.event = {0} si è piazzato in un evento
+reason.NothingToCollect = Nessun regalo da raccogliere.

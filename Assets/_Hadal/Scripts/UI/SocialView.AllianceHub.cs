@@ -70,7 +70,8 @@ namespace Hadal.UI
             {
                 (Loc.T("alliance.tile.war"), "event_war", false, OpenWar),
                 (waiting > 0 ? $"{Loc.T("alliance.tile.help")} ({waiting})" : Loc.T("alliance.tile.help"), "left_help", waiting > 0, () => OpenAllianceTab(AllianceTabHelp)),
-                (Loc.T("alliance.tile.gifts"), "event_gift", false, () => AllianceSoon("alliance.tile.gifts")),
+                (GiftsWaiting() > 0 ? $"{Loc.T("alliance.tile.gifts")} ({GiftsWaiting()})" : Loc.T("alliance.tile.gifts"), "event_gift", GiftsWaiting() > 0,
+                    () => OpenAllianceTab(AllianceTabGifts)),
                 (Loc.T("alliance.tile.members"), "nav_heroes", false, () => OpenAllianceTab(AllianceTabMembers)),
                 (Loc.T("alliance.tile.shop"), "shop", false, () => OpenAllianceTab(AllianceTabShop)),
                 (Loc.T("alliance.tile.research"), "left_research", false, () => AllianceSoon("alliance.tile.research")),

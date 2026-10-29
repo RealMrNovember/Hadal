@@ -14,5 +14,15 @@ namespace Hadal.Game
                 GrantAndReport(commandId, sequence, new List<ResolvedReward> { new("item", itemId, count) }, now);
             }
         }
+
+        /// <summary>Collected alliance gifts: their chests go to the bag, answered with a reward report.</summary>
+        internal void GrantGiftChests(string commandId, ulong sequence, IReadOnlyDictionary<string, int> chests, DateTimeOffset now)
+        {
+            lock (_gate)
+            {
+                AdvanceTo(now);
+                GrantAndReport(commandId, sequence, chests.Select(p => new ResolvedReward("item", p.Key, p.Value)).ToList(), now);
+            }
+        }
     }
 }

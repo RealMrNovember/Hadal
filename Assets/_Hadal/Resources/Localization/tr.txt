@@ -1201,3 +1201,16 @@ alliance.shop.price = {0} jeton
 alliance.shop.how = Jeton, ittifak arkadaşlarına yardım ederek (günde en çok 1.000) ve ittifak hediyelerinden kazanılır. Stok her pazartesi yenilenir.
 reason.SoldOut = Bu hafta için stok bitti.
 reason.NotEnoughCoins = Yeterli ittifak jetonun yok.
+
+# Alliance gifts (docs/31 §2)
+alliance.gifts.level = Hediye seviyesi {0}
+alliance.gifts.points = Hediye puanı: {0}
+alliance.gifts.how = Üyelerin canavar zaferleri, Hadalit alımları ve etkinlik dereceleri herkese sandık getirir.
+alliance.gifts.all = Tümünü topla
+alliance.gifts.none = Şu an toplanacak hediye yok.
+alliance.gifts.expires = {0} sonra kaybolur
+alliance.gifts.collect = Topla
+alliance.gifts.monster = {0}, Sv.{1} bir canavarı yendi
+alliance.gifts.purchase = {0} Hadalit satın aldı
+alliance.gifts.event = {0} bir etkinlikte derece aldı
+reason.NothingToCollect = Toplanacak hediye yok.

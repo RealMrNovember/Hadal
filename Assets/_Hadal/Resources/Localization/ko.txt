@@ -1200,3 +1200,16 @@ alliance.shop.price = {0} 코인
 alliance.shop.how = 코인은 연맹원을 도와서(하루 최대 1,000)와 연맹 선물로 얻습니다. 재고는 매주 월요일에 다시 채워집니다.
 reason.SoldOut = 이번 주 품절입니다.
 reason.NotEnoughCoins = 연맹 코인이 부족합니다.
+
+# Alliance gifts (docs/31 §2)
+alliance.gifts.level = 선물 레벨 {0}
+alliance.gifts.points = 선물 포인트: {0}
+alliance.gifts.how = 멤버의 몬스터 처치, 하달라이트 구매, 이벤트 순위가 모두에게 상자를 가져옵니다.
+alliance.gifts.all = 모두 받기
+alliance.gifts.none = 지금은 받을 선물이 없습니다.
+alliance.gifts.expires = {0} 후 사라짐
+alliance.gifts.collect = 받기
+alliance.gifts.monster = {0}님이 Lv.{1} 몬스터를 처치
+alliance.gifts.purchase = {0}님이 하달라이트를 구매
+alliance.gifts.event = {0}님이 이벤트에서 순위권 달성
+reason.NothingToCollect = 받을 선물이 없습니다.

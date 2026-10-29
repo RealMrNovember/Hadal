@@ -1200,3 +1200,16 @@ alliance.shop.price = {0} xu
 alliance.shop.how = Xu kiếm được khi giúp đồng minh (tối đa 1.000 mỗi ngày) và từ quà liên minh. Hàng được làm mới mỗi thứ Hai.
 reason.SoldOut = Đã hết hàng tuần này.
 reason.NotEnoughCoins = Không đủ xu liên minh.
+
+# Alliance gifts (docs/31 §2)
+alliance.gifts.level = Cấp quà {0}
+alliance.gifts.points = Điểm quà: {0}
+alliance.gifts.how = Thành viên hạ quái vật, mua Hadalit và đạt hạng sự kiện sẽ mang rương về cho mọi người.
+alliance.gifts.all = Nhận tất cả
+alliance.gifts.none = Hiện không có quà.
+alliance.gifts.expires = Biến mất sau {0}
+alliance.gifts.collect = Nhận
+alliance.gifts.monster = {0} đã hạ quái vật cấp {1}
+alliance.gifts.purchase = {0} đã mua Hadalit
+alliance.gifts.event = {0} đạt hạng trong sự kiện
+reason.NothingToCollect = Không có quà để nhận.

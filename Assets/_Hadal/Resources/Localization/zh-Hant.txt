@@ -1200,3 +1200,16 @@ alliance.shop.price = {0} 聯盟幣
 alliance.shop.how = 幫助盟友（每天最多1,000）和聯盟禮物可獲得聯盟幣。庫存每週一補充。
 reason.SoldOut = 本週已售罄。
 reason.NotEnoughCoins = 聯盟幣不足。
+
+# Alliance gifts (docs/31 §2)
+alliance.gifts.level = 禮物等級 {0}
+alliance.gifts.points = 禮物點數：{0}
+alliance.gifts.how = 成員擊敗怪物、購買深淵晶和在活動中獲得名次，都會給所有人帶來寶箱。
+alliance.gifts.all = 全部領取
+alliance.gifts.none = 暫時沒有禮物。
+alliance.gifts.expires = {0}後消失
+alliance.gifts.collect = 領取
+alliance.gifts.monster = {0}擊敗了{1}級怪物
+alliance.gifts.purchase = {0}購買了深淵晶
+alliance.gifts.event = {0}在活動中獲得名次
+reason.NothingToCollect = 沒有可領取的禮物。

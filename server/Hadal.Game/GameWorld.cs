@@ -81,7 +81,8 @@ namespace Hadal.Game
                 AvatarLookup = Map.AvatarOf,
                 AllianceIdOf = Social.AllianceIdOf,
                 TagOf = Social.TagOf,
-                AllianceInfo = Social.AllianceInfo
+                AllianceInfo = Social.AllianceInfo,
+                DropGift = Social.DropGift
             };
             Mail = new MailService(mailStore ?? new InMemoryMailStore(), serializer, logger)
             {
@@ -212,6 +213,7 @@ namespace Hadal.Game
                 if (_sessions.TryGetValue(identityKey, out var session))
                 {
                     session.CreditPurchase(pack, _clock.UtcNow);
+                    Social.DropGift(session.PublicId, AllianceGiftRules.Purchase, pack.Hadalite, _clock.UtcNow);
                     return true;
                 }
 
@@ -221,6 +223,7 @@ namespace Hadal.Game
                 PlayerSession.ApplyPurchase(state, pack);
                 state.ExtrasJson = PlayerExtras.Write(state);
                 await _repository.SaveAsync(state, cancellationToken);
+                Social.DropGift(state.PlayerId.ToString("N"), AllianceGiftRules.Purchase, pack.Hadalite, _clock.UtcNow);
                 return true;
             }
             finally
@@ -436,7 +439,10 @@ namespace Hadal.Game
                 {
                     session.Tick(now);
                     // Event points for what the player did since the last tick (commands and timers alike).
-                    Events.Record(session, session.TakeEventScores(), now);
+                    var actions = session.TakeEventScores();
+                    Events.Record(session, actions, now);
+                    // A member's monster win drops an alliance gift (docs/31 step 5).
+                    Social.GiftsFrom(session, actions, now);
                 }
                 catch (Exception exception)
                 {

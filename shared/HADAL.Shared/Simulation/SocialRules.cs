@@ -35,6 +35,7 @@ namespace HADAL.Shared.Simulation
         NoApplication = 24,
         SoldOut = 25,
         NotEnoughCoins = 26,
+        NothingToCollect = 27,
     }
 
     /// <summary>Chat channels. Values are a wire contract.</summary>

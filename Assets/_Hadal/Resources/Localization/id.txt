@@ -1200,3 +1200,16 @@ alliance.shop.price = {0} koin
 alliance.shop.how = Koin didapat dengan membantu rekan aliansi (hingga 1.000 per hari) dan dari hadiah aliansi. Stok diisi ulang setiap Senin.
 reason.SoldOut = Habis untuk minggu ini.
 reason.NotEnoughCoins = Koin aliansi tidak cukup.
+
+# Alliance gifts (docs/31 §2)
+alliance.gifts.level = Level hadiah {0}
+alliance.gifts.points = Poin hadiah: {0}
+alliance.gifts.how = Kemenangan atas monster, pembelian Hadalit, dan peringkat event anggota memberi peti untuk semua.
+alliance.gifts.all = Ambil semua
+alliance.gifts.none = Belum ada hadiah.
+alliance.gifts.expires = Hilang dalam {0}
+alliance.gifts.collect = Ambil
+alliance.gifts.monster = {0} mengalahkan monster Lv.{1}
+alliance.gifts.purchase = {0} membeli Hadalit
+alliance.gifts.event = {0} meraih peringkat di event
+reason.NothingToCollect = Tidak ada hadiah untuk diambil.
