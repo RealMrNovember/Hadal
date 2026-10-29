@@ -7,6 +7,7 @@ namespace Hadal.Game.Tests
     public sealed class PostgresSocialStoreTests
     {
         private static readonly string? ConnectionString = PostgresTest.ConnectionString;
+        private static readonly string Emoji = " " + char.ConvertFromUtf32(0x1F642);
 
         [Fact]
         public async Task Alliances_members_and_chat_round_trip()
@@ -36,11 +37,12 @@ namespace Hadal.Game.Tests
             var channel = "alliance:" + alliance.Id;
             var baseId = now.ToUnixTimeMilliseconds() * 1000;
             for (var i = 0; i < 5; i++)
-                await store.AddChatAsync(new ChatRecord(baseId + i, channel, "p2" + suffix, "Two", alliance.Tag, "line " + i, now, false), default);
+                await store.AddChatAsync(new ChatRecord(baseId + i, channel, "p2" + suffix, "Two", alliance.Tag, "line " + i + Emoji, now, false), default);
             await store.DeleteChatAsync(baseId + 4, default);
 
             var recent = (await store.LoadRecentChatAsync(3, default)).Where(c => c.Channel == channel).ToList();
-            Assert.Equal(new[] { "line 1", "line 2", "line 3" }, recent.Select(c => c.Text));
+            // Emoji (outside the basic plane) survive UTF-8 storage.
+            Assert.Equal(new[] { "line 1" + Emoji, "line 2" + Emoji, "line 3" + Emoji }, recent.Select(c => c.Text));
 
             // Deleting the alliance takes its members with it. Clean the lines too: this may run against a live database.
             for (var i = 0; i < 5; i++)

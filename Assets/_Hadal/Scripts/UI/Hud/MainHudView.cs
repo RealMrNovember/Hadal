@@ -298,7 +298,7 @@ namespace Hadal.UI.Hud
 
             var chat = Tap(content, "Chat", 0.21f, 0.1f, 0.79f, 0.88f, _actions.Chat, new Color(0, 0, 0, 0.35f));
             Skinned(chat.GetComponent<Image>(), "pill");
-            _chatPreview = UiKit.Label("Lines", chat, string.Empty, 24, UiKit.Text, TextAnchor.MiddleLeft);
+            _chatPreview = UiKit.EmojiLabel("Lines", chat, string.Empty, 24, UiKit.Text, TextAnchor.MiddleLeft);
             _chatPreview.rectTransform.Place(0.03f, 0.03f, 0.97f, 0.97f);
             _chatPreview.horizontalOverflow = HorizontalWrapMode.Overflow;
             _chatPreview.verticalOverflow = VerticalWrapMode.Truncate;

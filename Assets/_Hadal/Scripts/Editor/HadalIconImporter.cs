@@ -10,13 +10,26 @@ namespace Hadal.EditorTools
     /// </summary>
     public sealed class HadalIconImporter : AssetPostprocessor
     {
-        /// <summary>The UI font (Fredoka): symbols it lacks (arrows, ✓, ★) come from the phone's own fonts.</summary>
+        private const string EmojiFont = "Assets/_Hadal/Resources/Fonts/HadalEmoji-Regular.ttf";
+
+        /// <summary>
+        /// The UI fonts: symbols Fredoka lacks (arrows, ✓, ★) come from the phone's own fonts; emoji from the bundled
+        /// Hadal Emoji font (art/ui/make_emoji_font.py), the first fallback of Fredoka and of the world font.
+        /// </summary>
         private void OnPreprocessAsset()
         {
-            if (!assetPath.EndsWith("Fonts/Fredoka-SemiBold.ttf") || assetImporter is not TrueTypeFontImporter font)
+            if (assetImporter is not TrueTypeFontImporter font)
                 return;
-            font.fontNames = new[] { "Roboto", "Noto Sans", "Noto Sans Symbols", "Noto Sans Symbols 2", "Arial" };
+            if (assetPath.EndsWith("Fonts/Fredoka-SemiBold.ttf"))
+                font.fontNames = new[] { "Hadal Emoji", "Roboto", "Noto Sans", "Noto Sans Symbols", "Noto Sans Symbols 2", "Arial" };
+            else if (assetPath.EndsWith("Fonts/HadalSansWorld-Regular.ttf"))
+                font.fontNames = new[] { "Hadal Sans World", "Hadal Emoji" };
+            else
+                return;
             font.includeFontData = true;
+            var emoji = AssetDatabase.LoadAssetAtPath<Font>(EmojiFont);
+            if (emoji != null)
+                font.fontReferences = new[] { emoji };
         }
 
         private void OnPreprocessTexture()

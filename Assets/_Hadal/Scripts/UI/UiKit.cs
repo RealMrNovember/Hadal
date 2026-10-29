@@ -192,8 +192,11 @@ namespace Hadal.UI
                     return _roundFont;
             }
 
-            return _builtin = _builtin != null ? _builtin : Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
+            return BuiltinFont;
         }
+
+        /// <summary>Unity's built-in font: draws through the phone's fonts and takes no bundled fallback (no emoji).</summary>
+        public static Font BuiltinFont => _builtin = _builtin != null ? _builtin : Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
 
         public static Canvas Canvas(string name, int sortingOrder)
         {
@@ -300,10 +303,17 @@ namespace Hadal.UI
         }
 
         public static Text Label(string name, Transform parent, string text, int size, Color color, TextAnchor anchor = TextAnchor.MiddleLeft,
-            FontStyle style = FontStyle.Normal)
+            FontStyle style = FontStyle.Normal) => Label<Text>(name, parent, text, size, color, anchor, style);
+
+        /// <summary>A label that draws emoji (chat bubbles, the HUD chat preview, chat input).</summary>
+        public static Text EmojiLabel(string name, Transform parent, string text, int size, Color color, TextAnchor anchor = TextAnchor.MiddleLeft,
+            FontStyle style = FontStyle.Normal) => Label<EmojiText>(name, parent, text, size, color, anchor, style);
+
+        private static Text Label<T>(string name, Transform parent, string text, int size, Color color, TextAnchor anchor, FontStyle style)
+            where T : Text
         {
             var rect = Rect(name, parent);
-            var label = rect.gameObject.AddComponent<Text>();
+            var label = rect.gameObject.AddComponent<T>();
             label.font = Font;
             label.text = text;
             label.fontSize = Mathf.RoundToInt(size * Scale);
@@ -378,12 +388,16 @@ namespace Hadal.UI
             return button;
         }
 
+        /// <summary>
+        /// A text field. The text is typed inside the field with its own blinking caret (Android's edit box over the
+        /// keyboard stays hidden); pages with inputs low on the screen lift above the keyboard (SocialView.KeyboardLift).
+        /// </summary>
         public static InputField Input(string name, Transform parent, string placeholder, bool password = false, int characterLimit = 64)
         {
             var image = Box(name, parent, Field);
             var field = image.gameObject.AddComponent<InputField>();
 
-            var text = Label("Text", image.transform, string.Empty, 40, Text);
+            var text = EmojiLabel("Text", image.transform, string.Empty, 40, Text);
             text.rectTransform.Place(0, 0, 1, 1, 20);
             text.supportRichText = false;
             text.raycastTarget = true;
@@ -396,6 +410,13 @@ namespace Hadal.UI
             field.characterLimit = characterLimit;
             field.contentType = password ? InputField.ContentType.Password : InputField.ContentType.Standard;
             field.lineType = InputField.LineType.SingleLine;
+            field.shouldHideMobileInput = true;
+            // Fields are light insets with dark ink (InkSurface): a dark, thick caret that blinks like the phone's.
+            field.customCaretColor = true;
+            field.caretColor = InkSurface.Ink;
+            field.caretWidth = 4;
+            field.caretBlinkRate = 1.1f;
+            field.selectionColor = new Color(0.13f, 0.52f, 0.86f, 0.35f);
             return field;
         }
 

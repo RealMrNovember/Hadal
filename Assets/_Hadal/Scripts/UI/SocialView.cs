@@ -191,6 +191,9 @@ namespace Hadal.UI
             // The page rises above the on-screen keyboard while the chat input is focused.
             if (_sheet.activeSelf)
             {
+                if (_page != Page.Chat)
+                    CloseEmojiPicker();
+                FollowChatBottom();
                 var sheet = (RectTransform)_sheet.transform;
                 var lift = KeyboardLift();
                 sheet.offsetMin = new Vector2(sheet.offsetMin.x, Mathf.Lerp(sheet.offsetMin.y, lift, 0.4f));
@@ -199,9 +202,12 @@ namespace Hadal.UI
                 if (lift > 0f && !_keyboardUp)
                 {
                     var field = UnityEngine.EventSystems.EventSystem.current?.currentSelectedGameObject;
-                    _list.anchoredPosition = _page != Page.Chat && field != null && field.transform.IsChildOf(_list)
-                        ? new Vector2(0, Mathf.Max(0f, -((RectTransform)field.transform).anchoredPosition.y - 120f))
-                        : new Vector2(0, 100000);
+                    if (_page == Page.Chat)
+                        ScrollChatToBottom(frames: 20); // the page rises over several frames; stay on the newest line
+                    else
+                        _list.anchoredPosition = field != null && field.transform.IsChildOf(_list)
+                            ? new Vector2(0, Mathf.Max(0f, -((RectTransform)field.transform).anchoredPosition.y - 120f))
+                            : new Vector2(0, 100000);
                 }
                 _keyboardUp = lift > 0f;
             }
@@ -289,10 +295,9 @@ namespace Hadal.UI
             var key = PageKey();
             var samePage = key.Split('|')[0] == _renderedKey.Split('|')[0];
             var scroll = !force && samePage ? _list.anchoredPosition : Vector2.zero;
-            // Chat follows new lines only while the player is at the bottom (genre behaviour).
-            var scrollRect = _list.parent.GetComponent<ScrollRect>();
-            var atBottom = force || !samePage || scrollRect == null || scrollRect.verticalNormalizedPosition <= 0.02f
-                           || _list.rect.height <= ((RectTransform)_list.parent).rect.height;
+            // Chat follows new lines only while the player is at (or within about a bubble of) the bottom, and always
+            // after they sent a line themselves; opening the page or switching channels starts at the bottom.
+            var atBottom = force || !samePage || ChatNearBottom() || ChatOwnLineArrived();
             _renderedKey = key;
 
             for (var i = _list.childCount - 1; i >= 0; i--)
@@ -335,15 +340,15 @@ namespace Hadal.UI
 
             if (_page == Page.Chat && atBottom)
             {
-                _list.anchoredPosition = new Vector2(0, 100000); // newest at the bottom; ScrollRect clamps
-                _chatSeen = View.Chat.Count;
+                ScrollChatToBottom();
             }
             else
             {
                 _list.anchoredPosition = scroll;
+                _chatBottomFrames = 0;
             }
 
-            ShowNewMessages(_page == Page.Chat ? Math.Max(0, View.Chat.Count - _chatSeen) : 0);
+            ShowNewMessages(_page == Page.Chat ? UnseenChatLines() : 0);
         }
 
         // --- Commands ------------------------------------------------------------------------

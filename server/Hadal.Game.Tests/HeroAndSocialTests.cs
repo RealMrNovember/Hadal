@@ -206,6 +206,22 @@ namespace Hadal.Game.Tests
         }
 
         [Fact]
+        public async Task World_chat_carries_emoji_to_other_players()
+        {
+            var (alice, aliceConnection) = await Connect("emoji-a", "Alice");
+            var (_, bobConnection) = await Connect("emoji-b", "Bob");
+
+            // Smiley, a ZWJ family, the Turkish flag and a red heart with its variation selector.
+            string Cp(int codepoint) => char.ConvertFromUtf32(codepoint);
+            var family = Cp(0x1F468) + Cp(0x200D) + Cp(0x1F469) + Cp(0x200D) + Cp(0x1F467);
+            var text = $"emoji test {Cp(0x1F642)} {family} {Cp(0x1F1F9)}{Cp(0x1F1F7)} {Cp(0x2764)}{Cp(0xFE0F)}";
+            Chat(alice, text);
+            Assert.Equal(CommandResultCode.Accepted, LastAck(aliceConnection).Result);
+            var line = bobConnection.Messages.Last().Delta().Changes.Single(c => c.EntityId.StartsWith(EntityIds.ChatMessage, StringComparison.Ordinal));
+            Assert.Equal(text, TestSupport.Serializer.Deserialize<ChatMessageDto>(line.Payload).Text);
+        }
+
+        [Fact]
         public async Task Alliance_lifecycle_create_join_chat_kick_leave()
         {
             var (leader, leaderConnection) = await Connect("ally-a", "Leader");

@@ -9,12 +9,14 @@ TrueTypeFontImporter:
   characterPadding: 1
   includeFontData: 1
   fontNames:
+  - Hadal Emoji
   - Roboto
   - Noto Sans
   - Noto Sans Symbols
   - Noto Sans Symbols 2
   - Arial
-  fallbackFontReferences: []
+  fallbackFontReferences:
+  - {fileID: 12800000, guid: 051002dad8d0487bbe28885c43e2590c, type: 3}
   customCharacters: 
   fontRenderingMode: 0
   ascentCalculationMode: 1

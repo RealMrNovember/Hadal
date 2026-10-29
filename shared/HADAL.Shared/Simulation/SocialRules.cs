@@ -1,4 +1,5 @@
 using System;
+using System.Globalization;
 using System.Linq;
 using System.Text;
 using HADAL.Shared.Catalog;
@@ -128,7 +129,17 @@ namespace HADAL.Shared.Simulation
 
     public static class SocialRules
     {
-        /// <summary>Trims, drops control characters and collapses whitespace runs; cut to the catalog length.</summary>
+        /// <summary>
+        /// UTF-16 units a message may spend per allowed character: emoji take 2 (one surrogate pair) up to about 11
+        /// (a ZWJ family); the length limit counts characters as the player sees them, this bounds the storage.
+        /// </summary>
+        public const int MaxUnitsPerElement = 4;
+
+        /// <summary>
+        /// Trims, drops control characters and unpaired surrogates, collapses whitespace runs; cut to the catalog
+        /// length in text elements (an emoji counts once) and to <see cref="MaxUnitsPerElement"/> UTF-16 units each.
+        /// Emoji and every other printable character stay.
+        /// </summary>
         public static string CleanMessage(string? text, ChatCatalogData rules)
         {
             if (string.IsNullOrEmpty(text))
@@ -136,8 +147,9 @@ namespace HADAL.Shared.Simulation
 
             var builder = new StringBuilder(text!.Length);
             var lastSpace = false;
-            foreach (var c in text)
+            for (var i = 0; i < text.Length; i++)
             {
+                var c = text[i];
                 if (char.IsControl(c) || char.IsWhiteSpace(c))
                 {
                     if (!lastSpace && builder.Length > 0)
@@ -146,13 +158,51 @@ namespace HADAL.Shared.Simulation
                     continue;
                 }
 
+                if (char.IsHighSurrogate(c) && i + 1 < text.Length && char.IsLowSurrogate(text[i + 1]))
+                {
+                    builder.Append(c).Append(text[++i]);
+                    lastSpace = false;
+                    continue;
+                }
+
+                if (char.IsSurrogate(c))
+                    continue; // half an emoji: UTF-8 (the database, the wire) cannot carry it
+
                 builder.Append(c);
                 lastSpace = false;
             }
 
-            var cleaned = builder.ToString().Trim();
-            var max = Math.Max(1, rules.maxLength);
-            return cleaned.Length <= max ? cleaned : cleaned.Substring(0, max);
+            return CutToTextElements(builder.ToString().Trim(), Math.Max(1, rules.maxLength));
+        }
+
+        /// <summary>Characters as the player sees them: an emoji (even a ZWJ sequence or a flag) is one.</summary>
+        public static int TextLength(string? text) => string.IsNullOrEmpty(text) ? 0 : new StringInfo(text).LengthInTextElements;
+
+        /// <summary>
+        /// The first <paramref name="max"/> text elements, never splitting an emoji, and at most
+        /// <paramref name="max"/> x <see cref="MaxUnitsPerElement"/> UTF-16 units.
+        /// </summary>
+        public static string CutToTextElements(string? text, int max)
+        {
+            if (string.IsNullOrEmpty(text) || max <= 0)
+                return string.Empty;
+            if (text!.Length <= max)
+                return text;
+
+            var maxUnits = max * MaxUnitsPerElement;
+            var elements = StringInfo.GetTextElementEnumerator(text);
+            var count = 0;
+            var end = 0;
+            while (elements.MoveNext())
+            {
+                var next = elements.ElementIndex + elements.GetTextElement().Length;
+                if (count == max || next > maxUnits)
+                    break;
+                count++;
+                end = next;
+            }
+
+            return end >= text.Length ? text : text.Substring(0, end);
         }
 
         public static string CleanName(string? name) => CleanMessage(name, new ChatCatalogData { maxLength = 64 });
@@ -203,7 +253,7 @@ namespace HADAL.Shared.Simulation
             var lines = (text ?? string.Empty).Replace("\r", string.Empty).Split('\n')
                 .Select(l => CleanMessage(l, new ChatCatalogData { maxLength = MaxAnnouncement }));
             var joined = string.Join("\n", lines).Trim();
-            return joined.Length <= MaxAnnouncement ? joined : joined.Substring(0, MaxAnnouncement);
+            return joined.Length <= MaxAnnouncement ? joined : CutToTextElements(joined, MaxAnnouncement);
         }
 
         /// <summary>A UI language code such as "tr" or "zh-Hans".</summary>

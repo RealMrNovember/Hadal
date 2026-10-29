@@ -115,8 +115,10 @@ namespace Hadal.UI
             if (pin != null)
                 text = new string(' ', 60);
             // Bubble width follows the text (about 28 characters a line at full width), height the wrapped lines.
-            var lines = Math.Max(1, (int)Math.Ceiling(text.Length / 28f));
-            var width = lines > 1 ? 0.66f : Mathf.Clamp(0.12f + text.Length * 0.021f, 0.16f, 0.66f);
+            // Text elements, not UTF-16 units: an emoji is one character on screen (a little wider than a letter).
+            var length = pin != null ? text.Length : SocialRules.TextLength(text) + (Emoji.Has(text) ? 1 : 0);
+            var lines = Math.Max(1, (int)Math.Ceiling(length / 28f));
+            var width = lines > 1 ? 0.66f : Mathf.Clamp(0.12f + length * 0.021f, 0.16f, 0.66f);
             var row = UiKit.Rect("Line", _list).Row(96 + 40 * lines);
 
             // Avatar: the chosen portrait (else the initial on the player's colour); tapping it opens the profile.
@@ -147,7 +149,7 @@ namespace Hadal.UI
                 return;
             }
 
-            var body = UiKit.Label("Text", bubble.transform, text, 28, mine ? Color.white : new Color(0.08f, 0.14f, 0.2f, 1f), TextAnchor.MiddleLeft);
+            var body = UiKit.EmojiLabel("Text", bubble.transform, text, 28, mine ? Color.white : new Color(0.08f, 0.14f, 0.2f, 1f), TextAnchor.MiddleLeft);
             body.supportRichText = false;
             body.rectTransform.Place(0, 0, 1, 1);
             body.rectTransform.offsetMin = new Vector2(18f, 6f);
@@ -174,7 +176,9 @@ namespace Hadal.UI
                 var (id, name) = Peer(last);
                 var card = Card(130);
                 CardText(card.transform, name, 32, UiKit.Text, 0.04f, 0.5f, 0.7f, 0.95f, TextAnchor.UpperLeft, FontStyle.Bold);
-                CardText(card.transform, last.Text, 26, UiKit.Muted, 0.04f, 0.05f, 0.7f, 0.5f);
+                var preview = UiKit.EmojiLabel("Text", card.transform, PinPreview(last.Text) ?? last.Text, 26, UiKit.Muted, TextAnchor.UpperLeft);
+                preview.supportRichText = false;
+                preview.rectTransform.Place(0.04f, 0.05f, 0.7f, 0.5f);
                 CardButton(card.transform, Loc.T("chat.open"), true, () => OpenPrivateChat(id, name), UiKit.Accent);
             }
         }
@@ -185,8 +189,16 @@ namespace Hadal.UI
                 return;
 
             // Last Asylum's input bar: a white rounded field and a round blue send button.
-            _chatInput = UiKit.Input("Message", _footer, Loc.T("chat.hint"), characterLimit: Math.Max(1, _catalog.Chat.maxLength));
-            ((RectTransform)_chatInput.transform).Place(0.13f, 0, 0.83f, 1);
+            // The limit counts text elements (an emoji is one); the field's own limit only bounds UTF-16 units.
+            var maxLength = Math.Max(1, _catalog.Chat.maxLength);
+            _chatInput = UiKit.Input("Message", _footer, Loc.T("chat.hint"), characterLimit: maxLength * SocialRules.MaxUnitsPerElement);
+            ((RectTransform)_chatInput.transform).Place(0.13f, 0, 0.72f, 1);
+            _chatInput.onValueChanged.AddListener(value =>
+            {
+                var cut = SocialRules.CutToTextElements(value, maxLength);
+                if (cut.Length != value.Length)
+                    _chatInput.text = cut;
+            });
 
             // Location button: shares the player's own base in the open channel (Last Asylum's "share coordinates").
             var share = UiKit.Rect("ShareMine", _footer).Place(0f, -0.05f, 0.11f, 1.05f);
@@ -203,47 +215,174 @@ namespace Hadal.UI
                     frame.enabled = false;
             _chatInput.textComponent.color = new Color(0.08f, 0.14f, 0.2f, 1f);
             ((Text)_chatInput.placeholder).color = new Color(0.45f, 0.52f, 0.58f, 1f);
-            // Android: the system edit box over the keyboard shows what is typed even if the lift below fails.
-            _chatInput.shouldHideMobileInput = false;
+            // Typed inside the white field with its caret (UiKit.Input hides Android's edit box); the page lifts
+            // above the keyboard (KeyboardLift). The keyboard's "Done" sends (onSubmit), Return on a hardware keyboard too.
+            _chatInput.onSubmit.AddListener(_ => SendChat());
             _chatInput.onEndEdit.AddListener(_ =>
             {
-                // The keyboard's "Done" sends as well.
-                if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter)
-                    || _chatInput.touchScreenKeyboard?.status == TouchScreenKeyboard.Status.Done)
+                if (Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter))
                     SendChat();
             });
+
+            // Emoji quick-pick: a round button left of send opens a grid above the input bar.
+            var smiley = UiKit.Rect("EmojiButton", _footer).Place(0.735f, -0.05f, 0.835f, 1.05f);
+            var smileyDisc = smiley.gameObject.AddComponent<Image>();
+            smileyDisc.sprite = UiKit.Circle;
+            smileyDisc.preserveAspect = true;
+            smileyDisc.color = new Color(0.05f, 0.2f, 0.27f, 1f);
+            smiley.gameObject.AddComponent<Button>().onClick.AddListener(ToggleEmojiPicker);
+            smiley.gameObject.AddComponent<PressFeedback>();
+            UiKit.EmojiLabel("Icon", smiley, "🙂", 40, Color.white, TextAnchor.MiddleCenter).rectTransform.Place(0, 0, 1, 1);
 
             var send = UiKit.Rect("Send", _footer).Place(0.85f, -0.05f, 1f, 1.05f);
             var disc = send.gameObject.AddComponent<Image>();
             disc.sprite = UiKit.Circle;
             disc.preserveAspect = true;
             disc.color = new Color(0.13f, 0.52f, 0.86f, 1f);
-            send.gameObject.AddComponent<Button>().onClick.AddListener(SendChat);
+            send.gameObject.AddComponent<Button>().onClick.AddListener(() =>
+            {
+                SendChat();
+                CloseEmojiPicker();
+            });
             send.gameObject.AddComponent<PressFeedback>();
             UiKit.Label("Icon", send, "▶", 40, Color.white, TextAnchor.MiddleCenter, FontStyle.Bold).rectTransform.Place(0.08f, 0, 1, 1);
         }
 
-        private Button _newMessages;
-        private int _chatSeen;
+        private GameObject _emojiPicker;
 
-        /// <summary>"N new messages" pill above the input when the player has scrolled up (the list stays where they are).</summary>
+        private void CloseEmojiPicker()
+        {
+            if (_emojiPicker != null)
+                _emojiPicker.SetActive(false);
+        }
+
+        /// <summary>A grid of common emoji above the input bar; a tap adds one at the end of the message.</summary>
+        private void ToggleEmojiPicker()
+        {
+            if (_emojiPicker == null)
+            {
+                var panel = UiKit.Box("EmojiPicker", _sheet.transform, new Color(0.04f, 0.11f, 0.16f, 0.97f));
+                panel.rectTransform.Place(0.03f, 0.105f, 0.97f, 0.36f);
+                _emojiPicker = panel.gameObject;
+                const int columns = 8;
+                var rows = (Emoji.Common.Length + columns - 1) / columns;
+                for (var i = 0; i < Emoji.Common.Length; i++)
+                {
+                    var emoji = Emoji.Common[i];
+                    float x = i % columns, y = i / columns;
+                    var cell = UiKit.Rect("Emoji", panel.transform).Place(0.01f + x * 0.98f / columns, 0.97f - (y + 1) * 0.94f / rows,
+                        0.01f + (x + 1) * 0.98f / columns, 0.97f - y * 0.94f / rows);
+                    cell.gameObject.AddComponent<Image>().color = new Color(0, 0, 0, 0);
+                    cell.gameObject.AddComponent<Button>().onClick.AddListener(() => AddEmoji(emoji));
+                    cell.gameObject.AddComponent<PressFeedback>();
+                    UiKit.EmojiLabel("Glyph", cell, emoji, 52, Color.white, TextAnchor.MiddleCenter).rectTransform.Place(0, 0, 1, 1);
+                }
+
+                _emojiPicker.SetActive(false);
+            }
+
+            _emojiPicker.SetActive(!_emojiPicker.activeSelf && _page == Page.Chat);
+            _emojiPicker.transform.SetAsLastSibling();
+        }
+
+        private void AddEmoji(string emoji)
+        {
+            var max = Math.Max(1, _catalog.Chat.maxLength);
+            if (SocialRules.TextLength(_chatInput.text) >= max)
+                return;
+            _chatInput.text += emoji;
+            _chatInput.caretPosition = _chatInput.text.Length;
+        }
+
+        private Button _newMessages;
+
+        // Newest line id the player has seen in the open conversation. Ids grow; the client keeps only the latest
+        // lines, so counting the list (the old way) stopped at its cap and the pill never showed.
+        private long _chatSeenId;
+        private long _chatSentAfter = long.MaxValue;
+        private int _chatBottomFrames;
+
+        /// <summary>The lines of the open conversation (channel, and peer for private chat).</summary>
+        private IEnumerable<ChatMessageDto> ChannelLines() => View.Chat.Where(l => l.Channel == (int)_chatChannel
+            && (_chatChannel != ChatChannel.Private || Peer(l).Id == _chatPeer));
+
+        private long NewestChatId() => ChannelLines().Select(l => l.Id).DefaultIfEmpty(0).Max();
+
+        private int UnseenChatLines() => ChannelLines().Count(l => l.Id > _chatSeenId && l.SenderId != View.PlayerId);
+
+        /// <summary>Within about one bubble of the bottom, or the list fits without scrolling.</summary>
+        private bool ChatNearBottom()
+        {
+            var viewport = ((RectTransform)_list.parent).rect.height;
+            var below = _list.rect.height - viewport - _list.anchoredPosition.y;
+            return below <= 200f * UiKit.Scale;
+        }
+
+        /// <summary>The player's own line came back from the server after they sent it: sending always goes to the bottom.</summary>
+        private bool ChatOwnLineArrived()
+        {
+            if (_chatSentAfter == long.MaxValue || !ChannelLines().Any(l => l.Id > _chatSentAfter && l.SenderId == View.PlayerId))
+                return false;
+            _chatSentAfter = long.MaxValue;
+            return true;
+        }
+
+        /// <summary>
+        /// Jumps to the newest line. Rebuilt rows are laid out only at the end of the frame (the destroyed ones still
+        /// count until then; the old "y = 100000" was clamped to the old height), so the next frames set the bottom
+        /// again (<see cref="FollowChatBottom"/>).
+        /// </summary>
+        private void ScrollChatToBottom(int frames = 3)
+        {
+            var scrollRect = _list.parent.GetComponent<ScrollRect>();
+            if (scrollRect != null)
+            {
+                scrollRect.StopMovement();
+                scrollRect.verticalNormalizedPosition = 0f;
+            }
+
+            _chatBottomFrames = Math.Max(_chatBottomFrames, frames);
+            _chatSeenId = Math.Max(_chatSeenId, NewestChatId());
+            if (_newMessages != null)
+                _newMessages.gameObject.SetActive(false);
+        }
+
+        /// <summary>Every frame: finishes a jump to the bottom; reaching the bottom by hand clears the pill.</summary>
+        private void FollowChatBottom()
+        {
+            if (_page != Page.Chat)
+                return;
+            if (_chatBottomFrames > 0)
+            {
+                _chatBottomFrames--;
+                var scrollRect = _list.parent.GetComponent<ScrollRect>();
+                if (scrollRect != null)
+                    scrollRect.verticalNormalizedPosition = 0f;
+            }
+            else if (_newMessages != null && _newMessages.gameObject.activeSelf && ChatNearBottom())
+            {
+                _chatSeenId = Math.Max(_chatSeenId, NewestChatId());
+                _newMessages.gameObject.SetActive(false);
+            }
+        }
+
+        /// <summary>"↓ New messages (N)" above the input when the player has scrolled up; the list stays where they are.</summary>
         private void ShowNewMessages(int count)
         {
             if (_newMessages == null)
             {
-                _newMessages = UiKit.Button("NewMessages", _sheet.transform, string.Empty, () =>
-                {
-                    _list.anchoredPosition = new Vector2(0, 100000);
-                    _newMessages.gameObject.SetActive(false);
-                    _chatSeen = View.Chat.Count;
-                }, new Color(0.13f, 0.52f, 0.86f, 0.95f), 26);
+                _newMessages = UiKit.Button("NewMessages", _sheet.transform, string.Empty, () => ScrollChatToBottom(),
+                    new Color(0.13f, 0.52f, 0.86f, 0.95f), 26);
                 ((RectTransform)_newMessages.transform).Place(0.3f, 0.105f, 0.7f, 0.145f);
                 _newMessages.GetComponentInChildren<Text>().color = Color.white;
             }
 
             _newMessages.gameObject.SetActive(count > 0);
             if (count > 0)
-                _newMessages.GetComponentInChildren<Text>().text = "▼ " + Loc.F("chat.new", count);
+            {
+                _newMessages.GetComponentInChildren<Text>().text = "↓ " + Loc.F("chat.new", count);
+                _newMessages.transform.SetAsLastSibling();
+            }
         }
 
         /// <summary>
@@ -254,7 +393,10 @@ namespace Hadal.UI
         {
             // Measured from the keyboard itself, not the field's focus: on GameActivity the field reports
             // unfocused while the player types, which dropped the page back under the keyboard.
-            if (_page is not (Page.Chat or Page.Alliance))
+            // Other pages (mail, alliance forms) lift while one of their fields is selected: the text is typed in
+            // the field itself now (no system edit box over the keyboard), so it must stay visible.
+            var selected = UnityEngine.EventSystems.EventSystem.current?.currentSelectedGameObject;
+            if (_page is not (Page.Chat or Page.Alliance) && (selected == null || selected.GetComponent<InputField>() == null))
                 return 0f;
             var pixels = TouchScreenKeyboard.area.height;
 #if UNITY_ANDROID && !UNITY_EDITOR
@@ -294,6 +436,9 @@ namespace Hadal.UI
                 TargetId = _chatChannel == ChatChannel.Private ? _chatPeer : string.Empty
             });
             _chatInput.text = string.Empty;
+            // Sending always shows the bottom, now and again when the line comes back from the server.
+            _chatSentAfter = Math.Min(_chatSentAfter, NewestChatId());
+            ScrollChatToBottom();
         }
 
         // --- Locations in chat ------------------------------------------------------------
