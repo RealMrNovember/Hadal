@@ -1,7 +1,7 @@
 # HADAL — Proje Yol Haritası
 
 **Güncelleme:** 2026-10-29
-**Yayındaki sürüm:** istemci **0.9.1** (Android, `hadal.cicibyte.com/download/hadal.apk`); sunucu `main` @ `4537025` (CT 160).
+**Yayındaki sürüm:** istemci **0.9.2** (Android, `hadal.cicibyte.com/download/hadal.apk`); sunucu `main` @ `7433162` (CT 160).
 **Sürüm kuralı:** Oyun 1.0'a kadar **0.x** ile ilerler. Android sürüm kodu `1.000.000 + major·10000 + minor·100 + patch`.
 
 **Kaynaklar:**
