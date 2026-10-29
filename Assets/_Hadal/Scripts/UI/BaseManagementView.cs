@@ -255,6 +255,7 @@ namespace Hadal.UI
                 Mail = () => { Close(); _social.OpenMail(); },
                 War = () => PvpCenter.Instance?.Open(0),
                 ClaimQuest = id => _social.ClaimQuest(id),
+                Guide = () => OnboardingGuide.Instance?.Go(),
                 Building = key => { _social.Close(); _map.Close(); OpenBuilding(key); },
                 Toast = Toast,
                 SheetOpen = () => IsOpen || _social.IsOpen || ModalOpen,
@@ -269,6 +270,9 @@ namespace Hadal.UI
                 },
                 InWorld = () => _map.IsOpen
             });
+
+            // The first-session guide over the HUD (docs/34).
+            CreateGuide();
 
             // The HUD replaces the old resource list, the gear and the Expand button.
             _expand.gameObject.SetActive(false);

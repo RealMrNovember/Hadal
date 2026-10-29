@@ -41,6 +41,9 @@ namespace Hadal.UI.Hud
             public Action Quests;
             public Action Bag;
             public Action<string> ClaimQuest;
+
+            /// <summary>The first-session guide's "Go" for its current step (docs/34).</summary>
+            public Action Guide;
             public Action<string> Building;
             public Action<string, Color> Toast;
             public Func<bool> SheetOpen;
@@ -140,6 +143,7 @@ namespace Hadal.UI.Hud
             BuildHelpBubbles();
             BuildTask();
             BuildBottomBar();
+            RegisterGuideTargets();
         }
 
         private void BuildHeader()
@@ -251,6 +255,8 @@ namespace Hadal.UI.Hud
             {
                 if (_taskDone && _taskQuest.Length > 0)
                     _actions.ClaimQuest?.Invoke(_taskQuest);
+                else if (_taskGuide)
+                    _actions.Guide?.Invoke();
                 else if (_taskQuest.Length > 0)
                     _actions.Quests?.Invoke();
                 else if (_taskBuilding.Length > 0)
@@ -440,6 +446,7 @@ namespace Hadal.UI.Hud
             RefreshTask();
             RefreshSocial();
             RefreshHelpBubbles();
+            RefreshLocks();
         }
 
         private void RefreshPod()
@@ -521,6 +528,9 @@ namespace Hadal.UI.Hud
         /// <summary>The current chapter task (claim it when done); without quests, the next upgrade to make.</summary>
         private void RefreshTask()
         {
+            if (RefreshGuideTask())
+                return;
+
             var chapter = View.Quests?.Chapter;
             if (chapter != null && _catalog.TryGetQuest(chapter.Id, out var quest, out _))
             {
@@ -556,6 +566,7 @@ namespace Hadal.UI.Hud
         {
             var quests = View.Quests;
             var questReady = quests != null && ((quests.Chapter != null && quests.Chapter.Progress >= quests.Chapter.Target)
+                || (quests.Guide != null && quests.Guide.Progress >= quests.Guide.Target)
                 || quests.Daily.Any(d => !d.Claimed && d.Progress >= d.Target)
                 || (_catalog.Quests.dailyChests ?? Array.Empty<DailyChestData>()).Any(c => quests.DailyPoints >= c.points && !quests.ClaimedChests.Contains(c.points)));
             _questDot.SetActive(questReady);

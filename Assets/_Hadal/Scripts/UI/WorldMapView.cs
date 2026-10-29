@@ -218,6 +218,7 @@ namespace Hadal.UI
             BuildMarches(safe);
             BuildSearch(safe);
             BuildHomeArrow();
+            BuildGuideArrow();
 
             // Base details open above the HUD.
             _popupCanvas = UiKit.Canvas("WorldPopup", 46);
@@ -427,6 +428,7 @@ namespace Hadal.UI
             }
 
             UpdateHomeArrow();
+            UpdateGuideArrow();
 
             var pitch = Quaternion.Euler(55f, 20f, 0f);
             _camera.transform.SetPositionAndRotation(_focus - pitch * Vector3.forward * _distance, pitch);

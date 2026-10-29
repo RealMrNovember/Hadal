@@ -26,6 +26,7 @@ namespace Hadal.UI
                 "heroLevel" => Loc.F("quest.heroLevel", quest.count),
                 "heroes" => Loc.F("quest.heroes", quest.count),
                 "alliance" => Loc.T("quest.alliance"),
+                "rings" => Loc.F("quest.rings", quest.count),
                 _ => quest.id
             };
         }
@@ -135,6 +136,7 @@ namespace Hadal.UI
 
         private void RenderChapter(QuestStateDto state)
         {
+            RenderGuide(state);
             var current = state.Chapter;
             if (current == null || !_catalog.TryGetQuest(current.Id, out var quest, out _))
             {
