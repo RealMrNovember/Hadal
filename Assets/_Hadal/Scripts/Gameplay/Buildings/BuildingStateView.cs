@@ -308,6 +308,17 @@ namespace Hadal.Gameplay.Buildings
             }
         }
 
+        /// <summary>World positions of the finished buildings of one catalog id (e.g. the Challenger Hangars).</summary>
+        public void GetBuildingPositions(string definitionId, List<Vector3> into)
+        {
+            into.Clear();
+            foreach (var instance in _instances.Values)
+            {
+                if (instance.Go != null && !instance.Hologram && instance.DefinitionId == definitionId)
+                    into.Add(instance.Go.transform.position);
+            }
+        }
+
         private GameObject CreateVisual(BuildingSaveEntry building)
         {
             var root = _buildingsRoot != null ? _buildingsRoot : transform;

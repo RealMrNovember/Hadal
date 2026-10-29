@@ -6,9 +6,22 @@ namespace Hadal.Gameplay.Crew
     /// One crew member's routine: pick a building, walk to its work spot while steering around
     /// the other buildings, work there for a while, repeat. Animation states are clip names
     /// (see HadalCharacterSetup), so this only cross-fades between "Walk" and a work clip.
+    /// A long trip (beyond <see cref="ChallengerFleet.RideDistance"/>) takes a Challenger when one is
+    /// free: the crew member walks to where it lands, rides in the pilot sphere and walks the rest.
     /// </summary>
-    public sealed class CrewMember : MonoBehaviour
+    public sealed class CrewMember : MonoBehaviour, IChallengerRider
     {
+        private enum Phase
+        {
+            Working,
+            Walking,
+            WalkingToRide,
+            WaitingForRide,
+            Riding
+        }
+
+        private const float RideWaitSeconds = 25f;
+
         private const float BuildingRadius = 2.6f;   // pad radius + margin (art/blender pad = 2.3 m)
         private const float WorkSpotDistance = 2.9f;
         private const float ArriveDistance = 0.25f;
@@ -27,15 +40,23 @@ namespace Hadal.Gameplay.Crew
         private float _speed;
         private Vector3 _target;
         private Vector3 _targetBuilding;
+        private Vector3 _rideTarget;
         private float _workUntil;
         private float _nextWorkClip;
-        private bool _walking;
+        private Phase _phase;
+        private bool _canRide;
+        private ChallengerVehicle _ride;
+        private float _rideWaitUntil;
+        private bool _destroyed;
 
-        public bool IsWalking => _walking;
+        public bool IsWalking => _phase is Phase.Walking or Phase.WalkingToRide;
+        public bool IsRiding => _phase == Phase.Riding;
+        public Transform Body => _destroyed || this == null ? null : transform;
 
-        public void Initialise(CrewView view, float speed)
+        public void Initialise(CrewView view, float speed, bool canRide = false)
         {
             _view = view;
+            _canRide = canRide;
             _speed = speed * Random.Range(0.85f, 1.15f);
             _animator = GetComponentInChildren<Animator>();
             StartWorking(Random.Range(0.5f, 3f));
@@ -46,7 +67,11 @@ namespace Hadal.Gameplay.Crew
             if (_view == null)
                 return;
 
-            if (_walking)
+            if (_phase == Phase.Riding)
+                return;   // the Challenger carries us
+            if (_phase == Phase.WaitingForRide)
+                WaitForRide();
+            else if (IsWalking)
                 WalkStep(Time.deltaTime);
             else if (Time.time >= _workUntil)
                 PickNextJob();
@@ -71,8 +96,77 @@ namespace Hadal.Gameplay.Crew
                 : CrewView.RandomRing(1f);
             _target = _targetBuilding + side * WorkSpotDistance;
             _target.y = 0f;
-            _walking = true;
+            _phase = Phase.Walking;
+            TryTakeChallenger();
             Play(Walk);
+        }
+
+        private void TryTakeChallenger()
+        {
+            var fleet = _canRide ? _view.Fleet : null;
+            if (fleet == null)
+                return;
+
+            var from = transform.position;
+            var trip = _target - from;
+            trip.y = 0f;
+            if (trip.magnitude < fleet.RideDistance)
+                return;
+
+            // It lands a couple of steps ahead and sets down short of the work spot.
+            var direction = trip.normalized;
+            var pickup = new Vector3(from.x, 0f, from.z) + direction * 1.6f;
+            var dropoff = _target - direction * 1.4f;
+            if (!fleet.TryBook(this, pickup, dropoff, out _ride))
+                return;
+
+            _phase = Phase.WalkingToRide;
+            _rideTarget = _target;
+            _target = pickup - direction * 0.75f;   // beside the viewport, not under the hull
+            _rideWaitUntil = Time.time + RideWaitSeconds;
+        }
+
+        private void WaitForRide()
+        {
+            if (_ride != null && _ride.ReadyToBoard)
+            {
+                _ride.Board();
+                return;
+            }
+
+            if (_ride != null)
+                FaceTowards(_ride.transform.position - transform.position, Time.deltaTime);
+            if (_ride == null || Time.time >= _rideWaitUntil)
+            {
+                // Nobody came: walk after all.
+                if (_ride != null)
+                    _ride.Cancel(this);
+                _ride = null;
+                _target = _rideTarget;
+                _phase = Phase.Walking;
+                Play(Walk);
+            }
+        }
+
+        public void OnBoarded()
+        {
+            _phase = Phase.Riding;
+            Play(Idle);
+        }
+
+        public void OnArrived(Vector3 at)
+        {
+            _ride = null;
+            _target = _rideTarget;
+            _phase = Phase.Walking;
+            Play(Walk);
+        }
+
+        private void OnDestroy()
+        {
+            _destroyed = true;
+            if (_ride != null)
+                _ride.Cancel(this);
         }
 
         private void WalkStep(float dt)
@@ -82,6 +176,13 @@ namespace Hadal.Gameplay.Crew
             toTarget.y = 0f;
             if (toTarget.magnitude <= ArriveDistance)
             {
+                if (_phase == Phase.WalkingToRide)
+                {
+                    _phase = Phase.WaitingForRide;
+                    Play(Idle);
+                    return;
+                }
+
                 FaceTowards(_targetBuilding - position, 1f);
                 StartWorking(Random.Range(4f, 9f));
                 return;
@@ -115,7 +216,7 @@ namespace Hadal.Gameplay.Crew
 
         private void StartWorking(float seconds)
         {
-            _walking = false;
+            _phase = Phase.Working;
             _workUntil = Time.time + seconds;
             _nextWorkClip = Time.time;
             Play(Idle);

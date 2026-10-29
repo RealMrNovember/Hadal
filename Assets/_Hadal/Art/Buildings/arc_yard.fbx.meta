@@ -42,6 +42,16 @@ ModelImporter:
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
+      name: HAD_GlowWarm
+    second: {fileID: 2100000, guid: e46a490dc1a3abb7aaeffda928aeb1f2, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: HAD_GlowWhite
+    second: {fileID: 2100000, guid: cbb0a50f92e7c0261b4632a03254aa64, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
       name: HAD_Hazard
     second: {fileID: 2100000, guid: 30ebac0886563e15bb3f7b7360e5a55b, type: 2}
   - first:
@@ -62,8 +72,18 @@ ModelImporter:
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule
+      name: HAD_PaintLime
+    second: {fileID: 2100000, guid: 74daf6f0a4bc978a4bf71b841549e17e, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
       name: HAD_PaintTeal
     second: {fileID: 2100000, guid: 305343805affe991e9407ba0c8f7ef17, type: 2}
+  - first:
+      type: UnityEngine:Material
+      assembly: UnityEngine.CoreModule
+      name: HAD_PaintWhite
+    second: {fileID: 2100000, guid: 0aa517162889ec428a15ebe6ed342dc4, type: 2}
   - first:
       type: UnityEngine:Material
       assembly: UnityEngine.CoreModule

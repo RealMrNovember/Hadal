@@ -19,6 +19,9 @@ namespace Hadal.EditorTools
     {
         private const string EnvironmentPath = "Assets/_Hadal/Art/Environment/";
 
+        /// <summary>The Challenger submersible (art/blender/challenger.py via generate.py).</summary>
+        public const string ChallengerPath = "Assets/_Hadal/Art/Vehicles/challenger.fbx";
+
         private static readonly Color AbyssColor = new(0.010f, 0.045f, 0.070f);
 
         /// <summary>Builds the world under a new root; returns the objects VContainer must inject.</summary>
@@ -69,6 +72,12 @@ namespace Hadal.EditorTools
             crew.Configure(buildings, Pick("crew_engineer", "crew_medic", "crew_scientist"), Pick("mech_worker"));
             EditorUtility.SetDirty(crew);
 
+            // Challengers park at the Challenger Hangars and carry crew on long trips across the base.
+            var challenger = AssetDatabase.LoadAssetAtPath<GameObject>(ChallengerPath);
+            var fleet = go.AddComponent<ChallengerFleet>();
+            fleet.Configure(challenger, buildings);
+            EditorUtility.SetDirty(fleet);
+
             // Heroes screen: every character model and painted portrait, by id (docs/25).
             var library = go.AddComponent<Hadal.Core.Catalog.CharacterLibrary>();
             var models = new List<Hadal.Core.Catalog.CharacterLibrary.ModelEntry>();
@@ -90,6 +99,9 @@ namespace Hadal.EditorTools
                 if (asset != null)
                     models.Add(new Hadal.Core.Catalog.CharacterLibrary.ModelEntry { id = "prop_" + id, prefab = asset });
             }
+
+            if (challenger != null)
+                models.Add(new Hadal.Core.Catalog.CharacterLibrary.ModelEntry { id = "prop_challenger", prefab = challenger });
 
             foreach (var id in new[] { "core_reactor", "mega_dome", "shield_generator", "oxygen_plant", "radar_center" })
             {

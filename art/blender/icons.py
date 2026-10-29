@@ -43,6 +43,9 @@ ICON_MATS = {
     "Card2":   ((0.20, 0.45, 0.90), 0.0, 0.45, None, 0.0),
     "Card3":   ((0.95, 0.70, 0.15), 0.0, 0.45, None, 0.0),
     "Alloy":   ((0.55, 0.32, 0.78), 1.0, 0.22, (0.30, 0.10, 0.50), 0.2),
+    "Lime":    ((0.42, 0.85, 0.04), 0.0, 0.40, (0.10, 0.25, 0.00), 0.2),
+    "Light":   ((0.85, 0.95, 1.00), 0.0, 0.20, (0.80, 0.95, 1.00), 3.0),
+    "Warm":    ((1.00, 0.70, 0.35), 0.0, 0.30, (1.00, 0.65, 0.30), 1.5),
 }
 
 _mats = {}
@@ -296,10 +299,23 @@ def queue_build():
 
 
 def queue_drone():
-    box("body", (0.8, 0.8, 0.3), (0, 0, 0.5), "Dark", 0.08)
-    ball("eye", 0.15, (0, -0.4, 0.65), "Cyan")
-    for i, (x, y) in enumerate(((-0.6, -0.6), (0.6, -0.6), (-0.6, 0.6), (0.6, 0.6))):
-        ring("rotor%d" % i, 0.25, 0.04, (x, y, 0.75), "Cyan")
+    """The Challenger (salvage queue, gathering marches): a lime vertical submersible with its pilot
+    sphere at the bottom and the LED light bar in front. The id stays queue_drone."""
+    hull = kit.join([cyl("hull_mid", 0.36, 1.5, (0, 0.08, 0.55), "Lime", r_top=0.33),
+                     cyl("hull_top", 0.33, 0.22, (0, 0.08, 2.05), "Lime", r_top=0.2),
+                     cyl("hull_cap", 0.2, 0.08, (0, 0.08, 2.27), "Lime", r_top=0.05)])
+    paint(hull, "Lime")
+    cyl("crown", 0.345, 0.09, (0, 0.08, 1.78), "White", bevel=0.0)
+    ball("sphere", 0.42, (0, -0.12, 0.45), "Steel")
+    ball("viewport", 0.2, (0, -0.47, 0.36), "Glass")
+    ball("cabin", 0.08, (0, -0.42, 0.42), "Warm")
+    box("bar_housing", (0.16, 0.1, 1.2), (0, -0.4, 0.9), "White", 0.03)
+    box("bar", (0.09, 0.04, 1.1), (0, -0.46, 0.95), "Light", 0.0)
+    for i, x in enumerate((-1, 1)):
+        paint(kit.pipe("thruster%d" % i, (x * 0.52, -0.05, 1.42), (x * 0.52, 0.21, 1.42), 0.13, "HullMid", 24), "White")
+        box("thruster_arm%d" % i, (0.2, 0.06, 0.06), (x * 0.4, 0.08, 1.39), "Dark", 0.0)
+    for i, x in enumerate((-0.3, 0.3)):
+        box("leg%d" % i, (0.07, 0.07, 0.3), (x, -0.1, 0.0), "Dark", 0.0)
 
 
 def chat():

@@ -5,6 +5,9 @@ reactor is drawn larger and scaled down by generate.py.
 """
 import math
 
+from mathutils import Matrix
+
+from challenger import challenger
 from hadal_kit import (anim, bake, box, cyl, dome, join, pad, pipe, ring_of, rotate_z, sphere, torus)
 
 
@@ -89,18 +92,38 @@ def research_center():
 
 
 def drone_factory():
+    """Challenger Hangar (id kept for saves): a docking gantry over a moonpool with a Challenger
+    standing in its cradle, a back hangar shell, a control hut and a service crane."""
     s = pad(accent="GlowAmber")
-    s += [box("hangar", (3.4, 2.6, 1.8), (0, 0.2, 0.29), "HullMid", 0.08),
-          box("roof", (3.6, 2.8, 0.2), (0, 0.2, 2.09), "HullDark", 0.04),
-          box("door", (2.0, 0.08, 1.3), (0, -1.12, 0.29), "HullDark", 0.02),
-          box("door_frame", (2.3, 0.12, 0.12), (0, -1.14, 1.6), "Hazard", 0.0),
-          box("vent_a", (0.5, 0.5, 0.5), (-1.1, 0.7, 2.29), "Steel", 0.04),
-          box("vent_b", (0.5, 0.5, 0.5), (1.1, 0.7, 2.29), "Steel", 0.04),
-          box("door_light", (2.0, 0.1, 0.06), (0, -1.17, 1.65), "GlowAmber", 0.0),
-          cyl("crane_post", 0.15, 1.2, (1.3, -0.6, 2.29), "Steel", verts=10, bevel=0.0)]
-    arm = anim(box("crane_arm", (1.6, 0.16, 0.16), (0.7, -0.6, 3.4), "Hazard", 0.02), "spin", "z", 20)
-    drone = anim(sphere("drone", 0.22, (-0.6, -1.6, 2.4), "GlowAmber", seg=12, rings=6), "pulse", speed=1.5)
-    return s, [arm, drone]
+    dock = (0.22, -0.15, 0.29)
+    s += [cyl("moonpool_rim", 0.78, 0.05, (dock[0], dock[1], 0.27), "HullDark", verts=16, bevel=0.0),
+          cyl("moonpool", 0.66, 0.02, (dock[0], dock[1], 0.29), "GlowCyan", verts=16, bevel=0.0),
+          box("tower_l", (0.24, 0.24, 3.0), (-0.66, 0.52, 0.29), "HullMid", 0.03),
+          box("tower_r", (0.24, 0.24, 3.0), (1.10, 0.52, 0.29), "HullMid", 0.03),
+          box("beam", (2.05, 0.26, 0.20), (0.22, 0.52, 3.29), "Hazard", 0.02),
+          box("winch", (0.30, 0.34, 0.22), (0.22, 0.20, 3.07), "Steel", 0.02),
+          pipe("cable", (0.22, 0.04, 3.07), (0.22, 0.04, 2.92), 0.015, "Rubber"),
+          box("hangar_back", (3.3, 0.85, 1.7), (0.0, 1.20, 0.29), "HullMid", 0.06),
+          box("hangar_roof", (3.5, 1.05, 0.16), (0.0, 1.18, 1.99), "HullDark", 0.03),
+          box("hangar_glow", (2.6, 0.06, 0.08), (0.0, 0.76, 1.70), "GlowAmber", 0.0),
+          box("hut", (0.95, 0.95, 0.95), (-1.42, -0.62, 0.29), "HullMid", 0.05),
+          box("hut_roof", (1.05, 1.05, 0.10), (-1.42, -0.62, 1.24), "HullDark", 0.02),
+          box("hut_window", (0.70, 0.06, 0.26), (-1.42, -1.10, 0.80), "GlowAmber", 0.0),
+          box("ballast_spare_a", (0.30, 0.22, 0.22), (1.55, 0.55, 0.29), "HullDark", 0.02),
+          box("ballast_spare_b", (0.30, 0.22, 0.22), (1.55, 0.20, 0.29), "HullDark", 0.02),
+          cyl("crane_post", 0.13, 1.4, (1.55, -0.95, 0.29), "Steel", verts=10, bevel=0.0)]
+    arm = anim(box("crane_arm", (1.3, 0.14, 0.14), (1.05, -0.95, 1.62), "Hazard", 0.02), "spin", "z", 20)
+
+    # The docked Challenger, a little smaller and lighter than the travelling vehicle.
+    sub, sub_anim = challenger(0.6, with_pilot=True)
+    place = Matrix.Translation(dock) @ Matrix.Scale(0.95, 4)
+    for o in [*sub, *sub_anim]:
+        o.data.transform(place)
+    for o in sub_anim:
+        if not o.name.startswith("ANIM_"):
+            o.name = "docked_" + o.name   # the parked pilot is plain decor here
+    s += [o for o in sub_anim if not o.name.startswith("ANIM_")]
+    return s, [arm, *[o for o in sub_anim if o.name.startswith("ANIM_")]]
 
 
 def submarine_dock():

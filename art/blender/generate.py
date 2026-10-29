@@ -3,7 +3,7 @@
     blender -b --factory-startup --python art/blender/generate.py -- \
         --project /opt/hadal [--only core_reactor,rock_large] [--no-preview]
 
-Writes FBX files to Assets/_Hadal/Art/{Buildings,Environment}/, preview PNGs and a lineup
+Writes FBX files to Assets/_Hadal/Art/{Buildings,Environment,Vehicles}/, preview PNGs and a lineup
 render to artifacts/art-preview/, and a triangle budget report to artifacts/art-preview/report.json.
 """
 import argparse
@@ -19,9 +19,15 @@ import hadal_kit as kit  # noqa: E402
 from mathutils import Matrix  # noqa: E402
 from buildings import BUILDINGS  # noqa: E402
 from environment import PROPS, seabed_tile  # noqa: E402
+from challenger import challenger  # noqa: E402
 
 # Mobile budget per building (all LODs share one mesh for now).
 TRIANGLE_BUDGET = 6000
+# Vehicles move around the base close to the camera; a few are on screen at once.
+VEHICLE_BUDGET = 10000
+
+# Vehicles: id -> (builder, preview focus, preview distance).
+VEHICLES = {"challenger": (lambda: challenger(1.0), (0, 0, 1.3), 5.2)}
 
 
 def parse_args():
@@ -58,12 +64,14 @@ def main():
     only = {s for s in args.only.split(",") if s}
     out_buildings = os.path.join(args.project, "Assets/_Hadal/Art/Buildings")
     out_env = os.path.join(args.project, "Assets/_Hadal/Art/Environment")
+    out_vehicles = os.path.join(args.project, "Assets/_Hadal/Art/Vehicles")
     out_preview = os.path.join(args.project, "artifacts/art-preview")
-    for d in (out_buildings, out_env, out_preview):
+    for d in (out_buildings, out_env, out_vehicles, out_preview):
         os.makedirs(d, exist_ok=True)
 
     jobs = [(k, (lambda f=f: f()), out_buildings, (0, 0, 1.4), 10.0, True) for k, f in BUILDINGS.items()]
     jobs += [(k, b, out_env, focus, dist, False) for k, (b, focus, dist) in PROPS.items()]
+    jobs += [(k, b, out_vehicles, focus, dist, "vehicle") for k, (b, focus, dist) in VEHICLES.items()]
 
     report = {}
     for asset_id, builder, out_dir, focus, dist, is_building in jobs:
@@ -75,8 +83,9 @@ def main():
         kit.export_fbx(root, os.path.join(out_dir, asset_id + ".fbx"))
         if not args.no_preview:
             kit.render_preview(os.path.join(out_preview, asset_id + ".png"), focus, dist, samples=args.samples)
+        budget = VEHICLE_BUDGET if is_building == "vehicle" else TRIANGLE_BUDGET
         report[asset_id] = {"triangles": tris, "animated": [c.name for c in root.children],
-                            "over_budget": is_building and tris > TRIANGLE_BUDGET}
+                            "over_budget": bool(is_building) and tris > budget}
         print(f"[hadal-art] {asset_id}: {tris} tris, {len(root.children)} animated, {time.time() - started:.1f}s", flush=True)
 
     if not only and not args.no_preview:

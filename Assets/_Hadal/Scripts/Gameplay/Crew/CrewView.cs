@@ -27,6 +27,11 @@ namespace Hadal.Gameplay.Crew
         public IReadOnlyList<Vector3> BuildingPositions => _buildingPositions;
         public int CrewCount => _members.Count;
 
+        /// <summary>Challenger submersibles that give crew a lift across the base (null when not set up).</summary>
+        public ChallengerFleet Fleet { get; private set; }
+
+        private void Awake() => Fleet = GetComponent<ChallengerFleet>();
+
         public void Configure(BuildingStateView buildings, GameObject[] crew, GameObject[] mechs)
         {
             _buildings = buildings;
@@ -78,7 +83,8 @@ namespace Hadal.Gameplay.Crew
             go.name = $"{prefab.name}_{_spawned}";
 
             var member = go.AddComponent<CrewMember>();
-            member.Initialise(this, useMech ? 1.0f : 1.25f);
+            // Crew ride the Challengers on long trips; mechs are too big for the pilot sphere.
+            member.Initialise(this, useMech ? 1.0f : 1.25f, canRide: !useMech);
             _members.Add(member);
         }
 

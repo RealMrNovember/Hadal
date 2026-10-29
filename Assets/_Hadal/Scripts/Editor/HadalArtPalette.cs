@@ -54,6 +54,11 @@ namespace Hadal.EditorTools
             ["Coral"] = new Entry(0.450f, 0.120f, 0.180f, 0f, 0.70f, 0.30f, 0.05f, 0.12f, 0.8f),
             ["GlowViolet"] = new Entry(0.200f, 0.050f, 0.400f, 0f, 0.20f, 0.55f, 0.20f, 1.00f, 5f),
             ["PaintTeal"] = new Entry(0.040f, 0.300f, 0.300f, 0.30f, 0.55f),
+            // The Challenger submersible (art/blender/challenger.py).
+            ["PaintLime"] = new Entry(0.360f, 0.720f, 0.015f, 0.05f, 0.45f),
+            ["PaintWhite"] = new Entry(0.620f, 0.650f, 0.640f, 0.10f, 0.45f),
+            ["GlowWhite"] = new Entry(0.500f, 0.580f, 0.620f, 0f, 0.20f, 0.80f, 0.93f, 1.00f, 6f),
+            ["GlowWarm"] = new Entry(0.300f, 0.180f, 0.080f, 0f, 0.40f, 1.00f, 0.70f, 0.40f, 3.5f),
         };
 
         public static IEnumerable<string> Names => Entries.Keys;
