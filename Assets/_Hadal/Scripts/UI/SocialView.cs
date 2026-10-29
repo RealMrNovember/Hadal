@@ -54,7 +54,8 @@ namespace Hadal.UI
             CommandType.DiveStage, CommandType.SetMemberRank, CommandType.TransferLeadership, CommandType.SetAllianceSettings,
             CommandType.AnswerInvite, CommandType.AnswerApplication, CommandType.ClaimEventStage, CommandType.ClaimEventRank,
             CommandType.ClaimVipLogin, CommandType.ClaimVipChest, CommandType.ReadMail, CommandType.ClaimMail, CommandType.DeleteMail,
-            CommandType.SendMail, CommandType.SetAllianceInfo, CommandType.BuyAllianceItem, CommandType.CollectAllianceGift
+            CommandType.SendMail, CommandType.SetAllianceInfo, CommandType.BuyAllianceItem, CommandType.CollectAllianceGift,
+            CommandType.DonateAllianceResearch, CommandType.SetResearchFocus
         };
 
         private IStateSyncService _stateSync;
@@ -254,7 +255,7 @@ namespace Hadal.UI
         private string PageKey() => _page switch
         {
             Page.Heroes or Page.HeroDetail or Page.Pod => $"{_page}|{_heroId}|{HeroesKey()}|{View.QuestVersion}",
-            Page.Alliance => $"{_page}|{View.AllianceVersion}|{_confirmLeave}|{_allianceTab}|{View.AllianceLogVersion}|{_logTab}|{View.AllianceCoinsVersion}|{View.AllianceGiftsVersion}",
+            Page.Alliance => $"{_page}|{View.AllianceVersion}|{_confirmLeave}|{_allianceTab}|{View.AllianceLogVersion}|{_logTab}|{View.AllianceCoinsVersion}|{View.AllianceGiftsVersion}|{View.AllianceResearchVersion}|{_researchTab}",
             Page.Chat => $"{_page}|{View.ChatVersion}|{_chatChannel}|{_chatPeer}|{View.ProfileVersion}",
             Page.Quests or Page.Bag => $"{_page}|{QuestKey()}",
             Page.Expedition => $"{_page}|{ExpeditionKey()}",
@@ -373,6 +374,8 @@ namespace Hadal.UI
                 CommandType.TransferLeadership => Loc.T("alliance.transferred"),
                 CommandType.SetAllianceSettings => Loc.T("alliance.saved"),
                 CommandType.SetAllianceInfo => Loc.T("alliance.saved"),
+                CommandType.DonateAllianceResearch => Loc.T("alliance.research.donated"),
+                CommandType.SetResearchFocus => Loc.T("alliance.saved"),
                 CommandType.AnswerInvite => View.MyAlliance != null ? Loc.T("alliance.joined") : string.Empty,
                 CommandType.AnswerApplication => Loc.T("alliance.saved"),
                 CommandType.LeaveAlliance => Loc.T("alliance.left"),

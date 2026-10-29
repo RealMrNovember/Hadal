@@ -993,6 +993,7 @@ namespace Hadal.Game
             var modifiers = ResearchRules.Modifiers(_catalog, _state.ResearchLevels);
             HeroRules.AddCrew(_catalog, modifiers, Crew());
             VipRules.Apply(modifiers, VipLevel);
+            AllianceResearchRules.Apply(modifiers, _allianceResearch);
             _modifiers = modifiers;
         }
 

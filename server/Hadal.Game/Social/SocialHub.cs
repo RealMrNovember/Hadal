@@ -90,7 +90,8 @@ namespace Hadal.Game.Social
             or CommandType.LeaveAlliance or CommandType.BrowseAlliances or CommandType.KickMember or CommandType.RequestHelp or CommandType.HelpAll
             or CommandType.SetMemberRank or CommandType.TransferLeadership or CommandType.SetAllianceSettings or CommandType.InviteToAlliance
             or CommandType.AnswerInvite or CommandType.AnswerApplication or CommandType.SetAllianceInfo or CommandType.ViewAllianceLog
-            or CommandType.BuyAllianceItem or CommandType.CollectAllianceGift;
+            or CommandType.BuyAllianceItem or CommandType.CollectAllianceGift or CommandType.DonateAllianceResearch
+            or CommandType.SetResearchFocus;
 
         /// <summary>Loads alliances and recent chat. Call once at startup, after the schema exists.</summary>
         public async Task InitializeAsync(CancellationToken cancellationToken)
@@ -165,7 +166,8 @@ namespace Hadal.Game.Social
                     HelpChange(session.PublicId, now),
                     InvitesChange(session.PublicId, now),
                     CoinsChange(session.PublicId, now),
-                    GiftsChange(session.PublicId, now)
+                    GiftsChange(session.PublicId, now),
+                    ResearchChange(session.PublicId, now)
                 }, now);
             }
         }
@@ -227,6 +229,12 @@ namespace Hadal.Game.Social
                         break;
                     case CommandType.TransferLeadership when TryDeserialize(envelope.Payload, out TransferLeadershipCommand? transfer):
                         Done(session, transfer!.CommandId, transfer.ClientSequence, Transfer(session.PublicId, transfer.MemberId, now), now);
+                        break;
+                    case CommandType.DonateAllianceResearch when TryDeserialize(envelope.Payload, out DonateAllianceResearchCommand? donate):
+                        Done(session, donate!.CommandId, donate.ClientSequence, Donate(session, now), now);
+                        break;
+                    case CommandType.SetResearchFocus when TryDeserialize(envelope.Payload, out SetResearchFocusCommand? focus):
+                        Done(session, focus!.CommandId, focus.ClientSequence, SetFocus(session.PublicId, focus, now), now);
                         break;
                     case CommandType.CollectAllianceGift when TryDeserialize(envelope.Payload, out CollectAllianceGiftCommand? collect):
                         // Collected gifts answer with their reward report; only a refusal is acknowledged here.
@@ -380,6 +388,7 @@ namespace Hadal.Game.Social
             {
                 session.SetInAlliance(true, now);
                 session.Push(new List<EntityChangeDto> { HistoryChange(playerId), HelpChange(playerId, now), InvitesChange(playerId, now) }, now);
+                ApplyResearchTo(session, now); // the new alliance's research bonuses
             }
 
             SystemMessage(alliance, "sys.joined", name, now);
@@ -600,7 +609,10 @@ namespace Hadal.Game.Social
                 _help.Remove(request.Id);
 
             if (_online.TryGetValue(playerId, out var leaver))
+            {
                 leaver.SetInAlliance(false, now);
+                leaver.SetAllianceResearch(null, now); // the alliance's research bonuses end
+            }
             if (leaver != null)
                 leaver.Push(new List<EntityChangeDto>
                 {

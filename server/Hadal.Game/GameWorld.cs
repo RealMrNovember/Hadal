@@ -366,6 +366,7 @@ namespace Hadal.Game
 
                 session.DisplayName = string.IsNullOrWhiteSpace(displayName) ? "Diver" : displayName;
                 session.ApplyOfflineHelps(Social.TakeOfflineHelps(session.PublicId), now);
+                Social.PrepareSession(session, now); // alliance research bonuses before the snapshot
 
                 var previous = session.Attach(connection, now);
                 if (previous != null && !ReferenceEquals(previous, connection))

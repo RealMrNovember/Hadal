@@ -100,6 +100,9 @@ namespace HADAL.Shared.Protocol
         /// <summary>The alliance's gift level and the member's gifts (<c>AllianceGiftsDto</c>).</summary>
         public const string AllianceGifts = Alliance + "gifts";
 
+        /// <summary>The alliance research tree and the member's donations today (<c>AllianceResearchDto</c>).</summary>
+        public const string AllianceResearch = Alliance + "research";
+
         /// <summary>VIP points, level and today's claims (<c>VipStateDto</c>).</summary>
         public const string Vip = Base + "vip";
 

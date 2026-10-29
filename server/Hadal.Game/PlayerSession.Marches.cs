@@ -123,9 +123,13 @@ namespace Hadal.Game
                 // Alliance territory gathers faster (docs/30 §6.3).
                 if (rateBonus > 0)
                     rates = rates.ToDictionary(p => p.Key, p => p.Value * (1 + rateBonus));
+                // Alliance research: gathering and troop load (docs/31 step 6).
+                if (_modifiers.GatherPercent > 0)
+                    rates = rates.ToDictionary(p => p.Key, p => p.Value * (1 + _modifiers.GatherPercent / 100.0));
                 var speed = armed ? TroopRules.MarchSpeed(troops, aboard.Keys) : 100;
                 var travel = _modifiers.MarchSeconds((int)Math.Ceiling(GatherRules.TravelSeconds(world, homeX, homeY, node.X, node.Y) * 100.0 / speed));
-                var load = Math.Min(armed ? TroopRules.MarchLoad(troops, aboard) : GatherRules.Load(_catalog.Gather, reactor), node.Remaining);
+                var load = Math.Min((armed ? TroopRules.MarchLoad(troops, aboard) : GatherRules.Load(_catalog.Gather, reactor)) * (100 + _modifiers.MarchLoadPercent) / 100,
+                    node.Remaining);
                 var gather = GatherRules.GatherSeconds(world, rates, load);
                 var arrives = now.AddSeconds(travel);
                 if (node.FadesAt is { } fades && arrives.AddSeconds(gather) > fades)

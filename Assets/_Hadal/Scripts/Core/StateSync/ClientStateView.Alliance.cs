@@ -39,6 +39,16 @@ namespace Hadal.Core.StateSync
             AllianceGiftsVersion++;
         }
 
+        /// <summary>The alliance research tree and this member's donations (docs/31 step 6).</summary>
+        public AllianceResearchDto AllianceResearch { get; private set; } = new AllianceResearchDto();
+        public int AllianceResearchVersion { get; private set; }
+
+        public void ApplyAllianceResearch(AllianceResearchDto research)
+        {
+            AllianceResearch = research ?? new AllianceResearchDto();
+            AllianceResearchVersion++;
+        }
+
         /// <summary>The log of a kind ("log" or "battle"), or null before it was fetched.</summary>
         public AllianceLogDto AllianceLog(string kind) => _allianceLogs.TryGetValue(kind ?? string.Empty, out var log) ? log : null;
     }

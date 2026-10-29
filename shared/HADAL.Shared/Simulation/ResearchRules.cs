@@ -46,6 +46,12 @@ namespace HADAL.Shared.Simulation
         /// <summary>Percent added to march speed (VIP); trips take raw / (1 + speed% / 100).</summary>
         public int MarchSpeedPercent { get; internal set; }
 
+        /// <summary>Percent added to gathering rates on the map (alliance research).</summary>
+        public int GatherPercent { get; internal set; }
+
+        /// <summary>Percent added to what a team can carry (alliance research).</summary>
+        public int MarchLoadPercent { get; internal set; }
+
         public int ExtraBuilders { get; internal set; }
         public int ExtraResearchSlots { get; internal set; }
 

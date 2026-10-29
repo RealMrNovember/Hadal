@@ -1,3 +1,4 @@
+using HADAL.Shared.DTOs;
 using HADAL.Shared.Simulation;
 
 namespace Hadal.Game
@@ -5,6 +6,30 @@ namespace Hadal.Game
     /// <summary>What the alliance economy (docs/31: shop, gifts) needs from a session: items into the bag with a report.</summary>
     public sealed partial class PlayerSession
     {
+        private IReadOnlyDictionary<string, int>? _allianceResearch;
+
+        /// <summary>
+        /// The alliance's research levels (AllianceResearchRules), null without an alliance; the bonuses join the
+        /// modifiers at once. <paramref name="push"/> false before the login snapshot, which carries them already.
+        /// </summary>
+        internal void SetAllianceResearch(IReadOnlyDictionary<string, int>? levels, DateTimeOffset now, bool push = true)
+        {
+            lock (_gate)
+            {
+                if (push)
+                    AdvanceTo(now); // production so far at the old rates
+                _allianceResearch = levels;
+                RefreshModifiers();
+                if (push)
+                    SendDelta(now, new List<EntityChangeDto> { ProductionChange(now), WalletChange() });
+            }
+        }
+
+        internal PlayerModifiers ModifiersForTests
+        {
+            get { lock (_gate) return _modifiers; }
+        }
+
         /// <summary>An alliance shop purchase: the items go to the bag and the purchase is answered with a reward report.</summary>
         internal void GrantShopItem(string commandId, ulong sequence, string itemId, int count, DateTimeOffset now)
         {

@@ -181,6 +181,10 @@ namespace Hadal.UI
                     BackToHub();
                     RenderApplications(alliance);
                     return;
+                case AllianceTabResearch:
+                    BackToHub();
+                    RenderAllianceResearch(myRank);
+                    return;
                 case AllianceTabGifts:
                     BackToHub();
                     RenderAllianceGifts();

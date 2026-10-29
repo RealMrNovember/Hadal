@@ -18,6 +18,9 @@ namespace Hadal.Game.Social
             public long Coins { get; set; }
             public long HelpDay { get; set; }
             public int HelpCoins { get; set; }
+
+            /// <summary>Alliance research donations made on <see cref="HelpDay"/>.</summary>
+            public int DonationsToday { get; set; }
             public long Week { get; set; }
             public Dictionary<string, int> Bought { get; set; } = new(StringComparer.Ordinal);
         }
@@ -37,6 +40,7 @@ namespace Hadal.Game.Social
             {
                 purse.HelpDay = day;
                 purse.HelpCoins = 0;
+                purse.DonationsToday = 0;
             }
 
             var week = AllianceShopRules.Week(ms);
