@@ -2239,7 +2239,7 @@
     },
     {
       "id": "drone_factory",
-      "displayName": "Drone Factory",
+      "displayName": "Challenger Hangar",
       "category": "Infrastructure",
       "slotType": "Research",
       "minRing": 2,
@@ -2247,7 +2247,7 @@
       "buildSeconds": 30,
       "requiredReactorLevel": 2,
       "maxCount": 3,
-      "_note": "Salvage drones: the base's titanium source.",
+      "_note": "Salvage Challengers (deep-sea submersibles): the base's titanium source.",
       "production": [{"resource": "Titanium", "amount": 2}],
       "consumption": [{"resource": "Energy", "amount": 1}],
       "buildCost": [{"resource": "Titanium", "amount": 120}, {"resource": "Biomass", "amount": 20}],

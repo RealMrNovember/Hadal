@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: Building_drone_factory
   m_EditorClassIdentifier: 
   _id: drone_factory
-  _displayName: Drone Factory
+  _displayName: Challenger Hangar
   _category: 4
   _domeType: 0
   _requiredSlotType: 2
