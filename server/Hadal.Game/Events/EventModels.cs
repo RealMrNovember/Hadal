@@ -47,6 +47,9 @@ namespace Hadal.Game.Events
         public List<EventTierConfig> Stages { get; set; } = new();
         public List<EventTierConfig> RankBands { get; set; } = new();
 
+        /// <summary>Event bosses (MonsterKind.EventOnly) the map shows while the event is live (WorldService.Bosses).</summary>
+        public List<EventBossConfig> Bosses { get; set; } = new();
+
         public string Note { get; set; } = string.Empty;
         public string CreatedBy { get; set; } = string.Empty;
         public DateTimeOffset CreatedAt { get; set; }
@@ -97,6 +100,19 @@ namespace Hadal.Game.Events
         public int To { get; set; }
         public List<EventRewardConfig> Rewards { get; set; } = new();
     }
+
+    /// <summary>"A boss of this kind and level appears at X:Y for the event's duration."</summary>
+    public sealed class EventBossConfig
+    {
+        /// <summary>An event-only monster kind (MonsterRules: "chasm_maw", "depth_kraken").</summary>
+        public string Kind { get; set; } = string.Empty;
+        public int Level { get; set; } = 20;
+        public int X { get; set; }
+        public int Y { get; set; }
+    }
+
+    /// <summary>A boss of a live event as the world map places it.</summary>
+    public sealed record EventBossSpawn(string EventId, int Index, string Kind, int Level, int X, int Y, DateTimeOffset EndsAt);
 
     /// <summary>Same meaning as the catalog's RewardData: resource, item or shards (hero cards).</summary>
     public sealed class EventRewardConfig

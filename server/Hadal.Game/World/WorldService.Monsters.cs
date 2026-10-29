@@ -20,6 +20,20 @@ namespace Hadal.Game.World
 
         /// <summary>Beaten at this time: gone, and back elsewhere a while later.</summary>
         public DateTimeOffset? DefeatedAt { get; set; }
+
+        /// <summary>An event boss (MonsterKind.EventOnly): the event that holds it and when it leaves (WorldService.Bosses).</summary>
+        public string EventId { get; set; } = string.Empty;
+        public DateTimeOffset EndsAt { get; set; }
+
+        /// <summary>A boss's shared body: what is left of it and what it started with (MonsterRules.Count).</summary>
+        public long HpLeft { get; set; }
+        public long HpMax { get; set; }
+
+        /// <summary>A boss's damage by player, and the hits still on their way (taken back on a recall).</summary>
+        public Dictionary<string, long> Damage { get; } = new(StringComparer.Ordinal);
+        public List<(string PlayerId, string MarchId, long Damage, DateTimeOffset ArrivesAt)> Pending { get; } = new();
+
+        public bool IsBoss => EventId.Length > 0;
     }
 
     public sealed partial class WorldService
@@ -55,10 +69,10 @@ namespace Hadal.Game.World
         private void PlaceMonster(WorldMonster monster, BeltData belt)
         {
             var (min, max) = MonsterRules.LevelsInBelt(belt.id);
-            var kinds = MonsterRules.Kinds.Where(k => k.MinLevel <= max && k.MaxLevel >= min).ToArray();
+            var kinds = MonsterRules.KindsInBelt(belt.id);
             if (kinds.Length == 0)
                 return;
-            var kind = kinds[_monsterRandom.Next(kinds.Length)];
+            var kind = MonsterRules.Pick(kinds, _monsterRandom.Next);
             var level = _monsterRandom.Next(Math.Max(min, kind.MinLevel), Math.Min(max, kind.MaxLevel) + 1);
 
             var world = Catalog.World;
@@ -89,8 +103,11 @@ namespace Hadal.Game.World
         private void MaintainMonsters(DateTimeOffset now)
         {
             var world = Catalog.World;
+            SyncBosses(now);
             foreach (var monster in _monsters.Values.ToList())
             {
+                if (monster.IsBoss)
+                    continue;
                 if (monster.EngagedUntil <= now)
                 {
                     monster.EngagedUntil = null;
@@ -116,7 +133,10 @@ namespace Hadal.Game.World
                 .Select(m => new WorldMonsterDto
                 {
                     Id = m.Id, Type = m.Type, Level = m.Level, X = m.X, Y = m.Y, Busy = m.EngagedUntil > now,
-                    Power = MonsterRules.Power(troops, m.Level)
+                    Power = MonsterRules.Kind(m.Type) is { } kind ? MonsterRules.Power(troops, kind, m.Level) : MonsterRules.Power(troops, m.Level),
+                    EndsAtMs = m.IsBoss ? m.EndsAt.ToUnixTimeMilliseconds() : 0,
+                    HpLeft = m.IsBoss ? Math.Max(0, m.HpLeft) : 0,
+                    HpMax = m.IsBoss ? m.HpMax : 0
                 }).ToArray();
         }
 
@@ -127,6 +147,7 @@ namespace Hadal.Game.World
                 MaintainMonsters(now);
                 var me = Upsert(session);
                 var reason = !_monsters.TryGetValue(command.MonsterId ?? string.Empty, out var monster) || Gone(monster, now) ? AttackRejectReason.UnknownMonster
+                    : monster.IsBoss ? (monster.HpLeft > 0 ? AttackRejectReason.None : AttackRejectReason.MonsterBusy)
                     : monster.EngagedUntil > now ? AttackRejectReason.MonsterBusy
                     : AttackRejectReason.None;
                 if (reason != AttackRejectReason.None)
@@ -135,10 +156,15 @@ namespace Hadal.Game.World
                     return;
                 }
 
-                var (march, _, _) = session.TryStartAttack(new MonsterOffer(monster!.Id, monster.Type, monster.Level, monster.X, monster.Y),
+                var (march, _, _) = session.TryStartAttack(new MonsterOffer(monster!.Id, monster.Type, monster.Level, monster.X, monster.Y, monster.IsBoss ? monster.HpLeft : 0),
                     me.X, me.Y, command.CommandId, command.ClientSequence, now, command.HeroIds ?? Array.Empty<string>());
                 if (march == null)
                     return;
+                if (monster.IsBoss)
+                {
+                    HitBoss(monster, session.PublicId, march);
+                    return;
+                }
 
                 monster.EngagedUntil = march.ArrivesAt;
                 monster.EngagedBy = session.PublicId;
@@ -150,6 +176,12 @@ namespace Hadal.Game.World
         /// <summary>A team recalled on its way leaves the swarm alone. Caller holds the lock.</summary>
         private void ReleaseMonster(string monsterId, string playerId)
         {
+            if (_monsters.TryGetValue(monsterId, out var boss) && boss.IsBoss)
+            {
+                ReleaseBossHits(boss, playerId);
+                return;
+            }
+
             if (!_monsters.TryGetValue(monsterId, out var monster) || monster.EngagedBy != playerId)
                 return;
             monster.EngagedUntil = null;

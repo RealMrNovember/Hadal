@@ -68,6 +68,20 @@ namespace Hadal.Game.Events
 
         private GameCatalog Catalog => _runtime.Current.Catalog;
 
+        // --- Event bosses (WorldService.Bosses) ---------------------------------------------------
+
+        private volatile EventBossSpawn[] _liveBosses = Array.Empty<EventBossSpawn>();
+
+        /// <summary>The bosses of published, live events; a snapshot the world map reads without taking this lock.</summary>
+        public IReadOnlyList<EventBossSpawn> LiveBosses() => _liveBosses;
+
+        /// <summary>Rebuilds the boss snapshot. Caller holds the lock.</summary>
+        private void RefreshBosses(DateTimeOffset now) =>
+            _liveBosses = _events.Values
+                .Where(e => e.Def.Status == EventStatus.Published && PhaseOf(e.Def, now) == EventPhase.Live)
+                .SelectMany(e => e.Def.Bosses.Select((b, i) => new EventBossSpawn(e.Def.Id, i, b.Kind, b.Level, b.X, b.Y, e.Def.EndsAt)))
+                .ToArray();
+
         public static bool Handles(CommandType type) => type is CommandType.ClaimEventStage or CommandType.ClaimEventRank or CommandType.ViewEventRanking;
 
         public async Task InitializeAsync(DateTimeOffset now, CancellationToken cancellationToken)
@@ -93,6 +107,8 @@ namespace Hadal.Game.Events
                     if (_events.TryGetValue(eventId, out var live))
                         live.Alliances[allianceId] = points;
                 }
+
+                RefreshBosses(now);
             }
 
             _logger.LogInformation("Events: {Events} defined, {Scores} scores loaded.", definitions.Count, scores.Count);
@@ -193,6 +209,8 @@ namespace Hadal.Game.Events
                     phaseChanged = true;
                     _logger.LogInformation("Event {Id} is now {Phase}.", live.Def.Id, phase);
                 }
+
+                RefreshBosses(now);
 
                 // Rankings moved since the last round: re-sort and show the new ranks to those taking part.
                 var moved = _events.Values.Where(e => e.Dirty && e.Sorted != null).ToList();
@@ -733,6 +751,7 @@ namespace Hadal.Game.Events
             live.Shape = Shape(def);
             live.Phase = PhaseOf(def, now);
             live.Dirty = true;
+            RefreshBosses(now);
             var copy = def.Clone();
             Write(ct => _store.SaveEventAsync(copy, ct));
             foreach (var session in _online.Values)
@@ -746,6 +765,7 @@ namespace Hadal.Game.Events
             def.TestAccounts = def.TestAccounts.Select(a => a.Trim()).Where(a => a.Length > 0).Distinct(StringComparer.OrdinalIgnoreCase).ToList();
             def.Stages = def.Template == EventTemplates.Login ? def.Stages : def.Stages.OrderBy(s => s.Points).ToList();
             def.RankBands = def.RankBands.OrderBy(b => b.From).ToList();
+            def.Bosses ??= new List<EventBossConfig>();
             foreach (var a in def.Actions.Concat(def.Phases.SelectMany(p => p.Actions)))
                 a.Per = Math.Max(1, a.Per);
         }
@@ -808,6 +828,13 @@ namespace Hadal.Game.Events
                 if (!ValidReward(r, catalog))
                     return "InvalidReward";
             }
+
+            // Bosses: event-only kinds, within the kind's levels, on the map.
+            var size = Math.Max(10, catalog.World.size);
+            if ((def.Bosses?.Count ?? 0) > 5 || (def.Bosses ?? new List<EventBossConfig>()).Any(b =>
+                    MonsterRules.Kind(b.Kind) is not { EventOnly: true } kind || b.Level < kind.MinLevel || b.Level > kind.MaxLevel
+                    || b.X < 0 || b.Y < 0 || b.X >= size || b.Y >= size))
+                return "InvalidBoss";
 
             return string.Empty;
         }

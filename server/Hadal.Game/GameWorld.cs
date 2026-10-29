@@ -84,6 +84,7 @@ namespace Hadal.Game
                 AllianceInfo = Social.AllianceInfo,
                 DropGift = Social.DropGift
             };
+            Map.EventBosses = Events.LiveBosses;
             Mail = new MailService(mailStore ?? new InMemoryMailStore(), serializer, logger)
             {
                 NameLookup = Map.NameOf,

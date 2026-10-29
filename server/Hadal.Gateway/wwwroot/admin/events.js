@@ -15,6 +15,7 @@ const EVENT_ACTIONS = {
   heal: "Asker iyileştirme",
   monster_kill: "Yaratık yenme",
   monster_levels: "Yenilen yaratık seviyeleri",
+  boss_damage: "Etkinlik bossuna verilen hasar (birim)",
   hero_pull: "Kriyo-Kapsül çekimi",
   hero_level: "Kahraman seviye atlatma",
   hero_recruit: "Kahraman işe alma",
@@ -25,6 +26,9 @@ const EVENT_ACTIONS = {
   salvage: "Kurtarma seferi",
   daily_points: "Günlük görev puanı",
 };
+
+// Event-only monster kinds (MonsterRules EventOnly): a live event shows them on the map at X:Y until it ends.
+const EVENT_BOSSES = { chasm_maw: ["Uçurum Ağzı", 10, 35], depth_kraken: ["Derinlik Kraken'i", 15, 35] };
 
 const EVENT_BANNERS = {
   abyss: ["Uçurum", "#123a6b"], vent: ["Termal Baca", "#c2541b"], bloom: ["Biyolüminesans", "#1aa59a"],
@@ -107,6 +111,28 @@ const EVENT_PRESETS = [
         { from: 2, to: 3, rewards: [presetRes("Hadalite", 500), presetItem("chest_gold", 2)] },
         { from: 4, to: 10, rewards: [presetRes("Hadalite", 200), presetItem("chest_silver", 2)] },
         { from: 11, to: 50, rewards: [presetRes("Hadalite", 50), presetItem("chest_bronze", 2)] },
+      ],
+    }),
+  },
+  {
+    name: "Uçurum Ağzı Uyanıyor — ittifak bossu",
+    build: (start) => ({
+      template: "alliance", banner: "abyss",
+      title: { tr: "Uçurum Ağzı Uyanıyor", en: "The Chasm Maw Wakes" },
+      description: {
+        tr: "Dev bir goosefish çukur yamacında uyandı. Herkes saldırabilir; her vuruş ortak gövdesinden düşer. İttifakların sırası üyelerinin toplam hasarıyla belirlenir, son darbeyi vuran büyük sandığı alır.",
+        en: "A colossal goosefish woke on the trench slope. Anyone can attack; every hit comes off its shared body. Alliances rank by their members' total damage, and the final blow takes the big chest.",
+      },
+      startsAt: start, endsAt: new Date(start.getTime() + 48 * HOUR), claimDays: 2,
+      actions: [{ action: "boss_damage", points: 1, per: 10 }],
+      bosses: [{ kind: "chasm_maw", level: 20, x: 100, y: 140 }],
+      stages: [
+        { points: 500, rewards: [presetItem("chest_bronze", 1)] },
+        { points: 3000, rewards: [presetItem("chest_silver", 1)] },
+      ],
+      rankBands: [
+        { from: 1, to: 1, rewards: [presetRes("Hadalite", 300)] },
+        { from: 2, to: 5, rewards: [presetRes("Hadalite", 120)] },
       ],
     }),
   },
@@ -286,8 +312,9 @@ async function eventEditor(root, id) {
     const start = nextStart();
     model = { template: "points", banner: "abyss", title: {}, description: {}, startsAt: start, endsAt: new Date(start.getTime() + 3 * 24 * HOUR),
       claimDays: 3, minLevel: 0, maxLevel: 0, minRankPoints: 0, testAccounts: [], actions: [{ action: "gather", points: 1, per: 1000 }], phases: [],
-      cyclePhases: false, stages: [], rankBands: [], note: "" };
+      cyclePhases: false, stages: [], rankBands: [], bosses: [], note: "" };
   }
+  model.bosses = model.bosses || [];
 
   const draw = () => render(root, form());
 
@@ -431,6 +458,18 @@ async function eventEditor(root, id) {
           const from = last ? last.to + 1 : 1;
           model.rankBands.push({ from, to: from, rewards: [{ type: "resource", id: "Hadalite", amount: 100 }] });
           draw(); } }, "+ sıra aralığı")),
+
+      el("div", { class: "card" },
+        el("h2", {}, "Etkinlik bossları"),
+        el("p", { class: "muted" }, "Etkinlik canlıyken haritada X:Y'de durur (doluysa en yakın boş kareye); bitince kaybolur. Herkes saldırabilir, hasar ortak gövdeden düşer. Puan için 'Etkinlik bossuna verilen hasar' yolunu ekle."),
+        el("table", { class: "compact" }, el("tbody", {}, model.bosses.map((b, i) => el("tr", {},
+          el("td", {}, el("select", { onchange: (e) => (b.kind = e.target.value) },
+            Object.entries(EVENT_BOSSES).map(([k, v]) => el("option", { value: k, selected: b.kind === k }, `${v[0]} (sv ${v[1]}–${v[2]})`)))),
+          el("td", {}, "Sv ", el("input", { type: "number", min: "1", max: "35", value: b.level, onchange: (e) => (b.level = Number(e.target.value)) })),
+          el("td", {}, "X ", el("input", { type: "number", min: "0", value: b.x, onchange: (e) => (b.x = Number(e.target.value)) })),
+          el("td", {}, "Y ", el("input", { type: "number", min: "0", value: b.y, onchange: (e) => (b.y = Number(e.target.value)) })),
+          el("td", {}, el("button", { class: "ghost", onclick: () => { model.bosses.splice(i, 1); draw(); } }, "×")))))),
+        model.bosses.length >= 5 ? null : el("button", { class: "ghost small", onclick: () => { model.bosses.push({ kind: "chasm_maw", level: 20, x: 100, y: 140 }); draw(); } }, "+ boss")),
 
       el("div", { class: "row" },
         el("button", { class: "primary", onclick: () => save().catch((e) => toast(e.message, true)) }, id ? "Kaydet" : "Taslak olarak kaydet"),

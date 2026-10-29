@@ -27,6 +27,9 @@ namespace HADAL.Shared.Simulation
         public const string MonsterKill = "monster_kill";
         public const string MonsterLevels = "monster_levels";
 
+        /// <summary>Units of an event boss's body destroyed (an alliance contest on it ranks alliances by shared damage).</summary>
+        public const string BossDamage = "boss_damage";
+
         /// <summary>Cryo-Pod pulls, hero level-ups, heroes recruited from cards.</summary>
         public const string HeroPull = "hero_pull";
         public const string HeroLevel = "hero_level";
@@ -49,7 +52,7 @@ namespace HADAL.Shared.Simulation
         /// <summary>Every action, in the order the Overseer panel lists them.</summary>
         public static readonly string[] All =
         {
-            Gather, BuildPower, Research, Train(1), Train(2), Train(3), Train(4), Train(5), Heal, MonsterKill, MonsterLevels,
+            Gather, BuildPower, Research, Train(1), Train(2), Train(3), Train(4), Train(5), Heal, MonsterKill, MonsterLevels, BossDamage,
             HeroPull, HeroLevel, HeroRecruit, SpeedupMinutes, HadaliteSpent, Dive, Help, Salvage, DailyPoints
         };
 

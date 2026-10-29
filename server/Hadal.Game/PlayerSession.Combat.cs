@@ -4,8 +4,8 @@ using HADAL.Shared.Simulation;
 
 namespace Hadal.Game
 {
-    /// <summary>A monster as the world hands it to a session that wants to attack it.</summary>
-    public sealed record MonsterOffer(string Id, string Type, int Level, int X, int Y);
+    /// <summary>A monster as the world hands it to a session that wants to attack it; for an event boss, what is left of its body.</summary>
+    public sealed record MonsterOffer(string Id, string Type, int Level, int X, int Y, long BossLeft = 0);
 
     /// <summary>
     /// Attacks on map monsters (docs/rehber 09 §5, 07 §4): the team pays Sonar Energy, travels, fights on arrival and
@@ -66,10 +66,15 @@ namespace Hadal.Game
                 var bonus = CombatRules.HeroBonus(team.Select(h => _catalog.TryGetHero(h.HeroId, out var d) ? HeroRules.Power(d, h.Level, h.Stars) : 0).ToList());
                 mine.AtkPercent = mine.DefPercent = mine.HpPercent = bonus;
                 var enemy = MonsterRules.Army(kind, monster.Level);
+                // An event boss is one shared body: a team fights only what earlier hits have left of it.
+                if (kind.EventOnly && monster.BossLeft > 0)
+                    enemy.Troops[TroopRules.Key(kind.CountsAs, MonsterRules.Tier(monster.Level))] = Math.Min(MonsterRules.Count(kind, monster.Level), monster.BossLeft);
                 var result = CombatRules.Resolve(troops, mine, enemy);
 
-                var firstWin = result.AttackerWon && !_state.MonsterWins.Contains(monster.Level);
-                var rewards = result.AttackerWon ? MonsterRules.Rewards(monster.Level, firstWin, Random.Shared.Next) : new Dictionary<string, int>();
+                var firstWin = result.AttackerWon && !kind.EventOnly && !_state.MonsterWins.Contains(monster.Level);
+                var rewards = result.AttackerWon ? MonsterRules.Rewards(kind, monster.Level, firstWin, Random.Shared.Next)
+                    : kind.EventOnly && result.DefenderLost.Values.Sum() > 0 ? MonsterRules.BossHitRewards(monster.Level)
+                    : new Dictionary<string, int>();
                 // A lost attack gives half the Sonar back (09 §5.1).
                 SetSonar(sonar - kind.Sonar * (result.AttackerWon ? 1.0 : 0.5), now);
 
@@ -133,12 +138,17 @@ namespace Hadal.Game
                 _state.Wounded[pair.Key] = (_state.Wounded.TryGetValue(pair.Key, out var w) ? w : 0) + lost;
             }
 
+            var boss = MonsterRules.Kind(march.NodeType) is { EventOnly: true };
             if (battle.Won)
             {
-                _state.MonsterWins.Add(march.NodeLevel);
+                if (!boss)
+                    _state.MonsterWins.Add(march.NodeLevel);
                 Score(EventActions.MonsterKill, 1);
                 Score(EventActions.MonsterLevels, march.NodeLevel);
             }
+
+            if (boss && battle.EnemyLost.Values.Sum() is var damage and > 0)
+                Score(EventActions.BossDamage, damage);
             _armyDirty = true;
             _marchesDirty = true;
             _state.IsDirty = true;
@@ -182,6 +192,13 @@ namespace Hadal.Game
                 AttackerPower = Power(start),
                 DefenderPower = Power(battle.EnemyStart)
             };
+        }
+
+        /// <summary>Attacks on their way home without a battle (recalled): an event boss takes those hits back.</summary>
+        internal HashSet<string> RecalledAttacks()
+        {
+            lock (_gate)
+                return _state.Marches.Where(m => m.Kind == "attack" && m.Battle == null).Select(m => m.Id).ToHashSet(StringComparer.Ordinal);
         }
 
         /// <summary>A team recalled before it arrives fights nothing and gets its Sonar back.</summary>

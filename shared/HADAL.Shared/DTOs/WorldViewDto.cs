@@ -66,6 +66,11 @@ namespace HADAL.Shared.DTOs
         /// <summary>A team is on its way to it.</summary>
         [ProtoMember(6)] public bool Busy { get; set; }
         [ProtoMember(7)] public long Power { get; set; }
+
+        /// <summary>An event boss (MonsterKind.EventOnly): when it leaves, and its shared body left / at start (0 for swarms).</summary>
+        [ProtoMember(8)] public long EndsAtMs { get; set; }
+        [ProtoMember(9)] public long HpLeft { get; set; }
+        [ProtoMember(10)] public long HpMax { get; set; }
     }
 
     /// <summary>A resource node on the map.</summary>
