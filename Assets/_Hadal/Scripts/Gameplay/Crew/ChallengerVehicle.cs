@@ -42,6 +42,11 @@ namespace Hadal.Gameplay.Crew
         private const float CruiseSpeed = 2.6f;   // m/s across the base
         private const float HoverSpin = 9f;       // deg/s while hovering (the real one turned slowly as it sank)
         private const float SiteSeconds = 5f;
+        private const float PitchSeconds = 1f;      // lying down after departure / standing up before the stop
+        private const float DescendSeconds = 1.3f;  // the last vertical sink onto the stop
+        private const float RiseHeight = 1.2f;
+        private const float ApproachHeight = 1.6f;
+        private const float TurnRate = 120f;        // deg/s toward the heading
 
         private Transform _pilot;
         private IChallengerRider _rider;
@@ -54,6 +59,11 @@ namespace Hadal.Gameplay.Crew
         private float _flightStart;
         private float _duration = 1f;
         private float _peak;
+        private float _cruiseSeconds;
+        private float _cruisePitch;
+        private float _heading;
+        private float _pitch;
+        private float _bank;
         private float _stateSince;
         private Vector3 _anchor;
         private float _yaw;
@@ -64,6 +74,17 @@ namespace Hadal.Gameplay.Crew
         public bool ReadyToBoard => Current == State.Waiting && _rider != null;
         public bool HasPassenger => Current == State.Carrying;
         public Vector3 Home => _home;
+
+        /// <summary>0 upright, 90 lying along the direction of travel.</summary>
+        public float Pitch => _pitch;
+
+        /// <summary>
+        /// Upright hull turned to <paramref name="yaw"/>, pitched forward by <paramref name="pitch"/> (90 = the
+        /// top points along the heading, the viewport and light bar toward the seabed, the sphere trailing)
+        /// and rolled about its long axis by <paramref name="bank"/>.
+        /// </summary>
+        public static Quaternion Pose(float yaw, float pitch, float bank) =>
+            Quaternion.Euler(0f, yaw, 0f) * Quaternion.Euler(pitch, 0f, 0f) * Quaternion.Euler(0f, bank, 0f);
 
         public void Initialise(Vector3 home, float yaw)
         {
@@ -178,38 +199,86 @@ namespace Hadal.Gameplay.Crew
         {
             _from = transform.position;
             _to = to;
-            var flat = new Vector2(to.x - _from.x, to.z - _from.z).magnitude;
-            _duration = 2.5f + flat / CruiseSpeed;
+            var trip = new Vector3(to.x - _from.x, 0f, to.z - _from.z);
+            var flat = trip.magnitude;
+            // Only a real trip lies down to cruise; a short repositioning stays upright.
+            _cruisePitch = flat > 3f ? 90f : 0f;
+            if (flat > 0.01f)
+                _heading = Quaternion.LookRotation(trip).eulerAngles.y;
+            else
+                _heading = _yaw;
             // A short hop barely clears the buildings; a long crossing climbs higher.
-            _peak = Mathf.Clamp(2.5f + flat * 0.22f, 2.5f, 8f);
+            _peak = Mathf.Clamp(1.5f + flat * 0.18f, 1.5f, 6.5f);
+            _cruiseSeconds = 1.2f + flat / CruiseSpeed;
+            _duration = PitchSeconds + _cruiseSeconds + PitchSeconds + DescendSeconds;
             _flightStart = _now;
             Current = state;
             _stateSince = _now;
         }
 
-        /// <summary>Point on the current flight at normalised time <paramref name="t"/> (0..1).</summary>
-        public Vector3 Evaluate(float t)
+        private static float Smooth(float x)
         {
-            t = Mathf.Clamp01(t);
-            var s = t * t * (3f - 2f * t);   // eases out of the lift-off and into the landing
-            var p = Vector3.Lerp(_from, _to, s);
-            p.y += _peak * Mathf.Sin(Mathf.PI * t);
-            return p;
+            x = Mathf.Clamp01(x);
+            return x * x * (3f - 2f * x);
+        }
+
+        /// <summary>
+        /// Pose on the current flight at <paramref name="seconds"/> after departure: rise while pitching
+        /// over (~1 s), cruise level along a gentle arc with the hull horizontal (top first, pilot sphere
+        /// at the back), slow down and pitch upright again (~1 s), then sink straight down onto the stop.
+        /// </summary>
+        public Vector3 Evaluate(float seconds, out float pitch)
+        {
+            var cruiseFrom = _from + Vector3.up * RiseHeight;
+            var cruiseTo = _to + Vector3.up * ApproachHeight;
+            var t = seconds;
+
+            if (t < PitchSeconds)
+            {
+                var s = Smooth(t / PitchSeconds);
+                pitch = _cruisePitch * s;
+                return Vector3.Lerp(_from, cruiseFrom, s);
+            }
+
+            t -= PitchSeconds;
+            if (t < _cruiseSeconds)
+            {
+                var u = t / _cruiseSeconds;
+                var h = Smooth(u);   // gathers speed after the pitch-over, slows before the stop
+                var p = Vector3.Lerp(cruiseFrom, cruiseTo, h);
+                p.y += _peak * Mathf.Sin(Mathf.PI * u);
+                // Nose follows the arc a little: up while climbing, down while gliding in.
+                pitch = _cruisePitch > 0f ? _cruisePitch - Mathf.Sin(2f * Mathf.PI * u) * 10f : 0f;
+                return p;
+            }
+
+            t -= _cruiseSeconds;
+            if (t < PitchSeconds)
+            {
+                pitch = _cruisePitch * (1f - Smooth(t / PitchSeconds));
+                return cruiseTo;
+            }
+
+            t -= PitchSeconds;
+            pitch = 0f;
+            return Vector3.Lerp(cruiseTo, _to, Smooth(t / DescendSeconds));
         }
 
         private void FlightStep(float deltaTime)
         {
-            var t = Mathf.Clamp01((_now - _flightStart) / _duration);
-            var before = transform.position;
-            var position = Evaluate(t);
+            var elapsed = _now - _flightStart;
+            var t = Mathf.Clamp01(elapsed / _duration);
+            var position = Evaluate(Mathf.Min(elapsed, _duration), out _pitch);
 
-            // Turn the viewport toward the way it travels and lean a few degrees into it.
-            var velocity = deltaTime > 0f ? (position - before) / deltaTime : Vector3.zero;
-            var flat = new Vector3(velocity.x, 0f, velocity.z);
-            if (flat.sqrMagnitude > 0.04f)
-                _yaw = Mathf.MoveTowardsAngle(_yaw, Quaternion.LookRotation(flat).eulerAngles.y, 90f * deltaTime);
-            var lean = Mathf.Clamp(flat.magnitude * 2.2f, 0f, 7f);
-            transform.SetPositionAndRotation(position, Quaternion.Euler(lean, _yaw, 0f));
+            // Head for the destination; bank into the turn and roll gently while cruising.
+            var before = _yaw;
+            if (_cruisePitch > 0f)
+                _yaw = Mathf.MoveTowardsAngle(_yaw, _heading, TurnRate * deltaTime);
+            var yawRate = deltaTime > 0f ? Mathf.DeltaAngle(before, _yaw) / deltaTime : 0f;
+            var lying = _pitch / 90f;
+            var wantedBank = Mathf.Clamp(-yawRate * 0.18f, -22f, 22f) + Mathf.Sin(_now * 0.9f) * 4f;
+            _bank = Mathf.Lerp(_bank, wantedBank * lying, deltaTime > 0f ? Mathf.Clamp01(deltaTime * 3f) : 1f);
+            transform.SetPositionAndRotation(position, Pose(_yaw, _pitch, _bank));
 
             if (t < 1f)
                 return;
@@ -255,6 +324,8 @@ namespace Hadal.Gameplay.Crew
 
         private void Park()
         {
+            _pitch = 0f;
+            _bank = 0f;
             Current = State.Parked;
             _stateSince = _now;
             _anchor = transform.position;

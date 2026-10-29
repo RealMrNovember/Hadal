@@ -106,6 +106,81 @@ namespace Hadal.Tests.EditMode
         }
 
         [Test]
+        public void Cruises_lying_down_top_first_then_stands_up_and_sinks_onto_the_stop()
+        {
+            var vehicle = MakeVehicle(new Vector3(0f, 4f, 0f));
+            var rider = new Rider { Body = new GameObject("rider").transform };
+            try
+            {
+                var pickup = new Vector3(20f, 0f, 0f);
+                vehicle.Book(rider, pickup, Vector3.zero);
+                var travel = Vector3.right;
+
+                var lyingSeen = false;
+                var firstLying = -1f;
+                var lastLying = -1f;
+                var t = 0f;
+                for (; t < 40f && !vehicle.ReadyToBoard; t += 0.02f)
+                {
+                    vehicle.Step(t, 0.02f);
+                    var top = vehicle.transform.up;
+                    if (vehicle.Pitch > 80f)
+                    {
+                        lyingSeen = true;
+                        if (firstLying < 0f)
+                            firstLying = t;
+                        lastLying = t;
+                        Assert.Greater(Vector3.Dot(top, travel), 0.9f, "the hull top should lead along the trip");
+                        Assert.Greater(Vector3.Dot(vehicle.transform.forward, Vector3.down), 0.7f, "viewport and light bar should face the seabed, the sphere trailing");
+                    }
+                }
+
+                Assert.IsTrue(lyingSeen, "never lay down to cruise");
+                Assert.That(firstLying, Is.InRange(0.6f, 1.3f), "pitch-over should take about a second");
+                Assert.IsTrue(vehicle.ReadyToBoard);
+                Assert.Less(Vector3.Angle(vehicle.transform.up, Vector3.up), 1f, "must land upright");
+                Assert.GreaterOrEqual(t - lastLying, 1.5f, "stands up and sinks for a while before touching down");
+            }
+            finally
+            {
+                Object.DestroyImmediate(rider.Body.gameObject);
+                Object.DestroyImmediate(vehicle.gameObject);
+            }
+        }
+
+        [Test]
+        public void The_last_part_of_a_flight_is_a_vertical_descent()
+        {
+            var vehicle = MakeVehicle(new Vector3(0f, 4f, 0f));
+            var rider = new Rider { Body = new GameObject("rider").transform };
+            try
+            {
+                var pickup = new Vector3(-6f, 0f, 15f);
+                vehicle.Book(rider, pickup, Vector3.zero);
+                var samples = new System.Collections.Generic.List<Vector3>();
+                for (var t = 0f; t < 40f && !vehicle.ReadyToBoard; t += 0.05f)
+                {
+                    vehicle.Step(t, 0.05f);
+                    samples.Add(vehicle.transform.position);
+                }
+
+                // The last second (20 steps): straight down over the stop, upright.
+                for (var i = samples.Count - 20; i < samples.Count; i++)
+                {
+                    var flat = new Vector2(samples[i].x - pickup.x, samples[i].z - pickup.z).magnitude;
+                    Assert.Less(flat, 0.01f, "drifted sideways while landing");
+                }
+
+                Assert.Greater(samples[samples.Count - 20].y, 0.5f, "no vertical sink before the stop");
+            }
+            finally
+            {
+                Object.DestroyImmediate(rider.Body.gameObject);
+                Object.DestroyImmediate(vehicle.gameObject);
+            }
+        }
+
+        [Test]
         public void A_crew_member_rides_in_the_sphere_and_steps_out_at_the_drop_off()
         {
             var vehicle = MakeVehicle(new Vector3(0f, 4f, 0f));
@@ -124,7 +199,14 @@ namespace Hadal.Tests.EditMode
                 Assert.AreEqual(ChallengerVehicle.RiderScale, rider.Body.localScale.x, 1e-4f);
                 Assert.IsFalse(vehicle.transform.Find("pilot").gameObject.activeSelf, "silhouette pilot should give way to the passenger");
 
-                Run(vehicle, t, 40f, () => rider.ArrivedAt.HasValue);
+                var rotatedWithHull = false;
+                Run(vehicle, t, 40f, () =>
+                {
+                    if (vehicle.HasPassenger && vehicle.Pitch > 80f)
+                        rotatedWithHull |= Vector3.Angle(rider.Body.up, vehicle.transform.up) < 0.5f && Vector3.Angle(rider.Body.up, Vector3.up) > 70f;
+                    return rider.ArrivedAt.HasValue;
+                });
+                Assert.IsTrue(rotatedWithHull, "the seated crew member should lie down with the hull");
                 Assert.IsTrue(rider.ArrivedAt.HasValue, "never arrived");
                 Assert.AreSame(crewRoot.transform, rider.Body.parent, "passenger not handed back to the crew");
                 Assert.AreEqual(1f, rider.Body.localScale.x, 1e-4f);
