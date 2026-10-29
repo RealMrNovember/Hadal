@@ -1,7 +1,7 @@
 # HADAL — Proje Yol Haritası
 
 **Güncelleme:** 2026-10-29
-**Yayındaki sürüm:** istemci **0.9.0** (Android, `hadal.cicibyte.com/download/hadal.apk`); sunucu `main` @ `52c1c8c` (CT 160).
+**Yayındaki sürüm:** istemci **0.9.0** (Android, `hadal.cicibyte.com/download/hadal.apk`); sunucu `main` @ `445d380` (CT 160).
 **Sürüm kuralı:** Oyun 1.0'a kadar **0.x** ile ilerler. Android sürüm kodu `1.000.000 + major·10000 + minor·100 + patch`.
 
 **Kaynaklar:**
@@ -35,8 +35,8 @@ Sıralama araştırmanın ana önerisine göre yapıldı (§16): önce **kaynak 
 | Sıra | İş | Neden şimdi | Durum |
 |---|---|---|---|
 | **1** | Sağlamlık ve kalite kapıları | Canlıda oyuncu var. Ekonomi ve savaş hatası güveni bozar (§14). | ⬜ |
-| **2** | PvP adaleti ve savaş motoru sürümlemesi | PvP açıldı. Adaletsizlik terk ettirir (§5.4, §9). | 🟡 |
-| **3** | İttifak bölgesi ve ittifak binaları | A ve B aşamaları canlıda; Şehir Listesi sayfası kaldı (docs/32). | 🟡 |
+| **2** | PvP adaleti ve savaş motoru sürümlemesi | Kurallar ve sürümlü savaş canlıda; kahraman metası ve sezon savaşı sonra (docs/33). | 🟡 |
+| **3** | İttifak bölgesi ve ittifak binaları | A, B aşamaları ve Şehir Listesi canlıda (docs/32). | ✅ |
 | **4** | Yeni deniz yaratıkları ve etkinlik boss'ları | PvE ekonomiyi ve ittifak hedefini besler (§6). | 🟡 |
 | **5** | İlk oturum akışı ve öğretici | Oyuncu ilk 10 dakikada ne yapacağını anlamalı (§16). | ⬜ |
 | **6** | Hayatta kalma döngüsü (oksijen, enerji, acil durum) | Oyunun kendine has gerilimi; temayı ekonomiye bağlar. | ⬜ |
@@ -80,21 +80,26 @@ Ayrıntılar aşağıda, aynı sırayla.
 - ✅ Sunucu otoriteli PvP: üs ve takım saldırısı, ralli, keşif, kalkanlar, saldırı alarmı (`6907e25`, `a6bbc57`, `5453444`)
 - ✅ Savaşların iki ittifakın savaş kaydına yazılması (`651a1c6`)
 - ✅ Takviye: koruyucu listesi savaş penceresinde (`afa1349`, `8c48786`)
-- ⬜ Saldırı yorgunluğu ya da hedef koruması (aynı küçük oyuncuya art arda saldırı)
-- ⬜ Yeni oyuncu koruması, güç aralığı kuralı, sınırlı çevrimdışı koruma (tam dokunulmazlık değil)
-- ⬜ Korunan depo payı. Yaralı ve kalıcı kayıp ayrımının Med Bay kapasitesine bağlanması
-- ⬜ Savaş motoru:
-  - her savaşta sürümlü istatistik görüntüsü, sabit rastgelelik tohumu ve dar rastgelelik aralığı
-  - saklanan savaş raporu: raundlar, kayıp, yaralı, yağma, tohum, kural sürümü
-- ⬜ Karşı sistemler (meta): ön hat, kontrol, destek, alan hasarı
-- ⬜ Ralli kuralları: en az asker sayısı, toplanma süresi ve kapasite. Ödüller katkıya göre dağıtılır, yalnızca en güçlülere değil.
-- ⬜ Anlaşılır sonuç ekranı: kayıp, yaralı, hasar, katkı, ödül
+- ✅ Adalet kuralları (`b252963`, docs/33):
+  - güç aralığı: saldıran hedefin 4 katından güçlüyse üs saldırısı, keşif ve ralli yok
+  - saldırı yorgunluğu: aynı üsse 2 saat içindeki galibiyetlerde yağma %100/%50/%25, 4. saldırı reddedilir
+  - toparlanma kalkanı: 6 saatte 3 savunma kaybı 2 saatlik kalkan verir (24 saatte en fazla bir kez)
+  - yaralılar sahibinin Med Bay yeriyle sınırlı, fazlası ölür; saldıranın düşenlerinin %25'i kalıcı kayıp
+  - başlangıç tamponu: en dış üs kuşağına merkez, şamandıra ya da bina kurulamaz
+  - saldırı, keşif ve ralli gidişte hızlandırılamaz
+- ✅ Savaş motoru bütünlüğü: `CombatRules` sürüm 2, savaş kimliğinden tohum, tur başına 0,97–1,03 rastgelelik; rapor tohumu ve kural sürümünü saklar. Komut tekrarı ve tek seferlik sonuç zaten vardı.
+- ✅ Ralli kuralları: takım başına en az 100 asker, raporda üye başına katkı yüzdesi ve yağma payı
+- ✅ Sonuç ekranı: iki ordu türüne göre, ölü ve yaralı, yağma, yorgunluk yüzdesi, katkı, turlar, savaş kimliği, tohum, sürüm (`445d380`)
+- ⬜ Korunan depo payı
+- ⬜ Karşı sistemler (meta): kahramanlarda kontrol, destek, alan hasarı
+- ⬜ Sezon savaşı; arena ve düello Sıra 8'de
+- ⬜ Yorgunluk ve toparlanma sayaçları bellekte; sunucu yeniden başlayınca sıfırlanıyor, kalıcı hale getirilmeli
 
 **Çıkış kriteri:** Aynı giriş aynı sürümde aynı sonucu verir. İstismar testleri (çoklu saldırı, yarış koşulu, çevrimdışı) yeşil.
 
 ---
 
-## 3. İttifak bölgesi ve ittifak binaları 🟡
+## 3. İttifak bölgesi ve ittifak binaları ✅
 
 **Hedef:** `docs/32`. Bayrakla doğan ve ittifak büyüdükçe genişleyen alan; liderlerin kurduğu, üyelerin koruyup geliştirdiği binalar.
 
@@ -105,7 +110,7 @@ Ayrıntılar aşağıda, aynı sırayla.
   - Şehirler ayrı katmanda: alana 4 kare yakınlıkta saldırılabilir, en fazla 6 şehir.
   - Haritada alan ittifak renginde boyanıyor. Bayrak menüleri var. Etiketler artık ekranı kaplamıyor.
   - Çoklu dünya için temel: `world_id`.
-- 🟡 Şehir Listesi sayfası: ittifak ana sayfasında yeni bölüm.
+- ✅ Şehir Listesi (`445d380`): İşgal edilmiş / Alınabilir sekmeleri, seviye filtresi, dokunulabilir koordinat, km, sahip, "komşu, saldırılabilir" işareti, sahip olunan/izin verilen sayısı; Şehir Bonusu (şehir başına her yerde +%5 toplama hızı)
 - ✅ **B aşaması** (`3b5ba03`, `52c1c8c`): ittifak binaları
   - Röle (+%3 savunma/seviye, 5 üye), Sondaj (+%5 toplama, 10 üye ve 1 M güç), Top (+%3 saldırı, 15 üye ve 3 M güç)
   - R4/R5 alana yerleştirir; üyeler takım göndererek inşa eder, takımlar muhafız olarak kalır
