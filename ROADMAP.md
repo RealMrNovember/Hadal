@@ -1,7 +1,7 @@
 # HADAL — Proje Yol Haritası
 
 **Güncelleme:** 2026-10-29
-**Yayındaki sürüm:** istemci **0.9.0** (Android, `hadal.cicibyte.com/download/hadal.apk`); sunucu `main` @ `445d380` (CT 160).
+**Yayındaki sürüm:** istemci **0.9.0** (Android, `hadal.cicibyte.com/download/hadal.apk`); sunucu `main` @ `4f47658` (CT 160).
 **Sürüm kuralı:** Oyun 1.0'a kadar **0.x** ile ilerler. Android sürüm kodu `1.000.000 + major·10000 + minor·100 + patch`.
 
 **Kaynaklar:**
@@ -35,7 +35,7 @@ Sıralama araştırmanın ana önerisine göre yapıldı (§16): önce **kaynak 
 | Sıra | İş | Neden şimdi | Durum |
 |---|---|---|---|
 | **1** | Sağlamlık ve kalite kapıları | Canlıda oyuncu var. Ekonomi ve savaş hatası güveni bozar (§14). | ⬜ |
-| **2** | PvP adaleti ve savaş motoru sürümlemesi | Kurallar ve sürümlü savaş canlıda; kahraman metası ve sezon savaşı sonra (docs/33). | 🟡 |
+| **2** | PvP adaleti ve savaş motoru sürümlemesi | Tamamlandı; kahraman metası ve sezon savaşı sonraki aşamalarda (docs/33). | ✅ |
 | **3** | İttifak bölgesi ve ittifak binaları | A, B aşamaları ve Şehir Listesi canlıda (docs/32). | ✅ |
 | **4** | Yeni deniz yaratıkları ve etkinlik boss'ları | PvE ekonomiyi ve ittifak hedefini besler (§6). | 🟡 |
 | **5** | İlk oturum akışı ve öğretici | Oyuncu ilk 10 dakikada ne yapacağını anlamalı (§16). | ⬜ |
@@ -73,7 +73,7 @@ Ayrıntılar aşağıda, aynı sırayla.
 
 ---
 
-## 2. PvP adaleti ve savaş motoru sürümlemesi 🟡
+## 2. PvP adaleti ve savaş motoru sürümlemesi ✅
 
 **Hedef:** Araştırma §5.4 ve §9. Kaybeden toparlanabilir, güçlü oyuncu zayıfı ezemez, her savaş tekrar üretilebilir.
 
@@ -90,10 +90,10 @@ Ayrıntılar aşağıda, aynı sırayla.
 - ✅ Savaş motoru bütünlüğü: `CombatRules` sürüm 2, savaş kimliğinden tohum, tur başına 0,97–1,03 rastgelelik; rapor tohumu ve kural sürümünü saklar. Komut tekrarı ve tek seferlik sonuç zaten vardı.
 - ✅ Ralli kuralları: takım başına en az 100 asker, raporda üye başına katkı yüzdesi ve yağma payı
 - ✅ Sonuç ekranı: iki ordu türüne göre, ölü ve yaralı, yağma, yorgunluk yüzdesi, katkı, turlar, savaş kimliği, tohum, sürüm (`445d380`)
-- ✅ Korunan depo payı: her kaynaktan reaktör seviyesi × 5.000 saldırıyla alınamaz, Hadalit hiç alınamaz (ayrı bir Kasa binası henüz yok)
+- ✅ Korunan depo payı (`4f47658`): saldırı yalnızca korunan miktarın üstündekinin %20'sini alır; korunan miktar = depo sınırı × (%10 + Kalkan Jeneratörü seviyesi başına %4), en az reaktör × 5.000; Hadalit hiç alınamaz. Savaş penceresinin kalkan sekmesinde görünür.
 - ⬜ Karşı sistemler (meta): kahramanlarda kontrol, destek, alan hasarı
 - ⬜ Sezon savaşı; arena ve düello Sıra 8'de
-- ⬜ Yorgunluk ve toparlanma sayaçları bellekte; sunucu yeniden başlayınca sıfırlanıyor, kalıcı hale getirilmeli
+- ✅ Yorgunluk, kaybedilen savunmalar ve toparlanma kalkanı `hadal.world_fairness` tablosunda kalıcı (`4f47658`)
 
 **Çıkış kriteri:** Aynı giriş aynı sürümde aynı sonucu verir. İstismar testleri (çoklu saldırı, yarış koşulu, çevrimdışı) yeşil.
 
