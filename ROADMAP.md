@@ -204,6 +204,7 @@ Ayrıntılar aşağıda, aynı sırayla.
 ## 10. Seferler, basınç, sonar ve denizaltı filosu ⬜
 
 - ✅ Sonar enerjisi ve canavar saldırıları; toplama seferleri; tek denizaltılı takım görünümü
+- ✅ Yürüyüş hızı araştırması (`3037142`): Araştırma Merkezi'nde İtki ağacı. İtici Verimliliği +%4 (10 sv., Merkez 1), Hidrodinamik Gövde +%5 (5 sv., Merkez 8), toplam +%65: 20 dk'lık yol 12:07. Hızlı Dönüş toplama ekiplerine eve dönüşte +%25. VIP ve ittifak araştırmasıyla toplanır; toplama, canavar/boss, PvP ve ralli yolculuklarında sunucu uygular. Sunucu 374/374, Unity EditMode 178/178. Katalog tasarımı v13 ile yayınlanacak
 - ⬜ Derinlik katmanları ve basınç dayanımı (`docs/07`)
 - ⬜ Sefer örnekleri ve sonar bölgeleri (`docs/08`)
 - ⬜ Denizaltı filosu, gövde istatistikleri ve üretim
