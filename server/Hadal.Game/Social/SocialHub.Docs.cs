@@ -14,6 +14,7 @@ namespace Hadal.Game.Social
                 LoadPurses(docs);
                 LoadGifts(docs);
                 LoadResearch(docs);
+                LoadKills(docs);
             }
             _logger.LogInformation("Social hub: {Docs} alliance documents.", docs.Count);
         }

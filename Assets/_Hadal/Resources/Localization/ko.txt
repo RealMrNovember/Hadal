@@ -1239,3 +1239,11 @@ alliance.research.effect.dev_storage = 저장 +{0}% (다음 +{1}%)
 alliance.research.effect.dev_gather = 채집 +{0}% (다음 +{1}%)
 alliance.research.effect.war_march = 행군 속도 +{0}% (다음 +{1}%)
 alliance.research.effect.war_load = 부대 적재 +{0}% (다음 +{1}%)
+
+# Alliance rankings (docs/31 §2)
+alliance.rank.tab.power = 전투력
+alliance.rank.tab.kills = 처치
+alliance.rank.tab.donations = 기부
+alliance.rank.mine = 내 순위
+alliance.rank.kills = 병력 {0} 처치
+alliance.rank.donated = 기부 {0}점

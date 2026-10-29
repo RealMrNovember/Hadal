@@ -1239,3 +1239,11 @@ alliance.research.effect.dev_storage = Kho chứa +{0}% (tiếp +{1}%)
 alliance.research.effect.dev_gather = Thu thập +{0}% (tiếp +{1}%)
 alliance.research.effect.war_march = Tốc độ hành quân +{0}% (tiếp +{1}%)
 alliance.research.effect.war_load = Sức chở đội +{0}% (tiếp +{1}%)
+
+# Alliance rankings (docs/31 §2)
+alliance.rank.tab.power = Sức mạnh
+alliance.rank.tab.kills = Tiêu diệt
+alliance.rank.tab.donations = Quyên góp
+alliance.rank.mine = Hạng của bạn
+alliance.rank.kills = Đã hạ {0} quân
+alliance.rank.donated = {0} điểm quyên góp

@@ -1240,3 +1240,11 @@ alliance.research.effect.dev_storage = Storage +{0}% (next +{1}%)
 alliance.research.effect.dev_gather = Gathering +{0}% (next +{1}%)
 alliance.research.effect.war_march = March speed +{0}% (next +{1}%)
 alliance.research.effect.war_load = Team load +{0}% (next +{1}%)
+
+# Alliance rankings (docs/31 §2)
+alliance.rank.tab.power = Power
+alliance.rank.tab.kills = Kills
+alliance.rank.tab.donations = Donations
+alliance.rank.mine = Your place
+alliance.rank.kills = {0} troops defeated
+alliance.rank.donated = {0} donation points

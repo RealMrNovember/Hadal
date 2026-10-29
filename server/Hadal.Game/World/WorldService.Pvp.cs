@@ -339,6 +339,7 @@ CREATE TABLE IF NOT EXISTS hadal.world_pvp (
             };
 
             LogBattle(r, result.AttackerWon, now);
+            CreditKills(r, result, now);
             var defenceReport = Base("defence", !result.AttackerWon);
             defenceReport.Dead = homeDead;
             defenceReport.Wounded = homeWounded;
@@ -417,6 +418,7 @@ CREATE TABLE IF NOT EXISTS hadal.world_pvp (
             };
 
             LogBattle(r, result.AttackerWon, now);
+            CreditKills(r, result, now);
             var hit = Report("team", !result.AttackerWon);
             (hit.Dead, hit.Wounded) = (dead, wounded);
             hit.Plunder = ResourceAmountEntry.FromMap(taken);

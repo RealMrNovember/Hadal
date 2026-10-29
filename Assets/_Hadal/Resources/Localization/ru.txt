@@ -1239,3 +1239,11 @@ alliance.research.effect.dev_storage = Хранилище +{0}% (далее +{1}
 alliance.research.effect.dev_gather = Сбор +{0}% (далее +{1}%)
 alliance.research.effect.war_march = Скорость марша +{0}% (далее +{1}%)
 alliance.research.effect.war_load = Груз отряда +{0}% (далее +{1}%)
+
+# Alliance rankings (docs/31 §2)
+alliance.rank.tab.power = Мощь
+alliance.rank.tab.kills = Уничтожено
+alliance.rank.tab.donations = Взносы
+alliance.rank.mine = Ваше место
+alliance.rank.kills = Уничтожено войск: {0}
+alliance.rank.donated = Очков взносов: {0}

@@ -1239,3 +1239,11 @@ alliance.research.effect.dev_storage = Opslag +{0}% (volgende +{1}%)
 alliance.research.effect.dev_gather = Verzamelen +{0}% (volgende +{1}%)
 alliance.research.effect.war_march = Marssnelheid +{0}% (volgende +{1}%)
 alliance.research.effect.war_load = Teamlast +{0}% (volgende +{1}%)
+
+# Alliance rankings (docs/31 §2)
+alliance.rank.tab.power = Kracht
+alliance.rank.tab.kills = Kills
+alliance.rank.tab.donations = Donaties
+alliance.rank.mine = Jouw plaats
+alliance.rank.kills = {0} troepen verslagen
+alliance.rank.donated = {0} donatiepunten

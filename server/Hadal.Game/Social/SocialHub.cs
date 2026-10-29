@@ -91,7 +91,7 @@ namespace Hadal.Game.Social
             or CommandType.SetMemberRank or CommandType.TransferLeadership or CommandType.SetAllianceSettings or CommandType.InviteToAlliance
             or CommandType.AnswerInvite or CommandType.AnswerApplication or CommandType.SetAllianceInfo or CommandType.ViewAllianceLog
             or CommandType.BuyAllianceItem or CommandType.CollectAllianceGift or CommandType.DonateAllianceResearch
-            or CommandType.SetResearchFocus;
+            or CommandType.SetResearchFocus or CommandType.ViewAllianceRanking;
 
         /// <summary>Loads alliances and recent chat. Call once at startup, after the schema exists.</summary>
         public async Task InitializeAsync(CancellationToken cancellationToken)
@@ -229,6 +229,9 @@ namespace Hadal.Game.Social
                         break;
                     case CommandType.TransferLeadership when TryDeserialize(envelope.Payload, out TransferLeadershipCommand? transfer):
                         Done(session, transfer!.CommandId, transfer.ClientSequence, Transfer(session.PublicId, transfer.MemberId, now), now);
+                        break;
+                    case CommandType.ViewAllianceRanking when TryDeserialize(envelope.Payload, out ViewAllianceRankingCommand? ranking):
+                        Done(session, ranking!.CommandId, ranking.ClientSequence, ViewRanking(session, ranking, now), now);
                         break;
                     case CommandType.DonateAllianceResearch when TryDeserialize(envelope.Payload, out DonateAllianceResearchCommand? donate):
                         Done(session, donate!.CommandId, donate.ClientSequence, Donate(session, now), now);

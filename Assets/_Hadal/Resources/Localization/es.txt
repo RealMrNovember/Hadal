@@ -1239,3 +1239,11 @@ alliance.research.effect.dev_storage = Almacén +{0}% (siguiente +{1}%)
 alliance.research.effect.dev_gather = Recolección +{0}% (siguiente +{1}%)
 alliance.research.effect.war_march = Marcha +{0}% (siguiente +{1}%)
 alliance.research.effect.war_load = Carga del equipo +{0}% (siguiente +{1}%)
+
+# Alliance rankings (docs/31 §2)
+alliance.rank.tab.power = Poder
+alliance.rank.tab.kills = Bajas
+alliance.rank.tab.donations = Donaciones
+alliance.rank.mine = Tu puesto
+alliance.rank.kills = {0} tropas derrotadas
+alliance.rank.donated = {0} puntos donados

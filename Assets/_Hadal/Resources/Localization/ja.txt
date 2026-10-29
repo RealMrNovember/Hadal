@@ -1239,3 +1239,11 @@ alliance.research.effect.dev_storage = 貯蔵 +{0}%（次 +{1}%）
 alliance.research.effect.dev_gather = 採集 +{0}%（次 +{1}%）
 alliance.research.effect.war_march = 行軍速度 +{0}%（次 +{1}%）
 alliance.research.effect.war_load = 部隊積載 +{0}%（次 +{1}%）
+
+# Alliance rankings (docs/31 §2)
+alliance.rank.tab.power = 戦力
+alliance.rank.tab.kills = 撃破
+alliance.rank.tab.donations = 寄付
+alliance.rank.mine = あなたの順位
+alliance.rank.kills = {0}部隊を撃破
+alliance.rank.donated = 寄付{0}ポイント

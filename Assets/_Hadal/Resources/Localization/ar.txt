@@ -1239,3 +1239,11 @@ alliance.research.effect.dev_storage = التخزين +{0}% (التالي +{1}%)
 alliance.research.effect.dev_gather = الجمع +{0}% (التالي +{1}%)
 alliance.research.effect.war_march = سرعة الزحف +{0}% (التالي +{1}%)
 alliance.research.effect.war_load = حمولة الفريق +{0}% (التالي +{1}%)
+
+# Alliance rankings (docs/31 §2)
+alliance.rank.tab.power = القوة
+alliance.rank.tab.kills = القتلى
+alliance.rank.tab.donations = التبرعات
+alliance.rank.mine = مركزك
+alliance.rank.kills = هزم {0} من القوات
+alliance.rank.donated = {0} نقطة تبرع

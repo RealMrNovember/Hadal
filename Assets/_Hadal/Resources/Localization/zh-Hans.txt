@@ -1239,3 +1239,11 @@ alliance.research.effect.dev_storage = 仓储 +{0}%（下级 +{1}%）
 alliance.research.effect.dev_gather = 采集 +{0}%（下级 +{1}%）
 alliance.research.effect.war_march = 行军速度 +{0}%（下级 +{1}%）
 alliance.research.effect.war_load = 部队负重 +{0}%（下级 +{1}%）
+
+# Alliance rankings (docs/31 §2)
+alliance.rank.tab.power = 战力
+alliance.rank.tab.kills = 击杀
+alliance.rank.tab.donations = 捐献
+alliance.rank.mine = 你的排名
+alliance.rank.kills = 击败{0}名士兵
+alliance.rank.donated = 捐献{0}点

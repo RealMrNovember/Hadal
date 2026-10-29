@@ -11,7 +11,7 @@ namespace Hadal.UI
     /// <summary>
     /// The alliance hub (docs/31 §1, sampled from Last Asylum): a header card (banner, [TAG] Name, leader, power, members,
     /// language) with the officers' announcement under it, a two-column grid of tiles with red dots, and a bottom bar with
-    /// the logs, applications and settings. Pages that do not exist yet say so; War opens the PvP war window and Rally
+    /// the logs, applications and settings. War opens the PvP war window and Rally
     /// Point the PvP rally card (<see cref="RallyPointPrompt"/>).
     /// </summary>
     public sealed partial class SocialView
@@ -76,7 +76,7 @@ namespace Hadal.UI
                 (Loc.T("alliance.tile.shop"), "shop", false, () => OpenAllianceTab(AllianceTabShop)),
                 (Loc.T("alliance.tile.research"), "left_research", false,
                     () => OpenAllianceTab(AllianceTabResearch)),
-                (Loc.T("alliance.tile.rankings"), "power", false, () => AllianceSoon("alliance.tile.rankings")),
+                (Loc.T("alliance.tile.rankings"), "power", false, () => OpenAllianceRankings(0)),
                 (Loc.T("alliance.tile.rally"), "nav_world", false, () => { Close(); RallyPointPrompt.Instance?.OpenRallyPoint(); }),
                 (Loc.T("alliance.tile.log"), "quest", false, () => OpenAllianceLog(AllianceLogKinds.Log))
             };
@@ -136,8 +136,6 @@ namespace Hadal.UI
             else
                 Toast(Loc.T("alliance.war.soon"), UiKit.Amber);
         }
-
-        private void AllianceSoon(string key) => Toast(Loc.F("alliance.soon", Loc.T(key)), UiKit.Amber);
 
         /// <summary>The announcement (officers) and the alliance language (the leader).</summary>
         private void RenderAnnouncementEditor(AllianceDto alliance, int myRank)

@@ -174,6 +174,7 @@ namespace Hadal.Core.Network
                 CollectAllianceGiftCommand => CommandType.CollectAllianceGift,
                 DonateAllianceResearchCommand => CommandType.DonateAllianceResearch,
                 SetResearchFocusCommand => CommandType.SetResearchFocus,
+                ViewAllianceRankingCommand => CommandType.ViewAllianceRanking,
                 MarchAttackCommand => CommandType.MarchAttack,
                 MarchPvpCommand => CommandType.MarchPvp,
                 ViewWarCommand => CommandType.ViewWar,

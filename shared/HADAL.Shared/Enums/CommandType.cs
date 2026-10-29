@@ -73,5 +73,6 @@ namespace HADAL.Shared.Enums
         [ProtoEnum] CollectAllianceGift = 65,
         [ProtoEnum] DonateAllianceResearch = 66,
         [ProtoEnum] SetResearchFocus = 67,
+        [ProtoEnum] ViewAllianceRanking = 68,
     }
 }

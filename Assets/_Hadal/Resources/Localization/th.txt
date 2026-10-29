@@ -1239,3 +1239,11 @@ alliance.research.effect.dev_storage = คลังเก็บ +{0}% (ถัด
 alliance.research.effect.dev_gather = การเก็บ +{0}% (ถัดไป +{1}%)
 alliance.research.effect.war_march = ความเร็วเดินทัพ +{0}% (ถัดไป +{1}%)
 alliance.research.effect.war_load = บรรทุกของทีม +{0}% (ถัดไป +{1}%)
+
+# Alliance rankings (docs/31 §2)
+alliance.rank.tab.power = พลัง
+alliance.rank.tab.kills = สังหาร
+alliance.rank.tab.donations = บริจาค
+alliance.rank.mine = อันดับของคุณ
+alliance.rank.kills = ปราบทหาร {0} นาย
+alliance.rank.donated = แต้มบริจาค {0}

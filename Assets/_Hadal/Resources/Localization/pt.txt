@@ -1239,3 +1239,11 @@ alliance.research.effect.dev_storage = Armazém +{0}% (próximo +{1}%)
 alliance.research.effect.dev_gather = Coleta +{0}% (próximo +{1}%)
 alliance.research.effect.war_march = Marcha +{0}% (próximo +{1}%)
 alliance.research.effect.war_load = Carga da equipe +{0}% (próximo +{1}%)
+
+# Alliance rankings (docs/31 §2)
+alliance.rank.tab.power = Poder
+alliance.rank.tab.kills = Abates
+alliance.rank.tab.donations = Doações
+alliance.rank.mine = Sua posição
+alliance.rank.kills = {0} tropas derrotadas
+alliance.rank.donated = {0} pontos doados

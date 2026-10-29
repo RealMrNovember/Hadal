@@ -1240,3 +1240,11 @@ alliance.research.effect.dev_storage = Depo +%{0} (sonraki +%{1})
 alliance.research.effect.dev_gather = Toplama +%{0} (sonraki +%{1})
 alliance.research.effect.war_march = Yürüyüş hızı +%{0} (sonraki +%{1})
 alliance.research.effect.war_load = Takım yükü +%{0} (sonraki +%{1})
+
+# Alliance rankings (docs/31 §2)
+alliance.rank.tab.power = Güç
+alliance.rank.tab.kills = Yok Edilen
+alliance.rank.tab.donations = Bağış
+alliance.rank.mine = Senin sıran
+alliance.rank.kills = {0} asker yok etti
+alliance.rank.donated = {0} bağış puanı

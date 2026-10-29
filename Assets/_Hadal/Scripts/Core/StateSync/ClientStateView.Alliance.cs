@@ -49,6 +49,20 @@ namespace Hadal.Core.StateSync
             AllianceResearchVersion++;
         }
 
+        private readonly Dictionary<string, AllianceRankingDto> _allianceRankings = new Dictionary<string, AllianceRankingDto>();
+        public int AllianceRankingVersion { get; private set; }
+
+        public void ApplyAllianceRanking(AllianceRankingDto ranking)
+        {
+            if (ranking == null || string.IsNullOrEmpty(ranking.Kind))
+                return;
+            _allianceRankings[ranking.Kind] = ranking;
+            AllianceRankingVersion++;
+        }
+
+        /// <summary>An alliance ranking ("power", "kills", "donations") as last fetched, or null.</summary>
+        public AllianceRankingDto AllianceRanking(string kind) => _allianceRankings.TryGetValue(kind ?? string.Empty, out var r) ? r : null;
+
         /// <summary>The log of a kind ("log" or "battle"), or null before it was fetched.</summary>
         public AllianceLogDto AllianceLog(string kind) => _allianceLogs.TryGetValue(kind ?? string.Empty, out var log) ? log : null;
     }

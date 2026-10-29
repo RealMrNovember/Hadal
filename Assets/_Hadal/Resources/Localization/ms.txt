@@ -1239,3 +1239,11 @@ alliance.research.effect.dev_storage = Simpanan +{0}% (seterusnya +{1}%)
 alliance.research.effect.dev_gather = Pengumpulan +{0}% (seterusnya +{1}%)
 alliance.research.effect.war_march = Kelajuan kawad +{0}% (seterusnya +{1}%)
 alliance.research.effect.war_load = Muatan pasukan +{0}% (seterusnya +{1}%)
+
+# Alliance rankings (docs/31 §2)
+alliance.rank.tab.power = Kuasa
+alliance.rank.tab.kills = Bunuhan
+alliance.rank.tab.donations = Derma
+alliance.rank.mine = Kedudukan anda
+alliance.rank.kills = {0} tentera ditewaskan
+alliance.rank.donated = {0} mata derma

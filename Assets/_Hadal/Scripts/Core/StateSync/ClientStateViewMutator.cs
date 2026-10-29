@@ -225,6 +225,13 @@ namespace Hadal.Core.StateSync
                 return true;
             }
 
+            if (id.StartsWith(EntityIds.AllianceRanking, StringComparison.Ordinal))
+            {
+                if (TryDeserializePayload(change.Payload, serialization, out AllianceRankingDto ranking))
+                    view.ApplyAllianceRanking(ranking);
+                return true;
+            }
+
             if (id == EntityIds.AllianceResearch)
             {
                 if (TryDeserializePayload(change.Payload, serialization, out AllianceResearchDto research))
