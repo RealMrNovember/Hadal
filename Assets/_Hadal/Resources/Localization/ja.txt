@@ -975,3 +975,26 @@ mail.note = メールは30日後に削除され、未受取の添付も失われ
 reason.UnknownMail = このメールはもう存在しません。
 reason.NothingToClaim = 受け取るものがありません。
 reason.MailHasAttachments = 先に添付を受け取ってください。
+
+# Player mail (MailRules)
+mail.reply = 返信
+mail.compose = メールを書く
+mail.to = 宛先：{0}
+mail.left = 本日の残り送信数：{0}/{1}
+mail.titleHint = 件名
+mail.bodyHint = メッセージ…
+mail.resources = 資源を送る（同盟）
+mail.allowance = 本日の残り：{0}・所持：{1}
+mail.resourcesMatesOnly = 資源は同じ同盟のプレイヤーにのみ送れます。
+mail.cancel = キャンセル
+mail.send = 送信
+mail.sent = メールを送信しました。
+mail.sender.player = プレイヤー
+reason.InvalidMailTitle = 件名を入力してください（80文字まで）。
+reason.InvalidMailBody = メッセージが長すぎます（1000文字まで）。
+reason.CannotMailSelf = 自分にはメールを送れません。
+reason.NotSameAlliance = 資源は同じ同盟のプレイヤーにのみ送れます。
+reason.ResourceNotSendable = ハダライトと超合金は送れません。
+reason.MailLimitReached = 本日の送信回数を使い切りました。
+reason.MailResourceLimit = この資源の本日の送信上限に達しました。
+reason.MailFailed = メールを送信できませんでした。資源は返却されました。

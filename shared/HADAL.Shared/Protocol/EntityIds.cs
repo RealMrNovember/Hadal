@@ -94,6 +94,9 @@ namespace HADAL.Shared.Protocol
         /// <summary>The player's mailbox, newest first, with the unread count (<c>MailListDto</c>).</summary>
         public const string Mail = Base + "mail";
 
+        /// <summary>What the player may still mail today: mails and resources (<c>MailQuotaDto</c>).</summary>
+        public const string MailQuota = Base + "mailquota";
+
         public const string Event = "event:";
 
         /// <summary>Every event the player can see with their progress (<c>EventListDto</c>).</summary>

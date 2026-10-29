@@ -976,3 +976,26 @@ mail.note = Postalar 30 gün sonra silinir; alınmamış ekler de onlarla gider.
 reason.UnknownMail = Bu posta artık yok.
 reason.NothingToClaim = Alınacak ek yok.
 reason.MailHasAttachments = Önce ekleri al.
+
+# Player mail (MailRules)
+mail.reply = Yanıtla
+mail.compose = Posta yaz
+mail.to = Alıcı: {0}
+mail.left = Bugün kalan posta: {0}/{1}
+mail.titleHint = Başlık
+mail.bodyHint = Mesajın…
+mail.resources = Kaynak gönder (ittifak)
+mail.allowance = Bugün kalan: {0} · Sende: {1}
+mail.resourcesMatesOnly = Kaynak yalnızca aynı ittifaktaki oyunculara gönderilebilir.
+mail.cancel = Vazgeç
+mail.send = Posta gönder
+mail.sent = Posta gönderildi.
+mail.sender.player = Oyuncu
+reason.InvalidMailTitle = Bir başlık yaz (en çok 80 karakter).
+reason.InvalidMailBody = Mesaj çok uzun (en çok 1000 karakter).
+reason.CannotMailSelf = Kendine posta gönderemezsin.
+reason.NotSameAlliance = Kaynak yalnızca aynı ittifaktaki oyunculara gönderilebilir.
+reason.ResourceNotSendable = Hadalit ve Süperalaşım gönderilemez.
+reason.MailLimitReached = Bugünkü posta hakkın doldu.
+reason.MailResourceLimit = Bu kaynağın bugünkü gönderim sınırına ulaştın.
+reason.MailFailed = Posta gönderilemedi; kaynakların iade edildi.

@@ -40,7 +40,8 @@ namespace Hadal.UI
             Vip,
             Shop,
             Mail,
-            MailDetail
+            MailDetail,
+            MailCompose
         }
 
         private static readonly CommandType[] OwnCommands =
@@ -51,7 +52,8 @@ namespace Hadal.UI
             CommandType.ClaimQuest, CommandType.ClaimDailyChest, CommandType.OpenItem, CommandType.RecruitHero,
             CommandType.DiveStage, CommandType.SetMemberRank, CommandType.TransferLeadership, CommandType.SetAllianceSettings,
             CommandType.AnswerInvite, CommandType.AnswerApplication, CommandType.ClaimEventStage, CommandType.ClaimEventRank,
-            CommandType.ClaimVipLogin, CommandType.ClaimVipChest, CommandType.ReadMail, CommandType.ClaimMail, CommandType.DeleteMail
+            CommandType.ClaimVipLogin, CommandType.ClaimVipChest, CommandType.ReadMail, CommandType.ClaimMail, CommandType.DeleteMail,
+            CommandType.SendMail
         };
 
         private IStateSyncService _stateSync;
@@ -253,6 +255,7 @@ namespace Hadal.UI
             Page.Events or Page.EventRanking => $"{_page}|{EventsKey()}",
             Page.Vip or Page.Shop => $"{_page}|{VipKey()}",
             Page.Mail or Page.MailDetail => $"{_page}|{MailKey()}",
+            Page.MailCompose => $"{_page}|{ComposeKey()}",
             _ => _page.ToString()
         };
 
@@ -317,6 +320,7 @@ namespace Hadal.UI
                 case Page.Shop: RenderShop(); break;
                 case Page.Mail: RenderMail(); break;
                 case Page.MailDetail: RenderMailDetail(); break;
+                case Page.MailCompose: RenderMailCompose(); break;
             }
 
             if (_page == Page.Chat && atBottom)
@@ -367,6 +371,7 @@ namespace Hadal.UI
                 CommandType.HelpAll => Loc.T("alliance.help.sent"),
                 CommandType.RecruitHero => Loc.T("hero.recruited"),
                 CommandType.DeleteMail => Loc.T("mail.deleted"),
+                CommandType.SendMail => MailSent(),
                 _ => string.Empty
             };
             if (text.Length > 0)

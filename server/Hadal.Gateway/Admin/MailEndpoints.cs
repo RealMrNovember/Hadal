@@ -1,6 +1,7 @@
 using Hadal.Game;
 using Hadal.Game.Mailbox;
 using HADAL.Shared.Enums;
+using HADAL.Shared.Simulation;
 
 namespace Hadal.Gateway.Admin
 {

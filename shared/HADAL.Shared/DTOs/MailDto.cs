@@ -8,7 +8,7 @@ namespace HADAL.Shared.DTOs
     {
         [ProtoMember(1)] public string Id { get; set; } = string.Empty;
 
-        /// <summary>"system", "admin", "event" or "alliance".</summary>
+        /// <summary>"system", "admin", "event", "alliance" or "player".</summary>
         [ProtoMember(2)] public string Kind { get; set; } = string.Empty;
         [ProtoMember(3)] public string Sender { get; set; } = string.Empty;
         [ProtoMember(4)] public string Title { get; set; } = string.Empty;
@@ -22,6 +22,21 @@ namespace HADAL.Shared.DTOs
 
         /// <summary>Resources ("resource", type name) and bag items ("item", item id).</summary>
         [ProtoMember(10)] public RewardEntryDto[] Attachments { get; set; } = System.Array.Empty<RewardEntryDto>();
+
+        /// <summary>The sending player's public id (player mails; reply goes there); empty otherwise.</summary>
+        [ProtoMember(11)] public string SenderId { get; set; } = string.Empty;
+    }
+
+    /// <summary>What the player may still send today (MailRules); counted per UTC day.</summary>
+    [ProtoContract]
+    public sealed class MailQuotaDto
+    {
+        /// <summary>The UTC day the counts belong to; on a later day everything is open again.</summary>
+        [ProtoMember(1)] public long Day { get; set; }
+        [ProtoMember(2)] public int MailsLeft { get; set; }
+
+        /// <summary>Resources still sendable today, one entry per sendable resource.</summary>
+        [ProtoMember(3)] public ResourceAmountEntry[] Left { get; set; } = System.Array.Empty<ResourceAmountEntry>();
     }
 
     /// <summary>The mailbox, newest first.</summary>

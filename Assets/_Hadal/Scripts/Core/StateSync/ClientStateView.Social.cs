@@ -161,6 +161,16 @@ namespace Hadal.Core.StateSync
             MailVersion++;
         }
 
+        /// <summary>What the player may still mail today (MailRules).</summary>
+        public MailQuotaDto MailQuota { get; private set; }
+        public int MailQuotaVersion { get; private set; }
+
+        public void ApplyMailQuota(MailQuotaDto quota)
+        {
+            MailQuota = quota;
+            MailQuotaVersion++;
+        }
+
         /// <summary>Events the player can see, with their progress (docs/29).</summary>
         public EventListDto Events { get; private set; } = new EventListDto();
         public int EventsVersion { get; private set; }

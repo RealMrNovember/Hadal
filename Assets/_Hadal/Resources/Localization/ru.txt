@@ -975,3 +975,26 @@ mail.note = Письма удаляются через 30 дней вместе 
 reason.UnknownMail = Этого письма больше нет.
 reason.NothingToClaim = Нечего забирать.
 reason.MailHasAttachments = Сначала заберите вложения.
+
+# Player mail (MailRules)
+mail.reply = Ответить
+mail.compose = Написать письмо
+mail.to = Кому: {0}
+mail.left = Писем осталось сегодня: {0}/{1}
+mail.titleHint = Тема
+mail.bodyHint = Ваше сообщение…
+mail.resources = Отправить ресурсы (альянс)
+mail.allowance = Осталось сегодня: {0} · У вас: {1}
+mail.resourcesMatesOnly = Ресурсы можно отправлять только игрокам своего альянса.
+mail.cancel = Отмена
+mail.send = Отправить
+mail.sent = Письмо отправлено.
+mail.sender.player = Игрок
+reason.InvalidMailTitle = Укажите тему (не более 80 символов).
+reason.InvalidMailBody = Сообщение слишком длинное (не более 1000 символов).
+reason.CannotMailSelf = Нельзя отправить письмо самому себе.
+reason.NotSameAlliance = Ресурсы можно отправлять только игрокам своего альянса.
+reason.ResourceNotSendable = Хадалит и суперсплав отправлять нельзя.
+reason.MailLimitReached = Лимит писем на сегодня исчерпан.
+reason.MailResourceLimit = Достигнут дневной лимит отправки этого ресурса.
+reason.MailFailed = Письмо не отправлено; ресурсы возвращены.

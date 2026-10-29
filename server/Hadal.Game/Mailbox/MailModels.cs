@@ -11,20 +11,10 @@ namespace Hadal.Game.Mailbox
         public const string Event = "event";
         public const string Alliance = "alliance";
 
-        public static bool IsValid(string kind) => kind is System or Admin or Event or Alliance;
-    }
+        /// <summary>From one player to another (MailRules).</summary>
+        public const string Player = "player";
 
-    public static class MailRules
-    {
-        /// <summary>Mails disappear 30 days after they were sent; unclaimed attachments go with them.</summary>
-        public static readonly TimeSpan Lifetime = TimeSpan.FromDays(30);
-
-        public const int MaxTitle = 80;
-        public const int MaxBody = 2000;
-        public const int MaxSender = 40;
-
-        /// <summary>The newest this many mails are shown; older ones stay stored until they expire.</summary>
-        public const int MaxShown = 200;
+        public static bool IsValid(string kind) => kind is System or Admin or Event or Alliance or Player;
     }
 
     /// <summary>
@@ -61,8 +51,8 @@ namespace Hadal.Game.Mailbox
         }
     }
 
-    /// <summary>The text and attachments of a mail before it is addressed.</summary>
-    public sealed record MailDraft(string Kind, string Sender, string Title, string Body, MailAttachments Attachments);
+    /// <summary>The text and attachments of a mail before it is addressed; <paramref name="SenderId"/> for player mails.</summary>
+    public sealed record MailDraft(string Kind, string Sender, string Title, string Body, MailAttachments Attachments, string SenderId = "");
 
     /// <summary>One stored mail. Attachments stay on the server until claimed (once: <see cref="ClaimedAt"/>).</summary>
     public sealed class Mail
@@ -73,6 +63,9 @@ namespace Hadal.Game.Mailbox
         public string PlayerId { get; set; } = string.Empty;
         public string Kind { get; set; } = MailKinds.System;
         public string Sender { get; set; } = string.Empty;
+
+        /// <summary>The sending player's public id (player mails); empty for the game's own mail.</summary>
+        public string SenderId { get; set; } = string.Empty;
         public string Title { get; set; } = string.Empty;
         public string Body { get; set; } = string.Empty;
         public MailAttachments Attachments { get; set; } = new();
@@ -91,7 +84,7 @@ namespace Hadal.Game.Mailbox
 
         public Mail Copy() => new()
         {
-            Id = Id, PlayerId = PlayerId, Kind = Kind, Sender = Sender, Title = Title, Body = Body,
+            Id = Id, PlayerId = PlayerId, Kind = Kind, Sender = Sender, SenderId = SenderId, Title = Title, Body = Body,
             Attachments = MailAttachments.FromJson(Attachments.ToJson()),
             CreatedAt = CreatedAt, ExpiresAt = ExpiresAt, ReadAt = ReadAt, ClaimedAt = ClaimedAt, Deleted = Deleted
         };

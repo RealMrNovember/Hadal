@@ -975,3 +975,26 @@ mail.note = تُحذف الرسائل بعد 30 يومًا مع المرفقات
 reason.UnknownMail = هذه الرسالة لم تعد موجودة.
 reason.NothingToClaim = لا يوجد ما يُستلم.
 reason.MailHasAttachments = استلم المرفقات أولًا.
+
+# Player mail (MailRules)
+mail.reply = رد
+mail.compose = كتابة رسالة
+mail.to = إلى: {0}
+mail.left = الرسائل المتبقية اليوم: {0}/{1}
+mail.titleHint = العنوان
+mail.bodyHint = رسالتك…
+mail.resources = إرسال موارد (التحالف)
+mail.allowance = المتبقي اليوم: {0} · لديك: {1}
+mail.resourcesMatesOnly = لا يمكن إرسال الموارد إلا للاعبين في تحالفك.
+mail.cancel = إلغاء
+mail.send = إرسال
+mail.sent = تم إرسال الرسالة.
+mail.sender.player = لاعب
+reason.InvalidMailTitle = اكتب عنوانًا (80 حرفًا كحد أقصى).
+reason.InvalidMailBody = الرسالة طويلة جدًا (1000 حرف كحد أقصى).
+reason.CannotMailSelf = لا يمكنك مراسلة نفسك.
+reason.NotSameAlliance = لا يمكن إرسال الموارد إلا للاعبين في تحالفك.
+reason.ResourceNotSendable = لا يمكن إرسال الهاداليت والسبيكة الفائقة.
+reason.MailLimitReached = استنفدت رسائل اليوم.
+reason.MailResourceLimit = بلغت حد الإرسال اليومي لهذا المورد.
+reason.MailFailed = تعذر إرسال الرسالة؛ أُعيدت إليك مواردك.

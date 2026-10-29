@@ -975,3 +975,26 @@ mail.note = Post wird nach 30 Tagen gelöscht, nicht abgeholte Anhänge ebenfall
 reason.UnknownMail = Diese Nachricht gibt es nicht mehr.
 reason.NothingToClaim = Nichts abzuholen.
 reason.MailHasAttachments = Hole zuerst die Anhänge ab.
+
+# Player mail (MailRules)
+mail.reply = Antworten
+mail.compose = Post schreiben
+mail.to = An: {0}
+mail.left = Heute noch: {0}/{1} Nachrichten
+mail.titleHint = Betreff
+mail.bodyHint = Deine Nachricht…
+mail.resources = Ressourcen senden (Allianz)
+mail.allowance = Heute noch: {0} · Du hast: {1}
+mail.resourcesMatesOnly = Ressourcen können nur an Spieler deiner Allianz gesendet werden.
+mail.cancel = Abbrechen
+mail.send = Post senden
+mail.sent = Nachricht gesendet.
+mail.sender.player = Spieler
+reason.InvalidMailTitle = Gib einen Betreff ein (höchstens 80 Zeichen).
+reason.InvalidMailBody = Die Nachricht ist zu lang (höchstens 1000 Zeichen).
+reason.CannotMailSelf = Du kannst dir nicht selbst schreiben.
+reason.NotSameAlliance = Ressourcen können nur an Spieler deiner Allianz gesendet werden.
+reason.ResourceNotSendable = Hadalit und Superlegierung können nicht gesendet werden.
+reason.MailLimitReached = Deine Nachrichten für heute sind aufgebraucht.
+reason.MailResourceLimit = Tageslimit für diese Ressource erreicht.
+reason.MailFailed = Die Nachricht konnte nicht gesendet werden; deine Ressourcen wurden erstattet.

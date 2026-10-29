@@ -975,3 +975,26 @@ mail.note = 우편은 30일 후 삭제되며, 받지 않은 첨부도 함께 사
 reason.UnknownMail = 이 우편은 더 이상 없습니다.
 reason.NothingToClaim = 받을 것이 없습니다.
 reason.MailHasAttachments = 먼저 첨부를 받으세요.
+
+# Player mail (MailRules)
+mail.reply = 답장
+mail.compose = 우편 쓰기
+mail.to = 받는 사람: {0}
+mail.left = 오늘 남은 우편: {0}/{1}
+mail.titleHint = 제목
+mail.bodyHint = 메시지…
+mail.resources = 자원 보내기 (연맹)
+mail.allowance = 오늘 남은 양: {0} · 보유: {1}
+mail.resourcesMatesOnly = 자원은 같은 연맹의 플레이어에게만 보낼 수 있습니다.
+mail.cancel = 취소
+mail.send = 보내기
+mail.sent = 우편을 보냈습니다.
+mail.sender.player = 플레이어
+reason.InvalidMailTitle = 제목을 입력하세요 (최대 80자).
+reason.InvalidMailBody = 메시지가 너무 깁니다 (최대 1000자).
+reason.CannotMailSelf = 자신에게는 우편을 보낼 수 없습니다.
+reason.NotSameAlliance = 자원은 같은 연맹의 플레이어에게만 보낼 수 있습니다.
+reason.ResourceNotSendable = 하달라이트와 초합금은 보낼 수 없습니다.
+reason.MailLimitReached = 오늘 보낼 수 있는 우편을 모두 사용했습니다.
+reason.MailResourceLimit = 이 자원의 오늘 전송 한도에 도달했습니다.
+reason.MailFailed = 우편을 보내지 못했습니다. 자원은 돌려받았습니다.

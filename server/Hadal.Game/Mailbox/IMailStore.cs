@@ -1,4 +1,5 @@
 using Hadal.Game.Persistence;
+using HADAL.Shared.Simulation;
 using Npgsql;
 
 namespace Hadal.Game.Mailbox
@@ -93,7 +94,8 @@ CREATE TABLE IF NOT EXISTS hadal.mails (
     deleted      boolean     NOT NULL DEFAULT false
 );
 CREATE INDEX IF NOT EXISTS mails_player ON hadal.mails (player_id, created_at DESC);
-CREATE INDEX IF NOT EXISTS mails_expiry ON hadal.mails (expires_at);";
+CREATE INDEX IF NOT EXISTS mails_expiry ON hadal.mails (expires_at);
+ALTER TABLE hadal.mails ADD COLUMN IF NOT EXISTS sender_id text NOT NULL DEFAULT '';";
 
         private readonly NpgsqlDataSource _dataSource;
 
@@ -116,12 +118,13 @@ CREATE INDEX IF NOT EXISTS mails_expiry ON hadal.mails (expires_at);";
                 foreach (var m in chunk)
                 {
                     var command = new NpgsqlBatchCommand(@"
-INSERT INTO hadal.mails (mail_id, player_id, kind, sender, title, body, attachments, created_at, expires_at)
-VALUES (@id, @p, @k, @s, @t, @b, @a::jsonb, @c, @e) ON CONFLICT (mail_id) DO NOTHING");
+INSERT INTO hadal.mails (mail_id, player_id, kind, sender, sender_id, title, body, attachments, created_at, expires_at)
+VALUES (@id, @p, @k, @s, @si, @t, @b, @a::jsonb, @c, @e) ON CONFLICT (mail_id) DO NOTHING");
                     command.Parameters.AddWithValue("id", m.Id);
                     command.Parameters.AddWithValue("p", m.PlayerId);
                     command.Parameters.AddWithValue("k", m.Kind);
                     command.Parameters.AddWithValue("s", m.Sender);
+                    command.Parameters.AddWithValue("si", m.SenderId);
                     command.Parameters.AddWithValue("t", m.Title);
                     command.Parameters.AddWithValue("b", m.Body);
                     command.Parameters.AddWithValue("a", m.Attachments.ToJson());
@@ -139,7 +142,7 @@ VALUES (@id, @p, @k, @s, @t, @b, @a::jsonb, @c, @e) ON CONFLICT (mail_id) DO NOT
             var list = new List<Mail>();
             await using var connection = await _dataSource.OpenConnectionAsync(cancellationToken);
             await using var command = new NpgsqlCommand(@"
-SELECT mail_id, kind, sender, title, body, attachments::text, created_at, expires_at, read_at, claimed_at FROM hadal.mails
+SELECT mail_id, kind, sender, title, body, attachments::text, created_at, expires_at, read_at, claimed_at, sender_id FROM hadal.mails
 WHERE player_id = @p AND NOT deleted AND expires_at > @now ORDER BY created_at DESC", connection);
             command.Parameters.AddWithValue("p", playerId);
             command.Parameters.AddWithValue("now", now);
@@ -152,7 +155,8 @@ WHERE player_id = @p AND NOT deleted AND expires_at > @now ORDER BY created_at D
                     Title = reader.GetString(3), Body = reader.GetString(4), Attachments = MailAttachments.FromJson(reader.GetString(5)),
                     CreatedAt = reader.GetFieldValue<DateTimeOffset>(6), ExpiresAt = reader.GetFieldValue<DateTimeOffset>(7),
                     ReadAt = reader.IsDBNull(8) ? null : reader.GetFieldValue<DateTimeOffset>(8),
-                    ClaimedAt = reader.IsDBNull(9) ? null : reader.GetFieldValue<DateTimeOffset>(9)
+                    ClaimedAt = reader.IsDBNull(9) ? null : reader.GetFieldValue<DateTimeOffset>(9),
+                    SenderId = reader.GetString(10)
                 });
             }
 

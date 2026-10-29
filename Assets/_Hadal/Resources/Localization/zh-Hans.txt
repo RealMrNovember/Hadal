@@ -975,3 +975,26 @@ mail.note = 邮件将在30天后删除，未领取的附件也会一并消失。
 reason.UnknownMail = 此邮件已不存在。
 reason.NothingToClaim = 没有可领取的物品。
 reason.MailHasAttachments = 请先领取附件。
+
+# Player mail (MailRules)
+mail.reply = 回复
+mail.compose = 写邮件
+mail.to = 收件人：{0}
+mail.left = 今日剩余邮件：{0}/{1}
+mail.titleHint = 标题
+mail.bodyHint = 你的留言…
+mail.resources = 赠送资源（联盟）
+mail.allowance = 今日剩余：{0} · 拥有：{1}
+mail.resourcesMatesOnly = 资源只能赠送给同一联盟的玩家。
+mail.cancel = 取消
+mail.send = 发送
+mail.sent = 邮件已发送。
+mail.sender.player = 玩家
+reason.InvalidMailTitle = 请输入标题（最多80个字符）。
+reason.InvalidMailBody = 内容太长（最多1000个字符）。
+reason.CannotMailSelf = 不能给自己发邮件。
+reason.NotSameAlliance = 资源只能赠送给同一联盟的玩家。
+reason.ResourceNotSendable = 深渊晶和超合金无法赠送。
+reason.MailLimitReached = 今日邮件次数已用完。
+reason.MailResourceLimit = 已达到该资源今日的赠送上限。
+reason.MailFailed = 邮件发送失败，资源已退还。

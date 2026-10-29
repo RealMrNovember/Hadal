@@ -975,3 +975,26 @@ mail.note = Thư bị xóa sau 30 ngày, cùng với quà đính kèm chưa nh�
 reason.UnknownMail = Thư này không còn tồn tại.
 reason.NothingToClaim = Không có gì để nhận.
 reason.MailHasAttachments = Hãy nhận quà đính kèm trước.
+
+# Player mail (MailRules)
+mail.reply = Trả lời
+mail.compose = Viết thư
+mail.to = Gửi đến: {0}
+mail.left = Thư còn lại hôm nay: {0}/{1}
+mail.titleHint = Tiêu đề
+mail.bodyHint = Nội dung…
+mail.resources = Gửi tài nguyên (liên minh)
+mail.allowance = Còn lại hôm nay: {0} · Bạn có: {1}
+mail.resourcesMatesOnly = Chỉ có thể gửi tài nguyên cho người chơi cùng liên minh.
+mail.cancel = Hủy
+mail.send = Gửi thư
+mail.sent = Đã gửi thư.
+mail.sender.player = Người chơi
+reason.InvalidMailTitle = Hãy nhập tiêu đề (tối đa 80 ký tự).
+reason.InvalidMailBody = Nội dung quá dài (tối đa 1000 ký tự).
+reason.CannotMailSelf = Bạn không thể gửi thư cho chính mình.
+reason.NotSameAlliance = Chỉ có thể gửi tài nguyên cho người chơi cùng liên minh.
+reason.ResourceNotSendable = Không thể gửi Hadalit và Siêu hợp kim.
+reason.MailLimitReached = Bạn đã dùng hết lượt gửi thư hôm nay.
+reason.MailResourceLimit = Đã đạt giới hạn gửi hôm nay của tài nguyên này.
+reason.MailFailed = Không gửi được thư; tài nguyên đã được hoàn lại.

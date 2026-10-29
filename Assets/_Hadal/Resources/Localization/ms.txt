@@ -975,3 +975,26 @@ mail.note = Mel dipadam selepas 30 hari, bersama lampiran yang belum dituntut.
 reason.UnknownMail = Mel ini tidak wujud lagi.
 reason.NothingToClaim = Tiada apa untuk dituntut.
 reason.MailHasAttachments = Tuntut lampiran dahulu.
+
+# Player mail (MailRules)
+mail.reply = Balas
+mail.compose = Tulis mel
+mail.to = Kepada: {0}
+mail.left = Baki mel hari ini: {0}/{1}
+mail.titleHint = Tajuk
+mail.bodyHint = Mesej anda…
+mail.resources = Hantar sumber (pakatan)
+mail.allowance = Baki hari ini: {0} · Anda ada: {1}
+mail.resourcesMatesOnly = Sumber hanya boleh dihantar kepada pemain dalam pakatan anda.
+mail.cancel = Batal
+mail.send = Hantar mel
+mail.sent = Mel dihantar.
+mail.sender.player = Pemain
+reason.InvalidMailTitle = Tulis tajuk (paling banyak 80 aksara).
+reason.InvalidMailBody = Mesej terlalu panjang (paling banyak 1000 aksara).
+reason.CannotMailSelf = Anda tidak boleh menghantar mel kepada diri sendiri.
+reason.NotSameAlliance = Sumber hanya boleh dihantar kepada pemain dalam pakatan anda.
+reason.ResourceNotSendable = Hadalit dan Superaloi tidak boleh dihantar.
+reason.MailLimitReached = Kuota mel hari ini sudah habis.
+reason.MailResourceLimit = Had hantaran harian untuk sumber ini telah dicapai.
+reason.MailFailed = Mel gagal dihantar; sumber anda telah dipulangkan.

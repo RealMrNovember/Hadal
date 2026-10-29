@@ -167,6 +167,7 @@ namespace Hadal.Core.Network
                 ReadMailCommand => CommandType.ReadMail,
                 ClaimMailCommand => CommandType.ClaimMail,
                 DeleteMailCommand => CommandType.DeleteMail,
+                SendMailCommand => CommandType.SendMail,
                 MarchAttackCommand => CommandType.MarchAttack,
                 _ => CommandType.Unknown
             };

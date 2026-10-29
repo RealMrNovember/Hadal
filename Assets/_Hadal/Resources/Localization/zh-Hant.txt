@@ -975,3 +975,26 @@ mail.note = 郵件將在30天後刪除，未領取的附件也會一併消失。
 reason.UnknownMail = 此郵件已不存在。
 reason.NothingToClaim = 沒有可領取的物品。
 reason.MailHasAttachments = 請先領取附件。
+
+# Player mail (MailRules)
+mail.reply = 回覆
+mail.compose = 寫郵件
+mail.to = 收件人：{0}
+mail.left = 今日剩餘郵件：{0}/{1}
+mail.titleHint = 標題
+mail.bodyHint = 你的留言…
+mail.resources = 贈送資源（聯盟）
+mail.allowance = 今日剩餘：{0} · 擁有：{1}
+mail.resourcesMatesOnly = 資源只能贈送給同一聯盟的玩家。
+mail.cancel = 取消
+mail.send = 發送
+mail.sent = 郵件已發送。
+mail.sender.player = 玩家
+reason.InvalidMailTitle = 請輸入標題（最多80個字元）。
+reason.InvalidMailBody = 內容太長（最多1000個字元）。
+reason.CannotMailSelf = 不能給自己寄郵件。
+reason.NotSameAlliance = 資源只能贈送給同一聯盟的玩家。
+reason.ResourceNotSendable = 深淵晶和超合金無法贈送。
+reason.MailLimitReached = 今日郵件次數已用完。
+reason.MailResourceLimit = 已達到該資源今日的贈送上限。
+reason.MailFailed = 郵件發送失敗，資源已退還。

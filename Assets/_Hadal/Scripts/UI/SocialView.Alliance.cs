@@ -265,7 +265,8 @@ namespace Hadal.UI
             actions.color = new Color(0.03f, 0.1f, 0.14f, 1f);
             var slots = new System.Collections.Generic.List<(string Label, bool Enabled, Action Click, Color? Fill)>
             {
-                (Loc.T("alliance.message"), true, () => OpenPrivateChat(id, member.Name), UiKit.Field)
+                (Loc.T("alliance.message"), true, () => OpenPrivateChat(id, member.Name), UiKit.Field),
+                (Loc.T("mail.send"), true, () => OpenMailCompose(id, member.Name), UiKit.Field)
             };
 
             var officers = alliance.Members.Count(m => m.Rank == AlliancePermissions.Officer);

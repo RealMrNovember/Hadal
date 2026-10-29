@@ -975,3 +975,26 @@ mail.note = La posta viene eliminata dopo 30 giorni, insieme agli allegati non r
 reason.UnknownMail = Questo messaggio non esiste più.
 reason.NothingToClaim = Niente da ritirare.
 reason.MailHasAttachments = Ritira prima gli allegati.
+
+# Player mail (MailRules)
+mail.reply = Rispondi
+mail.compose = Scrivi posta
+mail.to = A: {0}
+mail.left = Messaggi rimasti oggi: {0}/{1}
+mail.titleHint = Oggetto
+mail.bodyHint = Il tuo messaggio…
+mail.resources = Invia risorse (alleanza)
+mail.allowance = Rimasti oggi: {0} · Hai: {1}
+mail.resourcesMatesOnly = Le risorse si possono inviare solo ai giocatori della tua alleanza.
+mail.cancel = Annulla
+mail.send = Invia posta
+mail.sent = Messaggio inviato.
+mail.sender.player = Giocatore
+reason.InvalidMailTitle = Scrivi un oggetto (al massimo 80 caratteri).
+reason.InvalidMailBody = Il messaggio è troppo lungo (al massimo 1000 caratteri).
+reason.CannotMailSelf = Non puoi scrivere a te stesso.
+reason.NotSameAlliance = Le risorse si possono inviare solo ai giocatori della tua alleanza.
+reason.ResourceNotSendable = Hadalite e Superlega non si possono inviare.
+reason.MailLimitReached = Hai esaurito i messaggi di oggi.
+reason.MailResourceLimit = Hai raggiunto il limite giornaliero di invio per questa risorsa.
+reason.MailFailed = Impossibile inviare il messaggio; le risorse ti sono state restituite.

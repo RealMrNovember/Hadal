@@ -61,5 +61,6 @@ namespace HADAL.Shared.Enums
         [ProtoEnum] ReadMail = 53,
         [ProtoEnum] ClaimMail = 54,
         [ProtoEnum] DeleteMail = 55,
+        [ProtoEnum] SendMail = 61,
     }
 }

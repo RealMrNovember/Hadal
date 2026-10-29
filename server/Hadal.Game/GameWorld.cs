@@ -76,7 +76,11 @@ namespace Hadal.Game
                 TagOf = Social.TagOf,
                 AllianceInfo = Social.AllianceInfo
             };
-            Mail = new MailService(mailStore ?? new InMemoryMailStore(), serializer, logger);
+            Mail = new MailService(mailStore ?? new InMemoryMailStore(), serializer, logger)
+            {
+                NameLookup = Map.NameOf,
+                AllianceIdOf = Social.AllianceIdOf
+            };
         }
 
         /// <summary>The mailbox: system, Overseer, event and alliance mails with attachments (docs/29 §2.1).</summary>

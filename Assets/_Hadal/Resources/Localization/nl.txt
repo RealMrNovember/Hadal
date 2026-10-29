@@ -975,3 +975,26 @@ mail.note = Post wordt na 30 dagen gewist, samen met niet-opgehaalde bijlagen.
 reason.UnknownMail = Dit bericht bestaat niet meer.
 reason.NothingToClaim = Niets op te halen.
 reason.MailHasAttachments = Haal eerst de bijlagen op.
+
+# Player mail (MailRules)
+mail.reply = Beantwoorden
+mail.compose = Post schrijven
+mail.to = Aan: {0}
+mail.left = Vandaag nog: {0}/{1} berichten
+mail.titleHint = Onderwerp
+mail.bodyHint = Je bericht…
+mail.resources = Grondstoffen sturen (alliantie)
+mail.allowance = Vandaag nog: {0} · Je hebt: {1}
+mail.resourcesMatesOnly = Grondstoffen kun je alleen naar spelers in je alliantie sturen.
+mail.cancel = Annuleren
+mail.send = Post versturen
+mail.sent = Bericht verstuurd.
+mail.sender.player = Speler
+reason.InvalidMailTitle = Vul een onderwerp in (hoogstens 80 tekens).
+reason.InvalidMailBody = Het bericht is te lang (hoogstens 1000 tekens).
+reason.CannotMailSelf = Je kunt jezelf geen post sturen.
+reason.NotSameAlliance = Grondstoffen kun je alleen naar spelers in je alliantie sturen.
+reason.ResourceNotSendable = Hadaliet en Superlegering kunnen niet verstuurd worden.
+reason.MailLimitReached = Je berichten voor vandaag zijn op.
+reason.MailResourceLimit = Daglimiet voor deze grondstof bereikt.
+reason.MailFailed = Het bericht kon niet verstuurd worden; je grondstoffen zijn teruggegeven.

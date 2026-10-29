@@ -975,3 +975,26 @@ mail.note = จดหมายจะถูกลบหลัง 30 วัน พ
 reason.UnknownMail = จดหมายนี้ไม่มีอยู่แล้ว
 reason.NothingToClaim = ไม่มีอะไรให้รับ
 reason.MailHasAttachments = รับของแนบก่อน
+
+# Player mail (MailRules)
+mail.reply = ตอบกลับ
+mail.compose = เขียนจดหมาย
+mail.to = ถึง: {0}
+mail.left = จดหมายที่เหลือวันนี้: {0}/{1}
+mail.titleHint = หัวเรื่อง
+mail.bodyHint = ข้อความของคุณ…
+mail.resources = ส่งทรัพยากร (พันธมิตร)
+mail.allowance = เหลือวันนี้: {0} · คุณมี: {1}
+mail.resourcesMatesOnly = ส่งทรัพยากรได้เฉพาะผู้เล่นในพันธมิตรเดียวกัน
+mail.cancel = ยกเลิก
+mail.send = ส่งจดหมาย
+mail.sent = ส่งจดหมายแล้ว
+mail.sender.player = ผู้เล่น
+reason.InvalidMailTitle = ใส่หัวเรื่อง (ไม่เกิน 80 ตัวอักษร)
+reason.InvalidMailBody = ข้อความยาวเกินไป (ไม่เกิน 1000 ตัวอักษร)
+reason.CannotMailSelf = ส่งจดหมายถึงตัวเองไม่ได้
+reason.NotSameAlliance = ส่งทรัพยากรได้เฉพาะผู้เล่นในพันธมิตรเดียวกัน
+reason.ResourceNotSendable = ส่งฮาดาไลต์และซูเปอร์อัลลอยไม่ได้
+reason.MailLimitReached = ใช้สิทธิ์ส่งจดหมายวันนี้หมดแล้ว
+reason.MailResourceLimit = ถึงขีดจำกัดการส่งทรัพยากรนี้ของวันนี้แล้ว
+reason.MailFailed = ส่งจดหมายไม่สำเร็จ คืนทรัพยากรให้แล้ว

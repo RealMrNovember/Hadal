@@ -234,6 +234,13 @@ namespace Hadal.Core.StateSync
                 return true;
             }
 
+            if (id == EntityIds.MailQuota)
+            {
+                if (TryDeserializePayload(change.Payload, serialization, out MailQuotaDto quota))
+                    view.ApplyMailQuota(quota);
+                return true;
+            }
+
             if (id == EntityIds.Events)
             {
                 view.ApplyEvents(TryDeserializePayload(change.Payload, serialization, out EventListDto events) ? events : new EventListDto());

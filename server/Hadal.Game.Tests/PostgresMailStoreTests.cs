@@ -1,5 +1,6 @@
 using Hadal.Game.Mailbox;
 using HADAL.Shared.Enums;
+using HADAL.Shared.Simulation;
 using Npgsql;
 
 namespace Hadal.Game.Tests

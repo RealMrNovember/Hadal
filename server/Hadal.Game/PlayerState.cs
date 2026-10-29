@@ -154,6 +154,11 @@ namespace Hadal.Game
         public int RenameCount { get; set; }
         public DateTimeOffset? RenamedAt { get; set; }
 
+        /// <summary>Mails sent and resources mailed on <see cref="MailDay"/> (UTC day, MailRules allowances).</summary>
+        public long MailDay { get; set; }
+        public int MailsSent { get; set; }
+        public Dictionary<ResourceType, long> MailSent { get; } = new();
+
         /// <summary>Wounded troops in the Med Bays by "type:tier".</summary>
         public Dictionary<string, long> Wounded { get; } = new(StringComparer.Ordinal);
 

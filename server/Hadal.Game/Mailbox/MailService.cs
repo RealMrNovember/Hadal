@@ -4,13 +4,14 @@ using HADAL.Shared.DTOs;
 using HADAL.Shared.Enums;
 using HADAL.Shared.Protocol;
 using HADAL.Shared.Serialization;
+using HADAL.Shared.Simulation;
 using Microsoft.Extensions.Logging;
 
 namespace Hadal.Game.Mailbox
 {
     /// <summary>
     /// The mailbox (docs/29 §2.1): system, Overseer, event and alliance mails with attachments the server holds until
-    /// claimed. A player's mails are loaded on their first login and then kept in memory, which is the authority: a
+    /// claimed, and mails from one player to another (MailRules). A player's mails are loaded on their first login and then kept in memory, which is the authority: a
     /// claim is marked here under the lock before anything is paid, so it pays once even while its write is still
     /// queued. Lock order: mail service, then session — sessions never call in here.
     /// </summary>
@@ -37,7 +38,12 @@ namespace Hadal.Game.Mailbox
             _ = Task.Run(WriteLoopAsync);
         }
 
-        public static bool Handles(CommandType type) => type is CommandType.ReadMail or CommandType.ClaimMail or CommandType.DeleteMail;
+        /// <summary>Base names (a player exists when their base does) and alliances, set by the world.</summary>
+        public Func<string, string?>? NameLookup { get; set; }
+        public Func<string, string>? AllianceIdOf { get; set; }
+
+        public static bool Handles(CommandType type) =>
+            type is CommandType.ReadMail or CommandType.ClaimMail or CommandType.DeleteMail or CommandType.SendMail;
 
         public async Task InitializeAsync(DateTimeOffset now, CancellationToken cancellationToken)
         {
@@ -84,8 +90,8 @@ namespace Hadal.Game.Mailbox
             lock (_gate)
             {
                 _online[session.PublicId] = session;
-                if (_boxes.TryGetValue(session.PublicId, out var box))
-                    session.Push(new List<EntityChangeDto> { Change(box, now) }, now);
+                // The box and today's sending allowance travel in one frame.
+                session.PushMailQuota(now, _boxes.TryGetValue(session.PublicId, out var box) ? Change(box, now) : null);
             }
         }
 
@@ -121,6 +127,7 @@ namespace Hadal.Game.Mailbox
                 PlayerId = playerId,
                 Kind = MailKinds.IsValid(draft.Kind) ? draft.Kind : MailKinds.System,
                 Sender = Clip(draft.Sender, MailRules.MaxSender),
+                SenderId = draft.SenderId,
                 Title = Clip(draft.Title, MailRules.MaxTitle),
                 Body = Clip(draft.Body, MailRules.MaxBody),
                 Attachments = draft.Attachments,
@@ -169,6 +176,9 @@ namespace Hadal.Game.Mailbox
                     break;
                 case CommandType.DeleteMail when TryDeserialize(envelope.Payload, out DeleteMailCommand? delete):
                     Delete(session, delete!, now);
+                    break;
+                case CommandType.SendMail when TryDeserialize(envelope.Payload, out SendMailCommand? send):
+                    SendFromPlayer(session, send!, now);
                     break;
                 default:
                     session.Acknowledge(envelope.CommandId, envelope.ClientSequence, "MalformedCommand", now);
@@ -297,6 +307,72 @@ namespace Hadal.Game.Mailbox
             }
         }
 
+        /// <summary>
+        /// A player's mail to one other player. Checked here (text, recipient, alliance), paid by the session (daily
+        /// allowance, wallet), then delivered; resources travel as the mail's attachments. Should storing fail, the
+        /// payment is given back.
+        /// </summary>
+        private void SendFromPlayer(PlayerSession session, SendMailCommand command, DateTimeOffset now)
+        {
+            var to = command.PlayerId ?? string.Empty;
+            var title = MailRules.Clean(command.Title, int.MaxValue, multiline: false);
+            var body = MailRules.Clean(command.Body, int.MaxValue, multiline: true);
+            var amounts = new Dictionary<ResourceType, long>();
+            string? reason = null;
+            foreach (var entry in command.Resources ?? Array.Empty<ResourceAmountEntry>())
+            {
+                if (entry.Value <= 0)
+                    continue;
+                if (!MailRules.CanSend(entry.Key))
+                {
+                    reason = "ResourceNotSendable";
+                    break;
+                }
+
+                amounts[entry.Key] = (amounts.TryGetValue(entry.Key, out var a) ? a : 0) + entry.Value;
+            }
+
+            reason ??= title.Length == 0 || title.Length > MailRules.MaxTitle ? "InvalidMailTitle"
+                : body.Length > MailRules.MaxPlayerBody ? "InvalidMailBody"
+                : to == session.PublicId ? "CannotMailSelf"
+                : NameLookup?.Invoke(to) == null ? "UnknownPlayer"
+                : null;
+            if (reason == null && amounts.Count > 0)
+            {
+                // Resources only between mates of one alliance (the genre's resource help).
+                var mine = AllianceIdOf?.Invoke(session.PublicId) ?? string.Empty;
+                if (mine.Length == 0 || mine != (AllianceIdOf?.Invoke(to) ?? string.Empty))
+                    reason = "NotSameAlliance";
+            }
+
+            reason ??= session.PayMail(amounts, now);
+            if (reason != null)
+            {
+                session.Acknowledge(command.CommandId, command.ClientSequence, reason, now);
+                return;
+            }
+
+            var sender = NameLookup?.Invoke(session.PublicId) ?? session.DisplayName;
+            var draft = new MailDraft(MailKinds.Player, sender, title, body, MailAttachments.From(amounts, null), session.PublicId);
+            _ = DeliverAsync(session, command, to, draft, amounts, now);
+        }
+
+        private async Task DeliverAsync(PlayerSession session, SendMailCommand command, string to, MailDraft draft,
+            Dictionary<ResourceType, long> amounts, DateTimeOffset now)
+        {
+            try
+            {
+                await SendAsync(new[] { to }, draft, now, CancellationToken.None);
+                session.Acknowledge(command.CommandId, command.ClientSequence, null, now);
+            }
+            catch (Exception exception)
+            {
+                _logger.LogError(exception, "Player {PlayerId} could not mail {To}; payment returned.", session.PublicId, to);
+                session.RefundMail(amounts, now);
+                session.Acknowledge(command.CommandId, command.ClientSequence, "MailFailed", now);
+            }
+        }
+
         // --- Housekeeping -------------------------------------------------------------------------
 
         /// <summary>Every tick: a few times a minute, expired mails leave the boxes (their attachments with them).</summary>
@@ -367,6 +443,7 @@ namespace Hadal.Game.Mailbox
             ExpiresAtMs = m.ExpiresAt.ToUnixTimeMilliseconds(),
             Read = m.ReadAt != null,
             Claimed = m.HasAttachments && m.ClaimedAt != null,
+            SenderId = m.SenderId,
             Attachments = m.Attachments.Amounts.Where(p => p.Value > 0).Select(p => new RewardEntryDto { Type = "resource", Id = p.Key, Amount = p.Value })
                 .Concat(m.Attachments.Items.Where(p => p.Value > 0).Select(p => new RewardEntryDto { Type = "item", Id = p.Key, Amount = p.Value }))
                 .ToArray()

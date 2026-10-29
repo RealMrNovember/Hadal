@@ -975,3 +975,26 @@ mail.note = Le courrier est supprimé après 30 jours, avec les pièces jointes 
 reason.UnknownMail = Ce courrier n'existe plus.
 reason.NothingToClaim = Rien à récupérer.
 reason.MailHasAttachments = Récupère d'abord les pièces jointes.
+
+# Player mail (MailRules)
+mail.reply = Répondre
+mail.compose = Écrire un courrier
+mail.to = À : {0}
+mail.left = Courriers restants aujourd'hui : {0}/{1}
+mail.titleHint = Objet
+mail.bodyHint = Ton message…
+mail.resources = Envoyer des ressources (alliance)
+mail.allowance = Reste aujourd'hui : {0} · Tu as : {1}
+mail.resourcesMatesOnly = Les ressources ne peuvent être envoyées qu'aux joueurs de ton alliance.
+mail.cancel = Annuler
+mail.send = Envoyer
+mail.sent = Courrier envoyé.
+mail.sender.player = Joueur
+reason.InvalidMailTitle = Écris un objet (80 caractères au plus).
+reason.InvalidMailBody = Le message est trop long (1000 caractères au plus).
+reason.CannotMailSelf = Tu ne peux pas t'écrire à toi-même.
+reason.NotSameAlliance = Les ressources ne peuvent être envoyées qu'aux joueurs de ton alliance.
+reason.ResourceNotSendable = L'Hadalite et le Superalliage ne peuvent pas être envoyés.
+reason.MailLimitReached = Tu as épuisé tes courriers du jour.
+reason.MailResourceLimit = Limite d'envoi du jour atteinte pour cette ressource.
+reason.MailFailed = Le courrier n'a pas pu être envoyé ; tes ressources t'ont été rendues.

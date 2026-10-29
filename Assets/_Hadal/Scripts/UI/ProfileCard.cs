@@ -24,6 +24,9 @@ namespace Hadal.UI
         public sealed class Actions
         {
             public Action<string, string> Message;
+
+            /// <summary>Writes this player a mail (the mailbox's compose page).</summary>
+            public Action<string, string> Mail;
             public Action<int, int> ShowOnMap;
             public Action Settings;
         }
@@ -174,7 +177,7 @@ namespace Hadal.UI
                                       $"{Loc.F("world.coords", known.X, known.Y)}   {dot}", 28, UiKit.Muted, TextAnchor.UpperLeft)
                 .rectTransform.Place(0.36f, 0.4f, 0.97f, 0.76f);
 
-            // Message · Invite · Show on map, like the genre's profile footer.
+            // Message · Mail · Invite · Show on map, like the genre's profile footer.
             var id = known.PlayerId;
             var x = known.X;
             var y = known.Y;
@@ -182,6 +185,7 @@ namespace Hadal.UI
             var buttons = new List<(string Label, bool Enabled, Action Click)>
             {
                 (Loc.T("alliance.message"), true, () => { Close(); _actions.Message?.Invoke(id, name); }),
+                (Loc.T("mail.send"), _actions.Mail != null, () => { Close(); _actions.Mail?.Invoke(id, name); }),
                 (Loc.T("alliance.invite"), canInvite, () => _commands.Dispatch(new InviteToAllianceCommand
                 {
                     CommandId = Guid.NewGuid().ToString("N"), ClientSequence = ++_sequence, PlayerId = id
@@ -192,7 +196,7 @@ namespace Hadal.UI
             {
                 var b = buttons[i];
                 var button = UiKit.Button(b.Label, card, b.Label, () => b.Click(), i == 0 ? UiKit.Accent : UiKit.Field, 30);
-                ((RectTransform)button.transform).Place(0.04f + i * 0.32f, 0.06f, 0.33f + i * 0.32f, 0.28f);
+                ((RectTransform)button.transform).Place(0.03f + i * 0.24f, 0.06f, 0.255f + i * 0.24f, 0.28f);
                 button.interactable = b.Enabled;
                 if (i > 0)
                     button.GetComponentInChildren<Text>().color = UiKit.Text;

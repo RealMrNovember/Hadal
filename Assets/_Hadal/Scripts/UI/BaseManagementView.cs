@@ -178,6 +178,12 @@ namespace Hadal.UI
                     _map.Close();
                     _social.OpenPrivateChat(id, name);
                 },
+                Mail = (id, name) =>
+                {
+                    Close();
+                    _map.Close();
+                    _social.OpenMailCompose(id, name);
+                },
                 ShowOnMap = (x, y) => _social.ShowOnMap(x, y),
                 Settings = () =>
                 {

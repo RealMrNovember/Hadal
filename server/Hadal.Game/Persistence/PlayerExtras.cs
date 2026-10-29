@@ -17,7 +17,7 @@ namespace Hadal.Game.Persistence
 
         private sealed record HeroDoc(string HeroId, int Level, int Stars, int Shards, int Slot);
 
-        private sealed record Doc(
+        private sealed partial record Doc(
             Dictionary<string, int>? Research, List<ActiveDoc>? Active, Dictionary<string, BuildingDoc>? Buildings,
             List<HeroDoc>? Heroes = null, int SincePity = 0, DateTimeOffset? FreePullAt = null, QuestDoc? Quests = null,
             List<MarchDoc>? Marches = null, int ExpeditionCleared = 0, string? Avatar = null,
@@ -27,6 +27,19 @@ namespace Hadal.Game.Persistence
             RenameDoc? Rename = null);
 
         private sealed record RenameDoc(int Count, DateTimeOffset? At);
+
+        /// <summary>The day's mail allowance used (MailRules), kept beside the positional documents.</summary>
+        private sealed partial record Doc
+        {
+            public MailDoc? Mail { get; init; }
+        }
+
+        private sealed record MailDoc(long Day, int Count, Dictionary<string, long>? Sent);
+
+        private static string Serialize(PlayerState state, Doc doc) => JsonSerializer.Serialize(doc with
+        {
+            Mail = new MailDoc(state.MailDay, state.MailsSent, state.MailSent.ToDictionary(p => p.Key.ToString(), p => p.Value))
+        });
 
         private sealed record VipDoc(long Points, int Streak, long LoginDay, long ChestDay);
 
@@ -60,7 +73,7 @@ namespace Hadal.Game.Persistence
                     b.OverdriveEndsAt, b.OverdriveReadyAt);
             }
 
-            return JsonSerializer.Serialize(new Doc(
+            return Serialize(state, new Doc(
                 new Dictionary<string, int>(state.ResearchLevels),
                 state.ActiveResearch.Select(a => new ActiveDoc(a.NodeId, a.TargetLevel, a.EndsAt, a.Seconds)).ToList(),
                 buildings,
@@ -183,6 +196,18 @@ namespace Hadal.Game.Persistence
                 state.VipStreak = vip.Streak;
                 state.VipLoginDay = vip.LoginDay;
                 state.VipChestDay = vip.ChestDay;
+            }
+
+            if (doc.Mail is { } mail)
+            {
+                state.MailDay = mail.Day;
+                state.MailsSent = mail.Count;
+                state.MailSent.Clear();
+                foreach (var pair in mail.Sent ?? new Dictionary<string, long>())
+                {
+                    if (Enum.TryParse<ResourceType>(pair.Key, out var type))
+                        state.MailSent[type] = pair.Value;
+                }
             }
 
             if (doc.Rename is { } rename)

@@ -976,3 +976,26 @@ mail.note = Mail is deleted after 30 days, along with any unclaimed attachments.
 reason.UnknownMail = This mail no longer exists.
 reason.NothingToClaim = Nothing to claim.
 reason.MailHasAttachments = Claim the attachments first.
+
+# Player mail (MailRules)
+mail.reply = Reply
+mail.compose = Write mail
+mail.to = To: {0}
+mail.left = Mails left today: {0}/{1}
+mail.titleHint = Title
+mail.bodyHint = Your message…
+mail.resources = Send resources (alliance)
+mail.allowance = Left today: {0} · You have: {1}
+mail.resourcesMatesOnly = Resources can only be sent to players in your alliance.
+mail.cancel = Cancel
+mail.send = Send mail
+mail.sent = Mail sent.
+mail.sender.player = Player
+reason.InvalidMailTitle = Write a title (80 characters at most).
+reason.InvalidMailBody = The message is too long (1000 characters at most).
+reason.CannotMailSelf = You cannot mail yourself.
+reason.NotSameAlliance = Resources can only be sent to players in your alliance.
+reason.ResourceNotSendable = Hadalite and Superalloy cannot be sent.
+reason.MailLimitReached = You have used up today's mails.
+reason.MailResourceLimit = You reached today's sending limit for this resource.
+reason.MailFailed = The mail could not be sent; your resources were returned.

@@ -975,3 +975,26 @@ mail.note = Surat dihapus setelah 30 hari, beserta lampiran yang belum diambil.
 reason.UnknownMail = Surat ini sudah tidak ada.
 reason.NothingToClaim = Tidak ada yang bisa diambil.
 reason.MailHasAttachments = Ambil lampirannya dulu.
+
+# Player mail (MailRules)
+mail.reply = Balas
+mail.compose = Tulis surat
+mail.to = Kepada: {0}
+mail.left = Sisa surat hari ini: {0}/{1}
+mail.titleHint = Judul
+mail.bodyHint = Pesanmu…
+mail.resources = Kirim sumber daya (aliansi)
+mail.allowance = Sisa hari ini: {0} · Milikmu: {1}
+mail.resourcesMatesOnly = Sumber daya hanya bisa dikirim ke pemain di aliansimu.
+mail.cancel = Batal
+mail.send = Kirim surat
+mail.sent = Surat terkirim.
+mail.sender.player = Pemain
+reason.InvalidMailTitle = Tulis judul (paling banyak 80 karakter).
+reason.InvalidMailBody = Pesan terlalu panjang (paling banyak 1000 karakter).
+reason.CannotMailSelf = Kamu tidak bisa mengirim surat ke dirimu sendiri.
+reason.NotSameAlliance = Sumber daya hanya bisa dikirim ke pemain di aliansimu.
+reason.ResourceNotSendable = Hadalit dan Superaloi tidak bisa dikirim.
+reason.MailLimitReached = Jatah surat hari ini sudah habis.
+reason.MailResourceLimit = Batas kirim harian untuk sumber daya ini tercapai.
+reason.MailFailed = Surat gagal dikirim; sumber dayamu dikembalikan.
