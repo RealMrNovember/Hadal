@@ -42,9 +42,9 @@ namespace Hadal.Game.Tests
         {
             Assert.Equal(0, VipRules.Level(99));
             Assert.Equal(1, VipRules.Level(100));
-            Assert.Equal(10, VipRules.Level(10_000_000));
-            Assert.Equal(new long[] { 40, 60, 80 }, new[] { 1, 2, 3 }.Select(VipRules.LoginPoints));
-            Assert.Equal(200, VipRules.LoginPoints(30));
+            Assert.Equal(15, VipRules.Level(10_000_000));
+            Assert.Equal(new long[] { 30, 55, 80 }, new[] { 1, 2, 3 }.Select(VipRules.LoginPoints));
+            Assert.Equal(300, VipRules.LoginPoints(30));
             Assert.True(VipRules.TryParseItem("vip_500", out var points) && points == 500);
             Assert.False(VipRules.TryParseItem("vip_x", out _));
         }
@@ -56,17 +56,17 @@ namespace Hadal.Game.Tests
             Assert.True(connection.Messages.First().Snapshot().Vip!.LoginReady);
 
             Send(session, new ClaimVipLoginCommand { CommandId = "a" }, CommandType.ClaimVipLogin);
-            Assert.Equal((40L, 1), (Vip(connection).Points, Vip(connection).Streak));
+            Assert.Equal((30L, 1), (Vip(connection).Points, Vip(connection).Streak));
             Send(session, new ClaimVipLoginCommand { CommandId = "b" }, CommandType.ClaimVipLogin);
             Assert.Equal("AlreadyClaimed", LastAck(connection).Reason);
 
             _clock.Advance(TimeSpan.FromDays(1));
             Send(session, new ClaimVipLoginCommand { CommandId = "c" }, CommandType.ClaimVipLogin);
-            Assert.Equal((100L, 2), (Vip(connection).Points, Vip(connection).Streak));
+            Assert.Equal((85L, 2), (Vip(connection).Points, Vip(connection).Streak));
 
             _clock.Advance(TimeSpan.FromDays(2));
             Send(session, new ClaimVipLoginCommand { CommandId = "d" }, CommandType.ClaimVipLogin);
-            Assert.Equal((140L, 1), (Vip(connection).Points, Vip(connection).Streak));
+            Assert.Equal((115L, 1), (Vip(connection).Points, Vip(connection).Streak));
             Assert.Equal(1, Vip(connection).Level);
         }
 
@@ -127,9 +127,11 @@ namespace Hadal.Game.Tests
         {
             var modifiers = new PlayerModifiers();
             VipRules.Apply(modifiers, 6);
-            Assert.Equal(-12, modifiers.BuildTimePercent);
+            Assert.Equal(-20, modifiers.BuildTimePercent);
             Assert.Equal(1, modifiers.ExtraBuilders);
-            Assert.Equal(8, modifiers.ProductionPercent[ResourceType.Titanium]);
+            Assert.Equal(15, modifiers.ProductionPercent[ResourceType.Titanium]);
+            Assert.Equal(5, modifiers.MarchSpeedPercent);
+            Assert.Equal(100, modifiers.MarchSeconds(105));
             Assert.False(modifiers.ProductionPercent.ContainsKey(ResourceType.Hadalite));
         }
     }

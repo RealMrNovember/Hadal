@@ -205,14 +205,14 @@ namespace Hadal.UI
             _overlay = safe.gameObject;
 
             var coordsBox = UiKit.Box("Coords", safe, new Color(0.02f, 0.05f, 0.08f, 0.85f));
-            coordsBox.rectTransform.Place(0.2f, 0.19f, 0.52f, 0.23f);
+            coordsBox.rectTransform.Place(0.2f, 0.105f, 0.52f, 0.145f);
             coordsBox.raycastTarget = false;
             _coords = UiKit.Label("Text", coordsBox.transform, string.Empty, 26, UiKit.Accent, TextAnchor.MiddleCenter, FontStyle.Bold);
             _coords.rectTransform.Place(0, 0, 1, 1);
 
             var home = UiKit.Button("Home", safe, Loc.T("world.myBase"), GoHome, UiKit.Field, 26);
             home.GetComponentInChildren<Text>().color = UiKit.Text;
-            ((RectTransform)home.transform).Place(0.54f, 0.19f, 0.8f, 0.23f);
+            ((RectTransform)home.transform).Place(0.54f, 0.105f, 0.8f, 0.145f);
 
             BuildMarches(safe);
             BuildSearch(safe);

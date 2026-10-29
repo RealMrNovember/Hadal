@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using HADAL.Shared.Auth;
+using HADAL.Shared.Simulation;
 using Hadal.Core.Network;
 using UnityEngine;
 using UnityEngine.UI;
@@ -115,6 +116,7 @@ namespace Hadal.UI
             ((RectTransform)_name.transform).Place(0, 0, 0.68f, 1);
             var save = UiKit.Button("Save", nameRow, Loc.T("account.save"), () => _ = SaveName());
             ((RectTransform)save.transform).Place(0.71f, 0, 1, 1);
+            UiKit.Label("NameRule", column, Loc.F("account.rename.rule", RenameRules.HadalitePrice), 24, UiKit.Muted).Row(70);
 
             _accountId = UiKit.Label("AccountId", column, string.Empty, 30, UiKit.Muted).Row(44);
             _protection = UiKit.Label("Protection", column, string.Empty, 36, UiKit.Text).Row(120);

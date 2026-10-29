@@ -74,7 +74,7 @@ namespace Hadal.Game
                 SetSonar(sonar - kind.Sonar * (result.AttackerWon ? 1.0 : 0.5), now);
 
                 var speed = TroopRules.MarchSpeed(troops, aboard.Keys);
-                var travel = (int)Math.Ceiling(GatherRules.TravelSeconds(_catalog.World, homeX, homeY, monster.X, monster.Y) * 100.0 / speed);
+                var travel = _modifiers.MarchSeconds((int)Math.Ceiling(GatherRules.TravelSeconds(_catalog.World, homeX, homeY, monster.X, monster.Y) * 100.0 / speed));
                 var arrives = now.AddSeconds(travel);
                 var march = new MarchState
                 {

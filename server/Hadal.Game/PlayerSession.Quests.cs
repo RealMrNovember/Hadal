@@ -135,12 +135,15 @@ namespace Hadal.Game
             GrantAndReport(command.CommandId, command.ClientSequence, QuestRules.Resolve(_catalog, chest.rewards, Random.Shared.Next), now);
         }
 
+        /// <summary>How many rolling items (chests and the like) one "Use" opens at most, as Last Asylum's slider.</summary>
+        public const int MaxOpenAtOnce = 10_000;
+
         private void OpenItem(OpenItemCommand command, DateTimeOffset now)
         {
-            var count = Math.Clamp(command.Count, 1, 50);
+            var count = Math.Clamp(command.Count, 1, MaxOpenAtOnce);
 
             // A resource capsule goes straight to the wallet and may pass the cap (docs/rehber 15 §2.2).
-            // Capsules open in any number at once ("use all"); chests stay at 50 a time (each one rolls).
+            // Capsules open in any number at once; anything that rolls (chests) up to MaxOpenAtOnce.
             if (Capsules.TryParse(command.ItemId, out var capsuleResource, out var capsuleAmount))
             {
                 count = Math.Clamp(command.Count, 1, 1_000_000);

@@ -4,7 +4,11 @@ using Microsoft.Extensions.Logging;
 
 namespace Hadal.Game.World
 {
-    /// <summary>Base teleports (TeleportRules): random, to a chosen free tile, or next to an alliance mate's base.</summary>
+    /// <summary>
+    /// Base teleports (TeleportRules): random (the escape when under attack), to a chosen free tile, or into the
+    /// alliance's waters — next to the chosen mate, or, used from the bag, next to the leader (then officers, then
+    /// the rest) on the first free tile found.
+    /// </summary>
     public sealed partial class WorldService
     {
         private void HandleTeleport(PlayerSession session, TeleportCommand command, DateTimeOffset now)
@@ -24,7 +28,9 @@ namespace Hadal.Game.World
             }
 
             var myAlliance = mode == TeleportRules.Alliance ? _social.AllianceIdOf(session.PublicId) : string.Empty;
-            var mateAlliance = mode == TeleportRules.Alliance ? _social.AllianceIdOf(command.MemberId ?? string.Empty) : string.Empty;
+            var mates = mode == TeleportRules.Alliance ? _social.AllianceMatesOf(session.PublicId) : Array.Empty<string>();
+            var chosen = command.MemberId ?? string.Empty;
+            var candidates = chosen.Length == 0 ? mates : mates.Contains(chosen) ? new[] { chosen } : Array.Empty<string>();
             lock (_gate)
             {
                 MaintainNodes(now);
@@ -49,10 +55,26 @@ namespace Hadal.Game.World
                         break;
                     case TeleportRules.Alliance:
                         if (myAlliance.Length == 0)
+                        {
                             reason = "NotInAlliance";
-                        else if (mateAlliance != myAlliance || command.MemberId == session.PublicId || !_bases.TryGetValue(command.MemberId!, out var mate))
+                            break;
+                        }
+
+                        var placed = candidates.Where(id => _bases.ContainsKey(id)).ToList();
+                        if (placed.Count == 0)
+                        {
                             reason = "UnknownMember";
-                        else if ((target = NearestFree(mate.X, mate.Y, TeleportRules.AllianceRadius, size)) == null)
+                            break;
+                        }
+
+                        foreach (var id in placed)
+                        {
+                            var mate = _bases[id];
+                            if ((target = NearestFree(mate.X, mate.Y, TeleportRules.AllianceRadius, size)) != null)
+                                break;
+                        }
+
+                        if (target == null)
                             reason = "NoRoom";
                         break;
                 }

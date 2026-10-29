@@ -56,6 +56,7 @@ namespace Hadal.UI
         /// <summary>Icon of a bag item: the resource for capsules, a card stack or a gift otherwise.</summary>
         public static string ItemIcon(string id, string kind) =>
             TeleportRules.IsItem(id) ? "nav_world"
+            : RenameRules.IsItem(id) ? "avatar"
             : VipRules.TryParseItem(id, out _) ? "vip"
             : GiftItems.TryParseHero(id, out _, out _, out _) ? "nav_heroes"
             : GiftItems.TryParseTroops(id, out _, out _, out _) ? "event_war"
@@ -196,7 +197,7 @@ namespace Hadal.UI
         }
 
         private string _bagSelected = string.Empty;
-        private int _bagCount = 1;
+        private int _bagCount;
         private GameObject _bagStats;
 
         /// <summary>
@@ -254,7 +255,7 @@ namespace Hadal.UI
                 // The use panel opens under the row of the chosen tile.
                 var chosen = entries.Skip(start).Take(columns).FirstOrDefault(e => e.Id == _bagSelected);
                 if (chosen.Id != null)
-                    BagUsePanel(chosen.Id, chosen.Count);
+                    BagUsePanel(chosen.Id, chosen.Count, entries.Skip(start).Take(columns).ToList().FindIndex(e => e.Id == _bagSelected));
             }
 
             // Hero cards of heroes not recruited yet stay on the Heroes tab.
@@ -352,79 +353,103 @@ namespace Hadal.UI
             frame.gameObject.AddComponent<Button>().onClick.AddListener(() =>
             {
                 _bagSelected = _bagSelected == pick ? string.Empty : pick;
-                _bagCount = 1;
+                _bagCount = 0; // the use card starts at all of them
                 Render(force: true);
             });
             frame.gameObject.AddComponent<PressFeedback>();
         }
 
-        private void BagUsePanel(string id, int count)
+        /// <summary>How many of one item a single Use takes at most (server: PlayerSession.MaxOpenAtOnce).</summary>
+        private const int MaxOpenAtOnce = 10_000;
+
+        /// <summary>
+        /// Last Asylum's use card under the chosen tile: a pointer up to it, name and description, then — for items
+        /// used in numbers — a − slider + row with the count (starting at all of them) and one big Use button.
+        /// Teleports use one at a time; the targeted one is used on the map, speed-ups on a timer.
+        /// </summary>
+        private void BagUsePanel(string id, int count, int column)
         {
-            var panel = UiKit.Box("Use", _list, new Color(0.9f, 0.93f, 0.96f, 1f)).Row(300);
-            var dark = new Color(0.1f, 0.16f, 0.22f, 1f);
-            UiKit.Label("Name", panel.transform, QuestText.Item(id), 32, dark, TextAnchor.MiddleCenter, FontStyle.Bold).rectTransform.Place(0.04f, 0.78f, 0.96f, 0.96f);
-            var desc = Capsules.TryParse(id, out var resource, out var amount)
+            var hero = GiftItems.TryParseHero(id, out _, out _, out _);
+            var capsule = Capsules.TryParse(id, out _, out _);
+            var teleport = TeleportRules.IsItem(id);
+            var speedup = Speedups.TryParse(id, out _, out _, out _);
+            var max = hero || teleport ? 1 : Math.Max(1, capsule ? count : Math.Min(count, MaxOpenAtOnce));
+            var countable = max > 1 && !speedup;
+            var button = !speedup && id != TeleportRules.TargetItem;
+            var height = 150 + (countable ? 90 : 0) + (button ? 100 : 40);
+
+            var holder = UiKit.Rect("Use", _list).Row(height + 18);
+            var dark = new Color(0.12f, 0.17f, 0.24f, 1f);
+            var paper = new Color(0.9f, 0.93f, 0.96f, 1f);
+
+            // The little pointer up to the tile it belongs to.
+            var pointer = UiKit.Box("Pointer", holder, paper);
+            pointer.rectTransform.anchorMin = pointer.rectTransform.anchorMax = new Vector2(column * 0.25f + 0.125f, 1f);
+            pointer.rectTransform.sizeDelta = new Vector2(34f, 34f);
+            pointer.rectTransform.anchoredPosition = new Vector2(0f, -16f);
+            pointer.rectTransform.localRotation = Quaternion.Euler(0f, 0f, 45f);
+            pointer.raycastTarget = false;
+
+            var panel = UiKit.Box("Card", holder, paper);
+            panel.rectTransform.Place(0.01f, 0f, 0.99f, 1f);
+            panel.rectTransform.offsetMax = new Vector2(0f, -18f);
+            panel.raycastTarget = true;
+            panel.gameObject.AddComponent<Outline>().effectColor = new Color(0.55f, 0.65f, 0.78f, 0.8f);
+
+            float Y(float px) => 1f - px / height;
+            UiKit.Label("Name", panel.transform, QuestText.Item(id), 32, dark, TextAnchor.MiddleCenter, FontStyle.Bold).rectTransform.Place(0.04f, Y(62), 0.96f, Y(10));
+            var desc = capsule && Capsules.TryParse(id, out var resource, out var amount)
                 ? Loc.F("bag.capsule.gives", CostChips.Compact(amount), Loc.Resource(resource.ToString()))
                 : QuestText.ItemDescription(id);
-            UiKit.Label("Desc", panel.transform, desc, 24, new Color(0.3f, 0.4f, 0.47f, 1f), TextAnchor.MiddleCenter).rectTransform.Place(0.04f, 0.58f, 0.96f, 0.78f);
+            if (id == TeleportRules.TargetItem)
+                desc += "\n" + Loc.T("bag.teleport.target");
+            else if (speedup)
+                desc += "\n" + Loc.T("bag.speedup.how");
+            UiKit.Label("Desc", panel.transform, desc, 23, new Color(0.3f, 0.38f, 0.46f, 1f), TextAnchor.MiddleCenter).rectTransform.Place(0.05f, Y(146), 0.95f, Y(62));
 
-            var capsule = Capsules.TryParse(id, out _, out _);
-            var max = GiftItems.TryParseHero(id, out _, out _, out _) ? 1 : Math.Max(1, capsule ? count : Math.Min(count, 50));
-            _bagCount = Mathf.Clamp(_bagCount, 1, max);
-            var minus = UiKit.Button("Minus", panel.transform, "-", () => { _bagCount = Math.Max(1, _bagCount - 1); Render(force: true); }, new Color(0.25f, 0.5f, 0.85f, 1f), 40);
-            ((RectTransform)minus.transform).Place(0.04f, 0.33f, 0.14f, 0.53f);
-            var countText = UiKit.Label("CountText", panel.transform, _bagCount.ToString(), 30, dark, TextAnchor.MiddleCenter, FontStyle.Bold);
-            countText.rectTransform.Place(0.8f, 0.33f, 0.96f, 0.53f);
-            var slider = UiKit.Slider("Count", panel.transform, max <= 1 ? 1f : (_bagCount - 1f) / (max - 1f), v =>
+            if (_bagCount <= 0 || _bagCount > max)
+                _bagCount = max;
+            if (countable)
             {
-                _bagCount = Mathf.Clamp(1 + Mathf.RoundToInt(v * (max - 1)), 1, max);
-                countText.text = _bagCount.ToString();
-            });
-            ((RectTransform)slider.transform).Place(0.16f, 0.33f, 0.66f, 0.53f);
-            var plus = UiKit.Button("Plus", panel.transform, "+", () => { _bagCount = Math.Min(max, _bagCount + 1); Render(force: true); }, new Color(0.25f, 0.5f, 0.85f, 1f), 40);
-            ((RectTransform)plus.transform).Place(0.67f, 0.33f, 0.77f, 0.53f);
-
-            if (Speedups.TryParse(id, out _, out _, out _))
-            {
-                UiKit.Label("How", panel.transform, Loc.T("bag.speedup.how"), 24, dark, TextAnchor.MiddleCenter).rectTransform.Place(0.04f, 0.05f, 0.96f, 0.3f);
-                return;
-            }
-
-            // Targeted and alliance jumps are chosen on the map; the random one goes from here.
-            if (TeleportRules.IsItem(id) && id != TeleportRules.RandomItem)
-            {
-                UiKit.Label("How", panel.transform, Loc.T(id == TeleportRules.TargetItem ? "bag.teleport.target" : "bag.teleport.ally"), 24, dark,
-                    TextAnchor.MiddleCenter).rectTransform.Place(0.04f, 0.05f, 0.96f, 0.3f);
-                return;
-            }
-
-            if (id == TeleportRules.RandomItem)
-            {
-                var jump = UiKit.Button("Teleport", panel.transform, Loc.T("world.teleport.random"), () =>
+                float top = Y(150), bottom = Y(232);
+                var blue = new Color(0.25f, 0.5f, 0.85f, 1f);
+                var minus = UiKit.Button("Minus", panel.transform, "−", () => { _bagCount = Math.Max(1, _bagCount - 1); Render(force: true); }, blue, 40);
+                ((RectTransform)minus.transform).Place(0.04f, bottom, 0.14f, top);
+                var box = UiKit.Box("CountBox", panel.transform, Color.white);
+                box.rectTransform.Place(0.78f, bottom + 0.02f, 0.96f, top - 0.02f);
+                box.gameObject.AddComponent<Outline>().effectColor = new Color(0.55f, 0.62f, 0.72f, 1f);
+                var countText = UiKit.Label("CountText", box.transform, _bagCount.ToString("N0"), 28, dark, TextAnchor.MiddleCenter, FontStyle.Bold);
+                countText.rectTransform.Place(0, 0, 1, 1);
+                var slider = UiKit.Slider("Count", panel.transform, (_bagCount - 1f) / (max - 1f), v =>
                 {
-                    _commands.Dispatch(new TeleportCommand { CommandId = NewId(), ClientSequence = NextSequence(), Mode = TeleportRules.Random });
-                    _bagSelected = string.Empty;
-                }, UiKit.Primary, 32);
-                ((RectTransform)jump.transform).Place(0.2f, 0.05f, 0.8f, 0.27f);
-                return;
+                    _bagCount = Mathf.Clamp(1 + Mathf.RoundToInt(v * (max - 1)), 1, max);
+                    countText.text = _bagCount.ToString("N0");
+                });
+                ((RectTransform)slider.transform).Place(0.16f, bottom, 0.64f, top);
+                // Gold fill on a dark track with a blue grip, as in Last Asylum.
+                slider.transform.Find("Track").GetComponent<Image>().color = new Color(0.36f, 0.42f, 0.52f, 1f);
+                slider.fillRect.GetComponent<Image>().color = new Color(0.95f, 0.69f, 0.24f, 1f);
+                slider.handleRect.GetComponent<Image>().color = new Color(0.3f, 0.56f, 0.92f, 1f);
+                var plus = UiKit.Button("Plus", panel.transform, "+", () => { _bagCount = Math.Min(max, _bagCount + 1); Render(force: true); }, blue, 40);
+                ((RectTransform)plus.transform).Place(0.66f, bottom, 0.76f, top);
             }
 
+            if (!button)
+                return;
             var use = UiKit.Button("UseButton", panel.transform, Loc.T("bag.use"), () =>
             {
-                OpenItems(id, _bagCount);
+                var n = _bagCount;
                 _bagSelected = string.Empty;
+                _bagCount = 0;
+                if (id == TeleportRules.RandomItem)
+                    _commands.Dispatch(new TeleportCommand { CommandId = NewId(), ClientSequence = NextSequence(), Mode = TeleportRules.Random });
+                else if (id == TeleportRules.AllianceItem)
+                    _commands.Dispatch(new TeleportCommand { CommandId = NewId(), ClientSequence = NextSequence(), Mode = TeleportRules.Alliance });
+                else
+                    OpenItems(id, n);
             }, new Color(0.25f, 0.5f, 0.85f, 1f), 34);
             use.GetComponentInChildren<Text>().color = Color.white;
-            ((RectTransform)use.transform).Place(capsule && count > 1 ? 0.06f : 0.28f, 0.05f, capsule && count > 1 ? 0.48f : 0.72f, 0.27f);
-            if (capsule && count > 1)
-            {
-                var all = UiKit.Button("UseAll", panel.transform, Loc.F("bag.useAll", count.ToString("N0")), () =>
-                {
-                    OpenItems(id, count);
-                    _bagSelected = string.Empty;
-                }, UiKit.Gold, 30);
-                ((RectTransform)all.transform).Place(0.52f, 0.05f, 0.94f, 0.27f);
-            }
+            ((RectTransform)use.transform).Place(0.3f, Y(height - 14), 0.7f, Y(height - 92));
         }
 
         /// <summary>Last Asylum's resource overview: what the bag holds, what is owned, and both together.</summary>

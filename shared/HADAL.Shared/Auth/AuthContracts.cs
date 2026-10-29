@@ -45,6 +45,9 @@ namespace HADAL.Shared.Auth
     public static class AccountErrors
     {
         public const string NameInvalid = "NameInvalid";
+        public const string NameTaken = "NameTaken";
+        public const string RenameCooldown = "RenameCooldown";
+        public const string NeedRenameCard = "NeedRenameCard";
         public const string PasswordInvalid = "PasswordInvalid";
         public const string InvalidCredentials = "InvalidCredentials";
         public const string ProviderUnknown = "ProviderUnknown";

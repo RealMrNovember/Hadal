@@ -78,7 +78,7 @@ const ERRORS = {
   InvalidUrl: "İndirme adresi https:// ile başlamalı.",
   ConfirmationRequired: "Silme onaylanmadı.",
   UnknownPack: "Mağaza paketi bulunamadı.",
-  InvalidVip: "VIP seviyesi 0–10, puan 0–100.000.000 olmalı.",
+  InvalidVip: "VIP seviyesi 0–15, puan 0–100.000.000 olmalı.",
 };
 const explain = (code) => ERRORS[code] || code || "İşlem başarısız.";
 
@@ -257,7 +257,7 @@ async function playerDetail(root, id) {
     `${fmtNum(k.hadalite)}${k.bonus ? " + " + fmtNum(k.bonus) : ""} Hadalit · $${(k.priceCents / 100).toFixed(2)} · ${fmtNum(k.vipPoints)} VIP puanı`)));
   const packNote = el("input", { placeholder: "Not (ör. test satın alması, destek)" });
   const vipLevel = el("select", {}, el("option", { value: "" }, "— puanla ayarla —"),
-    Array.from({ length: 11 }, (_, i) => el("option", { value: i }, `VIP ${i}`)));
+    Array.from({ length: 16 }, (_, i) => el("option", { value: i }, `VIP ${i}`)));
   const vipPoints = el("input", { type: "number", min: "0", value: d.vip ? d.vip.points : 0 });
 
   // Heroes and troop packs (GiftItems): chosen here, they land in the bag and the player uses them.
@@ -392,7 +392,7 @@ const GRANT_ITEMS = [
   ["speed_research_60", "Araştırma hızlandırma 1 sa"], ["speed_march_p25", "Yürüyüş hızlandırma %25"], ["speed_march_p50", "Yürüyüş hızlandırma %50"],
   ["chest_bronze", "Bronz sandık"], ["chest_silver", "Gümüş sandık"], ["chest_gold", "Altın sandık"],
   ["vip_100", "VIP puanı 100"], ["vip_500", "VIP puanı 500"], ["vip_1000", "VIP puanı 1.000"], ["vip_5000", "VIP puanı 5.000"],
-  ["teleport_random", "Rastgele ışınlayıcı"], ["teleport_target", "Hedefli ışınlayıcı"], ["teleport_alliance", "İttifak ışınlayıcısı"],
+  ["teleport_random", "Rastgele teleport"], ["teleport_target", "Hedefli teleport"], ["teleport_alliance", "İttifak teleportu"], ["rename_card", "İsim değiştirme kartı"],
 ];
 
 const HERO_TR = { mara: "Komutan Elias Rourke", lyra: "Dr. Lyra Moss", tess: "Tess Ruiz", kael: "Kael", orin: "Dr. Orin Hale", juno: "Juno Vega", sable: "Sable", aelis: "Aelis" };

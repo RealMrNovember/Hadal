@@ -43,6 +43,9 @@ namespace HADAL.Shared.Simulation
         /// <summary>Extra copies allowed per building definition.</summary>
         public Dictionary<string, int> ExtraLimits { get; } = new Dictionary<string, int>(StringComparer.Ordinal);
 
+        /// <summary>Percent added to march speed (VIP); trips take raw / (1 + speed% / 100).</summary>
+        public int MarchSpeedPercent { get; internal set; }
+
         public int ExtraBuilders { get; internal set; }
         public int ExtraResearchSlots { get; internal set; }
 
@@ -61,6 +64,8 @@ namespace HADAL.Shared.Simulation
         public int BuildSeconds(int seconds) => ApplyPercent(seconds, BuildTimePercent);
 
         public int ResearchSeconds(int seconds) => ApplyPercent(seconds, ResearchTimePercent);
+
+        public int MarchSeconds(int seconds) => ApplyPercent(seconds, -MarchSpeedPercent);
 
         /// <summary>0 = unlimited, as in the catalog.</summary>
         public int MaxCount(BuildingDefinition building) =>

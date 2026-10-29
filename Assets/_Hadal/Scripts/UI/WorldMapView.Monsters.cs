@@ -98,7 +98,7 @@ namespace Hadal.UI
         /// <summary>The magnifier and the Sonar gauge at the bottom left (Last Asylum's monster search).</summary>
         private void BuildSearch(Transform safe)
         {
-            var search = UiKit.Rect("Search", safe).Place(0.02f, 0.24f, 0.15f, 0.3f);
+            var search = UiKit.Rect("Search", safe).Place(0.02f, 0.155f, 0.15f, 0.215f);
             var disc = search.gameObject.AddComponent<Image>();
             disc.sprite = UiKit.Circle;
             disc.preserveAspect = true;
@@ -108,7 +108,7 @@ namespace Hadal.UI
             Hud.HudIcons.Image(search, "left_search", 0.2f, 0.2f, 0.8f, 0.8f).raycastTarget = false;
 
             var sonar = UiKit.Box("Sonar", safe, new Color(0.02f, 0.05f, 0.08f, 0.85f));
-            sonar.rectTransform.Place(0.02f, 0.19f, 0.19f, 0.23f);
+            sonar.rectTransform.Place(0.02f, 0.105f, 0.19f, 0.145f);
             sonar.raycastTarget = false;
             _sonar = UiKit.Label("Text", sonar.transform, string.Empty, 22, new Color(0.55f, 0.85f, 1f, 1f), TextAnchor.MiddleCenter, FontStyle.Bold);
             _sonar.rectTransform.Place(0, 0, 1, 1);

@@ -123,7 +123,36 @@ namespace Hadal.Game
         /// </summary>
         /// <summary>Items the Overseer may send: catalog items (chests, cards), speed-ups, heroes and troop packs.</summary>
         public bool IsGrantableItem(string id) => _catalog.TryGetItem(id, out _) || Speedups.TryParse(id, out _, out _, out _) || GiftItems.IsValid(_catalog, id)
-            || VipRules.TryParseItem(id, out _) || TeleportRules.IsItem(id);
+            || VipRules.TryParseItem(id, out _) || TeleportRules.IsItem(id) || RenameRules.IsItem(id);
+
+        /// <summary>
+        /// Pays for a name change (RenameRules) and puts the new name on the player, live or offline. Null when done,
+        /// else the reason ("RenameCooldown", "NeedRenameCard", "UnknownPlayer"). The caller stores the name itself.
+        /// </summary>
+        public async Task<string?> RenameAsync(string identityKey, string name, CancellationToken cancellationToken)
+        {
+            await _connectGate.WaitAsync(cancellationToken);
+            try
+            {
+                var now = _clock.UtcNow;
+                if (_sessions.TryGetValue(identityKey, out var session))
+                    return session.Rename(name, now);
+
+                var state = await _repository.LoadByIdentityAsync(identityKey, cancellationToken);
+                if (state == null)
+                    return "UnknownPlayer";
+                var reason = PlayerSession.PayRename(state, now);
+                if (reason != null)
+                    return reason;
+                state.ExtrasJson = PlayerExtras.Write(state);
+                await _repository.SaveAsync(state, cancellationToken);
+                return null;
+            }
+            finally
+            {
+                _connectGate.Release();
+            }
+        }
 
         /// <summary>
         /// Credits a shop pack (a purchase, or the Overseer granting one): Hadalite plus as many VIP points, live or

@@ -812,7 +812,7 @@ namespace Hadal.Game.Events
             return r.Type switch
             {
                 "resource" => GameCatalog.TryParseResource(r.Id, out _),
-                "item" => catalog.TryGetItem(r.Id, out _) || Speedups.TryParse(r.Id, out _, out _, out _) || Capsules.TryParse(r.Id, out _, out _) || GiftItems.IsValid(catalog, r.Id) || VipRules.TryParseItem(r.Id, out _) || TeleportRules.IsItem(r.Id),
+                "item" => catalog.TryGetItem(r.Id, out _) || Speedups.TryParse(r.Id, out _, out _, out _) || Capsules.TryParse(r.Id, out _, out _) || GiftItems.IsValid(catalog, r.Id) || VipRules.TryParseItem(r.Id, out _) || TeleportRules.IsItem(r.Id) || RenameRules.IsItem(r.Id),
                 "shards" => string.IsNullOrEmpty(r.Id) ? catalog.Heroes.Any(h => h.Rarity.id == r.Rarity) : catalog.TryGetHero(r.Id, out _),
                 _ => false
             };

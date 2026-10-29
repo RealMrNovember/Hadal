@@ -90,6 +90,14 @@ namespace Hadal.Game.Tests
             var (lx, ly) = Where(leader);
             var (dx, dy) = Where(diver);
             Assert.True(Math.Max(Math.Abs(lx - dx), Math.Abs(ly - dy)) <= TeleportRules.AllianceRadius);
+
+            // From the bag no mate is named: the jump goes to the leader's waters on its own.
+            var (third, thirdConnection) = await Connect("tp-third");
+            Send(third, new JoinAllianceCommand { CommandId = "j3", AllianceId = allianceId }, CommandType.JoinAlliance);
+            Send(third, new TeleportCommand { CommandId = "t", Mode = TeleportRules.Alliance }, CommandType.Teleport);
+            Assert.Equal(CommandResultCode.Accepted, LastAck(thirdConnection).Result);
+            var (tx, ty) = Where(third);
+            Assert.True(Math.Max(Math.Abs(lx - tx), Math.Abs(ly - ty)) <= TeleportRules.AllianceRadius);
         }
 
         [Fact]

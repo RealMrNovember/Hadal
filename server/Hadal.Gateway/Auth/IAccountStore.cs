@@ -30,6 +30,9 @@ namespace Hadal.Gateway.Auth
 
         Task SetDisplayNameAsync(Guid accountId, string displayName, CancellationToken cancellationToken);
 
+        /// <summary>Another account already goes by this name (case-insensitive).</summary>
+        Task<bool> IsNameTakenAsync(string displayName, Guid exceptAccountId, CancellationToken cancellationToken);
+
         Task<AccountLink?> FindLinkAsync(string provider, string subject, CancellationToken cancellationToken);
 
         /// <summary>
@@ -102,6 +105,9 @@ namespace Hadal.Gateway.Auth
             var providers = _links.Where(l => l.Value.AccountId == accountId).Select(l => l.Key.Provider).Distinct().OrderBy(p => p).ToArray();
             return Task.FromResult<AccountProfile?>(new AccountProfile(accountId, account.Name, account.Created, providers));
         }
+
+        public Task<bool> IsNameTakenAsync(string displayName, Guid exceptAccountId, CancellationToken cancellationToken) =>
+            Task.FromResult(_accounts.Any(a => a.Key != exceptAccountId && string.Equals(a.Value.Name, displayName, StringComparison.OrdinalIgnoreCase)));
 
         public Task SetDisplayNameAsync(Guid accountId, string displayName, CancellationToken cancellationToken)
         {

@@ -54,26 +54,123 @@ namespace Hadal.UI
             return _routeMaterial;
         }
 
-        /// <summary>The submarine every team travels in; a simple hull when the art is missing.</summary>
+        /// <summary>
+        /// The submarine every team travels in, as a pivot whose +Z is the bow: the model is turned by its art yaw
+        /// (art/gpu/assets.json) so LookRotation on the pivot points the nose where the team goes. A bubble trail
+        /// streams from the stern; a simple hull stands in when the art is missing.
+        /// </summary>
         private static Transform MakeSubmarine(Transform parent)
         {
-            var prefab = CharacterLibrary.Instance?.Model("prop_sub_scout") ?? CharacterLibrary.Instance?.Model("prop_sub_hauler");
-            GameObject sub;
+            var pivot = new GameObject("Submarine").transform;
+            pivot.SetParent(parent, false);
+
+            var scout = CharacterLibrary.Instance?.Model("prop_sub_scout");
+            var prefab = scout ?? CharacterLibrary.Instance?.Model("prop_sub_hauler");
+            GameObject model;
             if (prefab != null)
             {
-                sub = Instantiate(prefab, parent);
+                model = Instantiate(prefab, pivot);
+                model.transform.localRotation = Quaternion.Euler(0f, scout != null ? ScoutYaw : HaulerYaw, 0f);
             }
             else
             {
-                sub = GameObject.CreatePrimitive(PrimitiveType.Capsule);
-                sub.transform.SetParent(parent, false);
-                sub.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
-                Destroy(sub.GetComponent<Collider>());
+                model = GameObject.CreatePrimitive(PrimitiveType.Capsule);
+                model.transform.SetParent(pivot, false);
+                model.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
+                Destroy(model.GetComponent<Collider>());
             }
 
-            sub.name = "Submarine";
-            sub.transform.localScale = Vector3.one * SubScale;
-            return sub.transform;
+            model.name = "Hull";
+            model.transform.localScale = Vector3.one * SubScale;
+            AddBubbleTrail(pivot);
+            return pivot;
+        }
+
+        // The art's own heading offsets, as the base's ambient patrols use them.
+        private const float ScoutYaw = -90f;
+        private const float HaulerYaw = 180f;
+
+        private static Material _bubbleMaterial;
+
+        /// <summary>Soft round bubbles left behind in the water as the submarine moves, rising and fading.</summary>
+        private static void AddBubbleTrail(Transform pivot)
+        {
+            var go = new GameObject("Bubbles");
+            go.transform.SetParent(pivot, false);
+            go.transform.localPosition = new Vector3(0f, 0.3f, -SubScale * 0.9f);
+            go.transform.localRotation = Quaternion.Euler(0f, 180f, 0f);
+
+            var ps = go.AddComponent<ParticleSystem>();
+            ps.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+            var main = ps.main;
+            main.simulationSpace = ParticleSystemSimulationSpace.World;
+            main.startLifetime = new ParticleSystem.MinMaxCurve(1.2f, 2.2f);
+            main.startSpeed = new ParticleSystem.MinMaxCurve(0.2f, 0.8f);
+            main.startSize = new ParticleSystem.MinMaxCurve(0.18f, 0.55f);
+            main.startColor = new ParticleSystem.MinMaxGradient(new Color(0.75f, 0.95f, 1f, 0.85f), new Color(0.55f, 0.85f, 1f, 0.6f));
+            main.gravityModifier = -0.06f;
+            main.maxParticles = 160;
+
+            var emission = ps.emission;
+            emission.rateOverTime = 3f;
+            emission.rateOverDistance = 7f;
+
+            var shape = ps.shape;
+            shape.shapeType = ParticleSystemShapeType.Cone;
+            shape.angle = 18f;
+            shape.radius = 0.25f;
+
+            // A little wobble on the way up, then they shrink and fade.
+            var noise = ps.noise;
+            noise.enabled = true;
+            noise.strength = 0.35f;
+            noise.frequency = 0.8f;
+
+            var size = ps.sizeOverLifetime;
+            size.enabled = true;
+            size.size = new ParticleSystem.MinMaxCurve(1f, new AnimationCurve(new Keyframe(0f, 0.6f), new Keyframe(0.3f, 1f), new Keyframe(1f, 0.4f)));
+
+            var color = ps.colorOverLifetime;
+            color.enabled = true;
+            var fade = new Gradient();
+            fade.SetKeys(new[] { new GradientColorKey(Color.white, 0f), new GradientColorKey(Color.white, 1f) },
+                new[] { new GradientAlphaKey(0f, 0f), new GradientAlphaKey(1f, 0.12f), new GradientAlphaKey(0.7f, 0.6f), new GradientAlphaKey(0f, 1f) });
+            color.color = fade;
+
+            var renderer = go.GetComponent<ParticleSystemRenderer>();
+            renderer.material = BubbleMaterial();
+            renderer.renderMode = ParticleSystemRenderMode.Billboard;
+            renderer.sortingFudge = -10f;
+            ps.Play();
+        }
+
+        /// <summary>A bubble: clear middle, bright rim and a small highlight, drawn once.</summary>
+        private static Material BubbleMaterial()
+        {
+            if (_bubbleMaterial != null)
+                return _bubbleMaterial;
+            const int n = 32;
+            var texture = new Texture2D(n, n, TextureFormat.RGBA32, false) { wrapMode = TextureWrapMode.Clamp, filterMode = FilterMode.Bilinear };
+            for (var y = 0; y < n; y++)
+            {
+                for (var x = 0; x < n; x++)
+                {
+                    var dx = (x + 0.5f) / n * 2f - 1f;
+                    var dy = (y + 0.5f) / n * 2f - 1f;
+                    var r = Mathf.Sqrt(dx * dx + dy * dy);
+                    var rim = Mathf.Clamp01(1f - Mathf.Abs(r - 0.82f) / 0.16f);
+                    var fill = r < 0.82f ? 0.18f : 0f;
+                    var hx = dx + 0.35f;
+                    var hy = dy - 0.35f;
+                    var highlight = Mathf.Clamp01(1f - Mathf.Sqrt(hx * hx + hy * hy) / 0.22f);
+                    var alpha = r > 1f ? 0f : Mathf.Max(Mathf.Max(rim, fill), highlight);
+                    texture.SetPixel(x, y, new Color(1f, 1f, 1f, alpha));
+                }
+            }
+
+            texture.Apply();
+            _bubbleMaterial = new Material(Shader.Find("Sprites/Default")) { mainTexture = texture };
+            return _bubbleMaterial;
         }
 
         /// <summary>Routes and submarines of every team in view; the player's own come from their march list.</summary>

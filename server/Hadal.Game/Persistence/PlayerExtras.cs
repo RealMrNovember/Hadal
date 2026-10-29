@@ -23,7 +23,10 @@ namespace Hadal.Game.Persistence
             List<MarchDoc>? Marches = null, int ExpeditionCleared = 0, string? Avatar = null,
             Dictionary<string, long>? Troops = null, List<TrainingDoc>? Training = null,
             Dictionary<string, long>? Wounded = null, HealDoc? Healing = null,
-            double? Sonar = null, DateTimeOffset? SonarAt = null, List<int>? MonsterWins = null, VipDoc? Vip = null);
+            double? Sonar = null, DateTimeOffset? SonarAt = null, List<int>? MonsterWins = null, VipDoc? Vip = null,
+            RenameDoc? Rename = null);
+
+        private sealed record RenameDoc(int Count, DateTimeOffset? At);
 
         private sealed record VipDoc(long Points, int Streak, long LoginDay, long ChestDay);
 
@@ -82,7 +85,8 @@ namespace Hadal.Game.Persistence
                 state.Healing == null ? null : new HealDoc(new Dictionary<string, long>(state.Healing.Troops), state.Healing.StartedAt, state.Healing.EndsAt,
                     state.Healing.Cost.ToDictionary(p => p.Key.ToString(), p => p.Value)),
                 state.SonarStored, state.SonarAt, state.MonsterWins.ToList(),
-                new VipDoc(state.VipPoints, state.VipStreak, state.VipLoginDay, state.VipChestDay)));
+                new VipDoc(state.VipPoints, state.VipStreak, state.VipLoginDay, state.VipChestDay),
+                new RenameDoc(state.RenameCount, state.RenamedAt)));
         }
 
         private static Dictionary<ResourceType, T> Resources<T>(Dictionary<string, T>? map)
@@ -179,6 +183,12 @@ namespace Hadal.Game.Persistence
                 state.VipStreak = vip.Streak;
                 state.VipLoginDay = vip.LoginDay;
                 state.VipChestDay = vip.ChestDay;
+            }
+
+            if (doc.Rename is { } rename)
+            {
+                state.RenameCount = rename.Count;
+                state.RenamedAt = rename.At;
             }
             foreach (var pair in doc.Wounded ?? new Dictionary<string, long>())
                 state.Wounded[pair.Key] = pair.Value;

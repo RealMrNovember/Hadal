@@ -1005,6 +1005,19 @@ namespace Hadal.Game.Social
                 return AllianceOf(playerId)?.Record.Id ?? string.Empty;
         }
 
+        /// <summary>A player's alliance mates, leader and officers first (alliance teleports); empty without one.</summary>
+        public IReadOnlyList<string> AllianceMatesOf(string playerId)
+        {
+            lock (_gate)
+            {
+                var alliance = AllianceOf(playerId);
+                return alliance == null
+                    ? Array.Empty<string>()
+                    : alliance.Members.Where(m => m.PlayerId != playerId).OrderByDescending(m => m.Rank).ThenBy(m => m.JoinedAt)
+                        .Select(m => m.PlayerId).ToList();
+            }
+        }
+
         /// <summary>Tag, name and emblem of an alliance (event rankings); null when it no longer exists.</summary>
         public (string Tag, string Name, string Emblem)? AllianceInfo(string allianceId)
         {

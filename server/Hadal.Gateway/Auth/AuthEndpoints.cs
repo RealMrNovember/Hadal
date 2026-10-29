@@ -117,7 +117,9 @@ namespace Hadal.Gateway.Auth
                 return profile == null ? Results.Unauthorized() : Results.Ok(ToResponse(profile));
             }).RequireRateLimiting(AccountPolicy);
 
-            app.MapPut(AuthRoutes.Profile, async (HttpContext http, UpdateProfileRequest? request, TokenService tokens, IAccountStore accounts, CancellationToken ct) =>
+            // A name change follows RenameRules: unique, a day apart, the first free and then a Rename Card or Hadalite.
+            app.MapPut(AuthRoutes.Profile, async (HttpContext http, UpdateProfileRequest? request, TokenService tokens, IAccountStore accounts,
+                Hadal.Game.GameWorld world, CancellationToken ct) =>
             {
                 var account = await AuthenticateAsync(http, tokens);
                 if (account == null)
@@ -126,6 +128,17 @@ namespace Hadal.Gateway.Auth
                 var name = request?.displayName?.Trim() ?? string.Empty;
                 if (!AccountRules.IsValidName(name))
                     return Error(StatusCodes.Status400BadRequest, AccountErrors.NameInvalid);
+                var current = await accounts.GetProfileAsync(account.Value, ct);
+                if (current == null)
+                    return Results.Unauthorized();
+                if (string.Equals(current.DisplayName, name, StringComparison.Ordinal))
+                    return Results.Ok(ToResponse(current));
+                if (await accounts.IsNameTakenAsync(name, account.Value, ct))
+                    return Error(StatusCodes.Status409Conflict, AccountErrors.NameTaken);
+
+                var unpaid = await world.RenameAsync(account.Value.ToString("N"), name, ct);
+                if (unpaid == AccountErrors.RenameCooldown || unpaid == AccountErrors.NeedRenameCard)
+                    return Error(StatusCodes.Status409Conflict, unpaid);
 
                 await accounts.SetDisplayNameAsync(account.Value, name, ct);
                 var profile = await accounts.GetProfileAsync(account.Value, ct);

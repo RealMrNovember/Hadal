@@ -362,7 +362,9 @@ namespace Hadal.UI
             var speed = TroopRules.MarchSpeed(troops, aboard.Keys);
             var tx = monster?.X ?? n.X;
             var ty = monster?.Y ?? n.Y;
-            var trip = view == null ? 0 : (int)Math.Ceiling(GatherRules.TravelSeconds(world, view.MyX, view.MyY, tx, ty) * 100.0 / speed);
+            var vip = new PlayerModifiers();
+            VipRules.Apply(vip, View.Vip?.Level ?? 0);
+            var trip = view == null ? 0 : vip.MarchSeconds((int)Math.Ceiling(GatherRules.TravelSeconds(world, view.MyX, view.MyY, tx, ty) * 100.0 / speed));
             var info = UiKit.Box("Info", card.transform, new Color(0.04f, 0.11f, 0.15f, 1f));
             info.rectTransform.Place(0.04f, 0.53f, 0.96f, 0.645f);
             string text;

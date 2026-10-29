@@ -115,6 +115,15 @@ CREATE INDEX IF NOT EXISTS account_links_account ON hadal.account_links (account
                 reader.GetFieldValue<string[]>(2));
         }
 
+        public async Task<bool> IsNameTakenAsync(string displayName, Guid exceptAccountId, CancellationToken cancellationToken)
+        {
+            await using var command = _dataSource.CreateCommand(
+                "SELECT EXISTS (SELECT 1 FROM hadal.accounts WHERE lower(display_name) = lower(@n) AND account_id <> @a)");
+            command.Parameters.AddWithValue("n", displayName);
+            command.Parameters.AddWithValue("a", exceptAccountId);
+            return (bool)(await command.ExecuteScalarAsync(cancellationToken))!;
+        }
+
         public async Task SetDisplayNameAsync(Guid accountId, string displayName, CancellationToken cancellationToken)
         {
             await using var command = _dataSource.CreateCommand("UPDATE hadal.accounts SET display_name = @n WHERE account_id = @a");

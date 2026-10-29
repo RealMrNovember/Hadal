@@ -150,6 +150,10 @@ namespace Hadal.Game
         public long VipLoginDay { get; set; }
         public long VipChestDay { get; set; }
 
+        /// <summary>Name changes made so far and when the last one was (RenameRules).</summary>
+        public int RenameCount { get; set; }
+        public DateTimeOffset? RenamedAt { get; set; }
+
         /// <summary>Wounded troops in the Med Bays by "type:tier".</summary>
         public Dictionary<string, long> Wounded { get; } = new(StringComparer.Ordinal);
 

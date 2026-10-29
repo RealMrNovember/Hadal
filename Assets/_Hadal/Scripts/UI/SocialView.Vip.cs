@@ -85,6 +85,8 @@ namespace Hadal.UI
                 var lines = Loc.F("vip.perk.speed", perks.BuildSpeed, perks.ResearchSpeed);
                 if (perks.Production > 0)
                     lines += "\n" + Loc.F("vip.perk.production", perks.Production);
+                if (perks.MarchSpeed > 0)
+                    lines += "\n" + Loc.F("vip.perk.march", perks.MarchSpeed);
                 if (perks.Capacity > 0)
                     lines += "\n" + Loc.F("vip.perk.capacity", perks.Capacity);
                 if (perks.ExtraBuilders > 0)

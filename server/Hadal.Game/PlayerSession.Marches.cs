@@ -115,7 +115,7 @@ namespace Hadal.Game
                 var world = _catalog.World;
                 var rates = GatherRules.Rates(world, _catalog.Gather, node.Type, node.Level, reactor);
                 var speed = armed ? TroopRules.MarchSpeed(troops, aboard.Keys) : 100;
-                var travel = (int)Math.Ceiling(GatherRules.TravelSeconds(world, homeX, homeY, node.X, node.Y) * 100.0 / speed);
+                var travel = _modifiers.MarchSeconds((int)Math.Ceiling(GatherRules.TravelSeconds(world, homeX, homeY, node.X, node.Y) * 100.0 / speed));
                 var load = Math.Min(armed ? TroopRules.MarchLoad(troops, aboard) : GatherRules.Load(_catalog.Gather, reactor), node.Remaining);
                 var gather = GatherRules.GatherSeconds(world, rates, load);
                 var arrives = now.AddSeconds(travel);
