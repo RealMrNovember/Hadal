@@ -144,6 +144,9 @@ namespace Hadal.Core.StateSync
         private static bool ApplySocialChange(ClientStateView view, EntityChangeDto change, NetworkSerializationLayer serialization)
         {
             var id = change.EntityId;
+            if (PvpStateMutator.TryApply(view, change, serialization))
+                return true;
+
             if (id == EntityIds.Heroes)
             {
                 if (change.Kind != EntityChangeKind.Delete && TryDeserializePayload(change.Payload, serialization, out HeroRosterDto roster))

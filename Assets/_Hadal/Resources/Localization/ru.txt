@@ -1010,3 +1010,21 @@ help.ask = Попросить помощи
 help.asked = Помощь запрошена
 alliance.help.open = Запросов ждут помощи: {0}
 alliance.help.rule = Каждая помощь сокращает стройку, исследование или лечение союзника на 1% (не меньше 1 минуты). Не больше 10 помощей на запрос.
+
+# Hero list and hero card (Last Asylum layout)
+hero.tab.all = Все
+hero.get = Получить героев
+hero.lv = Ур.{0}
+hero.tab.attributes = Характеристики
+hero.tab.stars = Звёзды
+hero.tab.skill = Навык
+hero.upgrade = Улучшить
+hero.stat.power = Сила
+hero.stat.command = Командование
+hero.stat.bonus = Бонус войскам
+hero.stat.cap = Предел уровня
+hero.promote.button = Повысить
+hero.find.cards = Найти карты
+hero.skill.passive = Как лидер отряда: +{0}% войскам отряда
+hero.skill.unlocks = Растёт со звёздами:
+hero.gear.soon = Снаряжение скоро появится.

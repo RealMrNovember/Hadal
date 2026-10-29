@@ -378,6 +378,9 @@ namespace Hadal.UI
                     items.Add(new TargetMenu.Item("nav_world", Loc.T("world.teleport.ally"), () => Teleport(TeleportRules.Alliance, 0, 0, target.PlayerId)));
             }
 
+            if (!me)
+                AddPvpItems(items, b, !string.IsNullOrEmpty(b.AllianceTag) && b.AllianceTag == View.MyAlliance?.Tag);
+
             GlideTo(b.X, b.Y);
             var x = b.X;
             var y = b.Y;
@@ -448,6 +451,7 @@ namespace Hadal.UI
             UpdateMonsterPlates();
             UpdateSonar();
             UpdateMarches();
+            UpdateTerritory();
 
             var tile = WorldToTile(_focus);
             _coords.text = Loc.F("world.coords", tile.x, tile.y);
@@ -545,7 +549,7 @@ namespace Hadal.UI
                 var pinch = Vector2.Distance(a.position, b.position);
                 if (b.phase == TouchPhase.Began)
                     _lastPinch = pinch;
-                _distance = Mathf.Clamp(_distance * _lastPinch / Mathf.Max(1f, pinch), 40f, 180f);
+                _distance = Mathf.Clamp(_distance * _lastPinch / Mathf.Max(1f, pinch), MinDistance, MaxDistance);
                 _lastPinch = pinch;
                 _dragging = false;
             }
@@ -567,7 +571,7 @@ namespace Hadal.UI
 
             var wheel = Input.mouseScrollDelta.y;
             if (Mathf.Abs(wheel) > 0.01f)
-                _distance = Mathf.Clamp(_distance * (1f - wheel * 0.1f), 40f, 180f);
+                _distance = Mathf.Clamp(_distance * (1f - wheel * 0.1f), MinDistance, MaxDistance);
         }
 
         private static bool PointerOverUi()

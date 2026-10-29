@@ -1010,3 +1010,21 @@ help.ask = Minta bantuan
 help.asked = Bantuan diminta
 alliance.help.open = {0} permintaan menunggu bantuan
 alliance.help.rule = Setiap bantuan memotong 1% (minimal 1 menit) dari bangunan, riset, atau perawatan rekan. Maksimal 10 bantuan per permintaan.
+
+# Hero list and hero card (Last Asylum layout)
+hero.tab.all = Semua
+hero.get = Dapatkan Pahlawan
+hero.lv = Lv.{0}
+hero.tab.attributes = Atribut
+hero.tab.stars = Bintang
+hero.tab.skill = Keahlian
+hero.upgrade = Tingkatkan
+hero.stat.power = Kekuatan
+hero.stat.command = Kap. Komando
+hero.stat.bonus = Bonus pasukan
+hero.stat.cap = Batas level
+hero.promote.button = Promosi
+hero.find.cards = Cari kartu
+hero.skill.passive = Sebagai pemimpin tim: +{0}% untuk pasukan tim
+hero.skill.unlocks = Bertambah dengan bintang:
+hero.gear.soon = Perlengkapan segera hadir.

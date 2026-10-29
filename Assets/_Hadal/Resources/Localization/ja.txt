@@ -1010,3 +1010,21 @@ help.ask = 支援を要請
 help.asked = 要請済み
 alliance.help.open = 支援待ちの要請：{0}件
 alliance.help.rule = 支援1回ごとに仲間の建設・研究・治療の時間が1%（最低1分）短縮されます。1件につき最大10回。
+
+# Hero list and hero card (Last Asylum layout)
+hero.tab.all = すべて
+hero.get = 英雄を獲得
+hero.lv = Lv.{0}
+hero.tab.attributes = 能力
+hero.tab.stars = 星
+hero.tab.skill = スキル
+hero.upgrade = 強化
+hero.stat.power = 戦力
+hero.stat.command = 統率力
+hero.stat.bonus = 部隊ボーナス
+hero.stat.cap = レベル上限
+hero.promote.button = 昇格
+hero.find.cards = カードを探す
+hero.skill.passive = 隊長のとき：部隊の兵士 +{0}%
+hero.skill.unlocks = 星で強くなる：
+hero.gear.soon = 装備は近日登場。

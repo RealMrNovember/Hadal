@@ -342,7 +342,7 @@ ON CONFLICT (region) DO UPDATE SET alliance_id = EXCLUDED.alliance_id, hub = EXC
                             if (rank < AlliancePermissions.Leader)
                                 reason = "NoPermission";
                             else if (region!.AllianceId != alliance || region.Hub)
-                                reason = "NotOwned";
+                                reason = "NotOurs";
                             else if (hub?.HubMovedAt is { } moved && now - moved < TerritoryRules.HubMoveCooldown)
                                 reason = "Cooldown";
                             else
@@ -363,7 +363,7 @@ ON CONFLICT (region) DO UPDATE SET alliance_id = EXCLUDED.alliance_id, hub = EXC
                             if (rank < AlliancePermissions.Leader)
                                 reason = "NoPermission";
                             else if (region!.AllianceId != alliance)
-                                reason = "NotOwned";
+                                reason = "NotOurs";
                             else if (region.Hub)
                                 reason = "HubRegion";
                             else

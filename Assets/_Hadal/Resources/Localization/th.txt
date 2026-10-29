@@ -1010,3 +1010,21 @@ help.ask = ขอความช่วยเหลือ
 help.asked = ขอความช่วยเหลือแล้ว
 alliance.help.open = มีคำขอรอความช่วยเหลือ {0} รายการ
 alliance.help.rule = แต่ละครั้งที่ช่วยลดเวลาก่อสร้าง วิจัย หรือรักษาของเพื่อน 1% (อย่างน้อย 1 นาที) สูงสุด 10 ครั้งต่อคำขอ
+
+# Hero list and hero card (Last Asylum layout)
+hero.tab.all = ทั้งหมด
+hero.get = รับฮีโร่
+hero.lv = Lv.{0}
+hero.tab.attributes = คุณสมบัติ
+hero.tab.stars = ดาว
+hero.tab.skill = ทักษะ
+hero.upgrade = อัปเกรด
+hero.stat.power = พลัง
+hero.stat.command = ความจุบัญชาการ
+hero.stat.bonus = โบนัสทหาร
+hero.stat.cap = เลเวลสูงสุด
+hero.promote.button = เลื่อนขั้น
+hero.find.cards = หาการ์ด
+hero.skill.passive = เมื่อเป็นหัวหน้าทีม: ทหารในทีม +{0}%
+hero.skill.unlocks = เพิ่มขึ้นตามดาว:
+hero.gear.soon = อุปกรณ์จะมาเร็ว ๆ นี้

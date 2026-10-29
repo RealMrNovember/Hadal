@@ -47,7 +47,7 @@ namespace Hadal.UI
         private void OnCommandResolved(CommandResolvedEvent result)
         {
             if (result.Type is not (CommandType.MarchGather or CommandType.RecallMarch or CommandType.InviteToAlliance or CommandType.MarchAttack
-                or CommandType.Teleport))
+                or CommandType.Teleport or CommandType.MarchPvp or CommandType.Territory or CommandType.UseShield))
                 return;
             if (result.Result == CommandResultCode.Rejected)
             {
@@ -61,6 +61,9 @@ namespace Hadal.UI
                 CommandType.MarchAttack => "world.attack.sent",
                 CommandType.RecallMarch => "world.march.recalled",
                 CommandType.Teleport => "world.teleport.done",
+                CommandType.MarchPvp => "pvp.sent",
+                CommandType.Territory => "pvp.territory.done",
+                CommandType.UseShield => "pvp.shield.raised",
                 _ => "alliance.invited"
             }), UiKit.Accent);
             ClosePopup();
@@ -70,6 +73,8 @@ namespace Hadal.UI
                 return;
             }
 
+            if (result.Type == CommandType.Territory)
+                RequestTerritory();
             if (IsOpen && _requested.x >= 0)
                 Request(_requested.x, _requested.y);
         }
@@ -262,6 +267,8 @@ namespace Hadal.UI
         private void OpenMarchSetup(WorldNodeDto n, List<string> team = null, WorldMonsterDto monster = null)
         {
             var fresh = team == null;
+            // Neither a node nor a monster: a PvP target (WorldMapView.Pvp).
+            var pvp = n == null && monster == null ? _pvpPlan : null;
             ClosePopup();
             var catalog = ClientCatalog.Catalog;
             var troops = catalog.Troops;
@@ -317,7 +324,7 @@ namespace Hadal.UI
             var header = UiKit.Box("Header", card.transform, new Color(0.05f, 0.16f, 0.22f, 1f));
             header.rectTransform.Place(0, 0.91f, 1, 1);
             UiKit.Label("Title", header.transform, Loc.T("march.setup"), 42, UiKit.Text, TextAnchor.MiddleLeft, FontStyle.Bold).rectTransform.Place(0.05f, 0.45f, 0.8f, 1f);
-            UiKit.Label("Target", header.transform, monster != null ? $"{Loc.F("base.level", monster.Level)}  {MonsterName(monster.Type)}" : $"{Loc.F("base.level", n.Level)}  {NodeName(n.Type)}", 28, UiKit.Accent, TextAnchor.MiddleLeft, FontStyle.Bold)
+            UiKit.Label("Target", header.transform, pvp != null ? pvp.Title : monster != null ? $"{Loc.F("base.level", monster.Level)}  {MonsterName(monster.Type)}" : $"{Loc.F("base.level", n.Level)}  {NodeName(n.Type)}", 28, UiKit.Accent, TextAnchor.MiddleLeft, FontStyle.Bold)
                 .rectTransform.Place(0.05f, 0.02f, 0.8f, 0.5f);
             var close = UiKit.Button("Close", header.transform, "X", ClosePopup, UiKit.Field, 40);
             close.GetComponentInChildren<Text>().color = UiKit.Text;
@@ -360,8 +367,8 @@ namespace Hadal.UI
 
             // Load, trip and gathering time for this team; in attack mode the two powers and the Sonar cost.
             var speed = TroopRules.MarchSpeed(troops, aboard.Keys);
-            var tx = monster?.X ?? n.X;
-            var ty = monster?.Y ?? n.Y;
+            var tx = pvp?.X ?? monster?.X ?? n.X;
+            var ty = pvp?.Y ?? monster?.Y ?? n.Y;
             var vip = new PlayerModifiers();
             VipRules.Apply(vip, View.Vip?.Level ?? 0);
             var trip = view == null ? 0 : vip.MarchSeconds((int)Math.Ceiling(GatherRules.TravelSeconds(world, view.MyX, view.MyY, tx, ty) * 100.0 / speed));
@@ -371,6 +378,8 @@ namespace Hadal.UI
             var sonarShort = false;
             if (troopCount <= 0)
                 text = $"<color=#FF8A80>{Loc.T("march.notroops")}</color>";
+            else if (pvp != null)
+                text = $"{Loc.F("pvp.myPower", TroopRules.Power(troops, aboard).ToString("N0"))}   {pvp.Info}\n{Loc.F("world.monster.trip", Loc.Duration(trip))}";
             else if (monster != null)
             {
                 var cost = MonsterRules.Kind(monster.Type)?.Sonar ?? 40;
@@ -421,14 +430,16 @@ namespace Hadal.UI
                 UiKit.Label("None", card.transform, Loc.T("march.noheroes"), 28, UiKit.Muted, TextAnchor.MiddleCenter).rectTransform.Place(0.05f, 0.2f, 0.95f, 0.45f);
 
             var can = _setupTeam.Count > 0 && troopCount > 0 && !sonarShort;
-            var go = UiKit.Button("Go", card.transform, monster != null ? Loc.T("world.attack") : Loc.T("march.go"), () =>
+            var go = UiKit.Button("Go", card.transform, pvp != null ? pvp.GoLabel : monster != null ? Loc.T("world.attack") : Loc.T("march.go"), () =>
             {
-                if (monster != null)
+                if (pvp != null)
+                    pvp.Send(_setupTeam.ToArray());
+                else if (monster != null)
                     Attack(monster.Id, _setupTeam.ToArray());
                 else
                     Gather(n.Id, _setupTeam.ToArray());
                 ClosePopup();
-            }, can ? (monster != null ? new Color(0.86f, 0.3f, 0.27f, 1f) : UiKit.Ok) : UiKit.Panel, 40);
+            }, can ? (pvp != null ? pvp.GoColor : monster != null ? new Color(0.86f, 0.3f, 0.27f, 1f) : UiKit.Ok) : UiKit.Panel, 40);
             go.interactable = can;
             ((RectTransform)go.transform).Place(0.2f, 0.02f, 0.8f, 0.12f);
         }

@@ -1010,3 +1010,21 @@ help.ask = Demander de l'aide
 help.asked = Aide demandée
 alliance.help.open = {0} demandes attendent de l'aide
 alliance.help.rule = Chaque aide retire 1 % (au moins 1 minute) à la construction, la recherche ou les soins d'un allié. 10 aides au plus par demande.
+
+# Hero list and hero card (Last Asylum layout)
+hero.tab.all = Tous
+hero.get = Obtenir des héros
+hero.lv = Niv.{0}
+hero.tab.attributes = Attributs
+hero.tab.stars = Étoiles
+hero.tab.skill = Compétence
+hero.upgrade = Améliorer
+hero.stat.power = Puissance
+hero.stat.command = Cap. de commandement
+hero.stat.bonus = Bonus de troupes
+hero.stat.cap = Niveau max
+hero.promote.button = Promouvoir
+hero.find.cards = Trouver des cartes
+hero.skill.passive = En chef d'équipe : +{0} % aux troupes de l'équipe
+hero.skill.unlocks = Augmente avec les étoiles :
+hero.gear.soon = L'équipement arrive bientôt.

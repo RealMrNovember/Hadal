@@ -1011,3 +1011,21 @@ help.ask = Yardım iste
 help.asked = Yardım istendi
 alliance.help.open = {0} istek yardım bekliyor
 alliance.help.rule = Her yardım, arkadaşının inşaat, araştırma ya da tedavi süresinden %1 (en az 1 dakika) düşer. Her isteğe en fazla 10 yardım.
+
+# Hero list and hero card (Last Asylum layout)
+hero.tab.all = Tümü
+hero.get = Kahraman Edin
+hero.lv = Sv.{0}
+hero.tab.attributes = Özellikler
+hero.tab.stars = Yıldızlar
+hero.tab.skill = Beceri
+hero.upgrade = Yükselt
+hero.stat.power = Güç
+hero.stat.command = Komuta Kap.
+hero.stat.bonus = Birlik bonusu
+hero.stat.cap = Sv. sınırı
+hero.promote.button = Terfi
+hero.find.cards = Kart Bul
+hero.skill.passive = Takım lideriyken: takımın birliklerine +%{0}
+hero.skill.unlocks = Yıldızla güçlenir:
+hero.gear.soon = Ekipman yakında geliyor.

@@ -1010,3 +1010,21 @@ help.ask = طلب المساعدة
 help.asked = تم طلب المساعدة
 alliance.help.open = {0} طلبات تنتظر المساعدة
 alliance.help.rule = كل مساعدة تُنقص 1% (دقيقة على الأقل) من بناء رفيقك أو بحثه أو علاجه. 10 مساعدات كحد أقصى لكل طلب.
+
+# Hero list and hero card (Last Asylum layout)
+hero.tab.all = الكل
+hero.get = احصل على أبطال
+hero.lv = مستوى {0}
+hero.tab.attributes = الصفات
+hero.tab.stars = النجوم
+hero.tab.skill = المهارة
+hero.upgrade = ترقية
+hero.stat.power = القوة
+hero.stat.command = سعة القيادة
+hero.stat.bonus = مكافأة القوات
+hero.stat.cap = حد المستوى
+hero.promote.button = ترقية النجوم
+hero.find.cards = ابحث عن بطاقات
+hero.skill.passive = كقائد للفريق: ‎+{0}%‎ لقوات الفريق
+hero.skill.unlocks = تزداد بالنجوم:
+hero.gear.soon = المعدات قادمة قريبًا.

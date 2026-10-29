@@ -162,6 +162,16 @@ namespace Hadal.UI
                 _map.OpenAt(x, y);
             };
 
+            // PvP over every screen: the red alarm, battle toasts and the war window (docs/30).
+            var pvp = new GameObject("PvpCenter");
+            pvp.transform.SetParent(transform, false);
+            pvp.AddComponent<PvpCenter>().Initialize(_stateSync, _commands, new PvpCenter.Actions
+            {
+                ShowOnMap = (x, y) => _social.ShowOnMap(x, y),
+                JoinRally = row => { Close(); _social.Close(); _map.JoinRally(row); },
+                Reinforce = (id, name, x, y) => { Close(); _social.Close(); _map.Reinforce(id, name, x, y); }
+            });
+
             var speedups = new GameObject("SpeedupWindow");
             speedups.transform.SetParent(transform, false);
             speedups.AddComponent<SpeedupWindow>().Initialize(_stateSync, _commands, _localBus);
@@ -229,6 +239,7 @@ namespace Hadal.UI
                 Vip = () => { Close(); _social.OpenVip(); },
                 Shop = () => { Close(); _social.OpenShop(); },
                 Mail = () => { Close(); _social.OpenMail(); },
+                War = () => PvpCenter.Instance?.Open(0),
                 ClaimQuest = id => _social.ClaimQuest(id),
                 Building = key => { _social.Close(); _map.Close(); OpenBuilding(key); },
                 Toast = Toast,

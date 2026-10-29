@@ -1010,3 +1010,21 @@ help.ask = 도움 요청
 help.asked = 요청함
 alliance.help.open = 도움을 기다리는 요청 {0}건
 alliance.help.rule = 도움 한 번마다 동료의 건설, 연구, 치료 시간이 1%(최소 1분) 줄어듭니다. 요청당 최대 10회.
+
+# Hero list and hero card (Last Asylum layout)
+hero.tab.all = 전체
+hero.get = 영웅 획득
+hero.lv = Lv.{0}
+hero.tab.attributes = 속성
+hero.tab.stars = 별
+hero.tab.skill = 스킬
+hero.upgrade = 강화
+hero.stat.power = 전투력
+hero.stat.command = 통솔력
+hero.stat.bonus = 부대 보너스
+hero.stat.cap = 레벨 상한
+hero.promote.button = 승급
+hero.find.cards = 카드 찾기
+hero.skill.passive = 팀 리더일 때: 팀 병력 +{0}%
+hero.skill.unlocks = 별로 강해짐:
+hero.gear.soon = 장비는 곧 추가됩니다.

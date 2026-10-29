@@ -1011,3 +1011,21 @@ help.ask = Ask for help
 help.asked = Help asked
 alliance.help.open = {0} requests waiting for help
 alliance.help.rule = Each help cuts 1% (at least 1 minute) off a mate's construction, research or healing. Up to 10 helps per request.
+
+# Hero list and hero card (Last Asylum layout)
+hero.tab.all = All
+hero.get = Get Heroes
+hero.lv = Lv.{0}
+hero.tab.attributes = Attributes
+hero.tab.stars = Stars
+hero.tab.skill = Skill
+hero.upgrade = Upgrade
+hero.stat.power = Power
+hero.stat.command = Command Cap.
+hero.stat.bonus = Troop bonus
+hero.stat.cap = Level cap
+hero.promote.button = Promote
+hero.find.cards = Find cards
+hero.skill.passive = As team leader: +{0}% to the team's troops
+hero.skill.unlocks = Grows with stars:
+hero.gear.soon = Gear is coming soon.

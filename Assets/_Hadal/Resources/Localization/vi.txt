@@ -1010,3 +1010,21 @@ help.ask = Xin trợ giúp
 help.asked = Đã xin trợ giúp
 alliance.help.open = {0} yêu cầu đang chờ giúp
 alliance.help.rule = Mỗi lần giúp giảm 1% (ít nhất 1 phút) thời gian xây dựng, nghiên cứu hoặc chữa trị của đồng minh. Tối đa 10 lần giúp mỗi yêu cầu.
+
+# Hero list and hero card (Last Asylum layout)
+hero.tab.all = Tất cả
+hero.get = Nhận anh hùng
+hero.lv = Cấp {0}
+hero.tab.attributes = Thuộc tính
+hero.tab.stars = Sao
+hero.tab.skill = Kỹ năng
+hero.upgrade = Nâng cấp
+hero.stat.power = Sức mạnh
+hero.stat.command = Sức chỉ huy
+hero.stat.bonus = Thưởng quân
+hero.stat.cap = Giới hạn cấp
+hero.promote.button = Thăng sao
+hero.find.cards = Tìm thẻ
+hero.skill.passive = Khi làm đội trưởng: +{0}% cho quân của đội
+hero.skill.unlocks = Tăng theo sao:
+hero.gear.soon = Trang bị sắp ra mắt.

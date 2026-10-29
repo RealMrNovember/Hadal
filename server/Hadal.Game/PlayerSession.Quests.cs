@@ -161,6 +161,13 @@ namespace Hadal.Game
                 return;
             }
 
+            // A shield used from the bag (docs/30 §3).
+            if (PvpRules.IsShield(command.ItemId))
+            {
+                UseShield(new UseShieldCommand { CommandId = command.CommandId, ClientSequence = command.ClientSequence, ItemId = command.ItemId }, now);
+                return;
+            }
+
             if (GiftItems.Is(command.ItemId))
             {
                 OpenGift(command, count, now);

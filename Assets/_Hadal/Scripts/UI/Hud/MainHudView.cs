@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using HADAL.Shared.Catalog;
+using HADAL.Shared.DTOs;
 using HADAL.Shared.Enums;
 using HADAL.Shared.Simulation;
 using Hadal.Core.Catalog;
@@ -55,6 +56,9 @@ namespace Hadal.UI.Hud
             /// <summary>The mailbox (docs/29 §2.1).</summary>
             public Action Mail;
 
+            /// <summary>The war window: shield, war log, the alliance's attacks and defences (docs/30).</summary>
+            public Action War;
+
             /// <summary>The Depth Map campaign (docs/rehber 08 §5).</summary>
             public Action Expedition;
             public Func<bool> InWorld;
@@ -83,6 +87,7 @@ namespace Hadal.UI.Hud
         private GameObject _podDot;
         private GameObject _heroDot;
         private GameObject _allianceDot;
+        private GameObject _warDot;
         private GameObject _helpDot;
         private GameObject _questDot;
         private Image _territoryIcon;
@@ -223,6 +228,7 @@ namespace Hadal.UI.Hud
 
         private void BuildLowerRight()
         {
+            _warDot = SideButton(_lower.transform, "War", "event_war", Loc.T("pvp.hud"), 0.845f, 0.455f, 0.985f, 0.525f, () => _actions.War?.Invoke()).Dot;
             _allianceDot = SideButton(_lower.transform, "Alliance", "side_alliance", Loc.T("social.alliance"), 0.845f, 0.37f, 0.985f, 0.44f, _actions.Alliance).Dot;
             _mailDot = SideButton(_lower.transform, "Mail", "side_mail", Loc.T("hud.mail"), 0.845f, 0.285f, 0.985f, 0.355f, () => _actions.Mail?.Invoke()).Dot;
             _bagDot = SideButton(_lower.transform, "Bag", "side_bag", Loc.T("hud.bag"), 0.845f, 0.2f, 0.985f, 0.27f, _actions.Bag).Dot;
@@ -558,6 +564,7 @@ namespace Hadal.UI.Hud
             _allianceDot.SetActive(View.MyAlliance != null && View.HelpRequests.Any(r => !r.HelpedByMe));
             _helpDot.SetActive(_allianceDot.activeSelf);
             var nowMs = View.ServerNowMs;
+            _warDot.SetActive((View.Pvp?.Incoming ?? Array.Empty<IncomingDto>()).Any(i => i.ArrivesAtMs > nowMs));
             _eventsDot.SetActive(View.Events.Events.Any(e => EventRules.HasClaim(e, nowMs)));
             _chatDot.SetActive(View.UnreadChat > 0);
             _mailDot.SetActive(View.Mail.Unread > 0 || View.Mail.Unclaimed > 0);

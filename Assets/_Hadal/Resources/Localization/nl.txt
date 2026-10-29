@@ -1010,3 +1010,21 @@ help.ask = Om hulp vragen
 help.asked = Hulp gevraagd
 alliance.help.open = {0} verzoeken wachten op hulp
 alliance.help.rule = Elke hulp haalt 1% (minstens 1 minuut) van de bouw, het onderzoek of de genezing van een bondgenoot af. Hoogstens 10 hulpen per verzoek.
+
+# Hero list and hero card (Last Asylum layout)
+hero.tab.all = Alle
+hero.get = Helden halen
+hero.lv = Nv.{0}
+hero.tab.attributes = Kenmerken
+hero.tab.stars = Sterren
+hero.tab.skill = Vaardigheid
+hero.upgrade = Upgraden
+hero.stat.power = Kracht
+hero.stat.command = Commando-cap.
+hero.stat.bonus = Troepenbonus
+hero.stat.cap = Niveaugrens
+hero.promote.button = Promoveren
+hero.find.cards = Kaarten vinden
+hero.skill.passive = Als teamleider: +{0}% voor de troepen van het team
+hero.skill.unlocks = Groeit met sterren:
+hero.gear.soon = Uitrusting komt binnenkort.

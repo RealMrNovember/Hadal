@@ -1010,3 +1010,21 @@ help.ask = 請求幫助
 help.asked = 已請求
 alliance.help.open = {0}個請求等待幫助
 alliance.help.rule = 每次幫助可減少盟友建造、研究或治療時間的1%（至少1分鐘）。每個請求最多10次幫助。
+
+# Hero list and hero card (Last Asylum layout)
+hero.tab.all = 全部
+hero.get = 獲取英雄
+hero.lv = Lv.{0}
+hero.tab.attributes = 屬性
+hero.tab.stars = 星級
+hero.tab.skill = 技能
+hero.upgrade = 升級
+hero.stat.power = 戰力
+hero.stat.command = 統率力
+hero.stat.bonus = 部隊加成
+hero.stat.cap = 等級上限
+hero.promote.button = 升星
+hero.find.cards = 尋找卡牌
+hero.skill.passive = 擔任隊長時：隊伍士兵 +{0}%
+hero.skill.unlocks = 隨星級提升：
+hero.gear.soon = 裝備即將推出。

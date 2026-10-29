@@ -169,6 +169,11 @@ namespace Hadal.Core.Network
                 DeleteMailCommand => CommandType.DeleteMail,
                 SendMailCommand => CommandType.SendMail,
                 MarchAttackCommand => CommandType.MarchAttack,
+                MarchPvpCommand => CommandType.MarchPvp,
+                ViewWarCommand => CommandType.ViewWar,
+                ViewTerritoryCommand => CommandType.ViewTerritory,
+                TerritoryCommand => CommandType.Territory,
+                UseShieldCommand => CommandType.UseShield,
                 _ => CommandType.Unknown
             };
         }

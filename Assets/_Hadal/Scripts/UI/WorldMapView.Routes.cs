@@ -195,7 +195,8 @@ namespace Hadal.UI
                 var route = RouteFor(w.Id, w.Relation, string.IsNullOrEmpty(w.AllianceTag) ? w.OwnerName : $"[{w.AllianceTag}] {w.OwnerName}");
                 var gathering = now >= w.ArrivesAtMs && now < w.GatheredAtMs;
                 DrawRoute(route, w.FromX, w.FromY, w.ToX, w.ToY, visible && !gathering);
-                GatherBadge(w.Id, w.ToX, w.ToY, w.Relation, visible && gathering, null);
+                var team = w;
+                GatherBadge(w.Id, w.ToX, w.ToY, w.Relation, visible && gathering, w.Relation == 2 && w.Kind == "gather" ? () => ShowEnemyTeam(team) : null);
                 if (gathering)
                 {
                     route.Sub.gameObject.SetActive(false);
