@@ -62,6 +62,8 @@ const EVENT_ERRORS = {
   InvalidStages: "Aşamalar geçersiz: puanlar farklı ve > 0 olmalı, her aşamanın ödülü olmalı.",
   InvalidBands: "Sıralama ödülleri geçersiz: 1'den başlayan sıra aralıkları ve ödüller gerekir.",
   OverlappingBands: "Sıralama aralıkları çakışıyor.",
+  InvalidBoss: "Boss geçersiz: yalnız etkinlik bossları, türün seviye aralığında ve harita içinde; en çok 5 boss.",
+  InvalidBossRewards: "Boss ödülleri geçersiz: çakışmayan sıra aralıkları (1'den başlar), her aralıkta ödül; yalnız kaynak ve eşya.",
   InvalidReward: "Ödüllerden biri geçersiz.",
   UnknownEvent: "Etkinlik bulunamadı.",
   AlreadyPublished: "Etkinlik zaten yayında.",
@@ -126,6 +128,13 @@ const EVENT_PRESETS = [
       startsAt: start, endsAt: new Date(start.getTime() + 48 * HOUR), claimDays: 2,
       actions: [{ action: "boss_damage", points: 1, per: 10 }],
       bosses: [{ kind: "chasm_maw", level: 20, x: 100, y: 140 }],
+      bossRanks: [
+        { from: 1, to: 1, rewards: [presetItem("chest_gold", 2)] },
+        { from: 2, to: 2, rewards: [presetItem("chest_gold", 1)] },
+        { from: 3, to: 3, rewards: [presetItem("chest_silver", 2)] },
+        { from: 4, to: 10, rewards: [presetItem("chest_silver", 1)] },
+      ],
+      bossParticipation: [presetItem("chest_bronze", 1)],
       stages: [
         { points: 500, rewards: [presetItem("chest_bronze", 1)] },
         { points: 3000, rewards: [presetItem("chest_silver", 1)] },
@@ -315,6 +324,8 @@ async function eventEditor(root, id) {
       cyclePhases: false, stages: [], rankBands: [], bosses: [], note: "" };
   }
   model.bosses = model.bosses || [];
+  model.bossRanks = model.bossRanks || [];
+  model.bossParticipation = model.bossParticipation || [];
 
   const draw = () => render(root, form());
 
@@ -469,7 +480,22 @@ async function eventEditor(root, id) {
           el("td", {}, "X ", el("input", { type: "number", min: "0", value: b.x, onchange: (e) => (b.x = Number(e.target.value)) })),
           el("td", {}, "Y ", el("input", { type: "number", min: "0", value: b.y, onchange: (e) => (b.y = Number(e.target.value)) })),
           el("td", {}, el("button", { class: "ghost", onclick: () => { model.bosses.splice(i, 1); draw(); } }, "×")))))),
-        model.bosses.length >= 5 ? null : el("button", { class: "ghost small", onclick: () => { model.bosses.push({ kind: "chasm_maw", level: 20, x: 100, y: 140 }); draw(); } }, "+ boss")),
+        model.bosses.length >= 5 ? null : el("button", { class: "ghost small", onclick: () => { model.bosses.push({ kind: "chasm_maw", level: 20, x: 100, y: 140 }); draw(); } }, "+ boss"),
+        model.bosses.length === 0 ? null : [
+          el("h2", {}, "Boss ödülleri (ittifak içi hasar sırası)"),
+          el("p", { class: "muted" }, "Boss ölünce ya da etkinlik bitince, ona vuran herkes posta ile ödül alır. Her üye kendi ittifakı içinde verdiği hasara göre sıralanır; sıra aralığına düşmeyenler ve ittifaksızlar katılım ödülünü alır. Hepsi boşsa varsayılan: 1. altın+gümüş sandık, 2. altın, 3. iki gümüş, 4–10. gümüş, diğerleri bronz. Yalnız kaynak ve eşya (kart parçası postayla gitmez)."),
+          el("table", {}, el("tbody", {}, model.bossRanks.map((b, i) => el("tr", {},
+            el("td", {}, el("input", { type: "number", min: "1", value: b.from, onchange: (e) => (b.from = Number(e.target.value)) }), " – ",
+              el("input", { type: "number", min: "1", value: b.to, onchange: (e) => (b.to = Number(e.target.value)) }), ". sıra"),
+            el("td", {}, rewardsEditor(b.rewards)),
+            el("td", {}, el("button", { class: "ghost", onclick: () => { model.bossRanks.splice(i, 1); draw(); } }, "×")))))),
+          model.bossRanks.length >= 10 ? null : el("button", { class: "ghost small", onclick: () => {
+            const last = model.bossRanks[model.bossRanks.length - 1];
+            const from = last ? last.to + 1 : 1;
+            model.bossRanks.push({ from, to: from, rewards: [presetItem(from === 1 ? "chest_gold" : "chest_silver", 1)] });
+            draw(); } }, "+ sıra aralığı"),
+          el("p", {}, el("b", {}, "Katılım ödülü (geri kalan herkes)")),
+          rewardsEditor(model.bossParticipation)]),
 
       el("div", { class: "row" },
         el("button", { class: "primary", onclick: () => save().catch((e) => toast(e.message, true)) }, id ? "Kaydet" : "Taslak olarak kaydet"),

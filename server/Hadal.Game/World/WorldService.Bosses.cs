@@ -1,5 +1,6 @@
 using Microsoft.Extensions.Logging;
 using Hadal.Game.Events;
+using HADAL.Shared.DTOs;
 using HADAL.Shared.Simulation;
 
 namespace Hadal.Game.World
@@ -17,6 +18,48 @@ namespace Hadal.Game.World
         public Func<IReadOnlyList<EventBossSpawn>>? EventBosses { get; set; }
 
         public static string BossId(string eventId, int index) => $"e:{eventId}:{index}";
+
+        private readonly List<BossOutcome> _bossOutcomes = new();
+
+        /// <summary>
+        /// Brings the event bosses up to date and hands over those that died or whose event ended since the last call
+        /// (GameWorld pays them through EventService.ClaimBossPrizes, which pays each boss once).
+        /// </summary>
+        public List<BossOutcome> TakeFinishedBosses(DateTimeOffset now)
+        {
+            lock (_gate)
+            {
+                SyncBosses(now);
+                var done = _bossOutcomes.ToList();
+                _bossOutcomes.Clear();
+                return done;
+            }
+        }
+
+        /// <summary>
+        /// The viewer's damage board on a boss: the members of their alliance who hit it, most damage first (top 10, and
+        /// the viewer's own line), as ranked for the payout. Without an alliance the viewer sees only their own line.
+        /// Caller holds the lock (world, then hub).
+        /// </summary>
+        private WorldMonsterDto WithBoard(WorldMonsterDto dto, string viewer)
+        {
+            if (dto.HpMax <= 0 || viewer.Length == 0 || !_monsters.TryGetValue(dto.Id, out var boss))
+                return dto;
+            var alliance = _social.AllianceIdOf(viewer);
+            var cache = new Dictionary<string, string>(StringComparer.Ordinal);
+            string AllianceOf(string id) => cache.TryGetValue(id, out var a) ? a : cache[id] = _social.AllianceIdOf(id);
+            var board = alliance.Length > 0
+                ? EventBossRewards.AllianceBoard(boss.Damage, AllianceOf, alliance)
+                : boss.Damage.TryGetValue(viewer, out var own) && own > 0 ? new List<(string, long, int)> { (viewer, own, 0) } : new List<(string, long, int)>();
+            var mine = board.FirstOrDefault(e => e.Item1 == viewer);
+            dto.MyDamage = boss.Damage.TryGetValue(viewer, out var d) ? d : 0;
+            dto.MyRank = mine.Item1 == viewer ? mine.Item3 : 0;
+            dto.Board = board.Where(e => e.Item3 <= 10 || e.Item1 == viewer).Select(e => new BossBoardEntryDto
+            {
+                PlayerId = e.Item1, Name = NameOf(e.Item1) ?? string.Empty, Damage = e.Item2, Rank = e.Item3
+            }).ToArray();
+            return dto;
+        }
 
         /// <summary>Adds the bosses of events that went live and removes those of events that ended. Caller holds the lock.</summary>
         private void SyncBosses(DateTimeOffset now)
@@ -40,12 +83,22 @@ namespace Hadal.Game.World
                 var level = Math.Clamp(spawn.Level, kind.MinLevel, kind.MaxLevel);
                 var boss = new WorldMonster
                 {
-                    Id = id, Type = kind.Id, Level = level, X = tile.X, Y = tile.Y, EventId = spawn.EventId, EndsAt = spawn.EndsAt,
+                    Id = id, Type = kind.Id, Level = level, X = tile.X, Y = tile.Y, EventId = spawn.EventId, EndsAt = spawn.EndsAt, BossIndex = spawn.Index,
                     HpMax = MonsterRules.Count(kind, level), HpLeft = MonsterRules.Count(kind, level)
                 };
                 _monsters[id] = boss;
                 _monsterAt[tile] = boss;
                 _logger.LogInformation("Event boss {Kind} level {Level} is at {X}:{Y} until {EndsAt}.", kind.Id, level, tile.X, tile.Y, spawn.EndsAt);
+            }
+
+            // A boss brought down (its killer has arrived) or out of time pays its contributors once (EventBossRewards).
+            foreach (var boss in _monsters.Values.Where(m => m.IsBoss && !m.Finished
+                         && (Gone(m, now) || !live.Contains(m.Id) || m.EndsAt <= now)).ToList())
+            {
+                boss.Finished = true;
+                var damage = boss.Damage.Where(p => p.Value > 0).ToDictionary(p => p.Key, p => p.Value, StringComparer.Ordinal);
+                var alliances = damage.Keys.ToDictionary(p => p, p => _social.AllianceIdOf(p), StringComparer.Ordinal);
+                _bossOutcomes.Add(new BossOutcome(boss.EventId, boss.BossIndex, boss.Type, boss.Level, Gone(boss, now), boss.KillerId, damage, alliances));
             }
 
             foreach (var boss in _monsters.Values.Where(m => m.IsBoss && (!live.Contains(m.Id) || m.EndsAt <= now)).ToList())
@@ -85,6 +138,7 @@ namespace Hadal.Game.World
             if (boss.HpLeft <= 0 || march.Battle?.Won == true)
             {
                 boss.HpLeft = 0;
+                boss.KillerId = playerId;
                 boss.DefeatedAt = march.ArrivesAt;
             }
         }
@@ -101,7 +155,11 @@ namespace Hadal.Game.World
             }
 
             if (boss.HpLeft > 0)
+            {
                 boss.DefeatedAt = null;
+                if (boss.KillerId == playerId)
+                    boss.KillerId = string.Empty;
+            }
         }
 
         /// <summary>A boss's damage by player, most first (tests, and later an in-game contribution board).</summary>

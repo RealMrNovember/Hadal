@@ -79,8 +79,31 @@ namespace Hadal.Game.Events
         private void RefreshBosses(DateTimeOffset now) =>
             _liveBosses = _events.Values
                 .Where(e => e.Def.Status == EventStatus.Published && PhaseOf(e.Def, now) == EventPhase.Live)
-                .SelectMany(e => e.Def.Bosses.Select((b, i) => new EventBossSpawn(e.Def.Id, i, b.Kind, b.Level, b.X, b.Y, e.Def.EndsAt)))
+                .SelectMany(e => e.Def.Bosses.Select((b, i) => new EventBossSpawn(e.Def.Id, i, b.Kind, b.Level, b.X, b.Y, e.Def.EndsAt))
+                    .Where(b => !e.Def.PaidBosses.Contains(b.Index)))
                 .ToArray();
+
+        /// <summary>
+        /// The prizes of a boss that died or whose event ended (EventBossRewards.Plan), once: the boss is marked paid in the
+        /// stored definition first, so a second call, a duplicate outcome or a restart pays nothing more.
+        /// </summary>
+        public List<BossPrize> ClaimBossPrizes(BossOutcome outcome, DateTimeOffset now)
+        {
+            lock (_gate)
+            {
+                if (!_events.TryGetValue(outcome.EventId, out var live) || live.Def.PaidBosses.Contains(outcome.Index))
+                    return new List<BossPrize>();
+                var def = live.Def;
+                def.PaidBosses.Add(outcome.Index);
+                RefreshBosses(now);
+                var copy = def.Clone();
+                Write(ct => _store.SaveEventAsync(copy, ct));
+                var prizes = EventBossRewards.Plan(outcome, def.BossRanks, def.BossParticipation);
+                _logger.LogInformation("Event {Id} boss {Index} ({Kind}) {How}: {Count} players rewarded.", def.Id, outcome.Index, outcome.Kind,
+                    outcome.Killed ? "killed" : "left", prizes.Count);
+                return prizes;
+            }
+        }
 
         public static bool Handles(CommandType type) => type is CommandType.ClaimEventStage or CommandType.ClaimEventRank or CommandType.ViewEventRanking;
 
@@ -632,6 +655,7 @@ namespace Hadal.Game.Events
                     def.Status = EventStatus.Draft;
                     def.CreatedBy = by;
                     def.CreatedAt = now;
+                    def.PaidBosses = new List<int>();
                     live = new Live();
                     _events[def.Id] = live;
                 }
@@ -647,6 +671,7 @@ namespace Hadal.Game.Events
                     def.Status = live.Def.Status;
                     def.CreatedBy = live.Def.CreatedBy;
                     def.CreatedAt = live.Def.CreatedAt;
+                    def.PaidBosses = live.Def.PaidBosses.ToList(); // the Overseer cannot pay a boss twice
                 }
 
                 def.UpdatedAt = now;
@@ -766,6 +791,9 @@ namespace Hadal.Game.Events
             def.Stages = def.Template == EventTemplates.Login ? def.Stages : def.Stages.OrderBy(s => s.Points).ToList();
             def.RankBands = def.RankBands.OrderBy(b => b.From).ToList();
             def.Bosses ??= new List<EventBossConfig>();
+            def.BossRanks = (def.BossRanks ?? new List<EventTierConfig>()).OrderBy(b => b.From).ToList();
+            def.BossParticipation ??= new List<EventRewardConfig>();
+            def.PaidBosses ??= new List<int>();
             foreach (var a in def.Actions.Concat(def.Phases.SelectMany(p => p.Actions)))
                 a.Per = Math.Max(1, a.Per);
         }
@@ -835,6 +863,15 @@ namespace Hadal.Game.Events
                     MonsterRules.Kind(b.Kind) is not { EventOnly: true } kind || b.Level < kind.MinLevel || b.Level > kind.MaxLevel
                     || b.X < 0 || b.Y < 0 || b.X >= size || b.Y >= size))
                 return "InvalidBoss";
+
+            // Boss prizes: rank bands inside an alliance and a participation gift, mailed (resources and items only).
+            var ranks = def.BossRanks ?? new List<EventTierConfig>();
+            if (ranks.Count > 10 || ranks.Any(b => b.From < 1 || b.To < b.From || b.Rewards.Count == 0)
+                || ranks.OrderBy(b => b.From).Zip(ranks.OrderBy(b => b.From).Skip(1), (a, b) => b.From <= a.To).Any(x => x)
+                || (def.BossParticipation?.Count ?? 0) > 5
+                || ranks.SelectMany(b => b.Rewards).Concat(def.BossParticipation ?? new List<EventRewardConfig>())
+                    .Any(r => !EventBossRewards.Mailable(r) || !ValidReward(r, catalog)))
+                return "InvalidBossRewards";
 
             return string.Empty;
         }

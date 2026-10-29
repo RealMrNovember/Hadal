@@ -276,6 +276,29 @@ namespace Hadal.Game
             return true;
         }
 
+        /// <summary>
+        /// Event bosses that died or whose event ended: each contributor's prize (ranked by damage inside their alliance,
+        /// EventBossRewards) goes out by mail. EventService marks the boss paid before anything is sent, so it pays once.
+        /// </summary>
+        private void PayBosses(DateTimeOffset now)
+        {
+            foreach (var outcome in Map.TakeFinishedBosses(now))
+            {
+                foreach (var prize in Events.ClaimBossPrizes(outcome, now))
+                {
+                    var draft = Hadal.Game.Events.EventBossRewards.Mail(prize, outcome);
+                    if (draft.Attachments.IsEmpty)
+                        continue;
+                    var send = Mail.SendAsync(new[] { prize.PlayerId }, draft, now, CancellationToken.None);
+                    if (!send.IsCompleted)
+                        _ = send.ContinueWith(t => _logger.LogError(t.Exception, "Boss prize mail failed for {PlayerId}.", prize.PlayerId),
+                            TaskContinuationOptions.OnlyOnFaulted);
+                    else if (send.IsFaulted)
+                        _logger.LogError(send.Exception, "Boss prize mail failed for {PlayerId}.", prize.PlayerId);
+                }
+            }
+        }
+
         /// <summary>Mails every player there is (an Overseer announcement); returns how many received it.</summary>
         public async Task<int> SendMailToAllAsync(MailDraft draft, CancellationToken cancellationToken)
         {
@@ -463,6 +486,15 @@ namespace Hadal.Game
             catch (Exception exception)
             {
                 _logger.LogError(exception, "Event housekeeping failed.");
+            }
+
+            try
+            {
+                PayBosses(now);
+            }
+            catch (Exception exception)
+            {
+                _logger.LogError(exception, "Paying event bosses failed.");
             }
 
             try

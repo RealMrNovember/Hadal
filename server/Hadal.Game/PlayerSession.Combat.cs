@@ -58,18 +58,12 @@ namespace Hadal.Game
                     return (null, MarchRejectReason.None, AttackRejectReason.NotEnoughSonar);
                 }
 
-                // The battle: the team's troops with the heroes' command bonus against the swarm.
+                // The battle: the team's troops with the heroes' command bonus against the swarm (MonsterBattle, the same
+                // build the attack setup previews). An event boss fields only what earlier hits have left of its body.
                 var troops = _catalog.Troops;
-                var mine = new BattleSide();
-                foreach (var pair in aboard)
-                    mine.Troops[pair.Key] = pair.Value;
-                var bonus = CombatRules.HeroBonus(team.Select(h => _catalog.TryGetHero(h.HeroId, out var d) ? HeroRules.Power(d, h.Level, h.Stars) : 0).ToList());
-                mine.AtkPercent = mine.DefPercent = mine.HpPercent = bonus;
-                var enemy = MonsterRules.Army(kind, monster.Level);
-                // An event boss is one shared body: a team fights only what earlier hits have left of it.
-                if (kind.EventOnly && monster.BossLeft > 0)
-                    enemy.Troops[TroopRules.Key(kind.CountsAs, MonsterRules.Tier(monster.Level))] = Math.Min(MonsterRules.Count(kind, monster.Level), monster.BossLeft);
-                var result = CombatRules.Resolve(troops, mine, enemy);
+                var heroPowers = team.Select(h => _catalog.TryGetHero(h.HeroId, out var d) ? HeroRules.Power(d, h.Level, h.Stars) : 0).ToList();
+                var enemy = MonsterBattle.Enemy(kind, monster.Level, monster.BossLeft);
+                var result = CombatRules.Resolve(troops, MonsterBattle.Team(aboard, heroPowers), enemy);
 
                 var firstWin = result.AttackerWon && !kind.EventOnly && !_state.MonsterWins.Contains(monster.Level);
                 var rewards = result.AttackerWon ? MonsterRules.Rewards(kind, monster.Level, firstWin, Random.Shared.Next)

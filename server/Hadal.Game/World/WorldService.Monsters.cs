@@ -34,6 +34,11 @@ namespace Hadal.Game.World
         public List<(string PlayerId, string MarchId, long Damage, DateTimeOffset ArrivesAt)> Pending { get; } = new();
 
         public bool IsBoss => EventId.Length > 0;
+
+        /// <summary>A boss's place in its event's list, who brought it down, and whether its outcome went to the event.</summary>
+        public int BossIndex { get; set; }
+        public string KillerId { get; set; } = string.Empty;
+        public bool Finished { get; set; }
     }
 
     public sealed partial class WorldService
@@ -125,7 +130,7 @@ namespace Hadal.Game.World
 
         private static bool Gone(WorldMonster m, DateTimeOffset now) => m.DefeatedAt is { } beaten && beaten <= now;
 
-        private WorldMonsterDto[] MonstersInView(int cx, int cy, int radius, DateTimeOffset now)
+        private WorldMonsterDto[] MonstersInView(int cx, int cy, int radius, DateTimeOffset now, string viewer = "")
         {
             var troops = Catalog.Troops;
             return _monsters.Values
@@ -137,7 +142,7 @@ namespace Hadal.Game.World
                     EndsAtMs = m.IsBoss ? m.EndsAt.ToUnixTimeMilliseconds() : 0,
                     HpLeft = m.IsBoss ? Math.Max(0, m.HpLeft) : 0,
                     HpMax = m.IsBoss ? m.HpMax : 0
-                }).ToArray();
+                }).Select(dto => WithBoard(dto, viewer)).ToArray();
         }
 
         private void HandleAttack(PlayerSession session, MarchAttackCommand command, DateTimeOffset now)

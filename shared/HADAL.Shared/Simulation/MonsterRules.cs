@@ -158,7 +158,8 @@ namespace HADAL.Shared.Simulation
 
         /// <summary>
         /// The kind's rewards: the capsule grows with <see cref="MonsterKind.RewardScale"/> (whole hundreds); an event
-        /// boss has no first-win capsule but always drops a silver chest, one time in ten a gold one too.
+        /// boss has no first-win capsule; its final blow adds only a bronze chest, since every contributor is paid when it
+        /// dies or its event ends (EventDefinition.BossRanks, mailed by the server).
         /// </summary>
         public static Dictionary<string, int> Rewards(MonsterKind kind, int level, bool firstWin, Func<int, int> roll)
         {
@@ -167,9 +168,7 @@ namespace HADAL.Shared.Simulation
             Add(Capsules.Id(ResourceType.Titanium, (long)Math.Round(2 * level * kind.RewardScale) * 100), 1);
             if (kind.EventOnly)
             {
-                Add("chest_silver", 1);
-                if (roll(100) < 10)
-                    Add("chest_gold", 1);
+                Add("chest_bronze", 1);
                 return items;
             }
 

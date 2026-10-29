@@ -495,7 +495,7 @@ ON CONFLICT (player_id) DO UPDATE SET x = EXCLUDED.x, y = EXCLUDED.y, name = EXC
                         };
                     }).ToArray(),
                     Nodes = NodesInView(cx, cy, radius, mine, now),
-                    Monsters = MonstersInView(cx, cy, radius, now),
+                    Monsters = MonstersInView(cx, cy, radius, now, session.PublicId),
                     Marches = MarchesInView(session.PublicId, cx, cy, radius, now)
                 };
             }

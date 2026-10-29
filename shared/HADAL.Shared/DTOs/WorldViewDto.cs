@@ -71,6 +71,11 @@ namespace HADAL.Shared.DTOs
         [ProtoMember(8)] public long EndsAtMs { get; set; }
         [ProtoMember(9)] public long HpLeft { get; set; }
         [ProtoMember(10)] public long HpMax { get; set; }
+
+        /// <summary>A boss: the viewer's damage, their rank inside their alliance (0 = none) and their alliance's board.</summary>
+        [ProtoMember(11)] public long MyDamage { get; set; }
+        [ProtoMember(12)] public int MyRank { get; set; }
+        [ProtoMember(13)] public BossBoardEntryDto[] Board { get; set; } = System.Array.Empty<BossBoardEntryDto>();
     }
 
     /// <summary>A resource node on the map.</summary>

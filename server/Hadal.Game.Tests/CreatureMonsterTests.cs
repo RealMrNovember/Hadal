@@ -143,8 +143,7 @@ namespace Hadal.Game.Tests
             Assert.Equal(7200, Capsule(maw));
 
             var boss = MonsterRules.Rewards(MonsterRules.Kind("chasm_maw")!, 20, true, _ => 5);
-            Assert.Equal(1, boss["chest_silver"]);
-            Assert.Equal(1, boss["chest_gold"]);
+            Assert.Equal(1, boss["chest_bronze"]); // the final blow's small extra; every contributor is paid separately
             Assert.Single(boss.Keys, k => k.StartsWith(Capsules.Prefix)); // no first-win capsule
         }
 
@@ -273,7 +272,7 @@ namespace Hadal.Game.Tests
             var battle = session.MarchesForTests.Single().Battle!;
             Assert.True(battle.Won);
             Assert.Equal(3, battle.EnemyStart.Values.Sum());
-            Assert.Equal(1, battle.Rewards["chest_silver"]);
+            Assert.Equal(1, battle.Rewards["chest_bronze"]);
             Assert.Equal(0, boss.HpLeft);
 
             // Too late: the body is spent.

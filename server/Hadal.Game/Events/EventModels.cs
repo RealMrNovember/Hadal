@@ -50,6 +50,17 @@ namespace Hadal.Game.Events
         /// <summary>Event bosses (MonsterKind.EventOnly) the map shows while the event is live (WorldService.Bosses).</summary>
         public List<EventBossConfig> Bosses { get; set; } = new();
 
+        /// <summary>
+        /// What a boss pays when it dies or the event ends (EventBossRewards): every member who hit it is ranked by damage
+        /// inside their alliance and gets the band of their rank (From/To are ranks); everyone else who did damage, and
+        /// players without an alliance, get <see cref="BossParticipation"/>. Both empty = the built-in tiers.
+        /// </summary>
+        public List<EventTierConfig> BossRanks { get; set; } = new();
+        public List<EventRewardConfig> BossParticipation { get; set; } = new();
+
+        /// <summary>Boss indices already paid out (each boss pays once, also across restarts).</summary>
+        public List<int> PaidBosses { get; set; } = new();
+
         public string Note { get; set; } = string.Empty;
         public string CreatedBy { get; set; } = string.Empty;
         public DateTimeOffset CreatedAt { get; set; }
