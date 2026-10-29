@@ -219,11 +219,7 @@ namespace Hadal.UI
             return box.rectTransform;
         }
 
-        private static Color AllianceColor(int index, float alpha)
-        {
-            var rgb = TerritoryRules.Colors[Mathf.Clamp(index, 0, TerritoryRules.Colors.Length - 1)];
-            return new Color(((rgb >> 16) & 0xFF) / 255f, ((rgb >> 8) & 0xFF) / 255f, (rgb & 0xFF) / 255f, alpha);
-        }
+        private static Color AllianceColor(int index, float alpha) => TerritoryPainter.AllianceColor(index, alpha);
 
         /// <summary>A stronghold: level, owner, garrison; attack or rally it, plant the hub, move the hub, abandon the region.</summary>
         private void ShowStronghold(StrongholdDto s)
@@ -290,67 +286,11 @@ namespace Hadal.UI
         private Texture2D _territoryTexture;
         private bool _wasStrategic;
 
-        /// <summary>Paints regions (owner colour, brighter borders), the hub regions, and every base as a dot.</summary>
+        /// <summary>Paints the territory texture (TerritoryPainter) and lays the quad over the whole map.</summary>
         private void RebuildTerritoryTexture(TerritoryDto territory)
         {
             var size = Math.Max(10, territory.MapSize);
-            const int scale = 2;
-            if (_territoryTexture == null || _territoryTexture.width != size * scale)
-            {
-                _territoryTexture = new Texture2D(size * scale, size * scale, TextureFormat.RGBA32, false)
-                {
-                    filterMode = FilterMode.Point, wrapMode = TextureWrapMode.Clamp
-                };
-            }
-
-            var map = TerritoryRules.Map(size);
-            var owner = new Color32[TerritoryRules.Cells * TerritoryRules.Cells];
-            var border = new Color32[owner.Length];
-            for (var i = 0; i < owner.Length; i++)
-            {
-                owner[i] = new Color32(6, 18, 28, 150);
-                border[i] = new Color32(70, 100, 120, 200);
-            }
-
-            foreach (var s in territory.Strongholds ?? Array.Empty<StrongholdDto>())
-            {
-                if (s.Region < 0 || s.Region >= owner.Length || s.Color < 0)
-                    continue;
-                var c = AllianceColor(s.Color, 1f);
-                owner[s.Region] = new Color(c.r * 0.55f, c.g * 0.55f, c.b * 0.55f, s.Hub ? 0.8f : 0.65f);
-                border[s.Region] = new Color(Mathf.Min(1, c.r * 1.3f), Mathf.Min(1, c.g * 1.3f), Mathf.Min(1, c.b * 1.3f), 1f);
-            }
-
-            var pixels = new Color32[size * scale * size * scale];
-            for (var y = 0; y < size; y++)
-            {
-                for (var x = 0; x < size; x++)
-                {
-                    var r = map[y * size + x];
-                    var edge = (x > 0 && map[y * size + x - 1] != r) || (x < size - 1 && map[y * size + x + 1] != r)
-                               || (y > 0 && map[(y - 1) * size + x] != r) || (y < size - 1 && map[(y + 1) * size + x] != r);
-                    for (var dy = 0; dy < scale; dy++)
-                        for (var dx = 0; dx < scale; dx++)
-                            pixels[(y * scale + dy) * size * scale + x * scale + dx] = edge ? border[r] : owner[r];
-                }
-            }
-
-            // Bases as 2 × 2 dots: cyan mine, blue alliance, pale red others.
-            foreach (var packed in territory.Bases ?? Array.Empty<int>())
-            {
-                var bx = packed / 1_000_000;
-                var by = packed / 1_000 % 1_000;
-                var relation = packed % 1_000;
-                if (bx < 0 || by < 0 || bx >= size || by >= size)
-                    continue;
-                var dot = relation == 0 ? new Color32(80, 240, 255, 255) : relation == 1 ? new Color32(90, 150, 255, 255) : new Color32(255, 120, 110, 255);
-                for (var dy = 0; dy < scale; dy++)
-                    for (var dx = 0; dx < scale; dx++)
-                        pixels[(by * scale + dy) * size * scale + bx * scale + dx] = dot;
-            }
-
-            _territoryTexture.SetPixels32(pixels);
-            _territoryTexture.Apply(false);
+            _territoryTexture = TerritoryPainter.Paint(territory, _territoryTexture);
 
             if (_territoryQuad == null)
             {

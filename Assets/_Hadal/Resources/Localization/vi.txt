@@ -1131,3 +1131,12 @@ reason.TooDeep = Tổng bộ chỉ lập được ở pháo đài cấp 1–2.
 reason.UnderAttack = Pháo đài đang bị tấn công.
 reason.NotOurs = Lãnh thổ này không thuộc liên minh bạn.
 reason.Cooldown = Tổng bộ chỉ dời được mỗi 24 giờ.
+
+# Alliance rally point (docs/30 §6.3.1)
+rally.title = Điểm tập hợp liên minh
+rally.coords = Điểm tập hợp: X:{0} Y:{1}
+rally.far = Bạn ở rất xa điểm tập hợp ({0} km). Dùng Dịch chuyển liên minh để đến gần liên minh.
+rally.near = Bạn đang ở gần liên minh.
+rally.leader = Liên minh chưa lập tổng bộ; điểm tập hợp là căn cứ của trưởng liên minh.
+rally.move = Di chuyển
+rally.need = {0}/{1}

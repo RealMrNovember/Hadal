@@ -291,6 +291,32 @@ namespace Hadal.Game.Tests
             Assert.True(b.StateForTests.WarLog.Last().Defender.Sum(s => s.Start) > 0);
         }
 
+        private TerritoryDto Territory(PlayerSession session, RecordingConnection connection)
+        {
+            Send(session, new ViewTerritoryCommand { CommandId = "vt" + Guid.NewGuid().ToString("N") }, CommandType.ViewTerritory);
+            return TestSupport.Serializer.Deserialize<TerritoryDto>(connection.Messages.Where(m => m.Delta != null).Select(m => m.Delta())
+                .SelectMany(d => d.Changes).Last(c => c.EntityId == EntityIds.Territory).Payload);
+        }
+
+        [Fact]
+        public async Task The_rally_point_is_the_leaders_base_until_the_hub_is_planted()
+        {
+            var (lead, leadConnection) = await Connect("rp-lead");
+            var (diver, diverConnection) = await Connect("rp-diver");
+            Assert.Equal(-1, Territory(diver, diverConnection).RallyX);
+
+            Ally(lead, leadConnection, diver);
+            var before = Territory(diver, diverConnection);
+            Assert.Equal(_world.Map.PositionOf(lead.PublicId), (before.RallyX, before.RallyY));
+            Assert.False(before.RallyIsHub);
+
+            var outer = Enumerable.Range(0, 100).Select(_world.Map.RegionForTests).First(r => r.Level == 1);
+            Send(lead, new TerritoryCommand { CommandId = "p", Action = TerritoryRules.Plant, StrongholdId = outer.Id }, CommandType.Territory);
+            var after = Territory(diver, diverConnection);
+            Assert.True(after.RallyIsHub);
+            Assert.Equal((outer.X, outer.Y), (after.RallyX, after.RallyY));
+        }
+
         [Fact]
         public void Regions_cover_the_map_and_touch_symmetrically()
         {

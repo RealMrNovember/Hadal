@@ -1131,3 +1131,12 @@ reason.TooDeep = Eine Zentrale geht nur auf Festungen der Stufe 1–2.
 reason.UnderAttack = Die Festung wird angegriffen.
 reason.NotOurs = Diese Region gehört nicht eurer Allianz.
 reason.Cooldown = Die Zentrale kann alle 24 Stunden verlegt werden.
+
+# Alliance rally point (docs/30 §6.3.1)
+rally.title = Allianz-Sammelpunkt
+rally.coords = Sammelpunkt: X:{0} Y:{1}
+rally.far = Du bist sehr weit vom Sammelpunkt entfernt ({0} km). Nutze einen Allianz-Teleport, um zu deiner Allianz zu kommen.
+rally.near = Du bist nah bei deiner Allianz.
+rally.leader = Die Allianzzentrale steht noch nicht; Sammelpunkt ist die Basis des Anführers.
+rally.move = Umziehen
+rally.need = {0}/{1}

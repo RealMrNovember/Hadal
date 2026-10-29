@@ -152,6 +152,14 @@ namespace HADAL.Shared.DTOs
         /// <summary>The viewer's alliance: regions held and allowed (0 without one).</summary>
         [ProtoMember(7)] public int Held { get; set; }
         [ProtoMember(8)] public int Allowed { get; set; }
+
+        /// <summary>
+        /// The alliance's rally point (docs/30 §6.3.1): its hub, or the leader's base while there is none; -1 without an
+        /// alliance. The alliance teleport lands next to it.
+        /// </summary>
+        [ProtoMember(9)] public int RallyX { get; set; } = -1;
+        [ProtoMember(10)] public int RallyY { get; set; } = -1;
+        [ProtoMember(11)] public bool RallyIsHub { get; set; }
     }
 
     [ProtoContract]

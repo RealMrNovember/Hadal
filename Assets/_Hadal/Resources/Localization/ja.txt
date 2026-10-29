@@ -1131,3 +1131,12 @@ reason.TooDeep = 本部はLv1〜2の要塞にのみ設置できます。
 reason.UnderAttack = 要塞が攻撃されています。
 reason.NotOurs = この領地はあなたの同盟のものではありません。
 reason.Cooldown = 本部の移転は24時間に1回です。
+
+# Alliance rally point (docs/30 §6.3.1)
+rally.title = 同盟集結地点
+rally.coords = 集結地点: X:{0} Y:{1}
+rally.far = 集結地点から遠く離れています（{0} km）。同盟テレポートで仲間の近くへ移動しましょう。
+rally.near = 同盟の近くにいます。
+rally.leader = 同盟本部は未設置のため、集結地点はリーダーの基地です。
+rally.move = 移動
+rally.need = {0}/{1}

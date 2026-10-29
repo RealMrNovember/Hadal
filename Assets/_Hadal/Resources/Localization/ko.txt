@@ -1131,3 +1131,12 @@ reason.TooDeep = 본부는 1~2레벨 요새에만 설치할 수 있습니다.
 reason.UnderAttack = 요새가 공격받고 있습니다.
 reason.NotOurs = 이 영토는 연맹의 것이 아닙니다.
 reason.Cooldown = 본부는 24시간마다 한 번 이전할 수 있습니다.
+
+# Alliance rally point (docs/30 §6.3.1)
+rally.title = 연맹 집결지
+rally.coords = 집결지: X:{0} Y:{1}
+rally.far = 집결지에서 너무 멉니다({0} km). 연맹 텔레포트로 연맹원 가까이 이동하세요.
+rally.near = 연맹 가까이에 있습니다.
+rally.leader = 연맹 본부가 아직 없어 집결지는 리더의 기지입니다.
+rally.move = 이동
+rally.need = {0}/{1}

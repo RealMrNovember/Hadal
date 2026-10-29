@@ -1132,3 +1132,12 @@ reason.TooDeep = A hub can only be planted on a level 1–2 stronghold.
 reason.UnderAttack = The stronghold is under attack.
 reason.NotOurs = This region is not your alliance's.
 reason.Cooldown = The hub can move once every 24 hours.
+
+# Alliance rally point (docs/30 §6.3.1)
+rally.title = Alliance Rally Point
+rally.coords = Rally point: X:{0} Y:{1}
+rally.far = You are very far from the rally point ({0} km). Use an Alliance Teleport to get close to your alliance.
+rally.near = You are close to your alliance.
+rally.leader = The alliance hub is not planted yet; the rally point is the leader's base.
+rally.move = Move
+rally.need = {0}/{1}

@@ -1132,3 +1132,12 @@ reason.TooDeep = Merkez yalnızca 1–2. seviye kalelere kurulabilir.
 reason.UnderAttack = Kale saldırı altında.
 reason.NotOurs = Bu bölge ittifakının değil.
 reason.Cooldown = Merkez 24 saatte bir taşınabilir.
+
+# Alliance rally point (docs/30 §6.3.1)
+rally.title = İttifak Toplanma Noktası
+rally.coords = Toplanma noktası: X:{0} Y:{1}
+rally.far = Toplanma noktasına çok uzaksın ({0} km). İttifak arkadaşlarına yaklaşmak için İttifak Teleportu kullan.
+rally.near = İttifakına yakınsın.
+rally.leader = İttifak merkezi henüz kurulmadı; toplanma noktası liderin üssü.
+rally.move = Taşı
+rally.need = {0}/{1}

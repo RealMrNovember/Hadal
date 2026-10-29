@@ -1131,3 +1131,12 @@ reason.TooDeep = Un centro solo se funda en fortalezas de nivel 1–2.
 reason.UnderAttack = La fortaleza está bajo ataque.
 reason.NotOurs = Esta región no es de tu alianza.
 reason.Cooldown = El centro se puede mover una vez cada 24 horas.
+
+# Alliance rally point (docs/30 §6.3.1)
+rally.title = Punto de reunión de la alianza
+rally.coords = Punto de reunión: X:{0} Y:{1}
+rally.far = Estás muy lejos del punto de reunión ({0} km). Usa un Teletransporte de alianza para acercarte a tu alianza.
+rally.near = Estás cerca de tu alianza.
+rally.leader = El centro de la alianza aún no está fundado; el punto de reunión es la base del líder.
+rally.move = Mover
+rally.need = {0}/{1}

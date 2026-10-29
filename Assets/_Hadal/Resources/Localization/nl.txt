@@ -1131,3 +1131,12 @@ reason.TooDeep = Een hoofdkwartier kan alleen op een burcht van niveau 1–2.
 reason.UnderAttack = De burcht wordt aangevallen.
 reason.NotOurs = Deze regio is niet van jullie alliantie.
 reason.Cooldown = Het hoofdkwartier kan eens per 24 uur verhuizen.
+
+# Alliance rally point (docs/30 §6.3.1)
+rally.title = Verzamelpunt van de alliantie
+rally.coords = Verzamelpunt: X:{0} Y:{1}
+rally.far = Je bent ver van het verzamelpunt ({0} km). Gebruik een Alliantieteleport om dichter bij je alliantie te komen.
+rally.near = Je bent dicht bij je alliantie.
+rally.leader = Het hoofdkwartier is nog niet gesticht; het verzamelpunt is de basis van de leider.
+rally.move = Verhuizen
+rally.need = {0}/{1}

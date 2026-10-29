@@ -424,6 +424,16 @@ ON CONFLICT (region) DO UPDATE SET alliance_id = EXCLUDED.alliance_id, hub = EXC
             };
             if (_bases.TryGetValue(viewerId, out var me))
                 (dto.MyX, dto.MyY) = (me.X, me.Y);
+
+            // The rally point: the hub, else the leader's base (the alliance teleport's fallback).
+            if (HubOf(alliance) is { } hub)
+                (dto.RallyX, dto.RallyY, dto.RallyIsHub) = (hub.X, hub.Y, true);
+            else if (alliance.Length > 0)
+            {
+                var leader = _social.RankOf(viewerId) >= AlliancePermissions.Leader ? viewerId : _social.AllianceMatesOf(viewerId).FirstOrDefault();
+                if (leader != null && _bases.TryGetValue(leader, out var lb))
+                    (dto.RallyX, dto.RallyY) = (lb.X, lb.Y);
+            }
             return new EntityChangeDto { EntityId = EntityIds.Territory, Kind = EntityChangeKind.Update, Payload = _serializer.Serialize(dto) };
         }
 

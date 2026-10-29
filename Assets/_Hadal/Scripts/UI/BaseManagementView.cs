@@ -172,6 +172,15 @@ namespace Hadal.UI
                 Reinforce = (id, name, x, y) => { Close(); _social.Close(); _map.Reinforce(id, name, x, y); }
             });
 
+            // Alliance rally point card with the instant alliance teleport (docs/30 §6.3.1).
+            var rally = new GameObject("RallyPoint");
+            rally.transform.SetParent(transform, false);
+            rally.AddComponent<RallyPointPrompt>().Initialize(_stateSync, _commands, new RallyPointPrompt.Actions
+            {
+                ShowOnMap = (x, y) => _social.ShowOnMap(x, y),
+                OpenMap = () => { Close(); _social.Close(); _map.Open(); }
+            });
+
             var speedups = new GameObject("SpeedupWindow");
             speedups.transform.SetParent(transform, false);
             speedups.AddComponent<SpeedupWindow>().Initialize(_stateSync, _commands, _localBus);

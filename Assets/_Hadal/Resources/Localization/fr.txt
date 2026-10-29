@@ -1131,3 +1131,12 @@ reason.TooDeep = Un QG ne se fonde que sur une forteresse niv. 1–2.
 reason.UnderAttack = La forteresse est attaquée.
 reason.NotOurs = Cette région n'est pas à ton alliance.
 reason.Cooldown = Le QG ne peut bouger qu'une fois toutes les 24 h.
+
+# Alliance rally point (docs/30 §6.3.1)
+rally.title = Point de ralliement d'alliance
+rally.coords = Point de ralliement : X:{0} Y:{1}
+rally.far = Tu es très loin du point de ralliement ({0} km). Utilise une Téléportation d'alliance pour rejoindre ton alliance.
+rally.near = Tu es près de ton alliance.
+rally.leader = Le QG d'alliance n'est pas encore fondé ; le point de ralliement est la base du chef.
+rally.move = Déplacer
+rally.need = {0}/{1}

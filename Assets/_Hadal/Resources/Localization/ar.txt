@@ -1131,3 +1131,12 @@ reason.TooDeep = يمكن تأسيس المقر في حصون المستوى 1�
 reason.UnderAttack = الحصن تحت الهجوم.
 reason.NotOurs = هذه المنطقة ليست لتحالفك.
 reason.Cooldown = يمكن نقل المقر مرة كل 24 ساعة.
+
+# Alliance rally point (docs/30 §6.3.1)
+rally.title = نقطة تجمع التحالف
+rally.coords = نقطة التجمع: X:{0} Y:{1}
+rally.far = أنت بعيد جدًا عن نقطة التجمع ({0} كم). استخدم نقل التحالف لتقترب من تحالفك.
+rally.near = أنت قريب من تحالفك.
+rally.leader = لم يُؤسَّس مقر التحالف بعد؛ نقطة التجمع هي قاعدة القائد.
+rally.move = انقل
+rally.need = {0}/{1}

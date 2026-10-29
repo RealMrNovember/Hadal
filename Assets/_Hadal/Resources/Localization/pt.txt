@@ -1131,3 +1131,12 @@ reason.TooDeep = A sede só pode ser fundada em fortalezas nível 1–2.
 reason.UnderAttack = A fortaleza está sob ataque.
 reason.NotOurs = Esta região não é da sua aliança.
 reason.Cooldown = A sede pode ser movida uma vez a cada 24 horas.
+
+# Alliance rally point (docs/30 §6.3.1)
+rally.title = Ponto de encontro da aliança
+rally.coords = Ponto de encontro: X:{0} Y:{1}
+rally.far = Você está muito longe do ponto de encontro ({0} km). Use um Teleporte de aliança para se aproximar.
+rally.near = Você está perto da sua aliança.
+rally.leader = A sede da aliança ainda não foi fundada; o ponto de encontro é a base do líder.
+rally.move = Mover
+rally.need = {0}/{1}

@@ -1131,3 +1131,12 @@ reason.TooDeep = Markas hanya bisa di benteng level 1–2.
 reason.UnderAttack = Benteng sedang diserang.
 reason.NotOurs = Wilayah ini bukan milik aliansimu.
 reason.Cooldown = Markas bisa dipindah sekali tiap 24 jam.
+
+# Alliance rally point (docs/30 §6.3.1)
+rally.title = Titik Kumpul Aliansi
+rally.coords = Titik kumpul: X:{0} Y:{1}
+rally.far = Kamu sangat jauh dari titik kumpul ({0} km). Gunakan Teleport Aliansi untuk mendekat ke aliansimu.
+rally.near = Kamu dekat dengan aliansimu.
+rally.leader = Markas aliansi belum didirikan; titik kumpul adalah markas pemimpin.
+rally.move = Pindah
+rally.need = {0}/{1}

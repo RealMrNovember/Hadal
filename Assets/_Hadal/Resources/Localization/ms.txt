@@ -1131,3 +1131,12 @@ reason.TooDeep = Ibu pejabat hanya di kubu tahap 1–2.
 reason.UnderAttack = Kubu sedang diserang.
 reason.NotOurs = Wilayah ini bukan milik pakatan anda.
 reason.Cooldown = Ibu pejabat boleh dipindah sekali setiap 24 jam.
+
+# Alliance rally point (docs/30 §6.3.1)
+rally.title = Titik Himpunan Pakatan
+rally.coords = Titik himpunan: X:{0} Y:{1}
+rally.far = Anda sangat jauh dari titik himpunan ({0} km). Guna Teleport Pakatan untuk mendekati pakatan anda.
+rally.near = Anda dekat dengan pakatan anda.
+rally.leader = Ibu pejabat pakatan belum didirikan; titik himpunan ialah pangkalan ketua.
+rally.move = Pindah
+rally.need = {0}/{1}

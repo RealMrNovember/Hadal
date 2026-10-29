@@ -1131,3 +1131,12 @@ reason.TooDeep = Una sede si fonda solo su fortezze di liv. 1–2.
 reason.UnderAttack = La fortezza è sotto attacco.
 reason.NotOurs = Questa regione non è della tua alleanza.
 reason.Cooldown = La sede si può spostare una volta ogni 24 ore.
+
+# Alliance rally point (docs/30 §6.3.1)
+rally.title = Punto di raccolta dell'alleanza
+rally.coords = Punto di raccolta: X:{0} Y:{1}
+rally.far = Sei molto lontano dal punto di raccolta ({0} km). Usa un Teletrasporto d'alleanza per avvicinarti.
+rally.near = Sei vicino alla tua alleanza.
+rally.leader = La sede non è ancora fondata; il punto di raccolta è la base del capo.
+rally.move = Sposta
+rally.need = {0}/{1}

@@ -1131,3 +1131,12 @@ reason.TooDeep = 總部只能建在1–2級要塞。
 reason.UnderAttack = 要塞正遭受攻擊。
 reason.NotOurs = 該領地不屬於你的聯盟。
 reason.Cooldown = 總部每24小時只能遷移一次。
+
+# Alliance rally point (docs/30 §6.3.1)
+rally.title = 聯盟集結點
+rally.coords = 集結點：X:{0} Y:{1}
+rally.far = 你離集結點很遠（{0} 公里）。使用聯盟傳送靠近盟友吧。
+rally.near = 你在聯盟附近。
+rally.leader = 聯盟總部尚未建立，集結點為盟主基地。
+rally.move = 遷移
+rally.need = {0}/{1}
