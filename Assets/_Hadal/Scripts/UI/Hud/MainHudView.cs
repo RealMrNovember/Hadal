@@ -110,7 +110,11 @@ namespace Hadal.UI.Hud
         private Text _chatPreview;
         private GameObject _chatDot;
         private RectTransform _queue;
-        private Text _queueTitle;
+        private GameObject _queueDiscs;
+        private Text _buildersCount;
+        private Text _researchCount;
+        private Text _marchCount;
+        private GameObject _buildersIdle;
         private bool _queueOpen = true;
         private Text _task;
         private string _taskBuilding = string.Empty;
@@ -211,12 +215,12 @@ namespace Hadal.UI.Hud
 
         private void BuildRightColumn()
         {
-            // Event column under the shop: Cryo-Pod (free pull timer), events and sieges (coming).
-            var pod = SideButton(_lower.transform, "Pod", "event_pod", Loc.T("hud.pod"), 0.835f, 0.83f, 0.985f, 0.905f, _actions.Pod);
+            // Event grid under the shop, two columns like the genre's: Cryo-Pod (free pull timer), events, expedition.
+            var pod = Disc(_lower.transform, "Pod", "event_pod", Loc.T("hud.pod"), 0.86f, 0.79f, 0.98f, 0.865f, _actions.Pod);
             _podLabel = pod.Label;
             _podDot = pod.Dot;
-            _eventsDot = SideButton(_lower.transform, "Events", "event_gift", Loc.T("hud.events"), 0.835f, 0.74f, 0.985f, 0.815f, () => _actions.Events?.Invoke()).Dot;
-            SideButton(_lower.transform, "War", "event_war", Loc.T("hud.expedition"), 0.835f, 0.65f, 0.985f, 0.725f, () => _actions.Expedition?.Invoke());
+            _eventsDot = Disc(_lower.transform, "Events", "event_gift", Loc.T("hud.events"), 0.725f, 0.79f, 0.845f, 0.865f, () => _actions.Events?.Invoke()).Dot;
+            Disc(_lower.transform, "War", "event_war", Loc.T("hud.expedition"), 0.86f, 0.705f, 0.98f, 0.78f, () => _actions.Expedition?.Invoke());
         }
 
         /// <summary>Base-only buttons; the world map hides them (its own controls sit there).</summary>
@@ -230,34 +234,38 @@ namespace Hadal.UI.Hud
                 return side;
             }
 
-            Keep(SideButton(_lower.transform, "Expand", "left_expand", Loc.T("hud.expand"), 0.012f, 0.45f, 0.142f, 0.515f, _actions.Expand));
-            Keep(SideButton(_lower.transform, "Research", "left_research", Loc.T("hud.research"), 0.012f, 0.37f, 0.142f, 0.435f, _actions.Research));
-            _helpDot = Keep(SideButton(_lower.transform, "Help", "left_help", Loc.T("hud.help"), 0.012f, 0.29f, 0.142f, 0.355f, _actions.AllianceHelp)).Dot;
-            _questDot = Keep(SideButton(_lower.transform, "Quests", "quest", Loc.T("hud.quests"), 0.012f, 0.21f, 0.142f, 0.275f, _actions.Quests)).Dot;
+            Keep(Disc(_lower.transform, "Expand", "left_expand", Loc.T("hud.expand"), 0.015f, 0.455f, 0.135f, 0.535f, _actions.Expand));
+            _helpDot = Keep(Disc(_lower.transform, "Help", "left_help", Loc.T("hud.help"), 0.015f, 0.365f, 0.135f, 0.445f, _actions.AllianceHelp)).Dot;
+            _questDot = Keep(Disc(_lower.transform, "Quests", "quest", Loc.T("hud.quests"), 0.015f, 0.275f, 0.135f, 0.355f, _actions.Quests)).Dot;
         }
 
         private void BuildLowerRight()
         {
-            _warDot = SideButton(_lower.transform, "War", "event_war", Loc.T("pvp.hud"), 0.845f, 0.455f, 0.985f, 0.525f, () => _actions.War?.Invoke()).Dot;
-            _allianceDot = SideButton(_lower.transform, "Alliance", "side_alliance", Loc.T("social.alliance"), 0.845f, 0.37f, 0.985f, 0.44f, _actions.Alliance).Dot;
-            _mailDot = SideButton(_lower.transform, "Mail", "side_mail", Loc.T("hud.mail"), 0.845f, 0.285f, 0.985f, 0.355f, () => _actions.Mail?.Invoke()).Dot;
-            _bagDot = SideButton(_lower.transform, "Bag", "side_bag", Loc.T("hud.bag"), 0.845f, 0.2f, 0.985f, 0.27f, _actions.Bag).Dot;
+            // Navy tiles with the caption inside (Last Asylum's Alliance / Mail / Bag), stacked above the task strip.
+            _warDot = Tile(_lower.transform, "War", "event_war", Loc.T("pvp.hud"), 0.835f, 0.455f, 0.985f, 0.522f, () => _actions.War?.Invoke());
+            _allianceDot = Tile(_lower.transform, "Alliance", "side_alliance", Loc.T("social.alliance"), 0.835f, 0.38f, 0.985f, 0.447f, _actions.Alliance);
+            _mailDot = Tile(_lower.transform, "Mail", "side_mail", Loc.T("hud.mail"), 0.835f, 0.305f, 0.985f, 0.372f, () => _actions.Mail?.Invoke());
+            _bagDot = Tile(_lower.transform, "Bag", "side_bag", Loc.T("hud.bag"), 0.835f, 0.23f, 0.985f, 0.297f, _actions.Bag);
         }
 
         private void BuildQueue()
         {
-            var title = Tap(_lower.transform, "QueueTitle", 0.012f, 0.875f, 0.45f, 0.91f, () => { _queueOpen = !_queueOpen; _nextRefresh = 0; },
-                new Color(0.02f, 0.05f, 0.08f, 0.8f));
-            Skinned(title.GetComponent<Image>(), "pill");
-            _queueTitle = Outlined(UiKit.Label("Text", title, string.Empty, 28, UiKit.Text, TextAnchor.MiddleLeft, FontStyle.Bold));
-            _queueTitle.rectTransform.Place(0.04f, 0, 0.98f, 1);
+            // Under the avatar, Last Asylum's counters: builders busy / total, research, marches out. The builder disc
+            // folds the running list beside the column open and shut.
+            var discs = UiKit.Rect("QueueDiscs", _lower.transform).Place(0, 0, 1, 1);
+            _queueDiscs = discs.gameObject;
+            var builders = Disc(discs, "Builders", "queue_build", string.Empty, 0.015f, 0.79f, 0.135f, 0.87f, () => { _queueOpen = !_queueOpen; _nextRefresh = 0; });
+            _buildersCount = builders.Label;
+            _buildersIdle = builders.Dot;
+            _researchCount = Disc(discs, "Research", "left_research", string.Empty, 0.015f, 0.7f, 0.135f, 0.78f, _actions.Research).Label;
+            _marchCount = Disc(discs, "Marches", "queue_drone", string.Empty, 0.015f, 0.61f, 0.135f, 0.69f, () => _actions.Territory?.Invoke()).Label;
 
-            _queue = UiKit.Rect("Queue", _lower.transform).Place(0.012f, 0.63f, 0.45f, 0.87f);
+            _queue = UiKit.Rect("Queue", discs).Place(0.15f, 0.65f, 0.55f, 0.868f);
         }
 
         private void BuildTask()
         {
-            var strip = Tap(_lower.transform, "Task", 0.012f, 0.125f, 0.66f, 0.18f, () =>
+            var strip = Tap(_lower.transform, "Task", 0.0f, 0.118f, 0.8f, 0.182f, () =>
             {
                 if (_taskDone && _taskQuest.Length > 0)
                     _actions.ClaimQuest?.Invoke(_taskQuest);
@@ -267,11 +275,13 @@ namespace Hadal.UI.Hud
                     _actions.Quests?.Invoke();
                 else if (_taskBuilding.Length > 0)
                     _actions.Building?.Invoke(_taskBuilding);
-            }, new Color(0.02f, 0.05f, 0.08f, 0.75f));
-            Skinned(strip.GetComponent<Image>(), "pill");
-            HudIcons.Image(strip, "quest", 0.0f, 0.0f, 0.16f, 1f);
-            _task = Outlined(UiKit.Label("Text", strip, string.Empty, 26, UiKit.Text, TextAnchor.MiddleLeft));
-            _task.rectTransform.Place(0.17f, 0, 0.99f, 1);
+            }, new Color(0, 0, 0, 0.6f));
+            // No box: the scroll and two outlined lines over a fade, so the base shows through (Last Asylum).
+            Skinned(strip.GetComponent<Image>(), "hud_fade").type = Image.Type.Simple;
+            HudIcons.Image(strip, "quest", -0.01f, -0.08f, 0.15f, 1.08f);
+            _task = Outlined(UiKit.Label("Text", strip, string.Empty, 27, Color.white, TextAnchor.MiddleLeft, FontStyle.Bold));
+            _task.rectTransform.Place(0.165f, 0, 0.99f, 1);
+            _task.lineSpacing = 0.9f;
         }
 
         private void BuildBottomBar()
@@ -352,24 +362,58 @@ namespace Hadal.UI.Hud
             public GameObject Dot { get; }
         }
 
-        /// <summary>A round-ish icon button with an outlined caption under it, like the genre's side icons.</summary>
-        private static Side SideButton(Transform parent, string name, string icon, string caption, float x0, float y0, float x1, float y1, Action onClick)
+        /// <summary>
+        /// A porthole disc with the icon in it and an outlined caption under it (the left and event columns). With an
+        /// empty caption the label sits on the disc's lower rim instead, for a counter like "1/3".
+        /// </summary>
+        private static Side Disc(Transform parent, string name, string icon, string caption, float x0, float y0, float x1, float y1, Action onClick)
         {
             var root = Tap(parent, name, x0, y0, x1, y1, onClick, new Color(0, 0, 0, 0.001f));
-            HudIcons.Image(root, icon, 0.08f, 0.25f, 0.92f, 1f);
-            var label = Outlined(UiKit.Label("Caption", root, caption, 22, Color.white, TextAnchor.MiddleCenter, FontStyle.Bold));
-            label.rectTransform.Place(-0.2f, 0f, 1.2f, 0.28f);
+            var counter = caption.Length == 0;
+            var disc = Skinned(UiKit.Box("Disc", root, new Color(0.05f, 0.09f, 0.15f, 0.9f)), "hud_disc");
+            disc.type = Image.Type.Simple;
+            disc.preserveAspect = true;
+            disc.raycastTarget = false;
+            disc.rectTransform.Place(0.04f, counter ? 0.04f : 0.26f, 0.96f, 1f);
+            HudIcons.Image(disc.transform, icon, 0.17f, 0.17f, 0.83f, 0.83f);
+            var label = Outlined(UiKit.Label("Caption", root, caption, counter ? 26 : 22, Color.white, TextAnchor.MiddleCenter, FontStyle.Bold));
+            label.rectTransform.Place(-0.2f, counter ? 0.02f : 0f, 1.2f, counter ? 0.3f : 0.27f);
             return new Side(label, Dot(root));
         }
 
+        /// <summary>A navy tile with the icon on top and the caption inside its lower edge; returns its badge.</summary>
+        private static GameObject Tile(Transform parent, string name, string icon, string caption, float x0, float y0, float x1, float y1, Action onClick)
+        {
+            var root = Tap(parent, name, x0, y0, x1, y1, onClick, new Color(0.1f, 0.16f, 0.26f, 0.95f));
+            Skinned(root.GetComponent<Image>(), "hud_tile");
+            HudIcons.Image(root, icon, 0.16f, 0.3f, 0.84f, 0.96f);
+            Outlined(UiKit.Label("Caption", root, caption, 23, Color.white, TextAnchor.MiddleCenter, FontStyle.Bold)).rectTransform.Place(0.02f, 0.05f, 0.98f, 0.32f);
+            return Dot(root);
+        }
+
+        /// <summary>A red badge on the top-right corner; <see cref="Count"/> puts a number in it.</summary>
         private static GameObject Dot(Transform parent)
         {
-            var dot = UiKit.Box("Dot", parent, new Color(0.95f, 0.18f, 0.15f, 1f));
-            dot.rectTransform.anchorMin = dot.rectTransform.anchorMax = new Vector2(0.92f, 0.95f);
-            dot.rectTransform.sizeDelta = new Vector2(26, 26);
+            var dot = Skinned(UiKit.Box("Dot", parent, new Color(0.95f, 0.18f, 0.15f, 1f)), "hud_badge");
+            dot.rectTransform.anchorMin = dot.rectTransform.anchorMax = new Vector2(0.9f, 0.93f);
+            dot.rectTransform.sizeDelta = new Vector2(30, 30);
             dot.raycastTarget = false;
+            var count = UiKit.Label("Count", dot.transform, string.Empty, 24, Color.white, TextAnchor.MiddleCenter, FontStyle.Bold);
+            count.rectTransform.Place(0, 0.04f, 1, 1);
+            count.raycastTarget = false;
             dot.gameObject.SetActive(false);
             return dot.gameObject;
+        }
+
+        /// <summary>Shows a badge with a number (99+ caps it), or hides it at zero.</summary>
+        private static void Count(GameObject dot, int count)
+        {
+            dot.SetActive(count > 0);
+            if (count <= 0)
+                return;
+            var text = count > 99 ? "99+" : count.ToString();
+            dot.GetComponentInChildren<Text>().text = text;
+            ((RectTransform)dot.transform).sizeDelta = new Vector2(text.Length == 1 ? 42 : 30 + 16 * text.Length, 42);
         }
 
         /// <summary>Puts a skin sprite (art/ui/make_skin.py) on a HUD box; without the skin it keeps its flat colour.</summary>
@@ -414,8 +458,7 @@ namespace Hadal.UI.Hud
                 _shownInWorld = inWorld;
                 _territoryIcon.sprite = HudIcons.Get(inWorld ? "left_home" : "nav_world");
                 _territoryLabel.text = Loc.T(inWorld ? "hud.base" : "hud.territory");
-                _queue.gameObject.SetActive(!inWorld);
-                _queueTitle.transform.parent.gameObject.SetActive(!inWorld);
+                _queueDiscs.SetActive(!inWorld);
                 _task.transform.parent.gameObject.SetActive(!inWorld);
                 foreach (var go in _baseOnly)
                     go.SetActive(!inWorld);
@@ -500,11 +543,13 @@ namespace Hadal.UI.Hud
 
             var builders = Math.Max(1, _catalog.Progression.builderSlots) + Modifiers().ExtraBuilders;
             var building = Buildings().Count(b => b.IsUnderConstruction);
-            var idle = rows.Count == 0;
             var marchCount = marchList?.Marches?.Length ?? 0;
-            var marchText = marchList != null && marchList.Queues > 0 ? $"   {Loc.F("march.queue", marchCount, marchList.Queues)}" : string.Empty;
-            _queueTitle.text = $"{(_queueOpen ? "▼" : "▶")} {Loc.T("hud.queue")}  {building}/{builders}{marchText}" +
-                               (idle ? $"   <color=#FFB347>{Loc.T("hud.queue.free")}</color>" : string.Empty);
+            _buildersCount.text = $"{building}/{builders}";
+            _buildersCount.color = building < builders ? UiKit.Amber : Color.white;
+            // An idle builder is the genre's most nagged-about slot: a dot until one is put to work.
+            _buildersIdle.SetActive(building < builders);
+            _researchCount.text = $"{View.ActiveResearch.Count}/1";
+            _marchCount.text = marchList != null && marchList.Queues > 0 ? $"{marchCount}/{marchList.Queues}" : $"{marchCount}";
 
             for (var i = _queue.childCount - 1; i >= 0; i--)
                 Destroy(_queue.GetChild(i).gameObject);
@@ -589,10 +634,10 @@ namespace Hadal.UI.Hud
             _allianceDot.SetActive(helpWaiting || giftsWaiting);
             _helpDot.SetActive(helpWaiting);
             var nowMs = View.ServerNowMs;
-            _warDot.SetActive((View.Pvp?.Incoming ?? Array.Empty<IncomingDto>()).Any(i => i.ArrivesAtMs > nowMs));
+            Count(_warDot, (View.Pvp?.Incoming ?? Array.Empty<IncomingDto>()).Count(i => i.ArrivesAtMs > nowMs));
             _eventsDot.SetActive(View.Events.Events.Any(e => EventRules.HasClaim(e, nowMs)));
             _chatDot.SetActive(View.UnreadChat > 0);
-            _mailDot.SetActive(View.Mail.Unread > 0 || View.Mail.Unclaimed > 0);
+            Count(_mailDot, Math.Max(View.Mail.Unread, View.Mail.Unclaimed));
 
             if (_chatVersion == View.ChatVersion)
                 return;

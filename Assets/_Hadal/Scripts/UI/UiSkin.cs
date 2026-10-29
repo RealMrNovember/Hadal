@@ -22,6 +22,8 @@ namespace Hadal.UI
             "inset" => new Vector4(24, 24, 24, 24),
             "tab_on" or "tab_off" => new Vector4(24, 20, 24, 20),
             "pill" => new Vector4(28, 26, 28, 26),
+            "hud_tile" => new Vector4(34, 38, 34, 34),
+            "hud_badge" => new Vector4(30, 30, 30, 30),
             _ when name.StartsWith("btn_") => new Vector4(30, 32, 30, 26),
             _ when name.StartsWith("slot_") => new Vector4(28, 28, 28, 28),
             _ when name.StartsWith("bar_") => new Vector4(16, 14, 16, 14),

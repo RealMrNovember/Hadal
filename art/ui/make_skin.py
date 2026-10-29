@@ -171,6 +171,36 @@ def build():
     pill.putalpha(pill.getchannel("A").point(lambda v: int(v * 0.86)))
     save("pill", pill, 160, 56, [28, 26, 28, 26])
 
+    # HUD containers (Last Asylum's main screen): every side icon sits in one of these, so mixed art reads as a set.
+    # Tile: the lower-right Alliance/Mail/Bag buttons, a navy plate with a steel rim and the caption inside.
+    save("hud_tile", shape(128, 128, 24, (58, 86, 130), (26, 40, 66), border=(150, 186, 228), border_w=3,
+                           inner_hi=(120, 156, 206), lip=(10, 16, 28), lip_h=5, gloss=0.10), 128, 133, [34, 34, 34, 38])
+    # Disc: the left and event columns, a dark porthole with a thin steel rim and a soft top gloss.
+    n = 128
+    disc = Image.new("RGBA", (n * S, n * S), (0, 0, 0, 0))
+    d = ImageDraw.Draw(disc)
+    d.ellipse([3 * S, 6 * S, (n - 3) * S, n * S - 1], fill=(0, 0, 0, 110))
+    d.ellipse([3 * S, 2 * S, (n - 3) * S, (n - 4) * S], fill=(150, 186, 228, 255))
+    face = vgrad(n, n, (40, 58, 88), (12, 20, 34)).convert("RGBA")
+    m = Image.new("L", (n * S, n * S), 0)
+    ImageDraw.Draw(m).ellipse([7 * S, 6 * S, (n - 7) * S, (n - 8) * S], fill=235)
+    disc.paste(face, (0, 0), m)
+    gl = Image.new("L", (n * S, n * S), 0)
+    ImageDraw.Draw(gl).ellipse([22 * S, 12 * S, (n - 22) * S, (n * 0.46) * S], fill=46)
+    disc.alpha_composite(Image.composite(Image.new("RGBA", disc.size, (255, 255, 255, 255)), Image.new("RGBA", disc.size, (0, 0, 0, 0)),
+                                         gl.filter(ImageFilter.GaussianBlur(4 * S))))
+    save("hud_disc", disc, n, n, [0, 0, 0, 0])
+    # Badge: a red count bubble with a white rim; sliced so two-digit counts stretch it into a capsule.
+    save("hud_badge", shape(64, 64, 32, (250, 92, 76), (206, 34, 30), border=(255, 255, 255), border_w=4), 64, 64, [30, 30, 30, 30])
+    # Fade: dark on the left to clear on the right, behind the suggested task (text without a box).
+    fade = Image.new("RGBA", (128, 16), (0, 0, 0, 0))
+    for x in range(128):
+        a = int(170 * min(1.0, (1 - x / 127) * 1.6))
+        for y in range(16):
+            fade.putpixel((x, y), (4, 10, 18, a))
+    SPRITES["hud_fade"] = {"border": [0, 0, 0, 0]}
+    fade.save(OUT / "hud_fade.png")
+
     (OUT / "skin.json").write_text(json.dumps(SPRITES, indent=2), encoding="utf-8")
     print(f"{len(SPRITES)} sprites -> {OUT}")
 
