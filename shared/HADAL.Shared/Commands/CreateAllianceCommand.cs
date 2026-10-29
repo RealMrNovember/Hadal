@@ -17,5 +17,8 @@ namespace HADAL.Shared.Commands
 
         /// <summary>Banner "icon:colour" (see <c>SocialRules.IsValidEmblem</c>).</summary>
         [ProtoMember(6)] public string Emblem { get; set; } = string.Empty;
+
+        /// <summary>The alliance language: the founder's UI language code (docs/31 §1).</summary>
+        [ProtoMember(7)] public string Language { get; set; } = string.Empty;
     }
 }

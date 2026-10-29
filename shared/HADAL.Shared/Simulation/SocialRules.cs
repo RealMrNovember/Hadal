@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Text;
 using HADAL.Shared.Catalog;
 
@@ -89,6 +90,9 @@ namespace HADAL.Shared.Simulation
         public static bool CanEditSettings(int actor) => actor == Leader;
 
         public static bool CanTransfer(int actor) => actor == Leader;
+
+        /// <summary>The hub's announcement: officers (R4) and the leader.</summary>
+        public static bool CanEditAnnouncement(int actor) => actor >= Officer;
     }
 
     /// <summary>Chat and alliance rules shared by server and client (docs/25_Heroes_Alliance_Chat.md).</summary>
@@ -183,6 +187,21 @@ namespace HADAL.Shared.Simulation
         public static readonly string[] EmblemColors = { "2E9BD6", "2BB673", "D64545", "E0A21B", "8E5BD8", "D6589E", "3FBFBF", "6C7A89" };
 
         public const string DefaultEmblem = "0:0";
+
+        public const int MaxAnnouncement = 500;
+
+        /// <summary>The announcement keeps its line breaks; other control characters go. Cut to MaxAnnouncement.</summary>
+        public static string CleanAnnouncement(string? text)
+        {
+            var lines = (text ?? string.Empty).Replace("\r", string.Empty).Split('\n')
+                .Select(l => CleanMessage(l, new ChatCatalogData { maxLength = MaxAnnouncement }));
+            var joined = string.Join("\n", lines).Trim();
+            return joined.Length <= MaxAnnouncement ? joined : joined.Substring(0, MaxAnnouncement);
+        }
+
+        /// <summary>A UI language code such as "tr" or "zh-Hans".</summary>
+        public static bool IsLanguageCode(string? code) =>
+            !string.IsNullOrEmpty(code) && code!.Length <= 8 && code.All(c => char.IsLetter(c) || c == '-');
 
         public static bool IsValidEmblem(string? emblem)
         {

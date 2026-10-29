@@ -10,12 +10,12 @@ using UnityEngine.UI;
 namespace Hadal.UI
 {
     /// <summary>
-    /// Alliance page (docs/25, docs/rehber 10): invitations, find or found one; once in, members with ranks and
-    /// a manage card per member, help, and an admin tab (applications, join mode, description).
+    /// Alliance page (docs/25, docs/rehber 10): invitations, find or found one; once in, the hub (SocialView.AllianceHub)
+    /// leads to members with ranks and a manage card per member, help, applications and settings.
     /// </summary>
     public sealed partial class SocialView
     {
-        private int _allianceTab; // in an alliance: 0 members, 1 help, 2 admin; without: 0 join, 1 found
+        private int _allianceTab; // in an alliance: an AllianceTab* page (0 = hub); without: 0 join, 1 found
         private bool _confirmLeave;
         private string _kickConfirm = string.Empty;
         private string _transferConfirm = string.Empty;
@@ -154,7 +154,7 @@ namespace Hadal.UI
                 _commands.Dispatch(new CreateAllianceCommand
                 {
                     CommandId = NewId(), ClientSequence = NextSequence(), Name = _newName.Trim(), Tag = _newTag.Trim(), Description = _newDescription.Trim(),
-                    Emblem = _newEmblem
+                    Emblem = _newEmblem, Language = Loc.Current
                 });
             });
         }
@@ -167,37 +167,38 @@ namespace Hadal.UI
             _subtitle.text = $"{Loc.F("alliance.members", alliance.Members.Length, alliance.MaxMembers)}   {Loc.F("hero.power", alliance.Members.Sum(m => m.Power))}   " +
                              $"{RankName(myRank)}";
 
-            var waiting = View.HelpRequests.Count(r => !r.HelpedByMe);
-            var applicants = alliance.Applicants?.Length ?? 0;
-            var admin = AlliancePermissions.CanApprove(myRank);
-            var tabs = new[]
+            switch (_allianceTab)
             {
-                Loc.T("alliance.tab.members"),
-                waiting > 0 ? $"{Loc.T("alliance.tab.help")} ({waiting})" : Loc.T("alliance.tab.help"),
-                applicants > 0 ? $"{Loc.T("alliance.tab.admin")} ({applicants})" : Loc.T("alliance.tab.admin")
-            };
-            if (!admin && _allianceTab == 2)
-                _allianceTab = 0;
-            UiKit.Choice("Tabs", _list, admin ? tabs : tabs.Take(2).ToArray(), () => _allianceTab, i => { _allianceTab = i; Render(force: true); }).Row(90);
-
-            if (_allianceTab == 1)
-            {
-                RenderHelp();
-                return;
+                case AllianceTabHelp:
+                    BackToHub();
+                    RenderHelp();
+                    return;
+                case AllianceTabMembers:
+                    BackToHub();
+                    RenderMembers(alliance, me, myRank);
+                    return;
+                case AllianceTabApplications when AlliancePermissions.CanApprove(myRank):
+                    BackToHub();
+                    RenderApplications(alliance);
+                    return;
+                case AllianceTabSettings when AlliancePermissions.CanEditAnnouncement(myRank):
+                    BackToHub();
+                    RenderSettings(alliance, myRank);
+                    return;
+                case AllianceTabRally:
+                    BackToHub();
+                    RenderRally(alliance);
+                    return;
+                default:
+                    _allianceTab = AllianceTabHub;
+                    RenderHub(alliance, myRank);
+                    return;
             }
+        }
 
-            if (_allianceTab == 2)
-            {
-                RenderAdmin(alliance, myRank);
-                return;
-            }
-
-            var banner = Card(150);
-            AvatarDisc.Emblem(UiKit.Rect("Banner", banner.transform).Place(0.02f, 0.08f, 0.18f, 0.92f), alliance.Emblem);
-            CardText(banner.transform, $"[{alliance.Tag}] {alliance.Name}", 36, UiKit.Text, 0.21f, 0.5f, 0.97f, 0.95f, TextAnchor.MiddleLeft, FontStyle.Bold);
-            CardText(banner.transform, string.IsNullOrEmpty(alliance.Description) ? Loc.F("alliance.leader", alliance.Members.FirstOrDefault(m => m.IsLeader)?.Name ?? "-")
-                : alliance.Description, 24, UiKit.Muted, 0.21f, 0.05f, 0.97f, 0.5f, TextAnchor.UpperLeft);
-
+        /// <summary>Members by rank with a manage card per member (step 2 of docs/31 rebuilds it LA-style).</summary>
+        private void RenderMembers(AllianceDto alliance, string me, int myRank)
+        {
             var lastRank = -1;
             foreach (var member in alliance.Members)
             {
@@ -332,7 +333,7 @@ namespace Hadal.UI
         }
 
         /// <summary>Applications (R3+) and, for the leader, who may join and the description.</summary>
-        private void RenderAdmin(AllianceDto alliance, int myRank)
+        private void RenderApplications(AllianceDto alliance)
         {
             Header(Loc.T("alliance.applications"));
             var applicants = alliance.Applicants ?? Array.Empty<AllianceApplicantDto>();
@@ -349,7 +350,12 @@ namespace Hadal.UI
             }
 
             Note(Loc.T("alliance.invite.how"));
+        }
 
+        /// <summary>Officers write the announcement (the leader also the language); the leader edits the rest.</summary>
+        private void RenderSettings(AllianceDto alliance, int myRank)
+        {
+            RenderAnnouncementEditor(alliance, myRank);
             if (!AlliancePermissions.CanEditSettings(myRank))
                 return;
 

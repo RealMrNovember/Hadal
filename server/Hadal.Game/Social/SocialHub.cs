@@ -14,7 +14,7 @@ namespace Hadal.Game.Social
     /// lives in memory under one lock and is written through to <see cref="ISocialStore"/> in order on a
     /// background queue. Lock order: hub, then session — sessions never call the hub.
     /// </summary>
-    public sealed class SocialHub
+    public sealed partial class SocialHub
     {
         public const string WorldChannel = "world";
 
@@ -89,7 +89,7 @@ namespace Hadal.Game.Social
         public static bool Handles(CommandType type) => type is CommandType.SendChat or CommandType.CreateAlliance or CommandType.JoinAlliance
             or CommandType.LeaveAlliance or CommandType.BrowseAlliances or CommandType.KickMember or CommandType.RequestHelp or CommandType.HelpAll
             or CommandType.SetMemberRank or CommandType.TransferLeadership or CommandType.SetAllianceSettings or CommandType.InviteToAlliance
-            or CommandType.AnswerInvite or CommandType.AnswerApplication;
+            or CommandType.AnswerInvite or CommandType.AnswerApplication or CommandType.SetAllianceInfo;
 
         /// <summary>Loads alliances and recent chat. Call once at startup, after the schema exists.</summary>
         public async Task InitializeAsync(CancellationToken cancellationToken)
@@ -224,6 +224,9 @@ namespace Hadal.Game.Social
                     case CommandType.TransferLeadership when TryDeserialize(envelope.Payload, out TransferLeadershipCommand? transfer):
                         Done(session, transfer!.CommandId, transfer.ClientSequence, Transfer(session.PublicId, transfer.MemberId, now), now);
                         break;
+                    case CommandType.SetAllianceInfo when TryDeserialize(envelope.Payload, out SetAllianceInfoCommand? info):
+                        Done(session, info!.CommandId, info.ClientSequence, SetInfo(session.PublicId, info, now), now);
+                        break;
                     case CommandType.SetAllianceSettings when TryDeserialize(envelope.Payload, out SetAllianceSettingsCommand? settings):
                         Done(session, settings!.CommandId, settings.ClientSequence, Settings(session.PublicId, settings, now), now);
                         break;
@@ -304,7 +307,8 @@ namespace Hadal.Game.Social
             var emblem = SocialRules.IsValidEmblem(command.Emblem) ? command.Emblem : SocialRules.DefaultEmblem;
             var alliance = new Alliance
             {
-                Record = new AllianceRecord("a" + Guid.NewGuid().ToString("N"), name, tag, description, session.PublicId, now, 0, emblem)
+                Record = new AllianceRecord("a" + Guid.NewGuid().ToString("N"), name, tag, description, session.PublicId, now, 0, emblem,
+                    Language: SocialRules.IsLanguageCode(command.Language) ? command.Language : string.Empty)
             };
             _alliances[alliance.Record.Id] = alliance;
             Write(ct => _store.SaveAllianceAsync(alliance.Record, ct));
@@ -930,6 +934,8 @@ namespace Hadal.Game.Social
                 MaxMembers = Catalog.Alliance.maxMembers,
                 JoinMode = alliance.Record.JoinMode,
                 Emblem = EmblemOf(alliance),
+                Announcement = alliance.Record.Announcement ?? string.Empty,
+                Language = alliance.Record.Language ?? string.Empty,
                 Applicants = AlliancePermissions.CanApprove(RankOf(alliance, playerId)) && _applications.TryGetValue(alliance.Record.Id, out var waiting)
                     ? waiting.Select(a => new AllianceApplicantDto { PlayerId = a.PlayerId, Name = NameOf(a.PlayerId) is { Length: > 0 } n ? n : a.Name, Power = a.Power }).ToArray()
                     : Array.Empty<AllianceApplicantDto>(),

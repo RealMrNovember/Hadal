@@ -54,7 +54,7 @@ namespace Hadal.UI
             CommandType.DiveStage, CommandType.SetMemberRank, CommandType.TransferLeadership, CommandType.SetAllianceSettings,
             CommandType.AnswerInvite, CommandType.AnswerApplication, CommandType.ClaimEventStage, CommandType.ClaimEventRank,
             CommandType.ClaimVipLogin, CommandType.ClaimVipChest, CommandType.ReadMail, CommandType.ClaimMail, CommandType.DeleteMail,
-            CommandType.SendMail
+            CommandType.SendMail, CommandType.SetAllianceInfo
         };
 
         private IStateSyncService _stateSync;
@@ -370,6 +370,7 @@ namespace Hadal.UI
                 CommandType.SetMemberRank => Loc.T("alliance.rank.saved"),
                 CommandType.TransferLeadership => Loc.T("alliance.transferred"),
                 CommandType.SetAllianceSettings => Loc.T("alliance.saved"),
+                CommandType.SetAllianceInfo => Loc.T("alliance.saved"),
                 CommandType.AnswerInvite => View.MyAlliance != null ? Loc.T("alliance.joined") : string.Empty,
                 CommandType.AnswerApplication => Loc.T("alliance.saved"),
                 CommandType.LeaveAlliance => Loc.T("alliance.left"),

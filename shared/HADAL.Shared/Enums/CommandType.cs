@@ -67,5 +67,6 @@ namespace HADAL.Shared.Enums
         [ProtoEnum] Territory = 59,
         [ProtoEnum] UseShield = 60,
         [ProtoEnum] SendMail = 61,
+        [ProtoEnum] SetAllianceInfo = 62,
     }
 }

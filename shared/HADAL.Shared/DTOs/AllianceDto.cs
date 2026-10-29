@@ -22,6 +22,12 @@ namespace HADAL.Shared.DTOs
 
         /// <summary>Banner: "icon:colour" indices into <c>SocialRules.EmblemIcons</c> / <c>EmblemColors</c>.</summary>
         [ProtoMember(10)] public string Emblem { get; set; } = string.Empty;
+
+        /// <summary>The hub's announcement, written by officers (docs/31 §1).</summary>
+        [ProtoMember(11)] public string Announcement { get; set; } = string.Empty;
+
+        /// <summary>The alliance language as a UI language code; empty = not set.</summary>
+        [ProtoMember(12)] public string Language { get; set; } = string.Empty;
     }
 
     [ProtoContract]

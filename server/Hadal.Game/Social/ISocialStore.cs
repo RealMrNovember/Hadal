@@ -4,7 +4,7 @@ namespace Hadal.Game.Social
 {
     /// <summary><see cref="JoinMode"/> is an <c>AllianceJoinMode</c> value.</summary>
     public sealed record AllianceRecord(string Id, string Name, string Tag, string Description, string LeaderId, DateTimeOffset CreatedAt, int JoinMode = 0,
-        string Emblem = "");
+        string Emblem = "", string Announcement = "", string Language = "");
 
     /// <summary><see cref="Rank"/> 1–5 (0 = stored before ranks existed), <see cref="Role"/> an officer duty tag.</summary>
     public sealed record MemberRecord(string PlayerId, string AllianceId, string Name, long Power, DateTimeOffset JoinedAt, int Rank = 0, string Role = "");

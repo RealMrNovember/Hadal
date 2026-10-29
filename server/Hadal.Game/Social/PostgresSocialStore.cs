@@ -42,6 +42,8 @@ CREATE INDEX IF NOT EXISTS chat_messages_channel ON hadal.chat_messages (channel
 
 ALTER TABLE hadal.alliances ADD COLUMN IF NOT EXISTS join_mode integer NOT NULL DEFAULT 0;
 ALTER TABLE hadal.alliances ADD COLUMN IF NOT EXISTS emblem text NOT NULL DEFAULT '';
+ALTER TABLE hadal.alliances ADD COLUMN IF NOT EXISTS announcement text NOT NULL DEFAULT '';
+ALTER TABLE hadal.alliances ADD COLUMN IF NOT EXISTS language text NOT NULL DEFAULT '';
 ALTER TABLE hadal.alliance_members ADD COLUMN IF NOT EXISTS rank integer NOT NULL DEFAULT 0;
 ALTER TABLE hadal.alliance_members ADD COLUMN IF NOT EXISTS role text NOT NULL DEFAULT '';";
 
@@ -61,12 +63,12 @@ ALTER TABLE hadal.alliance_members ADD COLUMN IF NOT EXISTS role text NOT NULL D
             var members = new List<MemberRecord>();
             await using var connection = await _dataSource.OpenConnectionAsync(cancellationToken);
 
-            await using (var command = new NpgsqlCommand("SELECT alliance_id, name, tag, description, leader_id, created_at, join_mode, emblem FROM hadal.alliances", connection))
+            await using (var command = new NpgsqlCommand("SELECT alliance_id, name, tag, description, leader_id, created_at, join_mode, emblem, announcement, language FROM hadal.alliances", connection))
             await using (var reader = await command.ExecuteReaderAsync(cancellationToken))
             {
                 while (await reader.ReadAsync(cancellationToken))
                     alliances.Add(new AllianceRecord(reader.GetString(0), reader.GetString(1), reader.GetString(2), reader.GetString(3),
-                        reader.GetString(4), reader.GetFieldValue<DateTimeOffset>(5), reader.GetInt32(6), reader.GetString(7)));
+                        reader.GetString(4), reader.GetFieldValue<DateTimeOffset>(5), reader.GetInt32(6), reader.GetString(7), reader.GetString(8), reader.GetString(9)));
             }
 
             await using (var command = new NpgsqlCommand("SELECT player_id, alliance_id, name, power, joined_at, rank, role FROM hadal.alliance_members", connection))
@@ -97,11 +99,12 @@ SELECT message_id, channel, sender_id, sender_name, alliance_tag, body, sent_at,
         }
 
         public Task SaveAllianceAsync(AllianceRecord a, CancellationToken cancellationToken) => ExecuteAsync(@"
-INSERT INTO hadal.alliances (alliance_id, name, tag, description, leader_id, created_at, join_mode, emblem) VALUES (@id, @name, @tag, @d, @leader, @at, @mode, @emblem)
+INSERT INTO hadal.alliances (alliance_id, name, tag, description, leader_id, created_at, join_mode, emblem, announcement, language)
+VALUES (@id, @name, @tag, @d, @leader, @at, @mode, @emblem, @note, @lang)
 ON CONFLICT (alliance_id) DO UPDATE SET name = EXCLUDED.name, tag = EXCLUDED.tag, description = EXCLUDED.description, leader_id = EXCLUDED.leader_id,
-    join_mode = EXCLUDED.join_mode, emblem = EXCLUDED.emblem",
+    join_mode = EXCLUDED.join_mode, emblem = EXCLUDED.emblem, announcement = EXCLUDED.announcement, language = EXCLUDED.language",
             cancellationToken, ("id", a.Id), ("name", a.Name), ("tag", a.Tag), ("d", a.Description), ("leader", a.LeaderId), ("at", a.CreatedAt),
-            ("mode", a.JoinMode), ("emblem", a.Emblem ?? string.Empty));
+            ("mode", a.JoinMode), ("emblem", a.Emblem ?? string.Empty), ("note", a.Announcement ?? string.Empty), ("lang", a.Language ?? string.Empty));
 
         public Task DeleteAllianceAsync(string allianceId, CancellationToken cancellationToken) =>
             ExecuteAsync("DELETE FROM hadal.alliances WHERE alliance_id = @id", cancellationToken, ("id", allianceId));
