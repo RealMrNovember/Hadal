@@ -998,3 +998,15 @@ reason.ResourceNotSendable = Hadalit und Superlegierung können nicht gesendet w
 reason.MailLimitReached = Deine Nachrichten für heute sind aufgebraucht.
 reason.MailResourceLimit = Tageslimit für diese Ressource erreicht.
 reason.MailFailed = Die Nachricht konnte nicht gesendet werden; deine Ressourcen wurden erstattet.
+
+# Alliance help for healing and research (docs/25 §4)
+help.bubble.heal = Heilen
+help.bubble.general = Hilfe
+help.sent = Du hast {0} Verbündeten geholfen!
+help.received = {0} hat dir geholfen: {1} Aufträge, −{2}
+help.kind.heal = Heilung von {0} Verwundeten
+help.kind.research = Forschung: {0} → St. {1}
+help.ask = Um Hilfe bitten
+help.asked = Hilfe angefragt
+alliance.help.open = {0} Anfragen warten auf Hilfe
+alliance.help.rule = Jede Hilfe kürzt Bau, Forschung oder Heilung eines Verbündeten um 1 % (mindestens 1 Minute). Höchstens 10 Hilfen pro Anfrage.

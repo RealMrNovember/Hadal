@@ -999,3 +999,15 @@ reason.ResourceNotSendable = Hadalit ve Süperalaşım gönderilemez.
 reason.MailLimitReached = Bugünkü posta hakkın doldu.
 reason.MailResourceLimit = Bu kaynağın bugünkü gönderim sınırına ulaştın.
 reason.MailFailed = Posta gönderilemedi; kaynakların iade edildi.
+
+# Alliance help for healing and research (docs/25 §4)
+help.bubble.heal = Tedavi
+help.bubble.general = Yardım
+help.sent = {0} arkadaşına yardım ettin!
+help.received = {0} sana yardım etti: {1} iş, −{2}
+help.kind.heal = {0} yaralının tedavisi
+help.kind.research = Araştırma: {0} → Sv. {1}
+help.ask = Yardım iste
+help.asked = Yardım istendi
+alliance.help.open = {0} istek yardım bekliyor
+alliance.help.rule = Her yardım, arkadaşının inşaat, araştırma ya da tedavi süresinden %1 (en az 1 dakika) düşer. Her isteğe en fazla 10 yardım.

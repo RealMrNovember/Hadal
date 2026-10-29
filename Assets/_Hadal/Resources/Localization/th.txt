@@ -998,3 +998,15 @@ reason.ResourceNotSendable = ส่งฮาดาไลต์และซูเ
 reason.MailLimitReached = ใช้สิทธิ์ส่งจดหมายวันนี้หมดแล้ว
 reason.MailResourceLimit = ถึงขีดจำกัดการส่งทรัพยากรนี้ของวันนี้แล้ว
 reason.MailFailed = ส่งจดหมายไม่สำเร็จ คืนทรัพยากรให้แล้ว
+
+# Alliance help for healing and research (docs/25 §4)
+help.bubble.heal = รักษา
+help.bubble.general = ช่วย
+help.sent = คุณช่วยเพื่อน {0} คน!
+help.received = {0} ช่วยคุณ: {1} งาน, −{2}
+help.kind.heal = รักษาผู้บาดเจ็บ {0} นาย
+help.kind.research = วิจัย: {0} → ระดับ {1}
+help.ask = ขอความช่วยเหลือ
+help.asked = ขอความช่วยเหลือแล้ว
+alliance.help.open = มีคำขอรอความช่วยเหลือ {0} รายการ
+alliance.help.rule = แต่ละครั้งที่ช่วยลดเวลาก่อสร้าง วิจัย หรือรักษาของเพื่อน 1% (อย่างน้อย 1 นาที) สูงสุด 10 ครั้งต่อคำขอ

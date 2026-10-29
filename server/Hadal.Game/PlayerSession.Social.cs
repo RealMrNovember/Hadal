@@ -7,6 +7,12 @@ namespace Hadal.Game
     public readonly record struct ConstructionInfo(string BuildingId, string DefinitionId, int TargetLevel, int TotalSeconds, DateTimeOffset EndsAt);
 
     /// <summary>
+    /// A running job alliance mates can help (HelpKinds): the building or research node with its target level, or the
+    /// healing batch with its troop count, the job's total time and when it ends.
+    /// </summary>
+    public readonly record struct HelpJobInfo(string DefinitionId, int TargetLevel, int TotalSeconds, DateTimeOffset EndsAt);
+
+    /// <summary>
     /// What the <see cref="Social.SocialHub"/> may ask of a session. Lock order is always hub, then
     /// session: nothing here calls back into the hub.
     /// </summary>
@@ -88,6 +94,76 @@ namespace Hadal.Game
             }
         }
 
+        /// <summary>The running job of a help request (HelpKinds), or null when there is none to help.</summary>
+        internal HelpJobInfo? HelpJob(string kind, string target, DateTimeOffset now)
+        {
+            lock (_gate)
+            {
+                AdvanceTo(now);
+                switch (kind)
+                {
+                    case HelpKinds.Build:
+                        var building = FindBuilding(target);
+                        return building?.ConstructionEndsAt is { } ends && ends > now
+                            ? new HelpJobInfo(building.DefinitionId, building.Level + 1, building.ConstructionSeconds, ends)
+                            : null;
+                    case HelpKinds.Heal:
+                        return _state.Healing is { } healing && healing.EndsAt > now
+                            ? new HelpJobInfo(string.Empty, (int)Math.Min(int.MaxValue, healing.Troops.Values.Sum()),
+                                (int)Math.Max(1, (healing.EndsAt - healing.StartedAt).TotalSeconds), healing.EndsAt)
+                            : null;
+                    case HelpKinds.Research:
+                        var research = _state.ActiveResearch.FirstOrDefault(r => r.NodeId == target);
+                        return research != null && research.EndsAt > now
+                            ? new HelpJobInfo(research.NodeId, research.TargetLevel, research.Seconds, research.EndsAt)
+                            : null;
+                    default:
+                        return null;
+                }
+            }
+        }
+
+        /// <summary>An alliance mate's help on any job (HelpKinds); false if it is no longer running.</summary>
+        internal bool ApplyHelp(string kind, string target, int seconds, DateTimeOffset now)
+        {
+            if (kind == HelpKinds.Build)
+                return ApplyHelp(target, seconds, now);
+            lock (_gate)
+            {
+                if (!ShortenJob(kind, target, seconds, now))
+                    return false;
+
+                // A help that finishes the job settles it at once; the queue is pushed either way.
+                var changes = AdvanceTo(now);
+                changes.Add(kind == HelpKinds.Heal ? ArmyChange(now) : ResearchChange(now));
+                SendDelta(now, changes);
+                return true;
+            }
+        }
+
+        /// <summary>Heal and research help: the job ends sooner, never before the economy's current point. Caller holds the lock.</summary>
+        private bool ShortenJob(string kind, string target, int seconds, DateTimeOffset now)
+        {
+            if (seconds <= 0)
+                return false;
+            var floor = _state.LastSimulatedAt < now ? _state.LastSimulatedAt : now;
+            DateTimeOffset Cut(DateTimeOffset ends) => ends.AddSeconds(-seconds) < floor ? floor : ends.AddSeconds(-seconds);
+            switch (kind)
+            {
+                case HelpKinds.Heal when _state.Healing is { } healing && healing.EndsAt > floor:
+                    healing.EndsAt = Cut(healing.EndsAt);
+                    break;
+                case HelpKinds.Research when _state.ActiveResearch.FirstOrDefault(r => r.NodeId == target) is { } research && research.EndsAt > floor:
+                    research.EndsAt = Cut(research.EndsAt);
+                    break;
+                default:
+                    return false;
+            }
+
+            _state.IsDirty = true;
+            return true;
+        }
+
         /// <summary>An alliance mate's help: the construction ends <paramref name="seconds"/> sooner. False if it is no longer running.</summary>
         internal bool ApplyHelp(string buildingId, int seconds, DateTimeOffset now)
         {
@@ -106,12 +182,17 @@ namespace Hadal.Game
         }
 
         /// <summary>Helps given while the player was offline; applied before the session advances on login.</summary>
-        internal void ApplyOfflineHelps(IEnumerable<(string BuildingId, int Seconds)> helps, DateTimeOffset now)
+        internal void ApplyOfflineHelps(IEnumerable<(string Kind, string Target, int Seconds)> helps, DateTimeOffset now)
         {
             lock (_gate)
             {
-                foreach (var (buildingId, seconds) in helps)
-                    ShortenConstruction(buildingId, seconds, now);
+                foreach (var (kind, target, seconds) in helps)
+                {
+                    if (kind == HelpKinds.Build)
+                        ShortenConstruction(target, seconds, now);
+                    else
+                        ShortenJob(kind, target, seconds, now);
+                }
             }
         }
 

@@ -998,3 +998,15 @@ reason.ResourceNotSendable = ハダライトと超合金は送れません。
 reason.MailLimitReached = 本日の送信回数を使い切りました。
 reason.MailResourceLimit = この資源の本日の送信上限に達しました。
 reason.MailFailed = メールを送信できませんでした。資源は返却されました。
+
+# Alliance help for healing and research (docs/25 §4)
+help.bubble.heal = 治療
+help.bubble.general = 支援
+help.sent = {0}人の仲間を支援しました！
+help.received = {0}があなたを支援：{1}件、−{2}
+help.kind.heal = 負傷兵{0}人の治療
+help.kind.research = 研究：{0} → Lv{1}
+help.ask = 支援を要請
+help.asked = 要請済み
+alliance.help.open = 支援待ちの要請：{0}件
+alliance.help.rule = 支援1回ごとに仲間の建設・研究・治療の時間が1%（最低1分）短縮されます。1件につき最大10回。

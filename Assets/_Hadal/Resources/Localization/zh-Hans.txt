@@ -998,3 +998,15 @@ reason.ResourceNotSendable = 深渊晶和超合金无法赠送。
 reason.MailLimitReached = 今日邮件次数已用完。
 reason.MailResourceLimit = 已达到该资源今日的赠送上限。
 reason.MailFailed = 邮件发送失败，资源已退还。
+
+# Alliance help for healing and research (docs/25 §4)
+help.bubble.heal = 治疗
+help.bubble.general = 帮助
+help.sent = 你帮助了{0}位盟友！
+help.received = {0}帮助了你：{1}项，−{2}
+help.kind.heal = 治疗{0}名伤兵
+help.kind.research = 研究：{0} → {1}级
+help.ask = 请求帮助
+help.asked = 已请求
+alliance.help.open = {0}个请求等待帮助
+alliance.help.rule = 每次帮助可减少盟友建造、研究或治疗时间的1%（至少1分钟）。每个请求最多10次帮助。

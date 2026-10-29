@@ -999,3 +999,15 @@ reason.ResourceNotSendable = Hadalite and Superalloy cannot be sent.
 reason.MailLimitReached = You have used up today's mails.
 reason.MailResourceLimit = You reached today's sending limit for this resource.
 reason.MailFailed = The mail could not be sent; your resources were returned.
+
+# Alliance help for healing and research (docs/25 §4)
+help.bubble.heal = Heal
+help.bubble.general = Help
+help.sent = You helped {0} mates!
+help.received = {0} helped you: {1} jobs, −{2}
+help.kind.heal = Healing {0} wounded
+help.kind.research = Research: {0} → Lv {1}
+help.ask = Ask for help
+help.asked = Help asked
+alliance.help.open = {0} requests waiting for help
+alliance.help.rule = Each help cuts 1% (at least 1 minute) off a mate's construction, research or healing. Up to 10 helps per request.

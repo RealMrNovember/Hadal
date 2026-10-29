@@ -222,6 +222,13 @@ namespace Hadal.Core.StateSync
                 return true;
             }
 
+            if (id.StartsWith(EntityIds.HelpReceived, StringComparison.Ordinal))
+            {
+                if (TryDeserializePayload(change.Payload, serialization, out HelpReceivedDto helped))
+                    view.AddHelpReceived(helped);
+                return true;
+            }
+
             if (id == EntityIds.Vip)
             {
                 view.ApplyVip(TryDeserializePayload(change.Payload, serialization, out VipStateDto vip) ? vip : new VipStateDto());

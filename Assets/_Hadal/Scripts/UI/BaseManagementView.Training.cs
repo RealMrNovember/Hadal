@@ -338,15 +338,27 @@ namespace Hadal.UI
                 UiKit.Box("Fill", progress.transform, UiKit.Ok).rectTransform.Place(0, 0, Mathf.Max(0.02f, Mathf.Clamp01((now - healing.StartedAtMs) / (float)span)), 1);
                 UiKit.Label("Left", card, Loc.Duration(Math.Max(0, (healing.EndsAtMs - now) / 1000f)), 30, UiKit.Ok, TextAnchor.MiddleCenter, FontStyle.Bold)
                     .rectTransform.Place(0.04f, 0.15f, 0.96f, 0.21f);
+                // Cancel · Ask the alliance (in one) · Speed up.
+                var inAlliance = _stateSync.View.MyAlliance != null;
                 var cancel = UiKit.Button("Cancel", card, Loc.T("train.cancel"), () =>
                     _commands.Dispatch(new CancelHealCommand { CommandId = Guid.NewGuid().ToString("N"), ClientSequence = ++_sequence }), UiKit.Danger, 34);
-                ((RectTransform)cancel.transform).Place(0.04f, 0.03f, 0.48f, 0.13f);
+                ((RectTransform)cancel.transform).Place(0.04f, 0.03f, inAlliance ? 0.32f : 0.48f, 0.13f);
+                if (inAlliance)
+                {
+                    var helpKey = "heal:" + healing.StartedAtMs;
+                    var asked = _helpRequested.Contains(helpKey);
+                    var help = UiKit.Button("Help", card, asked ? Loc.T("help.asked") : Loc.T("help.ask"),
+                        () => AskJobHelp(HelpKinds.Heal, string.Empty, helpKey), UiKit.Ok, 30);
+                    help.interactable = !asked;
+                    ((RectTransform)help.transform).Place(0.35f, 0.03f, 0.65f, 0.13f);
+                }
+
                 var speed = UiKit.Button("Speed", card, Loc.T("base.speedup"), () => SpeedupWindow.Open("heal", SpeedupKind.Heal, Loc.T("heal.title"), () =>
                     {
                         var h = Army.Healing;
                         return h == null ? null : (h.StartedAtMs, h.EndsAtMs);
                     }), UiKit.Primary, 34);
-                ((RectTransform)speed.transform).Place(0.52f, 0.03f, 0.96f, 0.13f);
+                ((RectTransform)speed.transform).Place(inAlliance ? 0.68f : 0.52f, 0.03f, 0.96f, 0.13f);
                 return;
             }
 

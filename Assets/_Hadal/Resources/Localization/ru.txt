@@ -998,3 +998,15 @@ reason.ResourceNotSendable = Хадалит и суперсплав отправ
 reason.MailLimitReached = Лимит писем на сегодня исчерпан.
 reason.MailResourceLimit = Достигнут дневной лимит отправки этого ресурса.
 reason.MailFailed = Письмо не отправлено; ресурсы возвращены.
+
+# Alliance help for healing and research (docs/25 §4)
+help.bubble.heal = Лечение
+help.bubble.general = Помощь
+help.sent = Вы помогли союзникам: {0}!
+help.received = {0} помог вам: задач {1}, −{2}
+help.kind.heal = Лечение раненых: {0}
+help.kind.research = Исследование: {0} → ур. {1}
+help.ask = Попросить помощи
+help.asked = Помощь запрошена
+alliance.help.open = Запросов ждут помощи: {0}
+alliance.help.rule = Каждая помощь сокращает стройку, исследование или лечение союзника на 1% (не меньше 1 минуты). Не больше 10 помощей на запрос.

@@ -175,6 +175,15 @@ namespace Hadal.UI
                     string.Empty, free ? string.Empty : Loc.Reason(nameof(ResearchRejectReason.NotYetFree)), Loc.T("base.finish"), free,
                     () => Send(new FinishResearchCommand { NodeId = nodeId }));
                 AddProgress(running.TotalSeconds > 0f ? Mathf.Clamp01(1f - left / running.TotalSeconds) : 1f);
+
+                // Alliance mates can shave time off a running research too (docs/25 §4).
+                if (_stateSync.View.MyAlliance != null && !free)
+                {
+                    var helpKey = "research:" + nodeId + ":" + running.TargetLevel;
+                    var asked = _helpRequested.Contains(helpKey);
+                    AddCard(Loc.T("alliance.help.ask.title"), string.Empty, string.Empty, string.Empty,
+                        asked ? Loc.T("help.asked") : Loc.T("help.ask"), !asked, () => AskJobHelp(HelpKinds.Research, nodeId, helpKey));
+                }
             }
 
             var wallet = Wallet();

@@ -113,5 +113,17 @@ namespace HADAL.Shared.DTOs
 
         /// <summary>The viewing player already helped this one.</summary>
         [ProtoMember(8)] public bool HelpedByMe { get; set; }
+
+        /// <summary>HelpKinds: "build", "heal" or "research" (empty from older servers = build).</summary>
+        [ProtoMember(9)] public string Kind { get; set; } = string.Empty;
+    }
+
+    /// <summary>Alliance mates just helped this player (a toast): how many requests, and the time it saved.</summary>
+    [ProtoContract]
+    public sealed class HelpReceivedDto
+    {
+        [ProtoMember(1)] public string HelperName { get; set; } = string.Empty;
+        [ProtoMember(2)] public int Count { get; set; }
+        [ProtoMember(3)] public int Seconds { get; set; }
     }
 }

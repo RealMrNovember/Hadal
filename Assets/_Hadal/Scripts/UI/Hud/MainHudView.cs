@@ -18,7 +18,7 @@ namespace Hadal.UI.Hud
     /// alliance/mail/bag on the lower right), a suggested-task strip and a bottom bar (Heroes, chat
     /// preview, Territory). Panels open over it; the header stays visible above full-screen pages.
     /// </summary>
-    public sealed class MainHudView : MonoBehaviour
+    public sealed partial class MainHudView : MonoBehaviour
     {
         /// <summary>What the HUD can open; wired by <see cref="BaseManagementView"/>.</summary>
         public sealed class Actions
@@ -27,6 +27,9 @@ namespace Hadal.UI.Hud
             public Action Pod;
             public Action Alliance;
             public Action AllianceHelp;
+
+            /// <summary>Helps every open request of a kind (HelpKinds.Heal or HelpKinds.General): the floating help bubbles.</summary>
+            public Action<string> HelpAll;
             public Action Chat;
             public Action Research;
             public Action Expand;
@@ -129,6 +132,7 @@ namespace Hadal.UI.Hud
             BuildQueue();
             BuildLeftColumn();
             BuildLowerRight();
+            BuildHelpBubbles();
             BuildTask();
             BuildBottomBar();
         }
@@ -429,6 +433,7 @@ namespace Hadal.UI.Hud
             RefreshQueue();
             RefreshTask();
             RefreshSocial();
+            RefreshHelpBubbles();
         }
 
         private void RefreshPod()

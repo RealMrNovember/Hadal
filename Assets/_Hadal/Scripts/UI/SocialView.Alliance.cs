@@ -437,24 +437,32 @@ namespace Hadal.UI
         {
             var open = View.HelpRequests.Where(r => !r.HelpedByMe).ToList();
             var all = Card(150);
-            CardText(all.transform, open.Count > 0 ? Loc.F("alliance.help.waiting", open.Count) : Loc.T("alliance.help.none"), 30, UiKit.Text,
+            CardText(all.transform, open.Count > 0 ? Loc.F("alliance.help.open", open.Count) : Loc.T("alliance.help.none"), 30, UiKit.Text,
                 0.04f, 0.1f, 0.68f, 0.9f, TextAnchor.MiddleLeft);
             CardButton(all.transform, Loc.T("alliance.help.all"), open.Count > 0, () => _commands.Dispatch(new HelpAllCommand
             {
                 CommandId = NewId(), ClientSequence = NextSequence()
             }));
 
-            Note(Loc.T("alliance.help.how"));
+            Note(Loc.T("alliance.help.rule"));
 
             foreach (var request in View.HelpRequests)
             {
                 var card = Card(130);
-                CardText(card.transform, $"{request.OwnerName}: {Loc.Building(request.BuildingDefinitionId)} → {Loc.F("base.level", request.TargetLevel)}", 30,
+                CardText(card.transform, $"{request.OwnerName}: {HelpJobText(request)}", 30,
                     UiKit.Text, 0.04f, 0.5f, 0.96f, 0.95f, TextAnchor.UpperLeft, FontStyle.Bold);
                 CardText(card.transform, $"{Loc.F("alliance.help.count", request.Helps, request.MaxHelps)}{(request.HelpedByMe ? "  ✓" : string.Empty)}", 26,
                     request.HelpedByMe ? UiKit.Accent : UiKit.Muted, 0.04f, 0.05f, 0.96f, 0.5f);
             }
         }
+
+        /// <summary>What a help request is for: a building's next level, a healing batch or a research.</summary>
+        private static string HelpJobText(HelpRequestDto request) => HelpKinds.Normalize(request.Kind) switch
+        {
+            HelpKinds.Heal => Loc.F("help.kind.heal", request.TargetLevel.ToString("N0")),
+            HelpKinds.Research => Loc.F("help.kind.research", Loc.T("research.node." + request.BuildingDefinitionId), request.TargetLevel),
+            _ => $"{Loc.Building(request.BuildingDefinitionId)} → {Loc.F("base.level", request.TargetLevel)}"
+        };
 
         private void SetRank(string memberId, int rank, string role) => _commands.Dispatch(new SetMemberRankCommand
         {

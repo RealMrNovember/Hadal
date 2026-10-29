@@ -139,6 +139,17 @@ namespace Hadal.Core.StateSync
 
         public bool TryTakeRewardReport(out RewardReportDto report) => _rewardReports.TryDequeue(out report);
 
+        private readonly Queue<HelpReceivedDto> _helpReceived = new();
+
+        /// <summary>Alliance mates who just helped this player (one toast each).</summary>
+        public bool TryTakeHelpReceived(out HelpReceivedDto helped) => _helpReceived.TryDequeue(out helped);
+
+        public void AddHelpReceived(HelpReceivedDto helped)
+        {
+            if (helped != null)
+                _helpReceived.Enqueue(helped);
+        }
+
         /// <summary>VIP standing (VipRules).</summary>
         public VipStateDto Vip { get; private set; } = new VipStateDto();
         public int VipVersion { get; private set; }

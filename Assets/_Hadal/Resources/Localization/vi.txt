@@ -998,3 +998,15 @@ reason.ResourceNotSendable = Không thể gửi Hadalit và Siêu hợp kim.
 reason.MailLimitReached = Bạn đã dùng hết lượt gửi thư hôm nay.
 reason.MailResourceLimit = Đã đạt giới hạn gửi hôm nay của tài nguyên này.
 reason.MailFailed = Không gửi được thư; tài nguyên đã được hoàn lại.
+
+# Alliance help for healing and research (docs/25 §4)
+help.bubble.heal = Chữa trị
+help.bubble.general = Giúp
+help.sent = Bạn đã giúp {0} đồng minh!
+help.received = {0} đã giúp bạn: {1} việc, −{2}
+help.kind.heal = Chữa {0} thương binh
+help.kind.research = Nghiên cứu: {0} → Cấp {1}
+help.ask = Xin trợ giúp
+help.asked = Đã xin trợ giúp
+alliance.help.open = {0} yêu cầu đang chờ giúp
+alliance.help.rule = Mỗi lần giúp giảm 1% (ít nhất 1 phút) thời gian xây dựng, nghiên cứu hoặc chữa trị của đồng minh. Tối đa 10 lần giúp mỗi yêu cầu.

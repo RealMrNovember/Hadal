@@ -998,3 +998,15 @@ reason.ResourceNotSendable = 하달라이트와 초합금은 보낼 수 없습�
 reason.MailLimitReached = 오늘 보낼 수 있는 우편을 모두 사용했습니다.
 reason.MailResourceLimit = 이 자원의 오늘 전송 한도에 도달했습니다.
 reason.MailFailed = 우편을 보내지 못했습니다. 자원은 돌려받았습니다.
+
+# Alliance help for healing and research (docs/25 §4)
+help.bubble.heal = 치료
+help.bubble.general = 도움
+help.sent = 동료 {0}명을 도왔습니다!
+help.received = {0}님이 도와줬습니다: {1}건, −{2}
+help.kind.heal = 부상병 {0}명 치료
+help.kind.research = 연구: {0} → Lv {1}
+help.ask = 도움 요청
+help.asked = 요청함
+alliance.help.open = 도움을 기다리는 요청 {0}건
+alliance.help.rule = 도움 한 번마다 동료의 건설, 연구, 치료 시간이 1%(최소 1분) 줄어듭니다. 요청당 최대 10회.

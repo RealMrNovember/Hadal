@@ -85,6 +85,9 @@ namespace HADAL.Shared.Protocol
         /// <summary>Open help requests of alliance mates (<c>HelpListDto</c>).</summary>
         public const string AllianceHelp = Alliance + "help";
 
+        /// <summary>Prefix of a one-off "a mate helped you" note (<c>HelpReceivedDto</c>), followed by an id.</summary>
+        public const string HelpReceived = Alliance + "helped:";
+
         /// <summary>Invitations and applications of a player without an alliance (<c>AllianceInviteListDto</c>).</summary>
         public const string AllianceInvites = Alliance + "invites";
 

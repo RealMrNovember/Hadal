@@ -207,6 +207,10 @@ namespace Hadal.UI
                 Pod = () => { Close(); _social.OpenHeroes(); },
                 Alliance = () => { Close(); _social.OpenAlliance(); },
                 AllianceHelp = () => { Close(); _social.OpenAlliance(help: true); },
+                HelpAll = kind => _commands.Dispatch(new HelpAllCommand
+                {
+                    CommandId = Guid.NewGuid().ToString("N"), ClientSequence = ++_sequence, Kind = kind ?? string.Empty
+                }),
                 Chat = () => { Close(); _social.OpenChat(); },
                 Research = OpenResearchFromHud,
                 Expand = () => { _social.Close(); _map.Close(); OpenExpand(); },
@@ -850,6 +854,20 @@ namespace Hadal.UI
                 CommandId = Guid.NewGuid().ToString("N"),
                 ClientSequence = ++_sequence,
                 BuildingEntityId = instanceKey
+            });
+            Render();
+        }
+
+        /// <summary>Asks the alliance to help the Med Bay's healing or a research (HelpKinds); one request per job.</summary>
+        private void AskJobHelp(string kind, string target, string key)
+        {
+            _helpRequested.Add(key);
+            _commands.Dispatch(new RequestHelpCommand
+            {
+                CommandId = Guid.NewGuid().ToString("N"),
+                ClientSequence = ++_sequence,
+                Kind = kind,
+                Target = target ?? string.Empty
             });
             Render();
         }

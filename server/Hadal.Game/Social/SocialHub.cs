@@ -30,7 +30,12 @@ namespace Hadal.Game.Social
             public string AllianceId { get; init; } = string.Empty;
             public string OwnerId { get; init; } = string.Empty;
             public string OwnerName { get; init; } = string.Empty;
-            public string BuildingId { get; init; } = string.Empty;
+
+            /// <summary>HelpKinds: build, heal or research.</summary>
+            public string Kind { get; init; } = HelpKinds.Build;
+
+            /// <summary>The building (build), the research node (research) or empty (heal).</summary>
+            public string Target { get; init; } = string.Empty;
             public string DefinitionId { get; init; } = string.Empty;
             public int TargetLevel { get; init; }
             public int TotalSeconds { get; init; }
@@ -50,7 +55,7 @@ namespace Hadal.Game.Social
         private readonly Dictionary<string, List<ChatRecord>> _channels = new(StringComparer.Ordinal);
         private readonly Dictionary<string, DateTimeOffset> _lastChat = new(StringComparer.Ordinal);
         private readonly Dictionary<string, HelpRequest> _help = new(StringComparer.Ordinal);
-        private readonly Dictionary<string, List<(string BuildingId, int Seconds)>> _offlineHelps = new(StringComparer.Ordinal);
+        private readonly Dictionary<string, List<(string Kind, string Target, int Seconds)>> _offlineHelps = new(StringComparer.Ordinal);
         private readonly System.Threading.Channels.Channel<Func<CancellationToken, Task>> _writes = System.Threading.Channels.Channel.CreateUnbounded<Func<CancellationToken, Task>>(new UnboundedChannelOptions { SingleReader = true });
         private long _nextChatId;
 
@@ -125,12 +130,12 @@ namespace Hadal.Game.Social
         // --- Sessions -----------------------------------------------------------------------------
 
         /// <summary>Helps alliance mates gave while the player was offline.</summary>
-        public List<(string BuildingId, int Seconds)> TakeOfflineHelps(string playerId)
+        public List<(string Kind, string Target, int Seconds)> TakeOfflineHelps(string playerId)
         {
             lock (_gate)
             {
                 if (!_offlineHelps.Remove(playerId, out var helps))
-                    return new List<(string, int)>();
+                    return new List<(string, string, int)>();
                 return helps;
             }
         }
@@ -208,10 +213,10 @@ namespace Hadal.Game.Social
                         Done(session, kick!.CommandId, kick.ClientSequence, Kick(session.PublicId, kick.MemberId, now), now);
                         break;
                     case CommandType.RequestHelp when TryDeserialize(envelope.Payload, out RequestHelpCommand? request):
-                        Done(session, request!.CommandId, request.ClientSequence, RequestHelp(session, request.BuildingEntityId, now), now);
+                        Done(session, request!.CommandId, request.ClientSequence, RequestHelp(session, request!, now), now);
                         break;
                     case CommandType.HelpAll when TryDeserialize(envelope.Payload, out HelpAllCommand? helpAll):
-                        Done(session, helpAll!.CommandId, helpAll.ClientSequence, HelpAll(session.PublicId, now), now);
+                        Done(session, helpAll!.CommandId, helpAll.ClientSequence, HelpAll(session, helpAll.Kind, now), now);
                         break;
                     case CommandType.SetMemberRank when TryDeserialize(envelope.Payload, out SetMemberRankCommand? rank):
                         Done(session, rank!.CommandId, rank.ClientSequence, SetRank(session.PublicId, rank, now), now);
@@ -618,15 +623,22 @@ namespace Hadal.Game.Social
             return Leave(memberId, now, leaderId);
         }
 
-        private SocialRejectReason RequestHelp(PlayerSession session, string buildingId, DateTimeOffset now)
+        /// <summary>A construction (the building), the Med Bay's healing or a research (the node) asks the alliance for help.</summary>
+        private SocialRejectReason RequestHelp(PlayerSession session, RequestHelpCommand command, DateTimeOffset now)
         {
+            var kind = HelpKinds.Normalize(command.Kind);
+            if (!HelpKinds.IsValid(kind))
+                return SocialRejectReason.NothingToHelp;
+            var target = kind == HelpKinds.Build ? command.BuildingEntityId ?? string.Empty
+                : kind == HelpKinds.Research ? command.Target ?? string.Empty
+                : string.Empty;
             var alliance = AllianceOf(session.PublicId);
             if (alliance == null)
                 return SocialRejectReason.NotInAlliance;
-            if (_help.Values.Any(r => r.OwnerId == session.PublicId && r.BuildingId == buildingId))
+            if (_help.Values.Any(r => r.OwnerId == session.PublicId && r.Kind == kind && r.Target == target))
                 return SocialRejectReason.AlreadyRequested;
-            var construction = session.Construction(buildingId, now);
-            if (construction == null)
+            var job = session.HelpJob(kind, target, now);
+            if (job == null)
                 return SocialRejectReason.NothingToHelp;
 
             var request = new HelpRequest
@@ -635,41 +647,53 @@ namespace Hadal.Game.Social
                 AllianceId = alliance.Record.Id,
                 OwnerId = session.PublicId,
                 OwnerName = session.DisplayName,
-                BuildingId = buildingId,
-                DefinitionId = construction.Value.DefinitionId,
-                TargetLevel = construction.Value.TargetLevel,
-                TotalSeconds = construction.Value.TotalSeconds,
-                EndsAt = construction.Value.EndsAt
+                Kind = kind,
+                Target = target,
+                DefinitionId = job.Value.DefinitionId,
+                TargetLevel = job.Value.TargetLevel,
+                TotalSeconds = job.Value.TotalSeconds,
+                EndsAt = job.Value.EndsAt
             };
             _help[request.Id] = request;
             PushHelp(alliance, now);
             return SocialRejectReason.None;
         }
 
-        private SocialRejectReason HelpAll(string helperId, DateTimeOffset now)
+        /// <summary>
+        /// Helps every open request of the helper's mates once, or only one group (<paramref name="kind"/>: HelpKinds.Heal
+        /// or HelpKinds.General). Online owners see their timers drop at once with a note of who helped; offline ones get
+        /// the helps on their next login.
+        /// </summary>
+        private SocialRejectReason HelpAll(PlayerSession helper, string? kind, DateTimeOffset now)
         {
+            var helperId = helper.PublicId;
             var alliance = AllianceOf(helperId);
             if (alliance == null)
                 return SocialRejectReason.NotInAlliance;
 
             var rules = Catalog.Alliance;
             var helped = 0;
-            foreach (var request in OpenRequests(alliance.Record.Id, now).Where(r => r.OwnerId != helperId && !r.HelpedBy.Contains(helperId)).ToList())
+            var received = new Dictionary<string, (int Count, int Seconds)>(StringComparer.Ordinal);
+            foreach (var request in OpenRequests(alliance.Record.Id, now)
+                         .Where(r => r.OwnerId != helperId && !r.HelpedBy.Contains(helperId) && HelpKinds.Matches(kind, r.Kind)).ToList())
             {
                 var seconds = SocialRules.HelpSeconds(rules, request.TotalSeconds);
                 if (_online.TryGetValue(request.OwnerId, out var owner))
                 {
-                    if (!owner.ApplyHelp(request.BuildingId, seconds, now))
+                    if (!owner.ApplyHelp(request.Kind, request.Target, seconds, now))
                     {
                         _help.Remove(request.Id);
                         continue;
                     }
+
+                    var (count, total) = received.TryGetValue(request.OwnerId, out var r) ? r : (0, 0);
+                    received[request.OwnerId] = (count + 1, total + seconds);
                 }
                 else
                 {
                     if (!_offlineHelps.TryGetValue(request.OwnerId, out var pending))
-                        _offlineHelps[request.OwnerId] = pending = new List<(string, int)>();
-                    pending.Add((request.BuildingId, seconds));
+                        _offlineHelps[request.OwnerId] = pending = new List<(string, string, int)>();
+                    pending.Add((request.Kind, request.Target, seconds));
                 }
 
                 request.EndsAt = request.EndsAt.AddSeconds(-seconds);
@@ -682,12 +706,23 @@ namespace Hadal.Game.Social
             if (helped == 0)
                 return SocialRejectReason.NothingToHelp;
 
-            if (_online.TryGetValue(helperId, out var helper))
-                helper.RecordEvent("help", helped, now);
+            helper.RecordEvent("help", helped, now);
+            foreach (var (ownerId, (count, seconds)) in received)
+            {
+                if (_online.TryGetValue(ownerId, out var owner))
+                    owner.Push(new List<EntityChangeDto> { HelpReceivedChange(helper.DisplayName, count, seconds) }, now);
+            }
 
             PushHelp(alliance, now);
             return SocialRejectReason.None;
         }
+
+        private EntityChangeDto HelpReceivedChange(string helperName, int count, int seconds) => new()
+        {
+            EntityId = EntityIds.HelpReceived + Guid.NewGuid().ToString("N"),
+            Kind = EntityChangeKind.Create,
+            Payload = _serializer.Serialize(new HelpReceivedDto { HelperName = helperName, Count = count, Seconds = seconds })
+        };
 
         /// <summary>A removed player leaves their alliance (the next rank leads) and every invitation and application.</summary>
         public void ForgetPlayer(string playerId, DateTimeOffset now)
@@ -955,7 +990,8 @@ namespace Hadal.Game.Social
                     TargetLevel = r.TargetLevel,
                     Helps = r.HelpedBy.Count,
                     MaxHelps = Catalog.Alliance.maxHelps,
-                    HelpedByMe = r.HelpedBy.Contains(playerId)
+                    HelpedByMe = r.HelpedBy.Contains(playerId),
+                    Kind = r.Kind
                 }).ToArray();
             return new EntityChangeDto { EntityId = EntityIds.AllianceHelp, Kind = EntityChangeKind.Update, Payload = _serializer.Serialize(new HelpListDto { Requests = requests }) };
         }
