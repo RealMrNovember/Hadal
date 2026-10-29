@@ -68,6 +68,39 @@ namespace HADAL.Shared.Simulation
         public const double PlunderShare = 0.2;
         public const long ProtectedPerReactor = 5_000;
 
+        /// <summary>The building whose level raises the protected share (docs/33 §2).</summary>
+        public const string VaultBuilding = "shield_generator";
+        public const double ProtectedBaseShare = 0.10;
+        public const double ProtectedPerVaultLevel = 0.04;
+
+        /// <summary>
+        /// What a base attack can never take of a resource: its storage cap × (10 % + 4 % per Shield Generator level), at
+        /// least reactor × 5,000.
+        /// </summary>
+        public static long Protected(long capacity, int reactorLevel, int vaultLevel) =>
+            Math.Max(ProtectedPerReactor * Math.Max(1, reactorLevel),
+                (long)Math.Floor(Math.Max(0, capacity) * (ProtectedBaseShare + ProtectedPerVaultLevel * Math.Max(0, vaultLevel))));
+
+        /// <summary>
+        /// Plunder with a protected amount per resource: <see cref="PlunderShare"/> of what lies above it, scaled to fit
+        /// <paramref name="load"/>.
+        /// </summary>
+        public static Dictionary<ResourceType, long> Plunder(IReadOnlyDictionary<ResourceType, long> wallet, IReadOnlyDictionary<ResourceType, long> protectedAmounts,
+            long load)
+        {
+            var want = new Dictionary<ResourceType, long>();
+            foreach (var r in Lootable)
+            {
+                var have = wallet.TryGetValue(r, out var v) ? v : 0;
+                var guard = protectedAmounts.TryGetValue(r, out var p) ? p : 0;
+                var take = (long)Math.Floor(Math.Max(0, have - guard) * PlunderShare);
+                if (take > 0)
+                    want[r] = take;
+            }
+
+            return Fit(want, load);
+        }
+
         public static readonly ResourceType[] Lootable = { ResourceType.Titanium, ResourceType.Biomass, ResourceType.Food };
 
         /// <summary>

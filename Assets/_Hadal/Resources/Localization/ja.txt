@@ -1321,3 +1321,6 @@ reason.TargetTooWeak = その基地はあなたよりかなり弱く、攻撃で
 reason.Fatigue = 最近この基地を攻撃しすぎです。しばらく待ってください。
 reason.TooFewTroops = 集結の各部隊は兵100以上が必要です。
 reason.StarterZone = 新規プレイヤーの区域には同盟領地を作れません。
+
+# Protected storage (docs/33 §2)
+pvp.protected = 保護（略奪不可）: {0}

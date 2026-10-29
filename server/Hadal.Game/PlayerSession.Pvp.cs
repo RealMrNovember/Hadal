@@ -48,7 +48,7 @@ namespace Hadal.Game
 
     /// <summary>A base as the world reads it for a battle, at the arrival instant.</summary>
     public sealed record BaseSnapshot(Dictionary<string, long> Troops, List<int> HeroPowers, Dictionary<ResourceType, long> Wallet, int Reactor,
-        bool Shielded, bool Beginner);
+        bool Shielded, bool Beginner, Dictionary<ResourceType, long> Protected);
 
     public sealed partial class PlayerSession
     {
@@ -91,9 +91,19 @@ namespace Hadal.Game
                 Beginner = PvpRules.IsBeginner(ReactorLevel()),
                 Incoming = _incoming,
                 Garrison = _garrison,
+                Protected = ResourceAmountEntry.FromMap(ProtectedAmounts()),
                 ServerNowMs = now.ToUnixTimeMilliseconds()
             })
         };
+
+        /// <summary>What a base attack can never take, per lootable resource (docs/33 §2). Caller holds the lock.</summary>
+        private Dictionary<ResourceType, long> ProtectedAmounts()
+        {
+            var caps = Capacities();
+            var vault = _state.Buildings.Where(b => b.DefinitionId == PvpRules.VaultBuilding).Select(b => b.Level).DefaultIfEmpty(0).Max();
+            var reactor = ReactorLevel();
+            return PvpRules.Lootable.ToDictionary(r => r, r => PvpRules.Protected(caps.TryGetValue(r, out var c) ? c : 0, reactor, vault));
+        }
 
         private EntityChangeDto WarLogChange() => new()
         {
@@ -284,7 +294,8 @@ namespace Hadal.Game
                     .Select(h => _catalog.TryGetHero(h.HeroId, out var d) ? HeroRules.Power(d, h.Level, h.Stars) : 0)
                     .OrderByDescending(p => p).Take(Math.Max(1, _catalog.Troops.command.maxHeroes)).ToList();
                 return new BaseSnapshot(new Dictionary<string, long>(_state.Troops, StringComparer.Ordinal), heroes,
-                    new Dictionary<ResourceType, long>(_state.Wallet), ReactorLevel(), _state.ShieldUntil > at, PvpRules.IsBeginner(ReactorLevel()));
+                    new Dictionary<ResourceType, long>(_state.Wallet), ReactorLevel(), _state.ShieldUntil > at, PvpRules.IsBeginner(ReactorLevel()),
+                    ProtectedAmounts());
             }
         }
 

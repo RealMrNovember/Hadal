@@ -1321,3 +1321,6 @@ reason.TargetTooWeak = Essa base é muito mais fraca; jogadores muito mais forte
 reason.Fatigue = Você atacou esta base vezes demais; espere um pouco.
 reason.TooFewTroops = Cada equipe da reunião precisa de ao menos 100 tropas.
 reason.StarterZone = Não é possível criar território na zona de novos jogadores.
+
+# Protected storage (docs/33 §2)
+pvp.protected = Protegido (não saqueável): {0}

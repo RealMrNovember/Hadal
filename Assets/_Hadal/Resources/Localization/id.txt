@@ -1321,3 +1321,6 @@ reason.TargetTooWeak = Markas itu jauh lebih lemah; pemain yang jauh lebih kuat 
 reason.Fatigue = Kamu terlalu sering menyerang markas ini; tunggu sebentar.
 reason.TooFewTroops = Tiap tim rally harus membawa minimal 100 pasukan.
 reason.StarterZone = Wilayah aliansi tidak bisa di zona pemain baru.
+
+# Protected storage (docs/33 §2)
+pvp.protected = Terlindungi (tak bisa dijarah): {0}

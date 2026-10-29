@@ -1321,3 +1321,6 @@ reason.TargetTooWeak = Căn cứ đó yếu hơn bạn nhiều; người chơi q
 reason.Fatigue = Bạn đã tấn công căn cứ này quá nhiều; hãy đợi.
 reason.TooFewTroops = Mỗi đội tập hợp cần ít nhất 100 binh lính.
 reason.StarterZone = Không thể lập lãnh thổ trong vùng người chơi mới.
+
+# Protected storage (docs/33 §2)
+pvp.protected = Được bảo vệ (không thể cướp): {0}

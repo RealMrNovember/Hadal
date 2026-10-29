@@ -1321,3 +1321,6 @@ reason.TargetTooWeak = Pangkalan itu jauh lebih lemah; pemain jauh lebih kuat ti
 reason.Fatigue = Anda terlalu kerap menyerang pangkalan ini; tunggu sebentar.
 reason.TooFewTroops = Setiap pasukan rali mesti membawa sekurang-kurangnya 100 tentera.
 reason.StarterZone = Wilayah pakatan tidak boleh di zon pemain baharu.
+
+# Protected storage (docs/33 §2)
+pvp.protected = Dilindungi (tidak boleh dirampas): {0}

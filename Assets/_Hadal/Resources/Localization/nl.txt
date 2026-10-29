@@ -1321,3 +1321,6 @@ reason.TargetTooWeak = Die basis is veel zwakker; veel sterkere spelers mogen ha
 reason.Fatigue = Je viel deze basis te vaak aan; wacht even.
 reason.TooFewTroops = Elk team in de verzamelaanval heeft minstens 100 troepen nodig.
 reason.StarterZone = Geen alliantieland in het gebied van nieuwe spelers.
+
+# Protected storage (docs/33 §2)
+pvp.protected = Beschermd (niet te plunderen): {0}

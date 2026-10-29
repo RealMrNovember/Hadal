@@ -1321,3 +1321,6 @@ reason.TargetTooWeak = Quella base è molto più debole; i giocatori molto più 
 reason.Fatigue = Hai attaccato questa base troppe volte; aspetta.
 reason.TooFewTroops = Ogni squadra dell'adunata deve avere almeno 100 truppe.
 reason.StarterZone = Nessun territorio d'alleanza nella zona dei nuovi giocatori.
+
+# Protected storage (docs/33 §2)
+pvp.protected = Protetto (non saccheggiabile): {0}

@@ -1321,3 +1321,6 @@ reason.TargetTooWeak = هذه القاعدة أضعف منك بكثير؛ لا �
 reason.Fatigue = هاجمت هذه القاعدة كثيرًا مؤخرًا؛ انتظر قليلًا.
 reason.TooFewTroops = يجب أن يجلب كل فريق في الحشد 100 جندي على الأقل.
 reason.StarterZone = لا يمكن إنشاء أرض تحالف في منطقة اللاعبين الجدد.
+
+# Protected storage (docs/33 §2)
+pvp.protected = محمي (لا يُنهب): {0}

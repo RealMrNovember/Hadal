@@ -27,8 +27,10 @@ for testing and live in `PvpRules` / `CombatRules` / `AllianceLandRules`.
   1st 100 %, 2nd 50 %, 3rd 25 %; a 4th attack is refused ("Fatigue").
 - **Limited offline protection** (new): a base that loses **3 defences within 6 hours** gets a **2-hour recovery
   shield**, at most once per **24 hours** (not immunity; attacking breaks it like any shield). The win and defeat
-  counts behind fatigue and recovery are kept in the world's memory; a server restart clears them.
-- **Protected resources** (had): 20 % of each lootable resource above `reactor × 5,000`; Hadalite never.
+  counts behind fatigue and recovery are stored (`hadal.world_fairness`), so a restart keeps them.
+- **Protected resources** (changed): an attack takes 20 % of each lootable resource above its protected amount:
+  storage cap × (10 % + 4 % per Shield Generator level), at least `reactor × 5,000`; Hadalite never. The player sees
+  the protected amounts in the war window.
 - **Wounded vs dead tied to the Med Bay** (changed): every fallen troop becomes wounded while its owner's Med Bay has
   room (capacity − wounded − healing − wounded already riding home); the rest die. Attackers always lose **25 %** of
   their fallen as dead (the price of attacking). The base owner's own fallen follow the Med Bay room only.

@@ -1321,3 +1321,6 @@ reason.TargetTooWeak = Эта база намного слабее; сильны
 reason.Fatigue = Вы слишком часто атаковали эту базу; подождите.
 reason.TooFewTroops = Каждый отряд сбора должен иметь не меньше 100 войск.
 reason.StarterZone = В зоне новичков нельзя ставить земли альянса.
+
+# Protected storage (docs/33 §2)
+pvp.protected = Защищено (не грабится): {0}

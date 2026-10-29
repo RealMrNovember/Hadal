@@ -1321,3 +1321,6 @@ reason.TargetTooWeak = Cette base est bien plus faible ; les joueurs bien plus f
 reason.Fatigue = Tu as trop attaqué cette base récemment ; patiente.
 reason.TooFewTroops = Chaque équipe du ralliement doit avoir au moins 100 troupes.
 reason.StarterZone = Pas de terres d'alliance dans la zone des nouveaux joueurs.
+
+# Protected storage (docs/33 §2)
+pvp.protected = Protégé (non pillable) : {0}

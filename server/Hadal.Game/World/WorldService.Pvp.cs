@@ -40,6 +40,12 @@ namespace Hadal.Game.World
 
     public partial interface IWorldStore
     {
+        /// <summary>The fairness memory (docs/33 §2): wins per attacker and base, defeats and recovery shields per base.</summary>
+        Task<Dictionary<string, List<DateTimeOffset>>> LoadFairnessAsync(CancellationToken cancellationToken);
+
+        /// <summary>Saves (or with null, deletes) one fairness entry.</summary>
+        Task SaveFairnessAsync(string key, List<DateTimeOffset>? times, CancellationToken cancellationToken);
+
         Task<List<PvpRecord>> LoadPvpAsync(CancellationToken cancellationToken);
 
         /// <summary>Saves (or with a null record, deletes) a PvP record.</summary>
@@ -49,6 +55,19 @@ namespace Hadal.Game.World
     public sealed partial class InMemoryWorldStore
     {
         private readonly ConcurrentDictionary<string, string> _pvp = new(StringComparer.Ordinal);
+        private readonly ConcurrentDictionary<string, List<DateTimeOffset>> _fairness = new(StringComparer.Ordinal);
+
+        public Task<Dictionary<string, List<DateTimeOffset>>> LoadFairnessAsync(CancellationToken cancellationToken) =>
+            Task.FromResult(_fairness.ToDictionary(p => p.Key, p => p.Value.ToList(), StringComparer.Ordinal));
+
+        public Task SaveFairnessAsync(string key, List<DateTimeOffset>? times, CancellationToken cancellationToken)
+        {
+            if (times == null)
+                _fairness.TryRemove(key, out _);
+            else
+                _fairness[key] = times.ToList();
+            return Task.CompletedTask;
+        }
 
         public Task<List<PvpRecord>> LoadPvpAsync(CancellationToken cancellationToken) =>
             Task.FromResult(_pvp.Values.Select(j => JsonSerializer.Deserialize<PvpRecord>(j)!).ToList());
@@ -69,7 +88,36 @@ namespace Hadal.Game.World
 CREATE TABLE IF NOT EXISTS hadal.world_pvp (
     id   text PRIMARY KEY,
     doc  text NOT NULL
+);
+CREATE TABLE IF NOT EXISTS hadal.world_fairness (
+    key       text PRIMARY KEY,
+    world_id  text NOT NULL DEFAULT 'w1',
+    doc       text NOT NULL
 );";
+
+        public async Task<Dictionary<string, List<DateTimeOffset>>> LoadFairnessAsync(CancellationToken cancellationToken)
+        {
+            var result = new Dictionary<string, List<DateTimeOffset>>(StringComparer.Ordinal);
+            await using var connection = await _dataSource.OpenConnectionAsync(cancellationToken);
+            await using var command = new NpgsqlCommand("SELECT key, doc FROM hadal.world_fairness", connection);
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+            while (await reader.ReadAsync(cancellationToken))
+                if (JsonSerializer.Deserialize<List<DateTimeOffset>>(reader.GetString(1)) is { } times)
+                    result[reader.GetString(0)] = times;
+            return result;
+        }
+
+        public async Task SaveFairnessAsync(string key, List<DateTimeOffset>? times, CancellationToken cancellationToken)
+        {
+            await using var connection = await _dataSource.OpenConnectionAsync(cancellationToken);
+            await using var command = times == null
+                ? new NpgsqlCommand("DELETE FROM hadal.world_fairness WHERE key = @k", connection)
+                : new NpgsqlCommand("INSERT INTO hadal.world_fairness (key, doc) VALUES (@k, @d) ON CONFLICT (key) DO UPDATE SET doc = EXCLUDED.doc", connection);
+            command.Parameters.AddWithValue("k", key);
+            if (times != null)
+                command.Parameters.AddWithValue("d", JsonSerializer.Serialize(times));
+            await command.ExecuteNonQueryAsync(cancellationToken);
+        }
 
         private Task InitializePvpAsync(CancellationToken cancellationToken) => PostgresSchema.ApplyAsync(_dataSource, PvpSchema, cancellationToken);
 
@@ -118,11 +166,13 @@ CREATE TABLE IF NOT EXISTS hadal.world_pvp (
         private async Task InitializePvpAsync(CancellationToken cancellationToken)
         {
             var records = await _store.LoadPvpAsync(cancellationToken);
+            var fairness = await _store.LoadFairnessAsync(cancellationToken);
             lock (_gate)
             {
                 foreach (var r in records)
                     Index(r);
                 RefreshDue();
+                LoadFairness(fairness);
             }
 
             foreach (var id in records.SelectMany(Involved).Distinct(StringComparer.Ordinal))
@@ -306,7 +356,7 @@ CREATE TABLE IF NOT EXISTS hadal.world_pvp (
                 {
                     Id = r.Id, AtMs = at.ToUnixTimeMilliseconds(), Kind = "scout", Outcome = "scouted", X = r.ToX, Y = r.ToY,
                     Defender = Stacks(snap.Troops, Empty), DefenderPower = TroopRules.Power(troops, snap.Troops), Reinforcements = guards.Count,
-                    Plunder = ResourceAmountEntry.FromMap(PvpRules.Plunder(snap.Wallet, snap.Reactor, long.MaxValue))
+                    Plunder = ResourceAmountEntry.FromMap(PvpRules.Plunder(snap.Wallet, snap.Protected, long.MaxValue))
                 };
                 Tell(sessions[scout.OwnerId], seen, r.TargetOwnerId, now);
                 Tell(defender, new PvpReportDto { Id = r.Id, AtMs = seen.AtMs, Kind = "scouted", Outcome = "scouted", X = r.ToX, Y = r.ToY }, scout.OwnerId, now);
@@ -333,7 +383,7 @@ CREATE TABLE IF NOT EXISTS hadal.world_pvp (
             {
                 // Attack fatigue (docs/33 §2): repeated wins by the same attacker on the same base take less.
                 share = PvpRules.FatigueShare(WinsOn(r.AttackerId, r.TargetOwnerId, at));
-                plunder = PvpRules.Plunder(snap.Wallet, snap.Reactor, loads.Sum());
+                plunder = PvpRules.Plunder(snap.Wallet, snap.Protected, loads.Sum());
                 foreach (var key in plunder.Keys.ToList())
                     plunder[key] = (long)Math.Floor(plunder[key] * share);
                 RecordWin(r.AttackerId, r.TargetOwnerId, at);
@@ -524,6 +574,71 @@ CREATE TABLE IF NOT EXISTS hadal.world_pvp (
         private readonly Dictionary<(string, string), List<DateTimeOffset>> _wins = new();
         private readonly Dictionary<string, List<DateTimeOffset>> _defeats = new(StringComparer.Ordinal);
         private readonly Dictionary<string, DateTimeOffset> _recovered = new(StringComparer.Ordinal);
+        private readonly ConcurrentQueue<(string Key, List<DateTimeOffset>? Times)> _fairnessWrites = new();
+
+        // Stored keys: "w|attacker|target" wins, "d|target" defeats, "r|target" the last recovery shield.
+        private void LoadFairness(Dictionary<string, List<DateTimeOffset>> stored)
+        {
+            foreach (var (key, times) in stored)
+            {
+                var parts = key.Split('|');
+                if (parts.Length == 3 && parts[0] == "w")
+                    _wins[(parts[1], parts[2])] = times;
+                else if (parts.Length == 2 && parts[0] == "d")
+                    _defeats[parts[1]] = times;
+                else if (parts.Length == 2 && parts[0] == "r" && times.Count > 0)
+                    _recovered[parts[1]] = times[0];
+            }
+        }
+
+        private void SaveFairness(string key, List<DateTimeOffset>? times) =>
+            _fairnessWrites.Enqueue((key, times == null || times.Count == 0 ? null : times.ToList()));
+
+        private async Task FairnessWriteLoopAsync()
+        {
+            while (true)
+            {
+                await Task.Delay(TimeSpan.FromSeconds(2));
+                var batch = new Dictionary<string, List<DateTimeOffset>?>(StringComparer.Ordinal);
+                while (_fairnessWrites.TryDequeue(out var w))
+                    batch[w.Key] = w.Times;
+                foreach (var pair in batch)
+                {
+                    try
+                    {
+                        await _store.SaveFairnessAsync(pair.Key, pair.Value, CancellationToken.None);
+                    }
+                    catch (Exception exception)
+                    {
+                        _logger.LogError(exception, "World fairness write failed.");
+                    }
+                }
+            }
+        }
+
+        internal void ForgetFairnessForTests()
+        {
+            lock (_gate)
+            {
+                _wins.Clear();
+                _defeats.Clear();
+                _recovered.Clear();
+            }
+        }
+
+        internal async Task ReloadFairnessForTests()
+        {
+            var stored = await _store.LoadFairnessAsync(CancellationToken.None);
+            lock (_gate)
+                LoadFairness(stored);
+        }
+
+        /// <summary>Writes the queued fairness entries now (tests).</summary>
+        internal async Task FlushFairnessForTests()
+        {
+            while (_fairnessWrites.TryDequeue(out var w))
+                await _store.SaveFairnessAsync(w.Key, w.Times, CancellationToken.None);
+        }
 
         private int WinsOn(string attackerId, string targetId, DateTimeOffset at) =>
             _wins.TryGetValue((attackerId, targetId), out var list) ? list.Count(t => at - t < PvpRules.FatigueWindow) : 0;
@@ -534,6 +649,7 @@ CREATE TABLE IF NOT EXISTS hadal.world_pvp (
                 _wins[(attackerId, targetId)] = list = new List<DateTimeOffset>();
             list.RemoveAll(t => at - t >= PvpRules.FatigueWindow);
             list.Add(at);
+            SaveFairness($"w|{attackerId}|{targetId}", list);
         }
 
         /// <summary>Counts a lost defence; true when the base has earned its recovery shield (3 in 6 h, once a day).</summary>
@@ -544,9 +660,15 @@ CREATE TABLE IF NOT EXISTS hadal.world_pvp (
             list.RemoveAll(t => at - t >= PvpRules.RecoveryWindow);
             list.Add(at);
             if (list.Count < PvpRules.RecoveryAfterDefeats || (_recovered.TryGetValue(targetId, out var last) && at - last < PvpRules.RecoveryCooldown))
+            {
+                SaveFairness($"d|{targetId}", list);
                 return false;
+            }
+
             _recovered[targetId] = at;
             list.Clear();
+            SaveFairness($"d|{targetId}", null);
+            SaveFairness($"r|{targetId}", new List<DateTimeOffset> { at });
             return true;
         }
 

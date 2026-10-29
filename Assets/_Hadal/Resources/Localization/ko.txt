@@ -1321,3 +1321,6 @@ reason.TargetTooWeak = 그 기지는 훨씬 약해 공격할 수 없습니다.
 reason.Fatigue = 최근 이 기지를 너무 자주 공격했습니다. 잠시 기다리세요.
 reason.TooFewTroops = 집결 부대마다 병력 100 이상이 필요합니다.
 reason.StarterZone = 신규 플레이어 구역에는 연맹 영토를 만들 수 없습니다.
+
+# Protected storage (docs/33 §2)
+pvp.protected = 보호됨(약탈 불가): {0}

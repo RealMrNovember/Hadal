@@ -179,6 +179,7 @@ ON CONFLICT (player_id) DO UPDATE SET x = EXCLUDED.x, y = EXCLUDED.y, name = EXC
             _ = Task.Run(WriteLoopAsync);
             _ = Task.Run(NodeWriteLoopAsync);
             _ = Task.Run(PvpWriteLoopAsync);
+            _ = Task.Run(FairnessWriteLoopAsync);
             lock (_gate)
                 _ = Regions;
         }

@@ -263,7 +263,14 @@ namespace Hadal.UI
                 line.text = Loc.T("pvp.shield.off");
             var beginner = PvpRules.IsBeginner(ReactorLevel());
             UiKit.Label("Rules", status.transform, beginner ? Loc.F("pvp.beginner", PvpRules.BeginnerReactor) : Loc.T("pvp.shield.rules"), 22, UiKit.Muted, TextAnchor.UpperLeft)
-                .rectTransform.Place(0.04f, 0.04f, 0.96f, 0.5f);
+                .rectTransform.Place(0.04f, 0.2f, 0.96f, 0.5f);
+
+            // What an attack can never take (docs/33 §2): the storage share the Shield Generator raises.
+            var guard = (pvp.Protected ?? Array.Empty<ResourceAmountEntry>()).Where(p => p.Value > 0).ToList();
+            if (guard.Count > 0)
+                UiKit.Label("Protected", status.transform, Loc.F("pvp.protected", string.Join("  ",
+                        guard.Select(p => $"{CostChips.Compact(p.Value)} {Loc.T("resource." + p.Key)}"))), 22, UiKit.Ok, TextAnchor.MiddleLeft)
+                    .rectTransform.Place(0.04f, 0.02f, 0.96f, 0.2f);
 
             var outgoing = (View.Marches?.Marches ?? Array.Empty<MarchDto>()).Any(m => m.Kind is PvpRules.Attack or PvpRules.Scout or PvpRules.Rally && m.ArrivesAtMs > now);
             var hadalite = (View.Data.resources ?? Array.Empty<Hadal.Data.Models.ResourceSaveEntry>())

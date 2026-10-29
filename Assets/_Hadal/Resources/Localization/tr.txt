@@ -1322,3 +1322,6 @@ reason.TargetTooWeak = Bu üs senden çok zayıf; çok güçlü oyuncular küç�
 reason.Fatigue = Bu üsse kısa sürede çok saldırdın; biraz bekle.
 reason.TooFewTroops = Toplu saldırıya her takım en az 100 asker getirmeli.
 reason.StarterZone = Yeni oyuncuların bölgesine ittifak toprağı kurulamaz.
+
+# Protected storage (docs/33 §2)
+pvp.protected = Korunan (yağmalanamaz): {0}

@@ -19,6 +19,9 @@ namespace HADAL.Shared.DTOs
 
         /// <summary>Alliance mates' teams guarding (or on their way to guard) this player's base (docs/32 §2.6).</summary>
         [ProtoMember(5)] public GarrisonDto[] Garrison { get; set; } = System.Array.Empty<GarrisonDto>();
+
+        /// <summary>What a base attack can never take, per resource (docs/33 §2).</summary>
+        [ProtoMember(6)] public ResourceAmountEntry[] Protected { get; set; } = System.Array.Empty<ResourceAmountEntry>();
     }
 
     [ProtoContract]

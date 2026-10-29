@@ -652,5 +652,57 @@ namespace Hadal.Game.Tests
             var tile = Enumerable.Range(0, size * size).Select(i => (X: i % size, Y: i / size)).First(t => GatherRules.BeltOf(world, t.X, t.Y) == starter);
             Assert.Equal("StarterZone", Land(lead, connection, AllianceLandRules.PlaceHub, tile.X, tile.Y));
         }
+
+        [Fact]
+        public void Plunder_never_touches_the_protected_amount()
+        {
+            Assert.Equal(PvpRules.ProtectedPerReactor * 10, PvpRules.Protected(0, 10, 0));
+            Assert.Equal(140_000, PvpRules.Protected(1_000_000, 1, 1));
+            var wallet = new Dictionary<ResourceType, long> { [ResourceType.Titanium] = 100_000, [ResourceType.Food] = 50_000 };
+            var guard = new Dictionary<ResourceType, long> { [ResourceType.Titanium] = 90_000, [ResourceType.Food] = 60_000 };
+            var taken = PvpRules.Plunder(wallet, guard, long.MaxValue);
+            Assert.Equal(2_000, taken[ResourceType.Titanium]);
+            Assert.False(taken.ContainsKey(ResourceType.Food));
+        }
+
+        [Fact]
+        public async Task A_base_with_only_its_protected_share_loses_nothing_and_sees_the_share()
+        {
+            var (a, _) = await Connect("vault-a");
+            var (b, bConnection) = await Connect("vault-b", troops: 20);
+            Attack(a, b.PublicId);
+            var status = TestSupport.Serializer.Deserialize<PvpStatusDto>(bConnection.Messages.Where(m => m.Delta != null).Select(m => m.Delta())
+                .SelectMany(d => d.Changes).Last(c => c.EntityId == EntityIds.Pvp).Payload);
+            var guard = status.Protected.ToDictionary(p => p.Key, p => p.Value);
+            Assert.True(guard[ResourceType.Titanium] > 0);
+            foreach (var r in PvpRules.Lootable)
+                b.StateForTests.Wallet[r] = guard[r];
+
+            At(Pvp(a).ArrivesAt);
+            Assert.Equal("won", LastReport(a).Outcome);
+            Assert.Equal(0, LastReport(a).Plunder.Sum(p => p.Value));
+        }
+
+        [Fact]
+        public async Task Fatigue_counts_survive_a_restart()
+        {
+            var (a, aConnection) = await Connect("keep-a");
+            var (b, _) = await Connect("keep-b", troops: 40);
+            Attack(a, b.PublicId);
+            At(Pvp(a).ArrivesAt);
+            Assert.Equal(100, LastReport(a).PlunderShare);
+            At(Pvp(a).HomeAt);
+
+            // A restart: the world forgets, then reads the stored counts back.
+            await _world.Map.FlushFairnessForTests();
+            _world.Map.ForgetFairnessForTests();
+            await _world.Map.ReloadFairnessForTests();
+
+            b.StateForTests.Troops[Light] = 40;
+            Attack(a, b.PublicId);
+            Assert.Equal(CommandResultCode.Accepted, LastAck(aConnection).Result);
+            At(Pvp(a).ArrivesAt);
+            Assert.Equal(50, LastReport(a).PlunderShare);
+        }
     }
 }

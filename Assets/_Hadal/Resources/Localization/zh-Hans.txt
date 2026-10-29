@@ -1321,3 +1321,6 @@ reason.TargetTooWeak = 该基地远弱于你，过强的玩家不能进攻小基
 reason.Fatigue = 你近期攻击该基地过于频繁，请稍候。
 reason.TooFewTroops = 集结的每支队伍至少需要100名士兵。
 reason.StarterZone = 新玩家区域内不能建立联盟领地。
+
+# Protected storage (docs/33 §2)
+pvp.protected = 受保护（不可掠夺）：{0}

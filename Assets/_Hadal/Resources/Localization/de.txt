@@ -1321,3 +1321,6 @@ reason.TargetTooWeak = Diese Basis ist viel schwächer; viel stärkere Spieler d
 reason.Fatigue = Du hast diese Basis zu oft angegriffen; warte etwas.
 reason.TooFewTroops = Jeder Trupp im Sammelangriff braucht mindestens 100 Truppen.
 reason.StarterZone = Im Gebiet neuer Spieler ist kein Allianzland erlaubt.
+
+# Protected storage (docs/33 §2)
+pvp.protected = Geschützt (nicht plünderbar): {0}

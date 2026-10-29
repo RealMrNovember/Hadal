@@ -1322,3 +1322,6 @@ reason.TargetTooWeak = That base is far weaker than you; much stronger players c
 reason.Fatigue = You attacked this base too often lately; wait a while.
 reason.TooFewTroops = Each rally team must bring at least 100 troops.
 reason.StarterZone = Alliance land cannot go up in the new players' zone.
+
+# Protected storage (docs/33 §2)
+pvp.protected = Protected (cannot be looted): {0}
