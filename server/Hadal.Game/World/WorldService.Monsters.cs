@@ -68,7 +68,7 @@ namespace Hadal.Game.World
             {
                 var d = _monsterRandom.Next(belt.inner, belt.outer + 1);
                 var (x, y) = RingTile(center, d, _monsterRandom);
-                if (x < 0 || y < 0 || x >= size || y >= size || _taken.Contains((x, y)) || _nodeAt.ContainsKey((x, y)) || _monsterAt.ContainsKey((x, y)))
+                if (x < 0 || y < 0 || x >= size || y >= size || _taken.Contains((x, y)) || _strongholdAt.ContainsKey((x, y)) || _nodeAt.ContainsKey((x, y)) || _monsterAt.ContainsKey((x, y)))
                     continue;
                 if (_monsters.ContainsKey(monster.Id))
                     _monsterAt.Remove((monster.X, monster.Y));

@@ -16,6 +16,9 @@ namespace Hadal.Game.Persistence
         public Task<IReadOnlyList<(string IdentityKey, Guid PlayerId, DateTimeOffset CreatedAt)>> ListWithoutAccountAsync(CancellationToken cancellationToken) =>
             Task.FromResult<IReadOnlyList<(string, Guid, DateTimeOffset)>>(Array.Empty<(string, Guid, DateTimeOffset)>());
 
+        public Task<string?> IdentityOfAsync(Guid playerId, CancellationToken cancellationToken) =>
+            Task.FromResult(_byIdentity.Values.FirstOrDefault(p => p.PlayerId == playerId)?.IdentityKey);
+
         public Task<IReadOnlyList<Guid>> ListPlayerIdsAsync(CancellationToken cancellationToken) =>
             Task.FromResult<IReadOnlyList<Guid>>(_byIdentity.Values.Select(p => p.PlayerId).ToList());
 

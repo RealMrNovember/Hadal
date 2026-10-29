@@ -159,6 +159,12 @@ namespace Hadal.Game
         public int MailsSent { get; set; }
         public Dictionary<ResourceType, long> MailSent { get; } = new();
 
+        /// <summary>The base shield ends then (docs/30 §3); null or past = none.</summary>
+        public DateTimeOffset? ShieldUntil { get; set; }
+
+        /// <summary>The last PvP battles and scouts, newest first (docs/30 §4.2).</summary>
+        public List<HADAL.Shared.DTOs.PvpReportDto> WarLog { get; } = new();
+
         /// <summary>Wounded troops in the Med Bays by "type:tier".</summary>
         public Dictionary<string, long> Wounded { get; } = new(StringComparer.Ordinal);
 

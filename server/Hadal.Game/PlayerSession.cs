@@ -198,6 +198,10 @@ namespace Hadal.Game
                         ClaimDailyChest(chest!, now);
                         break;
 
+                    case CommandType.UseShield when TryDeserialize(envelope.Payload, out UseShieldCommand? shield):
+                        UseShield(shield!, now);
+                        break;
+
                     case CommandType.OpenItem when TryDeserialize(envelope.Payload, out OpenItemCommand? open):
                         OpenItem(open!, now);
                         break;
@@ -794,7 +798,7 @@ namespace Hadal.Game
                 foreach (var march in _state.Marches.Where(m => m.Battle is { Reported: false } && m.ArrivesAt <= at).ToList())
                     reports.Add(Fight(march));
 
-                foreach (var march in _state.Marches.Where(m => m.HomeAt <= at).ToList())
+                foreach (var march in _state.Marches.Where(m => m.HomeAt <= at && !AwaitsBattle(m)).ToList())
                     CompleteMarch(march);
 
                 foreach (var training in _state.Training.Where(t => t.EndsAt <= at).ToList())
@@ -856,7 +860,8 @@ namespace Hadal.Game
                 Consider(research.EndsAt);
             foreach (var march in _state.Marches)
             {
-                Consider(march.HomeAt);
+                if (!AwaitsBattle(march))
+                    Consider(march.HomeAt);
                 if (march.Battle is { Reported: false })
                     Consider(march.ArrivesAt);
             }

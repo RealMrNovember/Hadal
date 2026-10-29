@@ -29,6 +29,12 @@ namespace Hadal.Game
 
         public BattleState? Battle { get; set; }
 
+        /// <summary>A march against or for another player (docs/30); the world settles it at its arrival.</summary>
+        public PvpInfo? Pvp { get; set; }
+
+        /// <summary>Troops wounded out on the map, coming home to the Med Bay with the team.</summary>
+        public Dictionary<string, long> WoundedAboard { get; set; } = new(StringComparer.Ordinal);
+
         public string Id { get; init; } = string.Empty;
         public string NodeId { get; init; } = string.Empty;
         public string NodeType { get; init; } = string.Empty;
@@ -40,7 +46,7 @@ namespace Hadal.Game
 
         /// <summary>The hero leading the march (the team's first) and the troops aboard.</summary>
         public string HeroId { get; init; } = string.Empty;
-        public int Crew { get; init; }
+        public int Crew { get; set; }
 
         /// <summary>The team (docs/rehber 19 §1.2): its heroes and how many troops each leads, same order.</summary>
         public List<string> HeroIds { get; init; } = new();
@@ -93,7 +99,7 @@ namespace Hadal.Game
         /// lock and reserves the returned load on the node. Returns the march or why not.
         /// </summary>
         internal (MarchState? March, MarchRejectReason Reason) TryStartMarch(NodeOffer node, int homeX, int homeY, string commandId, ulong sequence, DateTimeOffset now,
-            string heroId = "", IReadOnlyList<string>? heroIds = null)
+            string heroId = "", IReadOnlyList<string>? heroIds = null, double rateBonus = 0)
         {
             lock (_gate)
             {
@@ -114,6 +120,9 @@ namespace Hadal.Game
 
                 var world = _catalog.World;
                 var rates = GatherRules.Rates(world, _catalog.Gather, node.Type, node.Level, reactor);
+                // Alliance territory gathers faster (docs/30 §6.3).
+                if (rateBonus > 0)
+                    rates = rates.ToDictionary(p => p.Key, p => p.Value * (1 + rateBonus));
                 var speed = armed ? TroopRules.MarchSpeed(troops, aboard.Keys) : 100;
                 var travel = _modifiers.MarchSeconds((int)Math.Ceiling(GatherRules.TravelSeconds(world, homeX, homeY, node.X, node.Y) * 100.0 / speed));
                 var load = Math.Min(armed ? TroopRules.MarchLoad(troops, aboard) : GatherRules.Load(_catalog.Gather, reactor), node.Remaining);
@@ -257,6 +266,8 @@ namespace Hadal.Game
 
                 var world = _catalog.World;
                 CancelBattle(march!, now);
+                if (march!.Pvp != null)
+                    march.Pvp.Settled = true;
                 if (march!.PhaseAt(now) == MarchPhase.Outbound)
                 {
                     march.Cargo = new Dictionary<ResourceType, long>();
@@ -278,6 +289,9 @@ namespace Hadal.Game
             }
         }
 
+        /// <summary>A PvP team whose battle the world has not settled yet does not unload at home (docs/30 §2).</summary>
+        private static bool AwaitsBattle(MarchState march) => march.Pvp is { Settled: false } p && p.Mode != PvpRules.Reinforce;
+
         /// <summary>Unloads a march that reached home. Caller holds the lock (economy step).</summary>
         private void CompleteMarch(MarchState march)
         {
@@ -286,6 +300,10 @@ namespace Hadal.Game
                 _state.Items[pair.Key] = (_state.Items.TryGetValue(pair.Key, out var held) ? held : 0) + pair.Value;
             foreach (var pair in march.Troops)
                 _state.Troops[pair.Key] = (_state.Troops.TryGetValue(pair.Key, out var home) ? home : 0) + pair.Value;
+            foreach (var pair in march.WoundedAboard)
+                _state.Wounded[pair.Key] = (_state.Wounded.TryGetValue(pair.Key, out var hurt) ? hurt : 0) + pair.Value;
+            if (march.WoundedAboard.Count > 0)
+                _armyDirty = true;
             if (march.Troops.Count > 0)
                 _armyDirty = true;
             var cargo = new Dictionary<ResourceType, long>(march.Cargo);
@@ -366,12 +384,43 @@ namespace Hadal.Game
         {
             lock (_gate)
             {
-                return _state.Marches.Select(m => new WorldMarchDto
+                var result = new List<WorldMarchDto>();
+                foreach (var m in _state.Marches)
                 {
-                    Id = m.Id, OwnerId = PublicId, OwnerName = _displayName, FromX = m.FromX, FromY = m.FromY, ToX = m.X, ToY = m.Y,
-                    StartedAtMs = m.StartedAt.ToUnixTimeMilliseconds(), ArrivesAtMs = m.ArrivesAt.ToUnixTimeMilliseconds(),
-                    GatheredAtMs = m.GatheredAt.ToUnixTimeMilliseconds(), HomeAtMs = m.HomeAt.ToUnixTimeMilliseconds(), Kind = m.Kind
-                }).ToList();
+                    var view = new WorldMarchDto
+                    {
+                        Id = m.Id, OwnerId = PublicId, OwnerName = _displayName, FromX = m.FromX, FromY = m.FromY, ToX = m.X, ToY = m.Y,
+                        StartedAtMs = m.StartedAt.ToUnixTimeMilliseconds(), ArrivesAtMs = m.ArrivesAt.ToUnixTimeMilliseconds(),
+                        GatheredAtMs = m.GatheredAt.ToUnixTimeMilliseconds(), HomeAtMs = m.HomeAt.ToUnixTimeMilliseconds(), Kind = m.Kind
+                    };
+
+                    // A rally (docs/30 §5.3): joiners first sail to the leader's base, the army then sails from there as the
+                    // leader's march; teams waiting inside the leader's base or riding with the army are not drawn twice.
+                    if (m.Pvp is { Mode: PvpRules.Rally, DepartsAt: { } departs } rally)
+                    {
+                        if (!rally.Leader && rally.ViaAt is { } viaAt)
+                        {
+                            result.Add(new WorldMarchDto
+                            {
+                                Id = m.Id + ":via", OwnerId = PublicId, OwnerName = _displayName, FromX = m.FromX, FromY = m.FromY, ToX = rally.ViaX,
+                                ToY = rally.ViaY, StartedAtMs = view.StartedAtMs, ArrivesAtMs = viaAt.ToUnixTimeMilliseconds(),
+                                GatheredAtMs = viaAt.ToUnixTimeMilliseconds(), HomeAtMs = viaAt.ToUnixTimeMilliseconds(), Kind = m.Kind
+                            });
+                            // Then only the way home from the target, once the army has fought.
+                            view.StartedAtMs = view.ArrivesAtMs;
+                        }
+                        else
+                        {
+                            view.FromX = rally.ViaX;
+                            view.FromY = rally.ViaY;
+                            view.StartedAtMs = departs.ToUnixTimeMilliseconds();
+                        }
+                    }
+
+                    result.Add(view);
+                }
+
+                return result;
             }
         }
 

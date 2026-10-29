@@ -61,6 +61,11 @@ namespace HADAL.Shared.Enums
         [ProtoEnum] ReadMail = 53,
         [ProtoEnum] ClaimMail = 54,
         [ProtoEnum] DeleteMail = 55,
+        [ProtoEnum] MarchPvp = 56,
+        [ProtoEnum] ViewWar = 57,
+        [ProtoEnum] ViewTerritory = 58,
+        [ProtoEnum] Territory = 59,
+        [ProtoEnum] UseShield = 60,
         [ProtoEnum] SendMail = 61,
     }
 }

@@ -69,6 +69,13 @@ ALTER TABLE hadal.players ADD COLUMN IF NOT EXISTS extras jsonb NOT NULL DEFAULT
             return id is Guid g ? g : null;
         }
 
+        public async Task<string?> IdentityOfAsync(Guid playerId, CancellationToken cancellationToken)
+        {
+            await using var command = _dataSource.CreateCommand("SELECT identity_key FROM hadal.players WHERE player_id = @p");
+            command.Parameters.AddWithValue("p", playerId);
+            return await command.ExecuteScalarAsync(cancellationToken) as string;
+        }
+
         public async Task<IReadOnlyList<Guid>> ListPlayerIdsAsync(CancellationToken cancellationToken)
         {
             await using var command = _dataSource.CreateCommand("SELECT player_id FROM hadal.players");

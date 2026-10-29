@@ -97,6 +97,18 @@ namespace HADAL.Shared.Protocol
         /// <summary>What the player may still mail today: mails and resources (<c>MailQuotaDto</c>).</summary>
         public const string MailQuota = Base + "mailquota";
 
+        /// <summary>Shield, beginner protection and hostile marches on the way to this player (docs/30 §5.1).</summary>
+        public const string Pvp = Base + "pvp";
+
+        /// <summary>The last PvP battles and scouts of this player (docs/30 §4.2).</summary>
+        public const string WarLog = Base + "warlog";
+
+        /// <summary>The alliance's attacks, defences and open rallies (docs/30 §5.4).</summary>
+        public const string AllianceWar = Alliance + "war";
+
+        /// <summary>Strongholds, owners and every base as a dot, for the strategic map (docs/30 §6.4).</summary>
+        public const string Territory = "world:territory";
+
         public const string Event = "event:";
 
         /// <summary>Every event the player can see with their progress (<c>EventListDto</c>).</summary>

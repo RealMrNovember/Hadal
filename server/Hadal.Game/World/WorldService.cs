@@ -79,6 +79,8 @@ ALTER TABLE hadal.world_bases ADD COLUMN IF NOT EXISTS avatar text NOT NULL DEFA
         {
             await PostgresSchema.ApplyAsync(_dataSource, Schema, cancellationToken);
             await InitializeNodesAsync(cancellationToken);
+            await InitializePvpAsync(cancellationToken);
+            await InitializeRegionsAsync(cancellationToken);
         }
 
         public async Task<List<WorldBaseRecord>> LoadAsync(CancellationToken cancellationToken)
@@ -175,10 +177,14 @@ ON CONFLICT (player_id) DO UPDATE SET x = EXCLUDED.x, y = EXCLUDED.y, name = EXC
             _logger = logger;
             _ = Task.Run(WriteLoopAsync);
             _ = Task.Run(NodeWriteLoopAsync);
+            _ = Task.Run(PvpWriteLoopAsync);
+            lock (_gate)
+                _ = Regions;
         }
 
         public static bool Handles(CommandType type) => type is CommandType.ViewWorld or CommandType.MarchGather or CommandType.RecallMarch
-            or CommandType.ViewProfile or CommandType.MarchAttack or CommandType.Teleport;
+            or CommandType.ViewProfile or CommandType.MarchAttack or CommandType.Teleport or CommandType.MarchPvp or CommandType.ViewWar
+            or CommandType.ViewTerritory or CommandType.Territory;
 
         public async Task InitializeAsync(CancellationToken cancellationToken)
         {
@@ -236,6 +242,8 @@ ON CONFLICT (player_id) DO UPDATE SET x = EXCLUDED.x, y = EXCLUDED.y, name = EXC
             }
 
             await InitializeNodesAsync(cancellationToken, _clock.UtcNow);
+            await InitializePvpAsync(cancellationToken);
+            await LoadRegionsAsync(cancellationToken);
             lock (_gate)
             {
                 SeedMonsters();
@@ -257,6 +265,8 @@ ON CONFLICT (player_id) DO UPDATE SET x = EXCLUDED.x, y = EXCLUDED.y, name = EXC
                 Upsert(session);
                 _marchViews[session.PublicId] = marches;
             }
+
+            PushPvpOnConnect(session, _clock.UtcNow);
         }
 
         // --- Teams on the map (docs/28): every player sees every team crossing their view ---------------
@@ -419,7 +429,20 @@ ON CONFLICT (player_id) DO UPDATE SET x = EXCLUDED.x, y = EXCLUDED.y, name = EXC
                 case CommandType.Teleport when _serializer.TryDeserialize(envelope.Payload, out TeleportCommand? teleport) && teleport != null:
                     HandleTeleport(session, teleport, now);
                     return;
-                case CommandType.MarchGather or CommandType.RecallMarch or CommandType.ViewProfile or CommandType.MarchAttack or CommandType.Teleport:
+                case CommandType.MarchPvp when _serializer.TryDeserialize(envelope.Payload, out MarchPvpCommand? pvp) && pvp != null:
+                    HandlePvp(session, pvp, now);
+                    return;
+                case CommandType.ViewWar when _serializer.TryDeserialize(envelope.Payload, out ViewWarCommand? war) && war != null:
+                    HandleViewWar(session, war, now);
+                    return;
+                case CommandType.ViewTerritory when _serializer.TryDeserialize(envelope.Payload, out ViewTerritoryCommand? territory) && territory != null:
+                    HandleViewTerritory(session, territory, now);
+                    return;
+                case CommandType.Territory when _serializer.TryDeserialize(envelope.Payload, out TerritoryCommand? claim) && claim != null:
+                    HandleTerritory(session, claim, now);
+                    return;
+                case CommandType.MarchGather or CommandType.RecallMarch or CommandType.ViewProfile or CommandType.MarchAttack or CommandType.Teleport
+                    or CommandType.MarchPvp or CommandType.ViewWar or CommandType.ViewTerritory or CommandType.Territory:
                     session.Acknowledge(envelope.CommandId, envelope.ClientSequence, "MalformedCommand", now);
                     return;
             }
@@ -502,7 +525,7 @@ ON CONFLICT (player_id) DO UPDATE SET x = EXCLUDED.x, y = EXCLUDED.y, name = EXC
 
         /// <summary>A tile for a new base: the Hadal Threshold when the catalog has belts, else the old spiral. Caller holds the lock.</summary>
         private (int X, int Y) PlaceBase() =>
-            WorldRules.PlaceInBelt(_runtime.Current.Catalog.World, (tx, ty) => _taken.Contains((tx, ty)), (tx, ty) => _nodeAt.ContainsKey((tx, ty)), _random);
+            WorldRules.PlaceInBelt(_runtime.Current.Catalog.World, (tx, ty) => _taken.Contains((tx, ty)) || _strongholdAt.ContainsKey((tx, ty)), (tx, ty) => _nodeAt.ContainsKey((tx, ty)), _random);
 
         private async Task WriteLoopAsync()
         {

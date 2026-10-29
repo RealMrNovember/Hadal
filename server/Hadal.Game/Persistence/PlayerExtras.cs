@@ -24,7 +24,9 @@ namespace Hadal.Game.Persistence
             Dictionary<string, long>? Troops = null, List<TrainingDoc>? Training = null,
             Dictionary<string, long>? Wounded = null, HealDoc? Healing = null,
             double? Sonar = null, DateTimeOffset? SonarAt = null, List<int>? MonsterWins = null, VipDoc? Vip = null,
-            RenameDoc? Rename = null);
+            RenameDoc? Rename = null, PvpDoc? Pvp = null);
+
+        private sealed record PvpDoc(DateTimeOffset? ShieldUntil, List<HADAL.Shared.DTOs.PvpReportDto>? WarLog);
 
         private sealed record RenameDoc(int Count, DateTimeOffset? At);
 
@@ -53,7 +55,7 @@ namespace Hadal.Game.Persistence
             DateTimeOffset GatheredAt, DateTimeOffset HomeAt, long Reserved, Dictionary<string, double>? Rates, Dictionary<string, long>? Cargo,
             string? HeroId = null, int Crew = 0, int FromX = 0, int FromY = 0,
             List<string>? HeroIds = null, List<long>? HeroTroops = null, Dictionary<string, long>? Troops = null,
-            string? Kind = null, BattleDoc? Battle = null);
+            string? Kind = null, BattleDoc? Battle = null, PvpInfo? Pvp = null, Dictionary<string, long>? WoundedAboard = null);
 
         private sealed record BattleDoc(bool Won, int Rounds, Dictionary<string, long>? Lost, Dictionary<string, long>? EnemyStart,
             Dictionary<string, long>? EnemyLost, Dictionary<string, int>? Rewards, bool FirstWin, bool Reported);
@@ -88,7 +90,8 @@ namespace Hadal.Game.Persistence
                     m.Rates.ToDictionary(p => p.Key.ToString(), p => p.Value), m.Cargo.ToDictionary(p => p.Key.ToString(), p => p.Value),
                     m.HeroId, m.Crew, m.FromX, m.FromY, m.HeroIds.ToList(), m.HeroTroops.ToList(), new Dictionary<string, long>(m.Troops),
                     m.Kind, m.Battle == null ? null : new BattleDoc(m.Battle.Won, m.Battle.Rounds, m.Battle.Lost, m.Battle.EnemyStart, m.Battle.EnemyLost,
-                        m.Battle.Rewards, m.Battle.FirstWin, m.Battle.Reported))).ToList(),
+                        m.Battle.Rewards, m.Battle.FirstWin, m.Battle.Reported),
+                    m.Pvp, m.WoundedAboard.Count == 0 ? null : new Dictionary<string, long>(m.WoundedAboard))).ToList(),
                 state.ExpeditionCleared,
                 state.AvatarId,
                 new Dictionary<string, long>(state.Troops),
@@ -99,7 +102,8 @@ namespace Hadal.Game.Persistence
                     state.Healing.Cost.ToDictionary(p => p.Key.ToString(), p => p.Value)),
                 state.SonarStored, state.SonarAt, state.MonsterWins.ToList(),
                 new VipDoc(state.VipPoints, state.VipStreak, state.VipLoginDay, state.VipChestDay),
-                new RenameDoc(state.RenameCount, state.RenamedAt)));
+                new RenameDoc(state.RenameCount, state.RenamedAt),
+                new PvpDoc(state.ShieldUntil, state.WarLog.Count == 0 ? null : state.WarLog.ToList())));
         }
 
         private static Dictionary<ResourceType, T> Resources<T>(Dictionary<string, T>? map)
@@ -168,6 +172,8 @@ namespace Hadal.Game.Persistence
                     HeroIds = m.HeroIds ?? new List<string>(), HeroTroops = m.HeroTroops ?? new List<long>(),
                     Troops = new Dictionary<string, long>(m.Troops ?? new Dictionary<string, long>(), StringComparer.Ordinal),
                     Kind = m.Kind ?? "gather",
+                    Pvp = m.Pvp,
+                    WoundedAboard = new Dictionary<string, long>(m.WoundedAboard ?? new Dictionary<string, long>(), StringComparer.Ordinal),
                     Battle = m.Battle == null ? null : new BattleState
                     {
                         Won = m.Battle.Won, Rounds = m.Battle.Rounds, FirstWin = m.Battle.FirstWin, Reported = m.Battle.Reported,
@@ -196,6 +202,12 @@ namespace Hadal.Game.Persistence
                 state.VipStreak = vip.Streak;
                 state.VipLoginDay = vip.LoginDay;
                 state.VipChestDay = vip.ChestDay;
+            }
+
+            if (doc.Pvp is { } pvp)
+            {
+                state.ShieldUntil = pvp.ShieldUntil;
+                state.WarLog.AddRange(pvp.WarLog ?? new List<HADAL.Shared.DTOs.PvpReportDto>());
             }
 
             if (doc.Mail is { } mail)

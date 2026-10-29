@@ -1005,6 +1005,20 @@ namespace Hadal.Game.Social
                 return AllianceOf(playerId)?.Record.Id ?? string.Empty;
         }
 
+        /// <summary>A player's rank in their alliance (1–5), 0 without one (territory claims).</summary>
+        public int RankOf(string playerId)
+        {
+            lock (_gate)
+                return AllianceOf(playerId) is { } alliance ? RankOf(alliance, playerId) : 0;
+        }
+
+        /// <summary>How many members an alliance has; 0 when it no longer exists (territory limit).</summary>
+        public int MemberCount(string allianceId)
+        {
+            lock (_gate)
+                return _alliances.TryGetValue(allianceId, out var a) ? a.Members.Count : 0;
+        }
+
         /// <summary>A player's alliance mates, leader and officers first (alliance teleports); empty without one.</summary>
         public IReadOnlyList<string> AllianceMatesOf(string playerId)
         {

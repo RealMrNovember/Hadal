@@ -201,7 +201,7 @@ ON CONFLICT (id) DO UPDATE SET type = EXCLUDED.type, level = EXCLUDED.level, x =
             {
                 var d = _random.Next(belt.inner, belt.outer + 1);
                 var (x, y) = RingTile(center, d, _random);
-                if (x < 0 || y < 0 || x >= size || y >= size || _taken.Contains((x, y)) || _nodeAt.ContainsKey((x, y)))
+                if (x < 0 || y < 0 || x >= size || y >= size || _taken.Contains((x, y)) || _strongholdAt.ContainsKey((x, y)) || _nodeAt.ContainsKey((x, y)))
                     continue;
 
                 if (_nodes.ContainsKey(node.Id))
@@ -280,7 +280,7 @@ ON CONFLICT (id) DO UPDATE SET type = EXCLUDED.type, level = EXCLUDED.level, x =
 
                 var (march, _) = session.TryStartMarch(new NodeOffer(node!.Id, node.Type, node.Level, node.X, node.Y, node.Remaining, node.FadesAt),
                     me.X, me.Y, command.CommandId, command.ClientSequence, now, command.HeroId ?? string.Empty,
-                    command.HeroIds ?? Array.Empty<string>());
+                    command.HeroIds ?? Array.Empty<string>(), GatherBonus(session.PublicId, node.X, node.Y));
                 if (march == null)
                     return;
 
@@ -296,6 +296,8 @@ ON CONFLICT (id) DO UPDATE SET type = EXCLUDED.type, level = EXCLUDED.level, x =
         {
             lock (_gate)
             {
+                if (RecallPvp(session, command, now))
+                    return;
                 var (nodeId, giveBack, reason) = session.Recall(command.MarchId, command.CommandId, command.ClientSequence, now);
                 if (reason == MarchRejectReason.None)
                     ReleaseMonster(nodeId, session.PublicId);

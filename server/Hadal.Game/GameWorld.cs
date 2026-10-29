@@ -28,6 +28,11 @@ namespace Hadal.Game
         private readonly ConcurrentDictionary<string, PlayerSession> _sessions = new(StringComparer.Ordinal);
         private readonly SemaphoreSlim _connectGate = new(1, 1);
 
+        /// <summary>Loaded sessions by public player id, online or resident (docs/30 §2: offline players in a battle).</summary>
+        private readonly ConcurrentDictionary<string, PlayerSession> _byPublic = new(StringComparer.Ordinal);
+        private readonly ConcurrentDictionary<string, byte> _summoning = new(StringComparer.Ordinal);
+        private DateTimeOffset _lastSweep;
+
         public GameWorld(
             GameCatalog catalog,
             IPlayerRepository repository,
@@ -66,6 +71,8 @@ namespace Hadal.Game
             _logger = logger;
             Social = new SocialHub(socialStore, runtime, serializer, logger);
             Map = new WorldService(worldStore, runtime, serializer, Social, logger, clock);
+            Map.SessionOf = id => _byPublic.TryGetValue(id, out var loaded) ? loaded : null;
+            Map.Summon = id => _ = SummonAsync(id, CancellationToken.None);
             Social.NameLookup = Map.NameOf;
             Social.AvatarLookup = Map.AvatarOf;
             Events = new EventService(eventStore ?? new InMemoryEventStore(), runtime, serializer, logger)
@@ -292,6 +299,7 @@ namespace Hadal.Game
             if (_sessions.TryRemove(identityKey, out var session))
             {
                 session.MarkDeleted();
+                _byPublic.TryRemove(session.PublicId, out _);
                 playerId = session.PlayerId;
                 session.Connection?.Close("account removed");
             }
@@ -337,9 +345,12 @@ namespace Hadal.Game
 
                     session = new PlayerSession(state, _runtime, _serializer);
                     _sessions[identityKey] = session;
+                    _byPublic[session.PublicId] = session;
                 }
 
                 var now = _clock.UtcNow;
+                // Battles due before this login happen first, on the server's timeline (docs/30 §2).
+                Map.Settle(now);
                 try
                 {
                     await Mail.LoadAsync(session.PublicId, now, cancellationToken);
@@ -375,6 +386,8 @@ namespace Hadal.Game
 
         public void HandleCommand(PlayerSession session, CommandEnvelope envelope)
         {
+            // Every battle that arrived before this command is settled before the command can change anything.
+            Map.Settle(_clock.UtcNow);
             if (SocialHub.Handles(envelope.Type))
                 Social.Handle(session, envelope, _clock.UtcNow);
             else if (WorldService.Handles(envelope.Type))
@@ -400,14 +413,23 @@ namespace Hadal.Game
 
             await SaveAsync(session, cancellationToken);
 
-            // Unload only if nobody reattached while we were saving.
-            if (session.Connection == null)
-                _sessions.TryRemove(new KeyValuePair<string, PlayerSession>(session.IdentityKey, session));
+            // Unload only if nobody reattached while we were saving, and no battle needs the player.
+            if (session.Connection == null && !Map.NeedsResident(session.PublicId))
+                Unload(session);
         }
 
         public void Tick()
         {
             var now = _clock.UtcNow;
+            try
+            {
+                Map.Settle(now);
+            }
+            catch (Exception exception)
+            {
+                _logger.LogError(exception, "Settling PvP battles failed.");
+            }
+
             foreach (var session in _sessions.Values)
             {
                 try
@@ -441,10 +463,79 @@ namespace Hadal.Game
             }
         }
 
+        private void Unload(PlayerSession session)
+        {
+            if (_sessions.TryRemove(new KeyValuePair<string, PlayerSession>(session.IdentityKey, session)))
+                _byPublic.TryRemove(new KeyValuePair<string, PlayerSession>(session.PublicId, session));
+        }
+
+        /// <summary>
+        /// Loads a player's session without a connection so the battle engine can simulate them (docs/30 §2). It ticks like
+        /// an online one until no battle needs it and is then saved and unloaded.
+        /// </summary>
+        public async Task SummonAsync(string publicId, CancellationToken cancellationToken)
+        {
+            if (_byPublic.ContainsKey(publicId) || !Guid.TryParseExact(publicId, "N", out var playerId) || !_summoning.TryAdd(publicId, 0))
+                return;
+            try
+            {
+                var identity = await _repository.IdentityOfAsync(playerId, cancellationToken);
+                if (identity == null)
+                    return;
+                await _connectGate.WaitAsync(cancellationToken);
+                try
+                {
+                    if (_sessions.TryGetValue(identity, out var loaded))
+                    {
+                        _byPublic[loaded.PublicId] = loaded;
+                        return;
+                    }
+
+                    var state = await _repository.LoadByIdentityAsync(identity, cancellationToken);
+                    if (state == null)
+                        return;
+                    var session = new PlayerSession(state, _runtime, _serializer);
+                    _sessions[identity] = session;
+                    _byPublic[session.PublicId] = session;
+                    _logger.LogInformation("Player {PlayerId} loaded for a battle.", publicId);
+                }
+                finally
+                {
+                    _connectGate.Release();
+                }
+            }
+            catch (Exception exception) when (exception is not OperationCanceledException)
+            {
+                _logger.LogError(exception, "Loading player {PlayerId} for a battle failed.", publicId);
+            }
+            finally
+            {
+                _summoning.TryRemove(publicId, out _);
+            }
+        }
+
+        /// <summary>Saves and unloads sessions loaded for battles that no battle needs any more.</summary>
+        private async Task SweepResidentsAsync(CancellationToken cancellationToken)
+        {
+            foreach (var session in _sessions.Values.Where(s => s.Connection == null).ToList())
+            {
+                if (Map.NeedsResident(session.PublicId))
+                    continue;
+                await SaveAsync(session, cancellationToken);
+                if (session.Connection == null && !Map.NeedsResident(session.PublicId))
+                    Unload(session);
+            }
+        }
+
         public async Task SaveAllAsync(CancellationToken cancellationToken)
         {
             foreach (var session in _sessions.Values)
                 await SaveAsync(session, cancellationToken);
+            if (_clock.UtcNow - _lastSweep > TimeSpan.FromMinutes(1))
+            {
+                _lastSweep = _clock.UtcNow;
+                await SweepResidentsAsync(cancellationToken);
+            }
         }
 
         private async Task SaveAsync(PlayerSession session, CancellationToken cancellationToken)

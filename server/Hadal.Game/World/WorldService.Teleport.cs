@@ -60,6 +60,13 @@ namespace Hadal.Game.World
                             break;
                         }
 
+                        // From the bag (no mate chosen) the jump lands in the alliance's territory when it has one (docs/30 §6.3).
+                        if (chosen.Length == 0 && TerritoryTile(myAlliance) is { } inside)
+                        {
+                            target = inside;
+                            break;
+                        }
+
                         var placed = candidates.Where(id => _bases.ContainsKey(id)).ToList();
                         if (placed.Count == 0)
                         {
@@ -110,13 +117,13 @@ namespace Hadal.Game.World
         private bool CanStand(int x, int y)
         {
             var world = _runtime.Current.Catalog.World;
-            if (_taken.Contains((x, y)) || _nodeAt.ContainsKey((x, y)) || _monsterAt.ContainsKey((x, y)))
+            if (_taken.Contains((x, y)) || _strongholdAt.ContainsKey((x, y)) || _nodeAt.ContainsKey((x, y)) || _monsterAt.ContainsKey((x, y)))
                 return false;
             return GatherRules.BeltOf(world, x, y) is not { bases: false };
         }
 
         /// <summary>The free tile closest to (cx, cy), ring by ring out to <paramref name="radius"/>. Caller holds the lock.</summary>
-        private (int X, int Y)? NearestFree(int cx, int cy, int radius, int size)
+        private (int X, int Y)? NearestFree(int cx, int cy, int radius, int size, Func<int, int, bool>? allowed = null)
         {
             for (var r = 1; r <= radius; r++)
             {
@@ -130,7 +137,7 @@ namespace Hadal.Game.World
                             continue;
                         var x = cx + dx;
                         var y = cy + dy;
-                        if (x < 0 || y < 0 || x >= size || y >= size || !CanStand(x, y))
+                        if (x < 0 || y < 0 || x >= size || y >= size || !CanStand(x, y) || (allowed != null && !allowed(x, y)))
                             continue;
                         var d = GatherRules.Km(cx, cy, x, y);
                         if (d < bestDistance)
