@@ -493,7 +493,9 @@ namespace Hadal.UI.Hud
             {
                 var until = serverNow < m.ArrivesAtMs ? m.ArrivesAtMs : serverNow < m.GatheredAtMs ? m.GatheredAtMs : m.HomeAtMs;
                 var who = _catalog.TryGetHero(m.HeroId, out var leader) ? Loc.T("hero." + leader.Id) : Loc.T("march.divers");
-                rows.Add(("queue_drone", $"{who} · {Loc.T("node." + m.NodeType)} {m.NodeLevel}", (until - serverNow) / 1000f, "march"));
+                // Attack marches carry a monster kind, gathering marches a node type.
+                var target = m.Kind == "attack" ? WorldMapView.MonsterName(m.NodeType) : WorldMapView.NodeName(m.NodeType);
+                rows.Add(("queue_drone", $"{who} · {target} {m.NodeLevel}", (until - serverNow) / 1000f, "march"));
             }
 
             var builders = Math.Max(1, _catalog.Progression.builderSlots) + Modifiers().ExtraBuilders;
