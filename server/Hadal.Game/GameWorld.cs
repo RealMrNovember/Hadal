@@ -306,6 +306,20 @@ namespace Hadal.Game
             }
         }
 
+        /// <summary>The battle reports the world settled, as mails to every side (docs/30 §5.5).</summary>
+        private void SendBattleMails(DateTimeOffset now)
+        {
+            while (Map.TryTakeBattleMail(out var playerId, out var draft))
+            {
+                var send = Mail.SendAsync(new[] { playerId }, draft, now, CancellationToken.None);
+                if (!send.IsCompleted)
+                    _ = send.ContinueWith(t => _logger.LogError(t.Exception, "Battle mail failed for {PlayerId}.", playerId),
+                        TaskContinuationOptions.OnlyOnFaulted);
+                else if (send.IsFaulted)
+                    _logger.LogError(send.Exception, "Battle mail failed for {PlayerId}.", playerId);
+            }
+        }
+
         /// <summary>Mails every player there is (an Overseer announcement); returns how many received it.</summary>
         public async Task<int> SendMailToAllAsync(MailDraft draft, CancellationToken cancellationToken)
         {
@@ -385,6 +399,7 @@ namespace Hadal.Game
                 var now = _clock.UtcNow;
                 // Battles due before this login happen first, on the server's timeline (docs/30 §2).
                 Map.Settle(now);
+                SendBattleMails(now);
                 try
                 {
                     await Mail.LoadAsync(session.PublicId, now, cancellationToken);
@@ -427,6 +442,7 @@ namespace Hadal.Game
 
             // Every battle that arrived before this command is settled before the command can change anything.
             Map.Settle(_clock.UtcNow);
+            SendBattleMails(_clock.UtcNow);
             if (SocialHub.Handles(envelope.Type))
                 Social.Handle(session, envelope, _clock.UtcNow);
             else if (WorldService.Handles(envelope.Type))
@@ -468,6 +484,8 @@ namespace Hadal.Game
             {
                 _logger.LogError(exception, "Settling PvP battles failed.");
             }
+
+            SendBattleMails(now);
 
             foreach (var session in _sessions.Values)
             {

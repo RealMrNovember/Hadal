@@ -30,17 +30,22 @@ namespace Hadal.Core.StateSync
             PvpVersion++;
         }
 
+        /// <summary>Server time the current login's snapshot arrived: battles from then on are news, older ones were missed.</summary>
+        public long LiveSinceMs { get; private set; }
+
+        public void MarkLiveSince() => LiveSinceMs = ServerNowMs;
+
         public void ApplyWarLog(WarLogDto log)
         {
             var known = new HashSet<string>();
             foreach (var r in WarLog.Reports ?? System.Array.Empty<PvpReportDto>())
                 known.Add(r.Id + r.Kind + r.AtMs);
             WarLog = log ?? new WarLogDto();
-            // Reports that arrive after the first one are news (a toast); the first load is history.
-            if (WarLogVersion > 0)
-                foreach (var r in WarLog.Reports ?? System.Array.Empty<PvpReportDto>())
-                    if (!known.Contains(r.Id + r.Kind + r.AtMs))
-                        _newWarReports.Enqueue(r);
+            // A report fought after this login is news (the result popup), even when it is the player's very first one;
+            // what the login brought is history (PvpCenter sums up what was missed).
+            foreach (var r in WarLog.Reports ?? System.Array.Empty<PvpReportDto>())
+                if (!known.Contains(r.Id + r.Kind + r.AtMs) && (LiveSinceMs > 0 ? r.AtMs >= LiveSinceMs : WarLogVersion > 0))
+                    _newWarReports.Enqueue(r);
             WarLogVersion++;
         }
 

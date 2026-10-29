@@ -113,6 +113,24 @@ A tab on the alliance page and a red-counter shortcut on the right-side alliance
 muster countdown and a *Katıl* button). Each row: who → whom, arrival countdown, *Git* (centre map), *Katıl*
 (rally) or *Destek* (reinforce the target).
 
+### 5.5 Battle reports by mail, result card, away summary (0.9.4)
+Found in live play (0.9.3): a player's very first war report never popped up, because the client took the first war
+log it received as history; a fought battle left nothing in the mailbox.
+- **Mail to every side.** Every report the world writes (base attack and defence, team attack, rally, guard post,
+  scout and "scouted", city and alliance-building fights, misses) is also a mail of kind `battle`, sent once per
+  player, battle and report kind (`WorldService.BattleMail.cs`). The text is `loc:key|args` lines: result, who and
+  from where (the attacker's base), coordinates, powers and rounds, both armies (largest 6 stacks each), own dead and
+  wounded, loot gained or lost per resource, the defender's protected storage, plunder share (fatigue / much weaker
+  target), rally contribution, and the battle id with seed and rule version. The mail's *Raporu aç* button opens the
+  result screen from the war log. Mails live 30 days like every mail.
+- **Result card.** A battle fought while the player is online (attacker, defender, guard, scout) opens a card over
+  every screen: *Zafer!* / *Yenilgi*, loot (+ or −), losses, *Raporu aç* / *Tamam*. A report counts as news when it
+  is unknown and fought after this login's snapshot (`ClientStateView.LiveSinceMs`), so the first one shows too.
+- **Away summary.** On login, battles on the player (defence, team, guard, scouted) since they last looked (stored
+  per player on the device, at most 3 days back) are summed up in one card: *Üssüne saldırı yapıldı*, how many, total
+  dead/wounded and resources lost, the latest four, "Ayrıntılar postanda".
+- **Later:** Android push notifications for an incoming attack and a lost defence while the app is closed.
+
 ## 6. Alliance territory
 
 ### 6.1 Regions and strongholds

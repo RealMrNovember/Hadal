@@ -120,6 +120,13 @@ namespace HADAL.Shared.DTOs
 
         /// <summary>Attack fatigue: the plunder share this attack got (100 = full).</summary>
         [ProtoMember(25)] public int PlunderShare { get; set; } = 100;
+
+        /// <summary>Where the attack came from: the attacker's (or rally leader's) base.</summary>
+        [ProtoMember(26)] public int FromX { get; set; }
+        [ProtoMember(27)] public int FromY { get; set; }
+
+        /// <summary>Defence of a base: what the storage kept safe (docs/33 §2).</summary>
+        [ProtoMember(28)] public ResourceAmountEntry[] Protected { get; set; } = System.Array.Empty<ResourceAmountEntry>();
     }
 
     /// <summary>The alliance's war list (entity <c>EntityIds.AllianceWar</c>, docs/30 §5.4).</summary>

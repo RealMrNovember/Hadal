@@ -311,6 +311,7 @@ CREATE TABLE IF NOT EXISTS hadal.world_fairness (
             if (sessions == null)
                 return false;
 
+            _resolving = r;
             var teams = r.Members.Select(m => sessions[m.PlayerId].ReadTeam(m.MarchId, at))
                 .Where(t => t is { Pvp: { Settled: false } }).Select(t => t!).ToList();
             if (teams.Count == 0)
@@ -412,6 +413,8 @@ CREATE TABLE IF NOT EXISTS hadal.world_fairness (
             defenceReport.Dead = homeDead;
             defenceReport.Wounded = homeWounded;
             defenceReport.Plunder = ResourceAmountEntry.FromMap(plunder);
+            defenceReport.Protected = ResourceAmountEntry.FromMap(snap.Protected.Where(p => p.Value > 0 && snap.Wallet.TryGetValue(p.Key, out var held) && held > 0)
+                .ToDictionary(p => p.Key, p => Math.Min(p.Value, snap.Wallet[p.Key])));
             Tell(defender, defenceReport, r.AttackerId, now);
 
             for (var i = 0; i < guards.Count; i++)
@@ -563,7 +566,10 @@ CREATE TABLE IF NOT EXISTS hadal.world_fairness (
                 report.OpponentTag = _social.TagOf(opponentId);
             }
 
+            if (_resolving is { } r)
+                (report.FromX, report.FromY) = (r.FromX, r.FromY);
             session.AddWarLog(report, now);
+            MailReport(session.PublicId, report);
         }
 
         /// <summary>A team's share of its side, in percent (docs/33 §3).</summary>

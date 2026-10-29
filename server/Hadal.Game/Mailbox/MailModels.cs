@@ -14,7 +14,10 @@ namespace Hadal.Game.Mailbox
         /// <summary>From one player to another (MailRules).</summary>
         public const string Player = "player";
 
-        public static bool IsValid(string kind) => kind is System or Admin or Event or Alliance or Player;
+        /// <summary>PvP battle and scout reports (docs/30 §5.5).</summary>
+        public const string Battle = "battle";
+
+        public static bool IsValid(string kind) => kind is System or Admin or Event or Alliance or Player or Battle;
     }
 
     /// <summary>

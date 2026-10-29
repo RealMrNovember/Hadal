@@ -5,6 +5,7 @@ using HADAL.Shared.Commands;
 using HADAL.Shared.DTOs;
 using HADAL.Shared.Simulation;
 using Hadal.Core.Network;
+using Hadal.Core.Services;
 using Hadal.Core.StateSync;
 using UnityEngine;
 using UnityEngine.UI;
@@ -147,8 +148,21 @@ namespace Hadal.UI
 
             _guardsKnown = true;
 
+            // Each battle fought while we are here gets its result card; what happened while we were away gets one summary.
             while (View.TryTakeWarReport(out var report))
-                Toaster.Show(ReportLine(report), Won(report) ? UiKit.Ok : UiKit.Danger);
+            {
+                _results.Enqueue(report);
+                Remember(report.AtMs);
+            }
+
+            if (_checkedLog != View.WarLogVersion && View.LiveSinceMs > 0 && !string.IsNullOrEmpty(View.PlayerId))
+            {
+                _checkedLog = View.WarLogVersion;
+                SumUpMissed();
+            }
+
+            if (_result == null && _window == null && _results.Count > 0)
+                ShowResult(_results.Dequeue());
 
             if (_window != null)
                 TickWindow(now);
@@ -159,6 +173,130 @@ namespace Hadal.UI
                 .Select(b => b.level).DefaultIfEmpty(0).Max();
 
         private static bool Won(PvpReportDto r) => r.Outcome == "won" || r.Outcome == "scouted" || r.Outcome == "shielded" && r.Kind == "defence";
+
+        /// <summary>We were the one hit: a defence, a gathering team, a guard post, a scout on our base.</summary>
+        private static bool Hit(PvpReportDto r) => r.Kind is "defence" or "team" or "reinforce" or "scouted";
+
+        // --- Results and the away summary (docs/30 §5.5) ------------------------------------------
+
+        private readonly Queue<PvpReportDto> _results = new();
+        private GameObject _result;
+        private int _checkedLog = -1;
+
+        private string SeenKey => "hadal.pvp.seen." + View.PlayerId;
+
+        private long Seen()
+        {
+            try
+            {
+                return long.TryParse(PlayerPrefs.GetString(SeenKey, "0"), out var ms) ? ms : 0;
+            }
+            catch
+            {
+                return 0;
+            }
+        }
+
+        private void Remember(long atMs)
+        {
+            if (string.IsNullOrEmpty(View.PlayerId) || atMs <= Seen())
+                return;
+            PlayerPrefs.SetString(SeenKey, atMs.ToString());
+            PlayerPrefs.Save();
+        }
+
+        /// <summary>Battles on us since we last looked, from before this login: one "your base was attacked" card.</summary>
+        private void SumUpMissed()
+        {
+            var reports = View.WarLog?.Reports ?? Array.Empty<PvpReportDto>();
+            if (reports.Length == 0)
+                return;
+            var seen = Seen();
+            var since = Math.Max(seen, View.LiveSinceMs - 3L * 24 * 3600 * 1000);
+            var missed = reports.Where(r => Hit(r) && r.AtMs > since && r.AtMs < View.LiveSinceMs).OrderByDescending(r => r.AtMs).ToList();
+            Remember(reports.Max(r => r.AtMs));
+            if (missed.Count == 0)
+                return;
+
+            var lines = new List<string> { Loc.F("pvp.away.count", missed.Count) };
+            var dead = missed.Sum(r => r.Dead);
+            var wounded = missed.Sum(r => r.Wounded);
+            if (dead + wounded > 0)
+                lines.Add(Loc.F("pvp.losses", dead.ToString("N0"), wounded.ToString("N0")));
+            var lost = Loot(missed.SelectMany(r => r.Plunder ?? Array.Empty<ResourceAmountEntry>()), "−");
+            if (lost.Length > 0)
+                lines.Add(lost);
+            lines.AddRange(missed.Take(4).Select(r => "• " + ReportLine(r)));
+            lines.Add(Loc.T("pvp.result.mail"));
+            Card(Loc.T("pvp.away.title"), string.Join("\n", lines), UiKit.Danger, Loc.T("pvp.tab.log"), () => Open(1));
+        }
+
+        /// <summary>One battle's result as it lands: "Zafer! +X Titanyum" or "Yenilgi", losses, and the report.</summary>
+        private void ShowResult(PvpReportDto r)
+        {
+            var won = Won(r);
+            GameAudio.Play(won ? Sfx.Reward : Sfx.Error);
+            var lines = new List<string> { ReportLine(r) };
+            var loot = Loot(r.Plunder ?? Array.Empty<ResourceAmountEntry>(), Hit(r) ? "−" : "+");
+            if (loot.Length > 0 && r.Kind != "scout")
+                lines.Add(loot);
+            if (r.Dead + r.Wounded > 0)
+                lines.Add(Loc.F("pvp.losses", r.Dead.ToString("N0"), r.Wounded.ToString("N0")));
+            if (r.Kind == "scout")
+                lines.Add(Loc.F("pvp.scout.result", r.DefenderPower.ToString("N0"), r.Reinforcements));
+            lines.Add(Loc.T("pvp.result.mail"));
+            var title = r.Kind is "scout" or "scouted" ? Loc.T("pvp.kind." + r.Kind)
+                : r.Outcome is "won" or "lost" ? Loc.T(won ? "pvp.result.win" : "pvp.result.loss") : Loc.T("pvp.outcome." + r.Outcome);
+            var report = r;
+            Card(title, string.Join("\n", lines), won ? UiKit.Ok : UiKit.Danger, Loc.T("mail.pvp.open"), () =>
+            {
+                Open(1);
+                ShowReport(report);
+            });
+        }
+
+        private static string Loot(IEnumerable<ResourceAmountEntry> entries, string sign)
+        {
+            var sums = entries.Where(p => p.Value > 0).GroupBy(p => p.Key).Select(g => (Key: g.Key, Value: g.Sum(p => p.Value))).ToList();
+            return string.Join("  ", sums.Select(p => $"{sign}{CostChips.Compact(p.Value)} {Loc.T("resource." + p.Key)}"));
+        }
+
+        /// <summary>A card over every screen with a title, text, an action and OK.</summary>
+        private void Card(string title, string text, Color color, string action, Action onAction)
+        {
+            var dim = UiKit.Box("Result", _windowCanvas.transform, new Color(0, 0, 0, 0.55f));
+            dim.rectTransform.Place(0, 0, 1, 1);
+            _result = dim.gameObject;
+            var card = UiKit.Box("Card", dim.transform, UiKit.Panel);
+            card.rectTransform.Place(0.06f, 0.3f, 0.94f, 0.7f);
+            card.gameObject.AddComponent<Button>();
+            card.gameObject.AddComponent<CanvasGroup>();
+            card.gameObject.AddComponent<PopIn>();
+            card.gameObject.AddComponent<Outline>().effectColor = color;
+            UiKit.Label("Title", card.transform, title, 44, color, TextAnchor.MiddleCenter, FontStyle.Bold).rectTransform.Place(0.04f, 0.82f, 0.96f, 0.97f);
+            UiKit.Label("Text", card.transform, text, 26, UiKit.Text, TextAnchor.UpperLeft).rectTransform.Place(0.06f, 0.22f, 0.94f, 0.8f);
+            var go = UiKit.Button("Action", card.transform, action, () => { CloseResult(); onAction(); }, UiKit.Primary, 28);
+            ((RectTransform)go.transform).Place(0.05f, 0.04f, 0.48f, 0.18f);
+            var ok = UiKit.Button("Ok", card.transform, Loc.T("pvp.result.ok"), CloseResult, UiKit.Field, 28);
+            ((RectTransform)ok.transform).Place(0.52f, 0.04f, 0.95f, 0.18f);
+        }
+
+        private void CloseResult()
+        {
+            if (_result != null)
+                Destroy(_result);
+            _result = null;
+        }
+
+        /// <summary>Opens the result screen of a battle in the war log (from its mail); the log itself when it has scrolled out.</summary>
+        public void OpenReport(string battleId, string reportKind)
+        {
+            var reports = View.WarLog?.Reports ?? Array.Empty<PvpReportDto>();
+            var report = reports.FirstOrDefault(r => r.Id == battleId && r.Kind == reportKind) ?? reports.FirstOrDefault(r => r.Id == battleId);
+            Open(1);
+            if (report != null)
+                ShowReport(report);
+        }
 
         // --- Window ------------------------------------------------------------------------------
 

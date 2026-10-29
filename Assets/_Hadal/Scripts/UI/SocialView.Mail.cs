@@ -39,6 +39,7 @@ namespace Hadal.UI
         {
             "event" => "event_gift",
             "alliance" => "side_alliance",
+            "battle" => "event_war",
             _ => "side_mail"
         };
 
@@ -166,9 +167,10 @@ namespace Hadal.UI
 
             if (m.Body.Length > 0)
             {
-                var lines = m.Body.Split('\n').Sum(l => 1 + l.Length / 40);
-                var body = Card(Mathf.Clamp(50 + lines * 40, 120, 1400));
-                Plain(CardText(body.transform, MailText.Show(m.Body, m.Kind), 28, UiKit.Text, 0.04f, 0.04f, 0.96f, 0.96f), m);
+                var shown = MailText.Show(m.Body, m.Kind);
+                var lines = shown.Split('\n').Sum(l => 1 + l.Length / 40);
+                var body = Card(Mathf.Clamp(50 + lines * 40, 120, 2400));
+                Plain(CardText(body.transform, shown, 28, UiKit.Text, 0.04f, 0.04f, 0.96f, 0.96f), m);
             }
 
             if (m.Attachments.Length > 0)
@@ -180,10 +182,11 @@ namespace Hadal.UI
                 CardButton(gifts.transform, claimable ? Loc.T("mail.claim") : Loc.T("mail.claimed"), claimable, () => ClaimMail(m.Id), UiKit.Gold, 0.66f, 0.24f, 0.97f, 0.76f);
             }
 
-            // Back · Reply (player mails) · Delete.
+            // Back · Reply (player mails) or Open report (battle mails) · Delete.
             var actions = UiKit.Rect("MailActions", _list).Row(110);
             var canReply = m.Kind == "player" && m.SenderId.Length > 0;
-            var width = canReply ? 1f / 3f : 0.5f;
+            var canReport = m.Kind == "battle" && PvpCenter.Instance != null && MailText.BattleRef(m.Body, out _, out _);
+            var width = canReply || canReport ? 1f / 3f : 0.5f;
             CardButton(actions, Loc.T("mail.back"), true, () =>
             {
                 _mailId = string.Empty;
@@ -194,6 +197,15 @@ namespace Hadal.UI
                 var title = m.Title.StartsWith("Re: ", StringComparison.Ordinal) ? m.Title : "Re: " + m.Title;
                 CardButton(actions, Loc.T("mail.reply"), true, () => OpenMailCompose(m.SenderId, m.Sender, title), UiKit.Accent,
                     width + 0.01f, 0.1f, 2 * width - 0.01f, 0.9f);
+            }
+            else if (canReport)
+            {
+                MailText.BattleRef(m.Body, out var battleId, out var reportKind);
+                CardButton(actions, Loc.T("mail.pvp.open"), true, () =>
+                {
+                    Close();
+                    PvpCenter.Instance.OpenReport(battleId, reportKind);
+                }, UiKit.Accent, width + 0.01f, 0.1f, 2 * width - 0.01f, 0.9f);
             }
 
             var id = m.Id;

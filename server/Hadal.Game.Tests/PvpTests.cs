@@ -719,5 +719,56 @@ namespace Hadal.Game.Tests
             At(Pvp(a).ArrivesAt);
             Assert.Equal(50, LastReport(a).PlunderShare);
         }
+        private List<Hadal.Game.Mailbox.Mail> BattleMails(PlayerSession session) =>
+            _world.Mail.MailsOf(session.PublicId, _clock.UtcNow).Where(m => m.Kind == Hadal.Game.Mailbox.MailKinds.Battle).ToList();
+
+        [Fact]
+        public async Task Both_sides_get_one_battle_mail_and_the_defender_sees_the_attack_coming_at_once()
+        {
+            var (a, _) = await Connect("mail-a");
+            var (b, bConnection) = await Connect("mail-b", troops: 50);
+            var before = bConnection.Messages.Count;
+            Attack(a, b.PublicId);
+
+            // The defender's live session gets the incoming attack in the same instant, not on the next refresh.
+            var pushed = bConnection.Messages.Skip(before).Where(m => m.Delta != null).SelectMany(m => m.Delta().Changes)
+                .Where(c => c.EntityId == EntityIds.Pvp).Select(c => TestSupport.Serializer.Deserialize<PvpStatusDto>(c.Payload)).ToList();
+            Assert.Contains(pushed, p => p.Incoming.Any(i => i.AttackerId == a.PublicId));
+            Assert.Empty(BattleMails(a));
+
+            At(Pvp(a).ArrivesAt);
+            var won = Assert.Single(BattleMails(a));
+            Assert.Equal("loc:mail.pvp.won|pvp.kind.attack|mail-b", won.Title);
+            Assert.Contains("loc:mail.pvp.loot.won", won.Body);
+            Assert.Contains($"loc:mail.pvp.id|{LastReport(a).Id}|attack|", won.Body);
+
+            var lost = Assert.Single(BattleMails(b));
+            Assert.StartsWith("loc:mail.pvp.lost|pvp.kind.defence|mail-a", lost.Title);
+            // Who attacked, from where, and what was taken.
+            Assert.Contains($"loc:mail.pvp.from|mail-a|{LastReport(b).FromX}|{LastReport(b).FromY}", lost.Body);
+            Assert.Contains("loc:mail.pvp.minus|", lost.Body);
+            Assert.Contains("loc:mail.pvp.losses|", lost.Body);
+
+            // Later ticks and commands never send them again.
+            At(_clock.UtcNow.AddSeconds(5));
+            Send(a, new ViewWorldCommand { CommandId = "again", X = -1, Y = -1 }, CommandType.ViewWorld);
+            Assert.Single(BattleMails(a));
+            Assert.Single(BattleMails(b));
+        }
+
+        [Fact]
+        public async Task A_scout_mails_the_report_and_tells_the_target_who_scouted_them()
+        {
+            var (a, _) = await Connect("smail-a");
+            var (b, _) = await Connect("smail-b", troops: 50);
+            Attack(a, b.PublicId, mode: PvpRules.Scout);
+            At(Pvp(a).ArrivesAt);
+            var report = Assert.Single(BattleMails(a));
+            Assert.StartsWith("loc:mail.pvp.scouted|pvp.kind.scout|smail-b", report.Title);
+            Assert.Contains("loc:mail.pvp.scout|", report.Body);
+            var seen = Assert.Single(BattleMails(b));
+            Assert.StartsWith("loc:mail.pvp.scouted|pvp.kind.scouted|smail-a", seen.Title);
+            Assert.Contains("loc:mail.pvp.scoutedBy|smail-a|", seen.Body);
+        }
     }
 }

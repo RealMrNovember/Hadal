@@ -52,6 +52,7 @@ namespace Hadal.Core.StateSync
                 view.ApplyInventory(snapshot.Inventory);
             if (snapshot.Marches != null)
                 view.ApplyMarches(snapshot.Marches);
+            view.MarkLiveSince(); // after the marches set the server clock
             if (snapshot.Expedition != null)
                 view.ApplyExpedition(snapshot.Expedition);
             if (snapshot.Profile != null)
