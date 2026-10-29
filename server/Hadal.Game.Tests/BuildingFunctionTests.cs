@@ -195,7 +195,10 @@ namespace Hadal.Game.Tests
         {
             var (session, connection) = await Connect();
             Rich(session);
-            Building(session, BuildingProgression.ReactorId).Level = 2;
+            var reactor = Building(session, BuildingProgression.ReactorId);
+            reactor.Level = 2;
+            session.StateForTests.UnsavedBuildings.Add(reactor); // saved, so the restart keeps reactor 2 (the drone factory needs it)
+            session.StateForTests.IsDirty = true;
             var factory = _world.PlaceBuilt(session, connection, "drone_factory", 2, 1);
 
             _world.HandleCommand(session, Salvage(factory, "nope"));

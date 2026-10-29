@@ -69,7 +69,7 @@
     "costGrowth": 1.09,
     "timeGrowth": 1.12,
     "freeFinishSeconds": 300,
-    "builderSlots": 1,
+    "builderSlots": 2,
     "removeRefundPercent": 50
   },
   "buildings": [
@@ -11555,55 +11555,70 @@
   },
   "ringUnlocks": [
     {
+      "ring": 2,
+      "reactorLevel": 2,
+      "cost": [{"resource": "Titanium", "amount": 200}]
+    },
+    {
+      "ring": 3,
+      "reactorLevel": 4,
+      "cost": [{"resource": "Titanium", "amount": 700}, {"resource": "Biomass", "amount": 245}]
+    },
+    {
+      "ring": 4,
+      "reactorLevel": 5,
+      "cost": [{"resource": "Titanium", "amount": 1000}, {"resource": "Biomass", "amount": 350}]
+    },
+    {
       "ring": 5,
-      "reactorLevel": 3,
-      "cost": [{"resource": "Titanium", "amount": 400}, {"resource": "Biomass", "amount": 100}]
+      "reactorLevel": 6,
+      "cost": [{"resource": "Titanium", "amount": 1500}, {"resource": "Biomass", "amount": 540}]
     },
     {
       "ring": 6,
-      "reactorLevel": 4,
-      "cost": [{"resource": "Titanium", "amount": 800}, {"resource": "Biomass", "amount": 200}]
+      "reactorLevel": 7,
+      "cost": [{"resource": "Titanium", "amount": 2300}, {"resource": "Biomass", "amount": 800}]
     },
     {
       "ring": 7,
-      "reactorLevel": 6,
+      "reactorLevel": 8,
       "requiresBuilding": "mega_dome",
-      "cost": [{"resource": "Titanium", "amount": 1500}, {"resource": "Biomass", "amount": 400}]
+      "cost": [{"resource": "Titanium", "amount": 3500}, {"resource": "Biomass", "amount": 1200}]
     },
     {
       "ring": 8,
-      "reactorLevel": 7,
+      "reactorLevel": 10,
       "requiresBuilding": "mega_dome",
-      "cost": [{"resource": "Titanium", "amount": 2500}, {"resource": "Biomass", "amount": 700}]
+      "cost": [{"resource": "Titanium", "amount": 7000}, {"resource": "Biomass", "amount": 2500}]
     },
     {
       "ring": 9,
-      "reactorLevel": 8,
+      "reactorLevel": 12,
       "requiresBuilding": "mega_dome",
-      "cost": [{"resource": "Titanium", "amount": 4000}, {"resource": "Biomass", "amount": 1100}]
+      "cost": [{"resource": "Titanium", "amount": 14000}, {"resource": "Biomass", "amount": 5000}]
     },
     {
       "ring": 10,
-      "reactorLevel": 9,
+      "reactorLevel": 14,
       "requiresBuilding": "mega_dome",
-      "cost": [{"resource": "Titanium", "amount": 6000}, {"resource": "Biomass", "amount": 1600}]
+      "cost": [{"resource": "Titanium", "amount": 28000}, {"resource": "Biomass", "amount": 10000}]
     },
     {
       "ring": 11,
-      "reactorLevel": 10,
+      "reactorLevel": 16,
       "requiresBuilding": "mega_dome",
-      "cost": [{"resource": "Titanium", "amount": 8000}, {"resource": "Biomass", "amount": 2200}]
+      "cost": [{"resource": "Titanium", "amount": 55000}, {"resource": "Biomass", "amount": 19000}]
     },
     {
       "ring": 12,
-      "reactorLevel": 10,
+      "reactorLevel": 18,
       "requiresBuilding": "mega_dome",
-      "cost": [{"resource": "Titanium", "amount": 9500}, {"resource": "Biomass", "amount": 2800}]
+      "cost": [{"resource": "Titanium", "amount": 90000}, {"resource": "Biomass", "amount": 32000}]
     }
   ],
   "grid": {
     "maxRings": 12,
-    "startingUnlockedRings": 4,
+    "startingUnlockedRings": 1,
     "rotationSnapDegrees": 60,
     "slotYOffset": 0.05,
     "outerRingBaseSectors": 6,
@@ -11815,7 +11830,8 @@
   "gather": {
     "queueReactors": [4, 10, 18, 26],
     "loadByReactor": [5500, 5500, 5500, 5500, 5500, 5500, 5500, 5500, 13500, 13500, 13500, 18600, 23800, 28900, 70600, 81200, 91800, 102000, 113000, 124000, 227000, 227000, 227000, 227000, 227000, 227000, 227000, 227000, 331000, 331000, 331000, 331000, 331000, 331000, 331000, 331000, 446000, 446000, 446000, 446000, 446000, 446000, 574000, 574000, 574000, 574000, 574000, 574000, 734000, 734000, 734000],
-    "alloyReactor": 30
+    "alloyReactor": 30,
+    "yieldScale": 0.02
   },
   "expedition": {
     "stages": 10,
@@ -12317,6 +12333,6 @@
         "type": "arc"
       }
     ],
-    "marchLoad": 1.0
+    "marchLoad": 0.08
   }
 }

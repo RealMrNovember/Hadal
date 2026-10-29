@@ -198,13 +198,18 @@ namespace Hadal.Game.Tests
                 queueReactors = Catalog.Gather.queueReactors, loadByReactor = Catalog.Gather.loadByReactor,
                 alloyReactor = Catalog.Gather.alloyReactor, yieldScale = 0.02
             };
-            var full = GatherRules.Rates(Catalog.World, Catalog.Gather, "enkaz_alani", 3, 20);
+            var unscaled = new HADAL.Shared.Catalog.GatherCatalogData
+            {
+                queueReactors = Catalog.Gather.queueReactors, loadByReactor = Catalog.Gather.loadByReactor,
+                alloyReactor = Catalog.Gather.alloyReactor, yieldScale = 1
+            };
+            var full = GatherRules.Rates(Catalog.World, unscaled, "enkaz_alani", 3, 20);
             var low = GatherRules.Rates(Catalog.World, scaled, "enkaz_alani", 3, 20);
             Assert.Equal(full[ResourceType.Titanium] * 0.02, low[ResourceType.Titanium], 3);
-            Assert.Equal(Math.Round(GatherRules.Load(Catalog.Gather, 24) * 0.02), GatherRules.Load(scaled, 24));
+            Assert.Equal(Math.Round(GatherRules.Load(unscaled, 24) * 0.02), GatherRules.Load(scaled, 24));
             Assert.InRange(GatherRules.GatherSeconds(Catalog.World, low, GatherRules.Load(scaled, 24)),
-                GatherRules.GatherSeconds(Catalog.World, full, GatherRules.Load(Catalog.Gather, 24)) - 2,
-                GatherRules.GatherSeconds(Catalog.World, full, GatherRules.Load(Catalog.Gather, 24)) + 2);
+                GatherRules.GatherSeconds(Catalog.World, full, GatherRules.Load(unscaled, 24)) - 2,
+                GatherRules.GatherSeconds(Catalog.World, full, GatherRules.Load(unscaled, 24)) + 2);
             Assert.Equal(GatherRules.Rates(Catalog.World, Catalog.Gather, "hadalit_damari", 7, 40)[ResourceType.Hadalite],
                 GatherRules.Rates(Catalog.World, scaled, "hadalit_damari", 7, 40)[ResourceType.Hadalite]);
         }

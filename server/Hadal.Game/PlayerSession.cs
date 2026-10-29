@@ -65,11 +65,15 @@ namespace Hadal.Game
                 _connection = connection;
 
                 AdvanceTo(now);
+                // A base built before the copy limits applied is brought within them first.
+                var refunds = EnforceBuildingLimits();
                 _lastReplicatedAt = now;
                 _lastReplicatedTick = _state.ServerTick;
                 _walletDirty = false;
 
                 connection.Send(EnvelopeBuilder.WrapServerMessage(BuildSnapshotEnvelope(now)));
+                if (refunds.Count > 0)
+                    SendDelta(now, new List<EntityChangeDto> { LimitRefundReport(refunds) });
                 return previous;
             }
         }
@@ -271,7 +275,19 @@ namespace Hadal.Game
             {
                 EnsureStarterHero();
                 RefreshModifiers();
-                SendDelta(now, new List<EntityChangeDto> { WalletChange(), ProductionChange(now), ResearchChange(now), HeroesChange(now) });
+                var before = _state.Buildings.Select(b => b.BuildingId).ToList();
+                var refunds = EnforceBuildingLimits();
+                var changes = new List<EntityChangeDto> { WalletChange(), ProductionChange(now), ResearchChange(now), HeroesChange(now) };
+                if (refunds.Count > 0)
+                {
+                    var kept = new HashSet<string>(_state.Buildings.Select(b => b.BuildingId));
+                    changes.AddRange(before.Where(id => !kept.Contains(id))
+                        .Select(id => new EntityChangeDto { EntityId = EntityIds.Building + id, Kind = EntityChangeKind.Delete }));
+                    changes.Add(InventoryChange());
+                    changes.Add(LimitRefundReport(refunds));
+                }
+
+                SendDelta(now, changes);
             }
         }
 

@@ -59,6 +59,30 @@ namespace Hadal.Game.Tests
 
             // Without belts the map keeps the old centre spiral and has no resource nodes.
             root["world"]!.AsObject().Remove("belts");
+
+            // The mechanics tests keep the base layout they were written for: four open rings, ring 5 at reactor 3
+            // (ring 7+ behind a Mega Dome), one builder, gathering at full yield. The live layout is checked against
+            // BalanceCatalog (BuildingLimitTests).
+            root["grid"]!["startingUnlockedRings"] = 4;
+            root["progression"]!["builderSlots"] = 1;
+            root["gather"]!.AsObject().Remove("yieldScale");
+            var rings = new System.Text.Json.Nodes.JsonArray();
+            foreach (var (ring, reactor, titanium, biomass) in new[] { (5, 3, 400, 100), (6, 4, 800, 200), (7, 6, 1500, 400), (8, 7, 2500, 700),
+                         (9, 8, 4000, 1100), (10, 9, 6000, 1600), (11, 10, 8000, 2200), (12, 10, 9500, 2800) })
+            {
+                var unlock = new System.Text.Json.Nodes.JsonObject
+                {
+                    ["ring"] = ring, ["reactorLevel"] = reactor,
+                    ["cost"] = new System.Text.Json.Nodes.JsonArray(
+                        new System.Text.Json.Nodes.JsonObject { ["resource"] = "Titanium", ["amount"] = titanium },
+                        new System.Text.Json.Nodes.JsonObject { ["resource"] = "Biomass", ["amount"] = biomass })
+                };
+                if (ring >= 7)
+                    unlock["requiresBuilding"] = "mega_dome";
+                rings.Add(unlock);
+            }
+
+            root["ringUnlocks"] = rings;
             return root.ToJsonString();
         }
 
