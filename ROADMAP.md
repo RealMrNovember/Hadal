@@ -34,7 +34,7 @@ Sıralama araştırmanın ana önerisine göre yapıldı (§16): önce **kaynak 
 
 | Sıra | İş | Neden şimdi | Durum |
 |---|---|---|---|
-| **1** | Sağlamlık ve kalite kapıları | Canlıda oyuncu var. Ekonomi ve savaş hatası güveni bozar (§14). | ⬜ |
+| **1** | Sağlamlık ve kalite kapıları | Canlıda oyuncu var. Ekonomi ve savaş hatası güveni bozar (§14). | 🟡 |
 | **2** | PvP adaleti ve savaş motoru sürümlemesi | Tamamlandı; kahraman metası ve sezon savaşı sonraki aşamalarda (docs/33). | ✅ |
 | **3** | İttifak bölgesi ve ittifak binaları | A, B aşamaları ve Şehir Listesi canlıda (docs/32). | ✅ |
 | **4** | Yeni deniz yaratıkları ve etkinlik boss'ları | PvE ekonomiyi ve ittifak hedefini besler (§6). | 🟡 |
@@ -51,23 +51,24 @@ Ayrıntılar aşağıda, aynı sırayla.
 
 ---
 
-## 1. Sağlamlık ve kalite kapıları ⬜
+## 1. Sağlamlık ve kalite kapıları 🟡
 
 **Hedef:** Araştırma §14'teki yayın kapıları. Canlı oyuncunun ilerlemesi hiçbir hata yüzünden kaybolmaz ya da çiftlenmez.
 
-- ⬜ Ekonomi denetimi:
-  - her harcama ve ödülün atomik ve idempotent olduğunu doğrulayan test seti
-  - negatif bakiye, iki kez ödül, eşzamanlı harcama ve taşma senaryoları
-- ⬜ Zamanlayıcılar: cihaz saati, saat dilimi ve uygulama kapalıyken biten işler için testler. Tek otorite sunucu saatidir.
-- ⬜ Ağ: kopan bağlantı, zaman aşımı ve tekrar gönderilen komut. Oyuncu hiçbir şeyi iki kez ödemez.
+- ✅ Ekonomi denetimi (`9d27726`):
+  - komut defteri: aynı CommandId bir kez çalışır, tekrarı ilk cevabı alır; oyuncuyla birlikte kaydedilir
+  - `EconomySafetyTests`: negatif bakiye, iki kez ödül, eşzamanlı harcama (iki bağlantı, sekiz iş parçacığı), taşma ve depo sınırı
+  - bulunan hatalar: postada taşan kaynak toplamı göndereni ödüyordu; long sınırını aşan hediye bakiyeyi sıfırlıyordu
+- ✅ Zamanlayıcılar (`9d27726`, `TimerSafetyTests`): inşaat, araştırma, eğitim, iyileştirme, sefer, kalkan ve etkinlik uygulama kapalıyken sunucu saatiyle biter; erken talep ve sunucu saatinin ileri ya da geri sıçraması hiçbir şeyi iki kez ödemez. İstemci saati hiçbir şeye karışmaz.
+- ✅ Ağ (`9d27726`, `NetworkResilienceTests`): gerçek ağ geçidi üzerinden kopan bağlantı, yeniden bağlanınca tekrar gönderilen komut, zaman aşımı sonrası çift zarf, eski ve yeni soketten aynı komut. Oyuncu hiçbir şeyi iki kez ödemez.
 - ⬜ Mobil: düşük bellek, eski cihaz, arka plan/ön plan geçişi. Kritik çökme ve UI taşması yok.
 - ⬜ Hata ve çökme izleme, temel analitik: oturum, ilerleme hunisi, ekonomi akışı.
-- ⬜ Operasyon:
-  - yedekten geri yükleme provası
-  - denge geri alma provası
-  - bakım mesajı akışı
-  - dağılan ittifak belgelerinin temizlenmesi (`hadal.alliance_docs`)
-- ⬜ Postgres mağaza testlerinin CT'de gerçekten çalışması (`HADAL_TEST_PG`).
+- 🟡 Operasyon (el kitabı: `docs/HADAL_SERVER_INFRASTRUCTURE.md` §14):
+  - ✅ yedekten geri yükleme provası (`a803c24`, 29.10.2026 denendi: `server/tests/run-restore-drill.sh`)
+  - ✅ denge geri alma provası (aynı prova; yeniden başlatmada `HADAL_PUBLISH_CATALOG_UP_TO` sabitlenmeli)
+  - ⬜ bakım mesajı akışı
+  - ✅ dağılan ittifak belgelerinin temizlenmesi (`1607453`)
+- ✅ Postgres mağaza testleri CT'de gerçekten çalışıyor (`a803c24`): her koşu `hadal-postgres` içinde geçici bir veritabanı açar ve siler (`server/tests/run-ct-tests.sh`). Dağıtım testleri artık canlı veritabanına dokunmuyor.
 
 **Çıkış kriteri:** §14 tablosundaki her alan için otomatik test var ve yeşil. Yedekten geri yükleme bir kez denendi.
 

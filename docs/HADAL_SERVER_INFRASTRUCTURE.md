@@ -11,6 +11,7 @@
 > | Deploy | `server/deploy/deploy.sh` (tests → build → rollout → health check → automatic rollback) |
 > | Tunnel setup | one-time, by the operator: `ssh cicibyte@dl380 'bash -s' < server/deploy/setup-tunnel.sh` |
 > | Secrets | `/opt/hadal/server/.env` on the CT only (`HADAL_DB_PASSWORD`, `HADAL_JWT_SECRET`) |
+> | Runbook | [§14](#14-operations-runbook-ct-160): server tests with a throwaway database, backups, restore drill, real restore, balance rollback |
 >
 > Sections below describe the original single-server aaPanel plan and are kept for the CDN/admin design.
 
@@ -421,6 +422,113 @@ ASPNETCORE_ENVIRONMENT=Production
 - [16_Live_Ops.md](./16_Live_Ops.md) — LiveOps principles
 - [22_LiveOps_Admin_Terminal.md](./22_LiveOps_Admin_Terminal.md) — The Overseer GM panel
 - [HadalDevelopmentRoadmap.md](./HadalDevelopmentRoadmap.md) — Phase 0-R tasks
+
+---
+
+## 14. Operations Runbook (CT 160)
+
+Everything here runs on CT 160 (`ssh cicibyte@dl380`, then `sudo pct exec 160 -- …`). The rule for every step:
+**the live database `hadal` is only ever read, and the live gateway is not touched** — except in §14.4, which is the
+real restore and is done by the operator only.
+
+### 14.1 Server tests with a throwaway database
+
+```bash
+bash server/tests/run-ct-tests.sh                        # committed HEAD
+bash server/tests/run-ct-tests.sh --worktree             # HEAD + uncommitted changes under shared/ and server/
+bash server/tests/run-ct-tests.sh --worktree <paths>…    # HEAD + only these paths (other sessions' files left out)
+TEST_FILTER="FullyQualifiedName~EconomySafety" bash server/tests/run-ct-tests.sh
+```
+
+- Sources go to `/opt/hadal-safetytest` (`HADAL_TEST_DIR`), never to `/opt/hadal`.
+- `server/tests/ct-tests.sh` creates `hadal_test_<time>_<rand>` inside `hadal-postgres`, runs **all** tests with
+  `HADAL_TEST_PG` pointing at it and `HADAL_TEST_PG_REQUIRED=1` (a missing connection string fails the run instead of
+  silently skipping the store tests), and drops the database on exit.
+- The store tests refuse a connection string whose database is `hadal` (`PostgresTest`). Before 2026-10-29 the deploy
+  ran them against the live database: they reset the live-ops settings, briefly published a test catalog and left
+  rows behind (see §14.7). `remote-deploy.sh` now uses its own `hadal_test_deploy_<time>` database the same way.
+- Leftover check (should print nothing):
+  `docker exec hadal-postgres psql -U hadal_app -d postgres -Atc "SELECT datname FROM pg_database WHERE datname ~ '^hadal_(test|restore)_'"`
+
+### 14.2 Taking a backup
+
+Plain `pg_dump` of the `hadal` database, without `--create` (so a restore can never switch to or recreate the live one):
+
+```bash
+docker exec hadal-postgres pg_dump -U hadal_app -d hadal > /opt/hadal/backups/before-<what>-$(date +%Y%m%d-%H%M).sql
+```
+
+Take one before every deploy that changes the schema or the catalog. There is no scheduled backup yet (§14.7).
+
+### 14.3 Restore drill (throwaway database, nothing live is changed)
+
+Automated, from the dev machine:
+
+```bash
+bash server/tests/run-restore-drill.sh                                      # newest dump, code at HEAD
+bash server/tests/run-restore-drill.sh HEAD /opt/hadal/backups/<file>.sql   # a chosen dump
+KEEP_DB=1 bash server/tests/run-restore-drill.sh                            # keep the restored database to look around
+```
+
+What it does (`server/tests/ct-restore-drill.sh`), and the same steps by hand:
+
+1. Pick the dump: `ls -t /opt/hadal/backups/*.sql | head -1`. Refuse it if it contains `\connect`, `CREATE DATABASE`
+   or `DROP DATABASE` (`grep -nE '^(\\connect|CREATE DATABASE|DROP DATABASE)' <dump>`).
+2. `docker exec hadal-postgres psql -U hadal_app -d postgres -c "CREATE DATABASE hadal_restore_<time>;"`
+3. `docker exec -i hadal-postgres psql -v ON_ERROR_STOP=1 -q -U hadal_app -d hadal_restore_<time> < <dump>`
+4. Row counts of every `hadal.*` table in the restored database next to the live ones (the live side inside
+   `BEGIN READ ONLY … ROLLBACK`). Every table must come back; the live side may be a little ahead of the dump.
+5. `RestoreDrillTests` with `HADAL_RESTORE_DRILL_PG=…;Database=hadal_restore_<time>`: the real gateway boots on the
+   restored data (schema, alliances, world, events, mail, catalog bootstrap), every player loads through
+   `PostgresPlayerRepository` with no negative balance, up to 25 players log in and out, and the balance rollback
+   of §14.5 is exercised, including a restart.
+6. `docker exec hadal-postgres psql -U hadal_app -d postgres -c "DROP DATABASE hadal_restore_<time> WITH (FORCE);"`
+
+Last drill: **2026-10-29**, `before-protected-20261029-1916.sql` (237 KB) restored in 1 s; all 24 tables came back with
+the live row counts (admin_audit 133 vs 134 live, one newer entry); 5 players, 61 buildings, 2 alliances, 2819 world
+nodes loaded; the gateway booted and 5 players logged in; the rollback drill passed. Repeat it monthly and after any
+schema change.
+
+### 14.4 Real restore (operator only)
+
+Only when the live database is lost or corrupted. The gateway must be stopped so nothing writes during the swap.
+
+1. Run the drill (§14.3) on the dump you intend to use, with `KEEP_DB=1`; note the database name `hadal_restore_<time>`.
+2. Stop the gateway only: `docker compose -f /opt/hadal/server/docker-compose.hadal.yml --env-file /opt/hadal/server/.env stop hadal-gateway`
+3. Keep what is there: `docker exec hadal-postgres pg_dump -U hadal_app -d hadal > /opt/hadal/backups/broken-$(date +%Y%m%d-%H%M).sql`
+4. Swap the databases (connected to `postgres`, not to either of them):
+   `ALTER DATABASE hadal RENAME TO hadal_broken_<date>;` then `ALTER DATABASE hadal_restore_<time> RENAME TO hadal;`
+5. Start the gateway: `… up -d hadal-gateway`, then check `curl -fs http://127.0.0.1:19001/health` and the Overseer stats.
+6. Drop `hadal_broken_<date>` only after a few days of normal play.
+
+### 14.5 Balance (catalog) rollback
+
+- **Now:** Overseer panel → Balance → versions → *Restore* on the wanted version (`POST /admin/api/catalog/{v}/restore`,
+  Owner role). It is stored as a new version and swapped in at once: every session first settles its economy under
+  the old rules, then runs on the restored ones. `GET /admin/api/catalog` shows the running version.
+- **Across restarts and deploys:** on start-up `CatalogBootstrap` publishes the image's catalog file when its design
+  `version` is newer than the stored one, which would undo the rollback. Pin it: set
+  `HADAL_PUBLISH_CATALOG_UP_TO=<design version you rolled back to>` in `/opt/hadal/server/.env` before the next
+  restart or deploy (or ship an image with the older file). The drill showed exactly this: a rollback to design 9 was
+  superseded on restart by the release file's design 10.
+- The drill also checks that the older version still loads under today's code; a version that no longer validates
+  cannot be rolled back to.
+
+### 14.6 Disbanded alliances
+
+Documents of an alliance (`hadal.alliance_docs` keys `a:<allianceId>:log|battle|gifts|research|kills`) are deleted
+when the last member leaves, and on every start-up any left without an alliance are deleted. A player's own purse
+(`p:<playerId>:coins`) stays. Nothing to do by hand.
+
+### 14.7 Open items
+
+- Traces of the old deploy-time tests in the live database (found read-only on 2026-10-29): 45 `admin_audit` rows
+  with action `test` by `pg-…` admins (2026-10-25 → 2026-10-29 19:17), and the `catalog_versions` sequence stands at
+  58 while the newest version is 39 (each run published and deleted a test catalog). Each of those deploys also
+  briefly set the maintenance flag and then cleared the live-ops settings (maintenance off, announcement empty), so
+  re-enter the announcement if one was set. The audit rows are harmless; remove them only if wanted, after a backup:
+  `DELETE FROM hadal.admin_audit WHERE action = 'test' AND admin LIKE 'pg-%';`
+- No scheduled backup: a daily `pg_dump` cron on CT 160 with a 14-day rotation, plus a copy off the host.
 
 ---
 
