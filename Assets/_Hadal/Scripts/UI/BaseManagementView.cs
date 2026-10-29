@@ -181,6 +181,11 @@ namespace Hadal.UI
                 OpenMap = () => { Close(); _social.Close(); _map.Open(); }
             });
 
+            // Last Asylum's City List, opened from the alliance hub (docs/32 §2.4).
+            var cities = new GameObject("CityList");
+            cities.transform.SetParent(transform, false);
+            cities.AddComponent<CityList>().Initialize(_stateSync, _commands, (x, y) => _social.ShowOnMap(x, y));
+
             var speedups = new GameObject("SpeedupWindow");
             speedups.transform.SetParent(transform, false);
             speedups.AddComponent<SpeedupWindow>().Initialize(_stateSync, _commands, _localBus);

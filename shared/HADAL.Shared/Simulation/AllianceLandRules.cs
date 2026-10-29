@@ -51,6 +51,9 @@ namespace HADAL.Shared.Simulation
         /// <summary>Donation points from level n to n + 1.</summary>
         public static long HubPoints(int level) => 40_000L * level * level;
 
+        /// <summary>The City Bonus: each owned city gives the alliance's members this much gathering speed, anywhere.</summary>
+        public const int CityGatherPercent = 5;
+
         /// <summary>Cities an alliance may hold (Last Asylum's "6/6").</summary>
         public static int MaxCities(int members) => Math.Min(6, 1 + Math.Max(0, members) / 3);
 

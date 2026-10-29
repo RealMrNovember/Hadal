@@ -78,6 +78,7 @@ namespace Hadal.UI
                     () => OpenAllianceTab(AllianceTabResearch)),
                 (Loc.T("alliance.tile.rankings"), "power", false, () => OpenAllianceRankings(0)),
                 (Loc.T("alliance.tile.rally"), "nav_world", false, () => { Close(); RallyPointPrompt.Instance?.OpenRallyPoint(); }),
+                (Loc.T("city.list"), "left_home", false, () => { Close(); CityList.Instance?.Open(); }),
                 (Loc.T("alliance.tile.log"), "quest", false, () => OpenAllianceLog(AllianceLogKinds.Log))
             };
             for (var start = 0; start < tiles.Length; start += 2)

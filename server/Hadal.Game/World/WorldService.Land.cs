@@ -263,9 +263,13 @@ ON CONFLICT (id) DO UPDATE SET world_id = EXCLUDED.world_id, alliance_id = EXCLU
         {
             EnsureLand(_clock.UtcNow);
             var alliance = _social.AllianceIdOf(playerId);
-            return alliance.Length > 0 && LandOwner(x, y) == alliance
-                ? TerritoryRules.GatherBonus + LandBonus(alliance, AllianceLandRules.Rig, x, y, _clock.UtcNow) / 100.0
-                : 0;
+            if (alliance.Length == 0)
+                return 0;
+            // Every city the alliance holds adds its City Bonus anywhere (Last Asylum's +5 % each, docs/32 §2.4).
+            var cities = Regions.Count(r => r.AllianceId == alliance) * AllianceLandRules.CityGatherPercent / 100.0;
+            return LandOwner(x, y) == alliance
+                ? TerritoryRules.GatherBonus + LandBonus(alliance, AllianceLandRules.Rig, x, y, _clock.UtcNow) / 100.0 + cities
+                : cities;
         }
 
         /// <summary>A free tile on the alliance's land nearest its hub (alliance teleport). Caller holds the lock.</summary>

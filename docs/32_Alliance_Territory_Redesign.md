@@ -61,8 +61,8 @@ by donations** (Lv 1–5), **defended** by members' reinforcing teams, and **att
   be attacked; shields do not cover structures.
 
 ### 2.4 Cities (Şehirler) — the old strongholds, as LA's City List
-- The 100 strongholds stay as **cities** (points, not regions): level by belt, an NPC garrison, +5 % gathering of
-  one resource for every member while owned (Biomass, Titanium or Food by city index).
+- The 100 strongholds stay as **cities** (points, not regions): level by belt, an NPC garrison, and a **City Bonus**
+  of +5 % gathering speed for every member, anywhere, per city held.
 - Capture by attack/rally only if the city lies within 4 tiles of the alliance's land ("neighbouring cities").
   Limit `min(6, 1 + members / 3)` owned cities. The Throne (Lv 7) stays closed.
 - The map no longer fills regions per city. City labels show only for my alliance's cities, under attack ones, and

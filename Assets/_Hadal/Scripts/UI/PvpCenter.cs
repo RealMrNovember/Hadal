@@ -342,9 +342,58 @@ namespace Hadal.UI
                 if (r.Kind == "scout")
                     detail.Add(Loc.F("pvp.scout.result", r.DefenderPower.ToString("N0"), r.Reinforcements));
                 UiKit.Label("Detail", row.transform, string.Join("   ", detail), 22, UiKit.Muted, TextAnchor.UpperLeft).rectTransform.Place(0.03f, 0.04f, 0.97f, 0.5f);
-                var x = r.X;
-                var y = r.Y;
-                row.gameObject.AddComponent<Button>().onClick.AddListener(() => { Close(); _actions.ShowOnMap?.Invoke(x, y); });
+                var report = r;
+                row.gameObject.AddComponent<Button>().onClick.AddListener(() => ShowReport(report));
+            }
+        }
+
+        /// <summary>
+        /// The result screen (docs/33 §2): both armies with their start and losses by type, our dead and wounded, the loot
+        /// and its share, our contribution, rounds, and the battle id, seed and rule version. The server computed all of it.
+        /// </summary>
+        private void ShowReport(PvpReportDto r)
+        {
+            ClearBody();
+            _renderedLog = View.WarLogVersion; // stay on the report until the player goes back
+            UiKit.Label("Title", _body, ReportLine(r), 28, Won(r) ? UiKit.Ok : UiKit.Danger, TextAnchor.UpperLeft, FontStyle.Bold).rectTransform.Place(0, 0.88f, 1, 1);
+            var lines = new List<string>
+            {
+                Loc.F("world.coords", r.X, r.Y) + "   " + Loc.F("pvp.ago", Loc.Duration(Math.Max(0, (View.ServerNowMs - r.AtMs) / 1000f)))
+            };
+            if (r.Rounds > 0)
+                lines.Add(Loc.F("report.rounds", r.Rounds) + "   " + Loc.F("report.powers", r.AttackerPower.ToString("N0"), r.DefenderPower.ToString("N0")));
+            if (r.Dead + r.Wounded > 0)
+                lines.Add(Loc.F("pvp.losses", r.Dead.ToString("N0"), r.Wounded.ToString("N0")));
+            var loot = (r.Plunder ?? Array.Empty<ResourceAmountEntry>()).Where(p => p.Value > 0).ToList();
+            if (loot.Count > 0)
+                lines.Add(Loc.T("report.loot") + " " + string.Join("  ", loot.Select(p => $"{CostChips.Compact(p.Value)} {Loc.T("resource." + p.Key)}")));
+            if (r.PlunderShare < 100 && r.Kind is "attack" or "rally")
+                lines.Add(Loc.F("report.fatigue", r.PlunderShare));
+            if (r.Contribution > 0 && r.Contribution < 100)
+                lines.Add(Loc.F("report.contribution", r.Contribution));
+            if (r.Kind == "scout")
+                lines.Add(Loc.F("pvp.scout.result", r.DefenderPower.ToString("N0"), r.Reinforcements));
+            UiKit.Label("Lines", _body, string.Join("\n", lines), 22, UiKit.Text, TextAnchor.UpperLeft).rectTransform.Place(0, 0.62f, 1, 0.88f);
+
+            // The two armies, type by type.
+            Army(Loc.T("report.attacker"), r.Attacker, 0f, 0.5f);
+            Army(Loc.T("report.defender"), r.Defender, 0.5f, 1f);
+            if (r.RuleVersion > 0)
+                UiKit.Label("Seed", _body, Loc.F("report.integrity", r.Id, r.Seed, r.RuleVersion), 16, UiKit.Muted, TextAnchor.LowerLeft)
+                    .rectTransform.Place(0, 0.1f, 1, 0.15f);
+            var back = UiKit.Button("Back", _body, Loc.T("report.back"), () => { _renderedLog = -1; }, UiKit.Field, 26);
+            ((RectTransform)back.transform).Place(0, 0, 0.45f, 0.09f);
+            var x = r.X;
+            var y = r.Y;
+            var go = UiKit.Button("Go", _body, Loc.T("pvp.go"), () => { Close(); _actions.ShowOnMap?.Invoke(x, y); }, UiKit.Primary, 26);
+            ((RectTransform)go.transform).Place(0.55f, 0, 1, 0.09f);
+
+            void Army(string title, BattleStackDto[] stacks, float x0, float x1)
+            {
+                UiKit.Label("Side", _body, title, 24, UiKit.Accent, TextAnchor.MiddleLeft, FontStyle.Bold).rectTransform.Place(x0, 0.56f, x1, 0.61f);
+                var text = string.Join("\n", (stacks ?? Array.Empty<BattleStackDto>()).Select(s =>
+                    $"{Loc.T("troop." + s.Type)} T{s.Tier}: {CostChips.Compact(s.Start)} <color=#FF8A80>−{CostChips.Compact(s.Lost)}</color>"));
+                UiKit.Label("Stacks", _body, text.Length == 0 ? "—" : text, 20, UiKit.Text, TextAnchor.UpperLeft).rectTransform.Place(x0, 0.16f, x1, 0.56f);
             }
         }
 
