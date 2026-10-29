@@ -1,7 +1,7 @@
 # HADAL — Proje Yol Haritası
 
 **Güncelleme:** 2026-10-29
-**Yayındaki sürüm:** istemci **0.9.2** (Android, `hadal.cicibyte.com/download/hadal.apk`); sunucu `main` @ `7433162` (CT 160).
+**Yayındaki sürüm:** istemci **0.9.3** (Android, `hadal.cicibyte.com/download/hadal.apk`); sunucu `main` @ `e919bd5` (CT 160), katalog v12 (canlı v59).
 **Sürüm kuralı:** Oyun 1.0'a kadar **0.x** ile ilerler. Android sürüm kodu `1.000.000 + major·10000 + minor·100 + patch`.
 
 **Kaynaklar:**
@@ -38,7 +38,7 @@ Sıralama araştırmanın ana önerisine göre yapıldı (§16): önce **kaynak 
 | **2** | PvP adaleti ve savaş motoru sürümlemesi | Tamamlandı; kahraman metası ve sezon savaşı sonraki aşamalarda (docs/33). | ✅ |
 | **3** | İttifak bölgesi ve ittifak binaları | A, B aşamaları ve Şehir Listesi canlıda (docs/32). | ✅ |
 | **4** | Yeni deniz yaratıkları ve etkinlik boss'ları | Tamamlandı; boss hasar tablosu ve katkı ödülü sonra. | ✅ |
-| **5** | İlk oturum akışı ve öğretici | Rehber, kilit görünürlüğü ve huni ölçümü kodda; yayın ve ilk huni verisi bekleniyor (docs/34). | 🟡 |
+| **5** | İlk oturum akışı ve öğretici | 0.9.3 ile yayında; ödüller ilk huni verisiyle ayarlanacak (docs/34). | ✅ |
 | **6** | Hayatta kalma döngüsü (oksijen, enerji, acil durum) | Oyunun kendine has gerilimi; temayı ekonomiye bağlar. | ⬜ |
 | **7** | Etkinlik takvimi ve ittifak etkinlikleri | Günlük geri dönüş ve ortak hedef (§6.2, docs/29 E2–E6). | ⬜ |
 | **8** | Asenkron arena ve düello | Kısa oturumlu, adil PvP (§5.1, §13.1). | ⬜ |
@@ -140,7 +140,7 @@ Ayrıntılar aşağıda, aynı sırayla.
 
 ---
 
-## 5. İlk oturum akışı ve öğretici 🟡
+## 5. İlk oturum akışı ve öğretici ✅
 
 **Hedef:** Araştırma §16'nın ilk sorusu: "Oyuncu ilk 10 dakikada ne yaptığını anlıyor mu?" Ayrıntı: `docs/34_First_Session_Guide.md`.
 
@@ -149,7 +149,9 @@ Ayrıntılar aşağıda, aynı sırayla.
 - ✅ Kilit görünürlüğü: Araştırma ve PvP düğmelerinde "Sv.X" rozeti, görev panelinde "Yakında açılacaklar".
 - ✅ İlk gün hedefi: ittifaka katılma, ittifak sohbetine bir mesaj, bir yardım alma ya da verme (ödüllü).
 - ✅ Huni ölçümü: `hadal.onboarding_events` + Overseer "İlk Oturum Hunisi" (adım başına ulaşan, ortanca süre, ilk 10 dakikada takılan oranı).
-- ⬜ Yayın (sunucu + 0.9.3) ve ilk huni verisiyle adım ödüllerinin ayarı
+- ✅ Yayın: sunucu `35d78a0`, istemci 0.9.3, katalog 12 (canlıda v59)
+- ✅ İsim kuralı: küfür, görünmez karakter, `< >` ve emoji dışında her isim serbest; gizlenmiş küfürleri yakalayan filtre (`e919bd5`)
+- ⬜ İlk huni verisiyle adım ödüllerinin ayarı
 
 **Çıkış kriteri:** Yeni hesap yardımsız ilk kilometre taşına ulaşır. Huniden ilk 10 dakikada terk oranı ölçülür.
 
