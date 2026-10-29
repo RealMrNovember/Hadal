@@ -25,6 +25,13 @@ namespace Hadal.Game.Social
 
         Task SaveAllianceAsync(AllianceRecord alliance, CancellationToken cancellationToken);
 
+        /// <summary>Every alliance document (SocialStore.Docs): logs and the alliance economy, as JSON by key.</summary>
+        Task<List<(string Key, string Json)>> LoadDocsAsync(CancellationToken cancellationToken);
+
+        Task SaveDocAsync(string key, string json, CancellationToken cancellationToken);
+
+        Task DeleteDocsAsync(string prefix, CancellationToken cancellationToken);
+
         Task DeleteAllianceAsync(string allianceId, CancellationToken cancellationToken);
 
         Task SaveMemberAsync(MemberRecord member, CancellationToken cancellationToken);
@@ -36,7 +43,7 @@ namespace Hadal.Game.Social
         Task DeleteChatAsync(long messageId, CancellationToken cancellationToken);
     }
 
-    public sealed class InMemorySocialStore : ISocialStore
+    public sealed partial class InMemorySocialStore : ISocialStore
     {
         private readonly ConcurrentDictionary<string, AllianceRecord> _alliances = new();
         private readonly ConcurrentDictionary<string, MemberRecord> _members = new();

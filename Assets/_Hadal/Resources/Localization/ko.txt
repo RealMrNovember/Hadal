@@ -1170,3 +1170,23 @@ alliance.language = 연맹 언어
 alliance.leader.title = 연맹 맹주
 alliance.titles = 간부 직위
 alliance.duty.empty = 공석
+
+# Alliance log and battle log (docs/31 §2)
+alliance.log.tab.members = 가입 / 탈퇴
+alliance.log.tab.ranks = 계급
+alliance.log.tab.research = 연구
+alliance.log.loading = 불러오는 중…
+alliance.log.empty = 아직 기록이 없습니다.
+alliance.log.joined = {0}님이 연맹에 가입했습니다.
+alliance.log.left = {0}님이 연맹을 떠났습니다.
+alliance.log.kicked = {0}님이 연맹에서 추방되었습니다.
+alliance.log.rank = {0}님은 이제 {1}입니다.
+alliance.log.leader = {0}님이 새 연맹 맹주입니다.
+alliance.log.research = {0}님이 {1}을(를) Lv {2}(으)로 올렸습니다.
+alliance.battle.attack_won = {0}님이 {1}을(를) 공격해 승리 (X:{2} Y:{3}).
+alliance.battle.attack_lost = {0}님이 {1}을(를) 공격해 패배 (X:{2} Y:{3}).
+alliance.battle.defence_won = {1}님이 {0}님의 공격을 막아냄 (X:{2} Y:{3}).
+alliance.battle.defence_lost = {0}님이 {1}님의 기지를 격파 (X:{2} Y:{3}).
+alliance.battle.scout = {0}님이 {1}을(를) 정찰 (X:{2} Y:{3}).
+alliance.battle.rally_won = {0}님의 집결이 {1}에 승리 (X:{2} Y:{3}).
+alliance.battle.rally_lost = {0}님의 집결이 {1}에 패배 (X:{2} Y:{3}).

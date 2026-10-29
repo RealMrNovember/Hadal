@@ -225,6 +225,13 @@ namespace Hadal.Core.StateSync
                 return true;
             }
 
+            if (id.StartsWith(EntityIds.AllianceLog, StringComparison.Ordinal))
+            {
+                if (TryDeserializePayload(change.Payload, serialization, out AllianceLogDto allianceLog))
+                    view.ApplyAllianceLog(allianceLog);
+                return true;
+            }
+
             if (id.StartsWith(EntityIds.HelpReceived, StringComparison.Ordinal))
             {
                 if (TryDeserializePayload(change.Payload, serialization, out HelpReceivedDto helped))

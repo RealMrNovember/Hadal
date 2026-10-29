@@ -1170,3 +1170,23 @@ alliance.language = Lingua dell'alleanza
 alliance.leader.title = Capo dell'alleanza
 alliance.titles = Titoli degli ufficiali
 alliance.duty.empty = Vacante
+
+# Alliance log and battle log (docs/31 §2)
+alliance.log.tab.members = Ingressi / uscite
+alliance.log.tab.ranks = Gradi
+alliance.log.tab.research = Ricerca
+alliance.log.loading = Caricamento…
+alliance.log.empty = Ancora nessuna voce.
+alliance.log.joined = {0} è entrato nell'alleanza.
+alliance.log.left = {0} ha lasciato l'alleanza.
+alliance.log.kicked = {0} è stato espulso dall'alleanza.
+alliance.log.rank = {0} ora è {1}.
+alliance.log.leader = {0} è il nuovo capo dell'alleanza.
+alliance.log.research = {0} ha portato {1} al liv. {2}.
+alliance.battle.attack_won = {0} ha attaccato {1} e ha vinto (X:{2} Y:{3}).
+alliance.battle.attack_lost = {0} ha attaccato {1} e ha perso (X:{2} Y:{3}).
+alliance.battle.defence_won = {1} ha respinto l'attacco di {0} (X:{2} Y:{3}).
+alliance.battle.defence_lost = {0} ha sconfitto la base di {1} (X:{2} Y:{3}).
+alliance.battle.scout = {0} ha esplorato {1} (X:{2} Y:{3}).
+alliance.battle.rally_won = Il raduno di {0} ha sconfitto {1} (X:{2} Y:{3}).
+alliance.battle.rally_lost = Il raduno di {0} ha perso contro {1} (X:{2} Y:{3}).

@@ -1170,3 +1170,23 @@ alliance.language = ภาษาของพันธมิตร
 alliance.leader.title = ผู้นำพันธมิตร
 alliance.titles = ตำแหน่งเจ้าหน้าที่
 alliance.duty.empty = ว่าง
+
+# Alliance log and battle log (docs/31 §2)
+alliance.log.tab.members = เข้าร่วม / ออก
+alliance.log.tab.ranks = ยศ
+alliance.log.tab.research = วิจัย
+alliance.log.loading = กำลังโหลด…
+alliance.log.empty = ยังไม่มีบันทึก
+alliance.log.joined = {0} เข้าร่วมพันธมิตร
+alliance.log.left = {0} ออกจากพันธมิตร
+alliance.log.kicked = {0} ถูกไล่ออกจากพันธมิตร
+alliance.log.rank = ตอนนี้ {0} เป็น {1}
+alliance.log.leader = {0} เป็นผู้นำพันธมิตรคนใหม่
+alliance.log.research = {0} อัปเกรด {1} เป็นระดับ {2}
+alliance.battle.attack_won = {0} โจมตี {1} และชนะ (X:{2} Y:{3})
+alliance.battle.attack_lost = {0} โจมตี {1} และแพ้ (X:{2} Y:{3})
+alliance.battle.defence_won = {1} ต้านการโจมตีของ {0} ได้ (X:{2} Y:{3})
+alliance.battle.defence_lost = {0} เอาชนะฐานของ {1} (X:{2} Y:{3})
+alliance.battle.scout = {0} สอดแนม {1} (X:{2} Y:{3})
+alliance.battle.rally_won = การรวมพลของ {0} ชนะ {1} (X:{2} Y:{3})
+alliance.battle.rally_lost = การรวมพลของ {0} แพ้ {1} (X:{2} Y:{3})

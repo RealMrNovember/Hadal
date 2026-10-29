@@ -1170,3 +1170,23 @@ alliance.language = Bahasa pakatan
 alliance.leader.title = Ketua Pakatan
 alliance.titles = Gelaran pegawai
 alliance.duty.empty = Kosong
+
+# Alliance log and battle log (docs/31 §2)
+alliance.log.tab.members = Masuk / keluar
+alliance.log.tab.ranks = Pangkat
+alliance.log.tab.research = Penyelidikan
+alliance.log.loading = Memuatkan…
+alliance.log.empty = Belum ada rekod.
+alliance.log.joined = {0} menyertai pakatan.
+alliance.log.left = {0} meninggalkan pakatan.
+alliance.log.kicked = {0} disingkirkan daripada pakatan.
+alliance.log.rank = {0} kini {1}.
+alliance.log.leader = {0} ialah ketua pakatan yang baharu.
+alliance.log.research = {0} menaikkan {1} ke Tahap {2}.
+alliance.battle.attack_won = {0} menyerang {1} dan menang (X:{2} Y:{3}).
+alliance.battle.attack_lost = {0} menyerang {1} dan kalah (X:{2} Y:{3}).
+alliance.battle.defence_won = {1} menangkis serangan {0} (X:{2} Y:{3}).
+alliance.battle.defence_lost = {0} menewaskan pangkalan {1} (X:{2} Y:{3}).
+alliance.battle.scout = {0} meninjau {1} (X:{2} Y:{3}).
+alliance.battle.rally_won = Himpunan {0} menewaskan {1} (X:{2} Y:{3}).
+alliance.battle.rally_lost = Himpunan {0} tewas kepada {1} (X:{2} Y:{3}).

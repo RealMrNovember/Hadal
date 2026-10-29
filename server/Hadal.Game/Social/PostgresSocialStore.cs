@@ -4,7 +4,7 @@ using Npgsql;
 namespace Hadal.Game.Social
 {
     /// <summary>Alliances, members and chat in schema <c>hadal</c> (docs/25).</summary>
-    public sealed class PostgresSocialStore : ISocialStore
+    public sealed partial class PostgresSocialStore : ISocialStore
     {
         private const string Schema = @"
 CREATE SCHEMA IF NOT EXISTS hadal;
@@ -57,7 +57,7 @@ ALTER TABLE hadal.alliance_members ADD COLUMN IF NOT EXISTS last_seen timestampt
         }
 
         public Task InitializeAsync(CancellationToken cancellationToken) =>
-            PostgresSchema.ApplyAsync(_dataSource, Schema, cancellationToken);
+            PostgresSchema.ApplyAsync(_dataSource, Schema + DocsSchema, cancellationToken);
 
         public async Task<(List<AllianceRecord> Alliances, List<MemberRecord> Members)> LoadAlliancesAsync(CancellationToken cancellationToken)
         {

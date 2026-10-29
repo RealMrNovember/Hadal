@@ -1170,3 +1170,23 @@ alliance.language = 联盟语言
 alliance.leader.title = 盟主
 alliance.titles = 官员职位
 alliance.duty.empty = 空缺
+
+# Alliance log and battle log (docs/31 §2)
+alliance.log.tab.members = 加入 / 退出
+alliance.log.tab.ranks = 职位
+alliance.log.tab.research = 科技
+alliance.log.loading = 加载中…
+alliance.log.empty = 暂无记录。
+alliance.log.joined = {0}加入了联盟。
+alliance.log.left = {0}离开了联盟。
+alliance.log.kicked = {0}被移出了联盟。
+alliance.log.rank = {0}现在是{1}。
+alliance.log.leader = {0}成为新的盟主。
+alliance.log.research = {0}将{1}提升到{2}级。
+alliance.battle.attack_won = {0}进攻{1}并获胜（X:{2} Y:{3}）。
+alliance.battle.attack_lost = {0}进攻{1}失败（X:{2} Y:{3}）。
+alliance.battle.defence_won = {1}击退了{0}的进攻（X:{2} Y:{3}）。
+alliance.battle.defence_lost = {0}击败了{1}的基地（X:{2} Y:{3}）。
+alliance.battle.scout = {0}侦察了{1}（X:{2} Y:{3}）。
+alliance.battle.rally_won = {0}的集结击败了{1}（X:{2} Y:{3}）。
+alliance.battle.rally_lost = {0}的集结败给了{1}（X:{2} Y:{3}）。

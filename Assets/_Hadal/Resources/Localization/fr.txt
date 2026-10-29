@@ -1170,3 +1170,23 @@ alliance.language = Langue de l'alliance
 alliance.leader.title = Chef de l'alliance
 alliance.titles = Titres d'officiers
 alliance.duty.empty = Vacant
+
+# Alliance log and battle log (docs/31 §2)
+alliance.log.tab.members = Arrivées / départs
+alliance.log.tab.ranks = Rangs
+alliance.log.tab.research = Recherche
+alliance.log.loading = Chargement…
+alliance.log.empty = Rien pour l'instant.
+alliance.log.joined = {0} a rejoint l'alliance.
+alliance.log.left = {0} a quitté l'alliance.
+alliance.log.kicked = {0} a été exclu de l'alliance.
+alliance.log.rank = {0} est maintenant {1}.
+alliance.log.leader = {0} est le nouveau chef de l'alliance.
+alliance.log.research = {0} a porté {1} au niv. {2}.
+alliance.battle.attack_won = {0} a attaqué {1} et gagné (X:{2} Y:{3}).
+alliance.battle.attack_lost = {0} a attaqué {1} et perdu (X:{2} Y:{3}).
+alliance.battle.defence_won = {1} a repoussé l'attaque de {0} (X:{2} Y:{3}).
+alliance.battle.defence_lost = {0} a vaincu la base de {1} (X:{2} Y:{3}).
+alliance.battle.scout = {0} a espionné {1} (X:{2} Y:{3}).
+alliance.battle.rally_won = Le ralliement de {0} a vaincu {1} (X:{2} Y:{3}).
+alliance.battle.rally_lost = Le ralliement de {0} a perdu contre {1} (X:{2} Y:{3}).

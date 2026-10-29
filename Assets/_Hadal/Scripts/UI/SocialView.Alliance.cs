@@ -181,6 +181,14 @@ namespace Hadal.UI
                     BackToHub();
                     RenderApplications(alliance);
                     return;
+                case AllianceTabLog:
+                    BackToHub();
+                    RenderAllianceLog(AllianceLogKinds.Log);
+                    return;
+                case AllianceTabBattleLog:
+                    BackToHub();
+                    RenderAllianceLog(AllianceLogKinds.Battle);
+                    return;
                 case AllianceTabSettings when AlliancePermissions.CanEditAnnouncement(myRank):
                     BackToHub();
                     RenderSettings(alliance, myRank);

@@ -1170,3 +1170,23 @@ alliance.language = Ngôn ngữ liên minh
 alliance.leader.title = Thủ lĩnh liên minh
 alliance.titles = Chức danh sĩ quan
 alliance.duty.empty = Còn trống
+
+# Alliance log and battle log (docs/31 §2)
+alliance.log.tab.members = Gia nhập / rời đi
+alliance.log.tab.ranks = Cấp bậc
+alliance.log.tab.research = Nghiên cứu
+alliance.log.loading = Đang tải…
+alliance.log.empty = Chưa có nhật ký.
+alliance.log.joined = {0} đã gia nhập liên minh.
+alliance.log.left = {0} đã rời liên minh.
+alliance.log.kicked = {0} đã bị loại khỏi liên minh.
+alliance.log.rank = {0} giờ là {1}.
+alliance.log.leader = {0} là thủ lĩnh liên minh mới.
+alliance.log.research = {0} đã nâng {1} lên cấp {2}.
+alliance.battle.attack_won = {0} tấn công {1} và thắng (X:{2} Y:{3}).
+alliance.battle.attack_lost = {0} tấn công {1} và thua (X:{2} Y:{3}).
+alliance.battle.defence_won = {1} đẩy lùi cuộc tấn công của {0} (X:{2} Y:{3}).
+alliance.battle.defence_lost = {0} đánh bại căn cứ của {1} (X:{2} Y:{3}).
+alliance.battle.scout = {0} trinh sát {1} (X:{2} Y:{3}).
+alliance.battle.rally_won = Tập kết của {0} đánh bại {1} (X:{2} Y:{3}).
+alliance.battle.rally_lost = Tập kết của {0} thua {1} (X:{2} Y:{3}).

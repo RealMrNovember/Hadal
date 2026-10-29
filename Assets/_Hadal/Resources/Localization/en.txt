@@ -1171,3 +1171,23 @@ alliance.language = Alliance language
 alliance.leader.title = Alliance Leader
 alliance.titles = Officer titles
 alliance.duty.empty = Vacant
+
+# Alliance log and battle log (docs/31 §2)
+alliance.log.tab.members = Joins / leaves
+alliance.log.tab.ranks = Ranks
+alliance.log.tab.research = Research
+alliance.log.loading = Loading…
+alliance.log.empty = Nothing logged yet.
+alliance.log.joined = {0} joined the alliance.
+alliance.log.left = {0} left the alliance.
+alliance.log.kicked = {0} was removed from the alliance.
+alliance.log.rank = {0} is now {1}.
+alliance.log.leader = {0} is the new alliance leader.
+alliance.log.research = {0} raised {1} to Lv {2}.
+alliance.battle.attack_won = {0} attacked {1} and won (X:{2} Y:{3}).
+alliance.battle.attack_lost = {0} attacked {1} and lost (X:{2} Y:{3}).
+alliance.battle.defence_won = {1} drove off {0}'s attack (X:{2} Y:{3}).
+alliance.battle.defence_lost = {0} defeated {1}'s base (X:{2} Y:{3}).
+alliance.battle.scout = {0} scouted {1} (X:{2} Y:{3}).
+alliance.battle.rally_won = {0}'s rally defeated {1} (X:{2} Y:{3}).
+alliance.battle.rally_lost = {0}'s rally lost to {1} (X:{2} Y:{3}).

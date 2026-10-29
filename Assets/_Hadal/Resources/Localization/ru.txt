@@ -1170,3 +1170,23 @@ alliance.language = Язык альянса
 alliance.leader.title = Лидер альянса
 alliance.titles = Должности офицеров
 alliance.duty.empty = Свободно
+
+# Alliance log and battle log (docs/31 §2)
+alliance.log.tab.members = Вступления / выходы
+alliance.log.tab.ranks = Ранги
+alliance.log.tab.research = Исследования
+alliance.log.loading = Загрузка…
+alliance.log.empty = Записей пока нет.
+alliance.log.joined = {0} вступил в альянс.
+alliance.log.left = {0} покинул альянс.
+alliance.log.kicked = {0} исключён из альянса.
+alliance.log.rank = {0} теперь {1}.
+alliance.log.leader = {0} — новый лидер альянса.
+alliance.log.research = {0} повысил {1} до ур. {2}.
+alliance.battle.attack_won = {0} атаковал {1} и победил (X:{2} Y:{3}).
+alliance.battle.attack_lost = {0} атаковал {1} и проиграл (X:{2} Y:{3}).
+alliance.battle.defence_won = {1} отбил атаку {0} (X:{2} Y:{3}).
+alliance.battle.defence_lost = {0} разбил базу {1} (X:{2} Y:{3}).
+alliance.battle.scout = {0} разведал {1} (X:{2} Y:{3}).
+alliance.battle.rally_won = Сбор {0} победил {1} (X:{2} Y:{3}).
+alliance.battle.rally_lost = Сбор {0} проиграл {1} (X:{2} Y:{3}).

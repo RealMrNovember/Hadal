@@ -91,6 +91,9 @@ namespace HADAL.Shared.Protocol
         /// <summary>Invitations and applications of a player without an alliance (<c>AllianceInviteListDto</c>).</summary>
         public const string AllianceInvites = Alliance + "invites";
 
+        /// <summary>Prefix of an alliance log (<c>AllianceLogDto</c>), followed by its kind ("log" or "battle").</summary>
+        public const string AllianceLog = Alliance + "log:";
+
         /// <summary>VIP points, level and today's claims (<c>VipStateDto</c>).</summary>
         public const string Vip = Base + "vip";
 

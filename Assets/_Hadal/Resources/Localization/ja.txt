@@ -1170,3 +1170,23 @@ alliance.language = 同盟の言語
 alliance.leader.title = 同盟リーダー
 alliance.titles = 役職
 alliance.duty.empty = 空席
+
+# Alliance log and battle log (docs/31 §2)
+alliance.log.tab.members = 加入 / 脱退
+alliance.log.tab.ranks = 階級
+alliance.log.tab.research = 研究
+alliance.log.loading = 読み込み中…
+alliance.log.empty = 記録はまだありません。
+alliance.log.joined = {0}が同盟に加入しました。
+alliance.log.left = {0}が同盟を脱退しました。
+alliance.log.kicked = {0}が同盟から除名されました。
+alliance.log.rank = {0}は{1}になりました。
+alliance.log.leader = {0}が新しい同盟リーダーです。
+alliance.log.research = {0}が{1}をLv{2}に上げました。
+alliance.battle.attack_won = {0}が{1}を攻撃し勝利（X:{2} Y:{3}）。
+alliance.battle.attack_lost = {0}が{1}を攻撃し敗北（X:{2} Y:{3}）。
+alliance.battle.defence_won = {1}が{0}の攻撃を撃退（X:{2} Y:{3}）。
+alliance.battle.defence_lost = {0}が{1}の基地を撃破（X:{2} Y:{3}）。
+alliance.battle.scout = {0}が{1}を偵察（X:{2} Y:{3}）。
+alliance.battle.rally_won = {0}の集結が{1}に勝利（X:{2} Y:{3}）。
+alliance.battle.rally_lost = {0}の集結が{1}に敗北（X:{2} Y:{3}）。

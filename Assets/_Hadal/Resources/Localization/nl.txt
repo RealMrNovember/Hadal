@@ -1170,3 +1170,23 @@ alliance.language = Alliantietaal
 alliance.leader.title = Alliantieleider
 alliance.titles = Officierstitels
 alliance.duty.empty = Vacant
+
+# Alliance log and battle log (docs/31 §2)
+alliance.log.tab.members = Toetredingen / vertrek
+alliance.log.tab.ranks = Rangen
+alliance.log.tab.research = Onderzoek
+alliance.log.loading = Laden…
+alliance.log.empty = Nog niets vastgelegd.
+alliance.log.joined = {0} is lid geworden van de alliantie.
+alliance.log.left = {0} heeft de alliantie verlaten.
+alliance.log.kicked = {0} is uit de alliantie gezet.
+alliance.log.rank = {0} is nu {1}.
+alliance.log.leader = {0} is de nieuwe alliantieleider.
+alliance.log.research = {0} heeft {1} naar niv. {2} gebracht.
+alliance.battle.attack_won = {0} viel {1} aan en won (X:{2} Y:{3}).
+alliance.battle.attack_lost = {0} viel {1} aan en verloor (X:{2} Y:{3}).
+alliance.battle.defence_won = {1} sloeg de aanval van {0} af (X:{2} Y:{3}).
+alliance.battle.defence_lost = {0} versloeg de basis van {1} (X:{2} Y:{3}).
+alliance.battle.scout = {0} verkende {1} (X:{2} Y:{3}).
+alliance.battle.rally_won = De verzameling van {0} versloeg {1} (X:{2} Y:{3}).
+alliance.battle.rally_lost = De verzameling van {0} verloor van {1} (X:{2} Y:{3}).

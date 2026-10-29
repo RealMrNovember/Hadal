@@ -169,6 +169,7 @@ namespace Hadal.Core.Network
                 DeleteMailCommand => CommandType.DeleteMail,
                 SendMailCommand => CommandType.SendMail,
                 SetAllianceInfoCommand => CommandType.SetAllianceInfo,
+                ViewAllianceLogCommand => CommandType.ViewAllianceLog,
                 MarchAttackCommand => CommandType.MarchAttack,
                 MarchPvpCommand => CommandType.MarchPvp,
                 ViewWarCommand => CommandType.ViewWar,

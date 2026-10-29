@@ -1171,3 +1171,23 @@ alliance.language = İttifak dili
 alliance.leader.title = İttifak Lideri
 alliance.titles = Görevliler
 alliance.duty.empty = Boş
+
+# Alliance log and battle log (docs/31 §2)
+alliance.log.tab.members = Katılma / Ayrılma
+alliance.log.tab.ranks = Rütbe
+alliance.log.tab.research = Araştırma
+alliance.log.loading = Yükleniyor…
+alliance.log.empty = Henüz kayıt yok.
+alliance.log.joined = {0} ittifaka katıldı.
+alliance.log.left = {0} ittifaktan ayrıldı.
+alliance.log.kicked = {0} ittifaktan çıkarıldı.
+alliance.log.rank = {0} artık {1}.
+alliance.log.leader = {0} yeni ittifak lideri.
+alliance.log.research = {0}, {1} araştırmasını Sv. {2} yaptı.
+alliance.battle.attack_won = {0}, {1} üssüne saldırdı ve kazandı (X:{2} Y:{3}).
+alliance.battle.attack_lost = {0}, {1} üssüne saldırdı ve kaybetti (X:{2} Y:{3}).
+alliance.battle.defence_won = {1}, {0} saldırısını püskürttü (X:{2} Y:{3}).
+alliance.battle.defence_lost = {0}, {1} üssünü yendi (X:{2} Y:{3}).
+alliance.battle.scout = {0}, {1} üssünü keşfetti (X:{2} Y:{3}).
+alliance.battle.rally_won = {0} toplanması {1} hedefini yendi (X:{2} Y:{3}).
+alliance.battle.rally_lost = {0} toplanması {1} hedefine yenildi (X:{2} Y:{3}).

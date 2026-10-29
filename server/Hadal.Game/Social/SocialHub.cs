@@ -89,7 +89,7 @@ namespace Hadal.Game.Social
         public static bool Handles(CommandType type) => type is CommandType.SendChat or CommandType.CreateAlliance or CommandType.JoinAlliance
             or CommandType.LeaveAlliance or CommandType.BrowseAlliances or CommandType.KickMember or CommandType.RequestHelp or CommandType.HelpAll
             or CommandType.SetMemberRank or CommandType.TransferLeadership or CommandType.SetAllianceSettings or CommandType.InviteToAlliance
-            or CommandType.AnswerInvite or CommandType.AnswerApplication or CommandType.SetAllianceInfo;
+            or CommandType.AnswerInvite or CommandType.AnswerApplication or CommandType.SetAllianceInfo or CommandType.ViewAllianceLog;
 
         /// <summary>Loads alliances and recent chat. Call once at startup, after the schema exists.</summary>
         public async Task InitializeAsync(CancellationToken cancellationToken)
@@ -125,6 +125,7 @@ namespace Hadal.Game.Social
             }
 
             _logger.LogInformation("Social hub: {Alliances} alliances, {Members} members, {Lines} chat lines.", alliances.Count, members.Count, chat.Count);
+            await LoadDocsAsync(cancellationToken);
         }
 
         // --- Sessions -----------------------------------------------------------------------------
@@ -223,6 +224,9 @@ namespace Hadal.Game.Social
                         break;
                     case CommandType.TransferLeadership when TryDeserialize(envelope.Payload, out TransferLeadershipCommand? transfer):
                         Done(session, transfer!.CommandId, transfer.ClientSequence, Transfer(session.PublicId, transfer.MemberId, now), now);
+                        break;
+                    case CommandType.ViewAllianceLog when TryDeserialize(envelope.Payload, out ViewAllianceLogCommand? viewLog):
+                        Done(session, viewLog!.CommandId, viewLog.ClientSequence, ViewLog(session, viewLog, now), now);
                         break;
                     case CommandType.SetAllianceInfo when TryDeserialize(envelope.Payload, out SetAllianceInfoCommand? info):
                         Done(session, info!.CommandId, info.ClientSequence, SetInfo(session.PublicId, info, now), now);
@@ -857,9 +861,12 @@ namespace Hadal.Game.Social
                 reader.Push(new List<EntityChangeDto> { change }, now);
         }
 
-        private void SystemMessage(Alliance alliance, string key, string argument, DateTimeOffset now) =>
+        private void SystemMessage(Alliance alliance, string key, string argument, DateTimeOffset now)
+        {
             Post(new ChatRecord(_nextChatId++, AllianceChannel(alliance.Record.Id), string.Empty, string.Empty, alliance.Record.Tag,
                 key + "|" + argument, now, true), now);
+            LogNotice(alliance, key, argument, now);
+        }
 
         private IEnumerable<PlayerSession> Readers(string channel)
         {

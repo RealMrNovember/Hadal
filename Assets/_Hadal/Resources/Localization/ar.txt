@@ -1170,3 +1170,23 @@ alliance.language = لغة التحالف
 alliance.leader.title = قائد التحالف
 alliance.titles = ألقاب الضباط
 alliance.duty.empty = شاغر
+
+# Alliance log and battle log (docs/31 §2)
+alliance.log.tab.members = الانضمام / المغادرة
+alliance.log.tab.ranks = الرتب
+alliance.log.tab.research = الأبحاث
+alliance.log.loading = جارٍ التحميل…
+alliance.log.empty = لا توجد سجلات بعد.
+alliance.log.joined = انضم {0} إلى التحالف.
+alliance.log.left = غادر {0} التحالف.
+alliance.log.kicked = أُزيل {0} من التحالف.
+alliance.log.rank = أصبح {0} الآن {1}.
+alliance.log.leader = {0} هو القائد الجديد للتحالف.
+alliance.log.research = رفع {0} بحث {1} إلى المستوى {2}.
+alliance.battle.attack_won = هاجم {0} {1} وانتصر (X:{2} Y:{3}).
+alliance.battle.attack_lost = هاجم {0} {1} وخسر (X:{2} Y:{3}).
+alliance.battle.defence_won = صدّ {1} هجوم {0} (X:{2} Y:{3}).
+alliance.battle.defence_lost = هزم {0} قاعدة {1} (X:{2} Y:{3}).
+alliance.battle.scout = استطلع {0} {1} (X:{2} Y:{3}).
+alliance.battle.rally_won = تجمع {0} هزم {1} (X:{2} Y:{3}).
+alliance.battle.rally_lost = تجمع {0} خسر أمام {1} (X:{2} Y:{3}).

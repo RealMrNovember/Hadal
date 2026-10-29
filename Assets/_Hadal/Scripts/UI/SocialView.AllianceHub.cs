@@ -76,7 +76,7 @@ namespace Hadal.UI
                 (Loc.T("alliance.tile.research"), "left_research", false, () => AllianceSoon("alliance.tile.research")),
                 (Loc.T("alliance.tile.rankings"), "power", false, () => AllianceSoon("alliance.tile.rankings")),
                 (Loc.T("alliance.tile.rally"), "nav_world", false, () => { Close(); RallyPointPrompt.Instance?.OpenRallyPoint(); }),
-                (Loc.T("alliance.tile.log"), "quest", false, () => AllianceSoon("alliance.tile.log"))
+                (Loc.T("alliance.tile.log"), "quest", false, () => OpenAllianceLog(AllianceLogKinds.Log))
             };
             for (var start = 0; start < tiles.Length; start += 2)
             {
@@ -101,8 +101,8 @@ namespace Hadal.UI
             var applicants = alliance.Applicants?.Length ?? 0;
             var bar = new System.Collections.Generic.List<(string Label, bool Dot, Action Open)>
             {
-                (Loc.T("alliance.bar.battlelog"), false, () => AllianceSoon("alliance.bar.battlelog")),
-                (Loc.T("alliance.bar.log"), false, () => AllianceSoon("alliance.bar.log"))
+                (Loc.T("alliance.bar.battlelog"), false, () => OpenAllianceLog(AllianceLogKinds.Battle)),
+                (Loc.T("alliance.bar.log"), false, () => OpenAllianceLog(AllianceLogKinds.Log))
             };
             if (AlliancePermissions.CanApprove(myRank))
                 bar.Add((applicants > 0 ? $"{Loc.T("alliance.bar.applications")} ({applicants})" : Loc.T("alliance.bar.applications"), applicants > 0,
