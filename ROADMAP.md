@@ -90,7 +90,7 @@ Ayrıntılar aşağıda, aynı sırayla.
 - ✅ Savaş motoru bütünlüğü: `CombatRules` sürüm 2, savaş kimliğinden tohum, tur başına 0,97–1,03 rastgelelik; rapor tohumu ve kural sürümünü saklar. Komut tekrarı ve tek seferlik sonuç zaten vardı.
 - ✅ Ralli kuralları: takım başına en az 100 asker, raporda üye başına katkı yüzdesi ve yağma payı
 - ✅ Sonuç ekranı: iki ordu türüne göre, ölü ve yaralı, yağma, yorgunluk yüzdesi, katkı, turlar, savaş kimliği, tohum, sürüm (`445d380`)
-- ⬜ Korunan depo payı
+- ✅ Korunan depo payı: her kaynaktan reaktör seviyesi × 5.000 saldırıyla alınamaz, Hadalit hiç alınamaz (ayrı bir Kasa binası henüz yok)
 - ⬜ Karşı sistemler (meta): kahramanlarda kontrol, destek, alan hasarı
 - ⬜ Sezon savaşı; arena ve düello Sıra 8'de
 - ⬜ Yorgunluk ve toparlanma sayaçları bellekte; sunucu yeniden başlayınca sıfırlanıyor, kalıcı hale getirilmeli
