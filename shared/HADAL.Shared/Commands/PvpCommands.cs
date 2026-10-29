@@ -43,14 +43,24 @@ namespace HADAL.Shared.Commands
         [ProtoMember(2)] public ulong ClientSequence { get; set; }
     }
 
-    /// <summary>Alliance territory actions (docs/30 §6.2): "plant" the hub on a stronghold, "move" it, "abandon" a region.</summary>
+    /// <summary>Alliance land actions (docs/32): "hub", "beacon", "move" the hub, "remove" a beacon, "donate" to the hub, "abandon" a city.</summary>
     [ProtoContract]
     public sealed class TerritoryCommand : ICommand
     {
         [ProtoMember(1)] public string CommandId { get; set; } = string.Empty;
         [ProtoMember(2)] public ulong ClientSequence { get; set; }
         [ProtoMember(3)] public string Action { get; set; } = string.Empty;
+
+        /// <summary>The structure or city acted on (remove, donate, abandon).</summary>
         [ProtoMember(4)] public string StrongholdId { get; set; } = string.Empty;
+
+        /// <summary>Where a hub or beacon goes up, or where the hub moves (docs/32).</summary>
+        [ProtoMember(5)] public int X { get; set; }
+        [ProtoMember(6)] public int Y { get; set; }
+
+        /// <summary>A donation: the resource ("Titanium", "Biomass", "Food") and how much.</summary>
+        [ProtoMember(7)] public string Resource { get; set; } = string.Empty;
+        [ProtoMember(8)] public long Amount { get; set; }
     }
 
     /// <summary>Raises a shield (docs/30 §3): the bag item, or its Hadalite price when there is none.</summary>

@@ -25,6 +25,9 @@ namespace HADAL.Shared.DTOs
 
         /// <summary>Every team crossing the view, the viewer's own included (docs/28): all players see them live.</summary>
         [ProtoMember(10)] public WorldMarchDto[] Marches { get; set; } = System.Array.Empty<WorldMarchDto>();
+
+        /// <summary>The world this view belongs to (docs/32 §2.7).</summary>
+        [ProtoMember(11)] public string WorldId { get; set; } = string.Empty;
     }
 
     /// <summary>A team on the map as others see it: whose, from where to where, and when.</summary>

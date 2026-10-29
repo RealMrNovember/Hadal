@@ -109,7 +109,7 @@ ON CONFLICT (region) DO UPDATE SET alliance_id = EXCLUDED.alliance_id, hub = EXC
         }
     }
 
-    /// <summary>Alliance territory (docs/30 §6): regions, strongholds, the hub, capture, gathering bonus, teleport target.</summary>
+    /// <summary>Cities (docs/32 §2.4): the old strongholds as points with an owner, a garrison and the neighbour rule.</summary>
     public sealed partial class WorldService
     {
         private WorldRegion[]? _regionList;
@@ -144,7 +144,8 @@ ON CONFLICT (region) DO UPDATE SET alliance_id = EXCLUDED.alliance_id, hub = EXC
                 foreach (var s in stored.Where(s => s.Index >= 0 && s.Index < regions.Length))
                 {
                     var r = regions[s.Index];
-                    (r.AllianceId, r.Hub, r.Share, r.ShareAt, r.HubMovedAt) = (s.AllianceId, s.Hub, s.Share, s.ShareAt, s.HubMovedAt);
+                    // Hubs are alliance structures now (docs/32); a city keeps only its owner and garrison.
+                    (r.AllianceId, r.Hub, r.Share, r.ShareAt, r.HubMovedAt) = (s.AllianceId, false, s.Share, s.ShareAt, s.HubMovedAt);
                 }
 
                 // Nodes laid out before strongholds existed move off their tiles.
@@ -197,58 +198,17 @@ ON CONFLICT (region) DO UPDATE SET alliance_id = EXCLUDED.alliance_id, hub = EXC
             return index < 0 ? null : Regions[index];
         }
 
-        /// <summary>The territory bonus a player's gathering gets on (x, y): +25 % inside their alliance's regions.</summary>
-        private double GatherBonus(string playerId, int x, int y)
-        {
-            var alliance = _social.AllianceIdOf(playerId);
-            return alliance.Length > 0 && RegionAt(x, y)?.AllianceId == alliance ? TerritoryRules.GatherBonus : 0;
-        }
-
-        /// <summary>The alliance's hub region, if it has one.</summary>
-        private WorldRegion? HubOf(string allianceId) =>
-            allianceId.Length == 0 ? null : Regions.FirstOrDefault(r => r.AllianceId == allianceId && r.Hub);
-
-        /// <summary>A free tile in the alliance's territory, nearest its hub (alliance teleport). Caller holds the lock.</summary>
-        private (int X, int Y)? TerritoryTile(string allianceId)
-        {
-            if (HubOf(allianceId) is not { } hub)
-                return null;
-            var owned = Regions.Where(r => r.AllianceId == allianceId).Select(r => r.Index).ToHashSet();
-            var size = MapSize;
-            return NearestFree(hub.X, hub.Y, size / TerritoryRules.Cells * 3, size, (x, y) => owned.Contains(TerritoryRules.RegionOf(size, x, y)));
-        }
-
         private (PvpLaunch? Launch, string? Reason) StrongholdTarget(WorldBaseRecord me, string myAlliance, string mode, string targetId,
             IReadOnlyList<string> heroes, DateTimeOffset? departs)
         {
             if (!TerritoryRules.TryParseId(targetId, out var index) || index >= Regions.Length)
                 return (null, "UnknownStronghold");
             var region = Regions[index];
-            var reason = CaptureBlock(region, myAlliance);
+            var reason = CaptureBlock(region, myAlliance, _clock.UtcNow);
             return reason != null
                 ? (null, reason)
                 : (new PvpLaunch(mode, PvpRules.TargetStronghold, region.Id, string.Empty, string.Empty, me.X, me.Y, region.X, region.Y, heroes,
                     string.Empty, mode == PvpRules.Rally, departs, me.X, me.Y), null);
-        }
-
-        /// <summary>Why the alliance cannot take this region now; null when it can (checked at launch and at the battle).</summary>
-        private string? CaptureBlock(WorldRegion region, string alliance)
-        {
-            if (alliance.Length == 0)
-                return "NotInAlliance";
-            if (region.Level >= TerritoryRules.ThroneLevel)
-                return "Throne";
-            if (region.AllianceId == alliance)
-                return "Ally";
-            if (region.Hub)
-                return "HubRegion";
-            var owned = Regions.Where(r => r.AllianceId == alliance).Select(r => r.Index).ToList();
-            if (owned.Count == 0)
-                return "NoHub";
-            if (owned.Count >= TerritoryRules.Allowed(_social.MemberCount(alliance)))
-                return "TooManyRegions";
-            var adjacency = TerritoryRules.Adjacency(MapSize);
-            return owned.Any(o => adjacency[o].Contains(region.Index)) ? null : "NotAdjacent";
         }
 
         private bool ResolveStronghold(PvpRecord r, List<PvpTeam> teams, Dictionary<string, PlayerSession> sessions, DateTimeOffset at, DateTimeOffset now)
@@ -271,7 +231,7 @@ ON CONFLICT (region) DO UPDATE SET alliance_id = EXCLUDED.alliance_id, hub = EXC
             var start = garrison.Troops.ToDictionary(p => p.Key, p => (long)Math.Round(p.Value), StringComparer.Ordinal);
             var lostShare = start.Values.Sum() <= 0 ? 1 : (double)result.DefenderLost.Values.Sum() / start.Values.Sum();
             var owner = region.AllianceId;
-            var captured = result.AttackerWon && CaptureBlock(region, alliance) == null;
+            var captured = result.AttackerWon && CaptureBlock(region, alliance, at) == null;
             if (captured)
             {
                 region.AllianceId = alliance;
@@ -309,141 +269,6 @@ ON CONFLICT (region) DO UPDATE SET alliance_id = EXCLUDED.alliance_id, hub = EXC
             }
 
             return true;
-        }
-
-        private void HandleTerritory(PlayerSession session, TerritoryCommand command, DateTimeOffset now)
-        {
-            lock (_gate)
-            {
-                MaintainRegions();
-                var alliance = _social.AllianceIdOf(session.PublicId);
-                var rank = _social.RankOf(session.PublicId);
-                string? reason = null;
-                if (!TerritoryRules.TryParseId(command.StrongholdId, out var index) || index >= Regions.Length)
-                    reason = "UnknownStronghold";
-                else if (alliance.Length == 0)
-                    reason = "NotInAlliance";
-                var region = reason == null ? Regions[index] : null;
-                if (reason == null)
-                {
-                    switch (command.Action)
-                    {
-                        case TerritoryRules.Plant:
-                            if (rank < AlliancePermissions.Officer)
-                                reason = "NoPermission";
-                            else if (Regions.Any(r => r.AllianceId == alliance))
-                                reason = "HasTerritory";
-                            else if (region!.AllianceId.Length > 0)
-                                reason = "Taken";
-                            else if (region.Level > TerritoryRules.MaxPlantLevel)
-                                reason = "TooDeep";
-                            else if (_pvp.Values.Any(p => p.TargetKind == PvpRules.TargetStronghold && p.TargetId == region.Id))
-                                reason = "UnderAttack";
-                            else
-                            {
-                                (region.AllianceId, region.Hub, region.Share, region.ShareAt, region.HubMovedAt) = (alliance, true, 1, now, now);
-                                SaveRegion(region);
-                            }
-
-                            break;
-                        case TerritoryRules.Move:
-                            var hub = HubOf(alliance);
-                            if (rank < AlliancePermissions.Leader)
-                                reason = "NoPermission";
-                            else if (region!.AllianceId != alliance || region.Hub)
-                                reason = "NotOurs";
-                            else if (hub?.HubMovedAt is { } moved && now - moved < TerritoryRules.HubMoveCooldown)
-                                reason = "Cooldown";
-                            else
-                            {
-                                if (hub != null)
-                                {
-                                    hub.Hub = false;
-                                    SaveRegion(hub);
-                                }
-
-                                region.Hub = true;
-                                region.HubMovedAt = now;
-                                SaveRegion(region);
-                            }
-
-                            break;
-                        case TerritoryRules.Abandon:
-                            if (rank < AlliancePermissions.Leader)
-                                reason = "NoPermission";
-                            else if (region!.AllianceId != alliance)
-                                reason = "NotOurs";
-                            else if (region.Hub)
-                                reason = "HubRegion";
-                            else
-                            {
-                                region.AllianceId = string.Empty;
-                                SaveRegion(region);
-                            }
-
-                            break;
-                        default:
-                            reason = "MalformedCommand";
-                            break;
-                    }
-                }
-
-                session.Acknowledge(command.CommandId, command.ClientSequence, reason, now,
-                    reason == null ? new List<EntityChangeDto> { TerritoryChange(session.PublicId, now) } : null);
-                if (reason == null)
-                    _logger.LogInformation("Player {PlayerId} territory {Action} on {Region}.", session.PublicId, command.Action, command.StrongholdId);
-            }
-        }
-
-        private void HandleViewTerritory(PlayerSession session, ViewTerritoryCommand command, DateTimeOffset now)
-        {
-            lock (_gate)
-            {
-                MaintainRegions();
-                Upsert(session);
-                session.Acknowledge(command.CommandId, command.ClientSequence, null, now, new List<EntityChangeDto> { TerritoryChange(session.PublicId, now) });
-            }
-        }
-
-        /// <summary>The strategic map for a viewer. Caller holds the lock.</summary>
-        private EntityChangeDto TerritoryChange(string viewerId, DateTimeOffset now)
-        {
-            var alliance = _social.AllianceIdOf(viewerId);
-            var attacked = _pvp.Values.Where(p => p.TargetKind == PvpRules.TargetStronghold).Select(p => p.TargetId).ToHashSet(StringComparer.Ordinal);
-            var troops = Catalog.Troops;
-            var dto = new TerritoryDto
-            {
-                MapSize = MapSize,
-                MyAllianceId = alliance,
-                Strongholds = Regions.Select(r => new StrongholdDto
-                {
-                    Id = r.Id, Region = r.Index, X = r.X, Y = r.Y, Level = r.Level, AllianceId = r.AllianceId,
-                    AllianceTag = r.AllianceId.Length > 0 ? _social.AllianceInfo(r.AllianceId)?.Tag ?? string.Empty : string.Empty,
-                    Color = TerritoryRules.ColorOf(r.AllianceId), Hub = r.Hub, UnderAttack = attacked.Contains(r.Id),
-                    Power = TroopRules.Power(troops, TerritoryRules.Garrison(r.Level, TerritoryRules.GarrisonShare(r.Share, r.ShareAt, now)).Troops
-                        .ToDictionary(p => p.Key, p => (long)Math.Round(p.Value), StringComparer.Ordinal))
-                }).ToArray(),
-                Bases = _bases.Values.Select(b =>
-                {
-                    var relation = b.PlayerId == viewerId ? 0 : alliance.Length > 0 && _social.AllianceIdOf(b.PlayerId) == alliance ? 1 : 2;
-                    return b.X * 1_000_000 + b.Y * 1_000 + relation;
-                }).ToArray(),
-                Held = alliance.Length == 0 ? 0 : Regions.Count(r => r.AllianceId == alliance),
-                Allowed = alliance.Length == 0 ? 0 : TerritoryRules.Allowed(_social.MemberCount(alliance))
-            };
-            if (_bases.TryGetValue(viewerId, out var me))
-                (dto.MyX, dto.MyY) = (me.X, me.Y);
-
-            // The rally point: the hub, else the leader's base (the alliance teleport's fallback).
-            if (HubOf(alliance) is { } hub)
-                (dto.RallyX, dto.RallyY, dto.RallyIsHub) = (hub.X, hub.Y, true);
-            else if (alliance.Length > 0)
-            {
-                var leader = _social.RankOf(viewerId) >= AlliancePermissions.Leader ? viewerId : _social.AllianceMatesOf(viewerId).FirstOrDefault();
-                if (leader != null && _bases.TryGetValue(leader, out var lb))
-                    (dto.RallyX, dto.RallyY) = (lb.X, lb.Y);
-            }
-            return new EntityChangeDto { EntityId = EntityIds.Territory, Kind = EntityChangeKind.Update, Payload = _serializer.Serialize(dto) };
         }
 
         internal WorldRegion RegionForTests(int index)

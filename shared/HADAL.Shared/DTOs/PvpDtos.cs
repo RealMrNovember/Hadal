@@ -16,6 +16,21 @@ namespace HADAL.Shared.DTOs
         [ProtoMember(3)] public IncomingDto[] Incoming { get; set; } = System.Array.Empty<IncomingDto>();
 
         [ProtoMember(4)] public long ServerNowMs { get; set; }
+
+        /// <summary>Alliance mates' teams guarding (or on their way to guard) this player's base (docs/32 §2.6).</summary>
+        [ProtoMember(5)] public GarrisonDto[] Garrison { get; set; } = System.Array.Empty<GarrisonDto>();
+    }
+
+    [ProtoContract]
+    public sealed class GarrisonDto
+    {
+        [ProtoMember(1)] public string MarchId { get; set; } = string.Empty;
+        [ProtoMember(2)] public string OwnerId { get; set; } = string.Empty;
+        [ProtoMember(3)] public string OwnerName { get; set; } = string.Empty;
+        [ProtoMember(4)] public long Troops { get; set; }
+
+        /// <summary>When it reaches (or reached) the base.</summary>
+        [ProtoMember(5)] public long ArrivesAtMs { get; set; }
     }
 
     [ProtoContract]
@@ -160,6 +175,49 @@ namespace HADAL.Shared.DTOs
         [ProtoMember(9)] public int RallyX { get; set; } = -1;
         [ProtoMember(10)] public int RallyY { get; set; } = -1;
         [ProtoMember(11)] public bool RallyIsHub { get; set; }
+
+        /// <summary>Hubs and beacons of every alliance (docs/32).</summary>
+        [ProtoMember(12)] public StructureDto[] Structures { get; set; } = System.Array.Empty<StructureDto>();
+
+        /// <summary>Claimed tiles: x × 1,000,000 + y × 1,000 + index into <see cref="LandAlliances"/>.</summary>
+        [ProtoMember(13)] public int[] Land { get; set; } = System.Array.Empty<int>();
+        [ProtoMember(14)] public string[] LandAlliances { get; set; } = System.Array.Empty<string>();
+        [ProtoMember(15)] public int[] LandColors { get; set; } = System.Array.Empty<int>();
+        [ProtoMember(16)] public string[] LandTags { get; set; } = System.Array.Empty<string>();
+
+        /// <summary>The world this map belongs to (docs/32 §2.7).</summary>
+        [ProtoMember(17)] public string WorldId { get; set; } = string.Empty;
+
+        /// <summary>The viewer's alliance: beacons placed and allowed, hub level.</summary>
+        [ProtoMember(18)] public int Beacons { get; set; }
+        [ProtoMember(19)] public int BeaconsAllowed { get; set; }
+    }
+
+    /// <summary>An alliance hub or beacon on the map.</summary>
+    [ProtoContract]
+    public sealed class StructureDto
+    {
+        [ProtoMember(1)] public string Id { get; set; } = string.Empty;
+
+        /// <summary>AllianceLandRules.Hub or Beacon.</summary>
+        [ProtoMember(2)] public string Kind { get; set; } = string.Empty;
+        [ProtoMember(3)] public string AllianceId { get; set; } = string.Empty;
+        [ProtoMember(4)] public string AllianceTag { get; set; } = string.Empty;
+        [ProtoMember(5)] public int Color { get; set; } = -1;
+        [ProtoMember(6)] public int X { get; set; }
+        [ProtoMember(7)] public int Y { get; set; }
+        [ProtoMember(8)] public int Level { get; set; }
+
+        /// <summary>Hub donations so far towards the next level, and what it needs (0 at the top).</summary>
+        [ProtoMember(9)] public long Points { get; set; }
+        [ProtoMember(10)] public long PointsNext { get; set; }
+
+        /// <summary>A beacon still going up: ready then (Unix ms); 0 when built.</summary>
+        [ProtoMember(11)] public long ReadyAtMs { get; set; }
+
+        /// <summary>Cut off from the hub: it claims nothing until reconnected.</summary>
+        [ProtoMember(12)] public bool Cut { get; set; }
+        [ProtoMember(13)] public int Radius { get; set; }
     }
 
     [ProtoContract]

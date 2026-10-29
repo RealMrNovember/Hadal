@@ -49,24 +49,30 @@ namespace Hadal.Game
     public sealed partial class PlayerSession
     {
         private IncomingDto[] _incoming = Array.Empty<IncomingDto>();
+        private GarrisonDto[] _garrison = Array.Empty<GarrisonDto>();
 
-        /// <summary>The hostile marches on the way to this player, kept by the world; sent with the shield.</summary>
-        internal void SetIncoming(IncomingDto[] incoming, DateTimeOffset now)
+        /// <summary>
+        /// The hostile marches on the way to this player and the mates' teams guarding the base, kept by the world; sent with
+        /// the shield (docs/32 §2.6).
+        /// </summary>
+        internal void SetIncoming(IncomingDto[] incoming, GarrisonDto[] garrison, DateTimeOffset now)
         {
             lock (_gate)
             {
                 _incoming = incoming;
+                _garrison = garrison;
                 SendDelta(now, new List<EntityChangeDto> { PvpChange(now) });
             }
         }
 
         /// <summary>The PvP state on login, in one delta, and only when there is something to show (no shield, nothing coming and an empty log is the default).</summary>
-        internal void PushPvpOnLogin(IncomingDto[] incoming, DateTimeOffset now)
+        internal void PushPvpOnLogin(IncomingDto[] incoming, GarrisonDto[] garrison, DateTimeOffset now)
         {
             lock (_gate)
             {
                 _incoming = incoming;
-                if (incoming.Length > 0 || _state.ShieldUntil > now || _state.WarLog.Count > 0)
+                _garrison = garrison;
+                if (incoming.Length > 0 || garrison.Length > 0 || _state.ShieldUntil > now || _state.WarLog.Count > 0)
                     SendDelta(now, new List<EntityChangeDto> { PvpChange(now), WarLogChange() });
             }
         }
@@ -80,6 +86,7 @@ namespace Hadal.Game
                 ShieldUntilMs = _state.ShieldUntil > now ? _state.ShieldUntil.Value.ToUnixTimeMilliseconds() : 0,
                 Beginner = PvpRules.IsBeginner(ReactorLevel()),
                 Incoming = _incoming,
+                Garrison = _garrison,
                 ServerNowMs = now.ToUnixTimeMilliseconds()
             })
         };
@@ -493,6 +500,11 @@ namespace Hadal.Game
                 changes.Add(Accepted(command.CommandId, command.ClientSequence));
                 SendDelta(now, changes);
             }
+        }
+
+        internal GarrisonDto[] GarrisonForTests
+        {
+            get { lock (_gate) return _garrison; }
         }
 
         internal IncomingDto[] PvpIncomingForTests

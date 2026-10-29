@@ -610,9 +610,11 @@ CREATE TABLE IF NOT EXISTS hadal.world_pvp (
                 }
 
                 _marchViews[me.PlayerId] = session.MarchViews();
-                if (launch.TargetOwnerId.Length > 0 && launch.Mode != PvpRules.Reinforce)
+                if (launch.TargetOwnerId.Length > 0)
                 {
-                    Summon(launch.TargetOwnerId);
+                    if (launch.Mode != PvpRules.Reinforce)
+                        Summon(launch.TargetOwnerId);
+                    // The defended player sees the reinforcement coming too (docs/32 §2.6).
                     PushIncoming(launch.TargetOwnerId, now);
                 }
             }
@@ -744,8 +746,19 @@ CREATE TABLE IF NOT EXISTS hadal.world_pvp (
         {
             if (playerId.Length == 0 || SessionOf(playerId) is not { } session)
                 return;
-            session.SetIncoming(IncomingFor(playerId), now);
+            session.SetIncoming(IncomingFor(playerId), GarrisonFor(playerId), now);
         }
+
+        /// <summary>Alliance mates' teams guarding (or sailing to guard) a player's base. Caller holds the world lock.</summary>
+        private GarrisonDto[] GarrisonFor(string playerId) =>
+            _pvp.Values.Where(r => r.Mode == PvpRules.Reinforce && r.TargetId == playerId)
+                .OrderBy(r => r.ArrivesAt)
+                .Select(r => new GarrisonDto
+                {
+                    MarchId = r.Members[0].MarchId, OwnerId = r.AttackerId, OwnerName = NameOf(r.AttackerId) ?? string.Empty,
+                    Troops = SessionOf(r.AttackerId)?.ReadTeam(r.Members[0].MarchId, r.ArrivesAt)?.Troops.Values.Sum() ?? 0,
+                    ArrivesAtMs = r.ArrivesAt.ToUnixTimeMilliseconds()
+                }).ToArray();
 
         private IncomingDto[] IncomingFor(string playerId) =>
             _pvp.Values.Where(r => r.Mode != PvpRules.Reinforce && r.TargetOwnerId == playerId)
@@ -763,9 +776,14 @@ CREATE TABLE IF NOT EXISTS hadal.world_pvp (
         private void PushPvpOnConnect(PlayerSession session, DateTimeOffset now)
         {
             IncomingDto[] incoming;
+            GarrisonDto[] garrison;
             lock (_gate)
+            {
                 incoming = IncomingFor(session.PublicId);
-            session.PushPvpOnLogin(incoming, now);
+                garrison = GarrisonFor(session.PublicId);
+            }
+
+            session.PushPvpOnLogin(incoming, garrison, now);
         }
 
         private void HandleViewWar(PlayerSession session, ViewWarCommand command, DateTimeOffset now)

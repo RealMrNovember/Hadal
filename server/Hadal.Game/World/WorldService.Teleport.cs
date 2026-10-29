@@ -117,7 +117,7 @@ namespace Hadal.Game.World
         private bool CanStand(int x, int y)
         {
             var world = _runtime.Current.Catalog.World;
-            if (_taken.Contains((x, y)) || _strongholdAt.ContainsKey((x, y)) || _nodeAt.ContainsKey((x, y)) || _monsterAt.ContainsKey((x, y)))
+            if (_taken.Contains((x, y)) || _strongholdAt.ContainsKey((x, y)) || _structureAt.ContainsKey((x, y)) || _nodeAt.ContainsKey((x, y)) || _monsterAt.ContainsKey((x, y)))
                 return false;
             return GatherRules.BeltOf(world, x, y) is not { bases: false };
         }

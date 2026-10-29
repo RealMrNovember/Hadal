@@ -201,7 +201,7 @@ ON CONFLICT (id) DO UPDATE SET type = EXCLUDED.type, level = EXCLUDED.level, x =
             {
                 var d = _random.Next(belt.inner, belt.outer + 1);
                 var (x, y) = RingTile(center, d, _random);
-                if (x < 0 || y < 0 || x >= size || y >= size || _taken.Contains((x, y)) || _strongholdAt.ContainsKey((x, y)) || _nodeAt.ContainsKey((x, y)))
+                if (x < 0 || y < 0 || x >= size || y >= size || _taken.Contains((x, y)) || _strongholdAt.ContainsKey((x, y)) || _structureAt.ContainsKey((x, y)) || _nodeAt.ContainsKey((x, y)))
                     continue;
 
                 if (_nodes.ContainsKey(node.Id))

@@ -81,6 +81,7 @@ ALTER TABLE hadal.world_bases ADD COLUMN IF NOT EXISTS avatar text NOT NULL DEFA
             await InitializeNodesAsync(cancellationToken);
             await InitializePvpAsync(cancellationToken);
             await InitializeRegionsAsync(cancellationToken);
+            await InitializeStructuresAsync(cancellationToken);
         }
 
         public async Task<List<WorldBaseRecord>> LoadAsync(CancellationToken cancellationToken)
@@ -244,6 +245,7 @@ ON CONFLICT (player_id) DO UPDATE SET x = EXCLUDED.x, y = EXCLUDED.y, name = EXC
             await InitializeNodesAsync(cancellationToken, _clock.UtcNow);
             await InitializePvpAsync(cancellationToken);
             await LoadRegionsAsync(cancellationToken);
+            await LoadStructuresAsync(cancellationToken);
             lock (_gate)
             {
                 SeedMonsters();
@@ -468,6 +470,7 @@ ON CONFLICT (player_id) DO UPDATE SET x = EXCLUDED.x, y = EXCLUDED.y, name = EXC
 
                 view = new WorldViewDto
                 {
+                    WorldId = WorldId,
                     CenterX = cx,
                     CenterY = cy,
                     Radius = radius,
@@ -525,7 +528,7 @@ ON CONFLICT (player_id) DO UPDATE SET x = EXCLUDED.x, y = EXCLUDED.y, name = EXC
 
         /// <summary>A tile for a new base: the Hadal Threshold when the catalog has belts, else the old spiral. Caller holds the lock.</summary>
         private (int X, int Y) PlaceBase() =>
-            WorldRules.PlaceInBelt(_runtime.Current.Catalog.World, (tx, ty) => _taken.Contains((tx, ty)) || _strongholdAt.ContainsKey((tx, ty)), (tx, ty) => _nodeAt.ContainsKey((tx, ty)), _random);
+            WorldRules.PlaceInBelt(_runtime.Current.Catalog.World, (tx, ty) => _taken.Contains((tx, ty)) || _strongholdAt.ContainsKey((tx, ty)) || _structureAt.ContainsKey((tx, ty)), (tx, ty) => _nodeAt.ContainsKey((tx, ty)), _random);
 
         private async Task WriteLoopAsync()
         {

@@ -317,25 +317,6 @@ namespace Hadal.Game.Tests
         }
 
         [Fact]
-        public async Task The_rally_point_is_the_leaders_base_until_the_hub_is_planted()
-        {
-            var (lead, leadConnection) = await Connect("rp-lead");
-            var (diver, diverConnection) = await Connect("rp-diver");
-            Assert.Equal(-1, Territory(diver, diverConnection).RallyX);
-
-            Ally(lead, leadConnection, diver);
-            var before = Territory(diver, diverConnection);
-            Assert.Equal(_world.Map.PositionOf(lead.PublicId), (before.RallyX, before.RallyY));
-            Assert.False(before.RallyIsHub);
-
-            var outer = Enumerable.Range(0, 100).Select(_world.Map.RegionForTests).First(r => r.Level == 1);
-            Send(lead, new TerritoryCommand { CommandId = "p", Action = TerritoryRules.Plant, StrongholdId = outer.Id }, CommandType.Territory);
-            var after = Territory(diver, diverConnection);
-            Assert.True(after.RallyIsHub);
-            Assert.Equal((outer.X, outer.Y), (after.RallyX, after.RallyY));
-        }
-
-        [Fact]
         public void Regions_cover_the_map_and_touch_symmetrically()
         {
             var size = Catalog.World.size;
@@ -351,32 +332,126 @@ namespace Hadal.Game.Tests
                 Assert.Equal(i, TerritoryRules.RegionOf(size, seeds[i].X, seeds[i].Y));
         }
 
-        [Fact]
-        public async Task An_alliance_plants_its_hub_and_captures_a_neighbouring_stronghold()
+        /// <summary>Sends a land command and returns its rejection reason (null when accepted).</summary>
+        private string? Land(PlayerSession session, RecordingConnection connection, string action, int x = 0, int y = 0, string id = "", string resource = "",
+            long amount = 0)
         {
-            var (lead, leadConnection) = await Connect("tr-lead", troops: 200_000);
-            var (m1, _) = await Connect("tr-m1");
-            var (m2, _) = await Connect("tr-m2");
-            Ally(lead, leadConnection, m1, m2);
-            var outer = Enumerable.Range(0, 100).Select(_world.Map.RegionForTests).First(r => r.Level == 1);
-            Send(lead, new TerritoryCommand { CommandId = "p", Action = TerritoryRules.Plant, StrongholdId = outer.Id }, CommandType.Territory);
-            Assert.Equal(CommandResultCode.Accepted, LastAck(leadConnection).Result);
-            Assert.True(_world.Map.RegionForTests(outer.Index).Hub);
+            Send(session, new TerritoryCommand
+            {
+                CommandId = "t" + Guid.NewGuid().ToString("N"), Action = action, X = x, Y = y, StrongholdId = id, Resource = resource, Amount = amount
+            }, CommandType.Territory);
+            var ack = LastAck(connection);
+            return ack.Result == CommandResultCode.Accepted ? null : ack.Reason;
+        }
 
-            var neighbour = TerritoryRules.Adjacency(Catalog.World.size)[outer.Index].Select(_world.Map.RegionForTests)
-                .First(r => r.Level < TerritoryRules.ThroneLevel);
-            var far = Enumerable.Range(0, 100).Select(_world.Map.RegionForTests)
-                .First(r => r.Level < TerritoryRules.ThroneLevel && r.Index != outer.Index && !TerritoryRules.Adjacency(Catalog.World.size)[outer.Index].Contains(r.Index));
+        /// <summary>Plants the hub on the first free tile around (cx, cy); returns where.</summary>
+        private (int X, int Y) PlantHub(PlayerSession lead, RecordingConnection connection, int cx, int cy)
+        {
+            for (var r = 0; r < 12; r++)
+                for (var dx = -r; dx <= r; dx++)
+                    for (var dy = -r; dy <= r; dy++)
+                        if (Math.Max(Math.Abs(dx), Math.Abs(dy)) == r && Land(lead, connection, AllianceLandRules.PlaceHub, cx + dx, cy + dy) == null)
+                            return (cx + dx, cy + dy);
+            throw new InvalidOperationException("no free tile for the hub");
+        }
+
+        private async Task<(PlayerSession Lead, RecordingConnection Connection, PlayerSession Mate, RecordingConnection MateConnection)> Alliance(string prefix,
+            long troops = 5000)
+        {
+            var (lead, leadConnection) = await Connect(prefix + "-lead", troops);
+            var (mate, mateConnection) = await Connect(prefix + "-mate");
+            var (third, _) = await Connect(prefix + "-third");
+            Ally(lead, leadConnection, mate, third);
+            return (lead, leadConnection, mate, mateConnection);
+        }
+
+        [Fact]
+        public async Task The_rally_point_is_the_leaders_base_until_the_hub_is_planted()
+        {
+            var (lead, leadConnection, diver, diverConnection) = await Alliance("rp");
+            var before = Territory(diver, diverConnection);
+            Assert.Equal(_world.Map.PositionOf(lead.PublicId), (before.RallyX, before.RallyY));
+            Assert.False(before.RallyIsHub);
+
+            var (lx, ly) = _world.Map.PositionOf(lead.PublicId)!.Value;
+            var hub = PlantHub(lead, leadConnection, lx + 3, ly);
+            var after = Territory(diver, diverConnection);
+            Assert.True(after.RallyIsHub);
+            Assert.Equal(hub, (after.RallyX, after.RallyY));
+        }
+
+        [Fact]
+        public async Task The_hub_claims_land_that_grows_with_its_level_and_built_connected_beacons()
+        {
+            var (lead, connection, mate, mateConnection) = await Alliance("land");
+            var alliance = _world.Social.AllianceIdOf(lead.PublicId);
+            var (lx, ly) = _world.Map.PositionOf(lead.PublicId)!.Value;
+            Assert.Equal("NoPermission", Land(mate, mateConnection, AllianceLandRules.PlaceHub, lx + 3, ly));
+            var (hx, hy) = PlantHub(lead, connection, lx + 3, ly);
+            var r1 = AllianceLandRules.HubRadius(1);
+            Assert.Equal(alliance, _world.Map.LandOwnerForTests(hx + r1, hy));
+            Assert.Equal(string.Empty, _world.Map.LandOwnerForTests(hx + r1 + 1, hy));
+            Assert.Equal("HasTerritory", Land(lead, connection, AllianceLandRules.PlaceHub, hx + 1, hy + 1));
+
+            // Donations raise the hub's level and its square.
+            var hubId = _world.Map.StructuresForTests().Single(s => s.Kind == AllianceLandRules.Hub).Id;
+            Assert.Null(Land(mate, mateConnection, AllianceLandRules.Donate, id: hubId, resource: "Titanium", amount: AllianceLandRules.HubPoints(1)));
+            Assert.Equal(2, _world.Map.StructuresForTests().Single(s => s.Id == hubId).Level);
+            Assert.Equal(alliance, _world.Map.LandOwnerForTests(hx + r1 + 1, hy));
+
+            // A beacon next to the land claims its square once built.
+            var r2 = AllianceLandRules.HubRadius(2);
+            var bx = hx + r2 + 2;
+            var by = hy;
+            var placed = false;
+            for (var dy = 0; dy < 8 && !placed; dy++)
+            {
+                by = hy + dy;
+                placed = Land(lead, connection, AllianceLandRules.PlaceBeacon, bx, by) == null;
+            }
+
+            Assert.True(placed);
+            Assert.Equal(string.Empty, _world.Map.LandOwnerForTests(bx + AllianceLandRules.BeaconRadius, by));
+            _clock.UtcNow = _clock.UtcNow.AddMinutes(AllianceLandRules.BeaconBuildMinutes);
+            Assert.Equal(alliance, _world.Map.LandOwnerForTests(bx + AllianceLandRules.BeaconRadius, by));
+            Assert.Equal("NotAdjacent", Land(lead, connection, AllianceLandRules.PlaceBeacon, hx + 40, hy + 40));
+        }
+
+        [Fact]
+        public async Task Only_neighbouring_cities_can_be_attacked_and_a_won_battle_captures_one()
+        {
+            var (lead, connection, _, _) = await Alliance("city", troops: 200_000);
+            var cities = Enumerable.Range(0, 100).Select(_world.Map.RegionForTests).Where(r => r.Level is >= 2 and <= 5).ToList();
+            Attack(lead, cities[0].Id, PvpRules.TargetStronghold);
+            Assert.Equal("NoHub", LastAck(connection).Reason);
+
+            var city = cities[0];
+            var (hx, hy) = PlantHub(lead, connection, city.X + AllianceLandRules.HubRadius(1) + 2, city.Y);
+            var far = cities.First(c => Math.Max(Math.Abs(c.X - hx), Math.Abs(c.Y - hy)) > 40);
             Attack(lead, far.Id, PvpRules.TargetStronghold);
-            Assert.Equal("NotAdjacent", LastAck(leadConnection).Reason);
+            Assert.Equal("NotAdjacent", LastAck(connection).Reason);
 
-            Attack(lead, neighbour.Id, PvpRules.TargetStronghold);
-            Assert.Equal(CommandResultCode.Accepted, LastAck(leadConnection).Result);
+            Attack(lead, city.Id, PvpRules.TargetStronghold);
+            Assert.Equal(CommandResultCode.Accepted, LastAck(connection).Result);
             At(Pvp(lead).ArrivesAt);
             var report = LastReport(lead);
             Assert.Equal("won", report.Outcome);
             Assert.True(report.Captured);
-            Assert.Equal(_world.Social.AllianceIdOf(lead.PublicId), _world.Map.RegionForTests(neighbour.Index).AllianceId);
+            Assert.Equal(_world.Social.AllianceIdOf(lead.PublicId), _world.Map.RegionForTests(city.Index).AllianceId);
+        }
+
+        [Fact]
+        public async Task A_reinforced_player_sees_who_guards_the_base()
+        {
+            var (lead, _, mate, mateConnection) = await Alliance("guard");
+            Send(mate, new MarchPvpCommand { CommandId = "r", Mode = PvpRules.Reinforce, TargetId = lead.PublicId }, CommandType.MarchPvp);
+            Assert.Equal(CommandResultCode.Accepted, LastAck(mateConnection).Result);
+            var guard = Assert.Single(lead.GarrisonForTests);
+            Assert.Equal(mate.PublicId, guard.OwnerId);
+            Assert.True(guard.Troops > 0);
+
+            Send(mate, new RecallMarchCommand { CommandId = "back", MarchId = guard.MarchId }, CommandType.RecallMarch);
+            Assert.Empty(lead.GarrisonForTests);
         }
     }
 }
