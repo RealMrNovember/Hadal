@@ -45,7 +45,9 @@ ALTER TABLE hadal.alliances ADD COLUMN IF NOT EXISTS emblem text NOT NULL DEFAUL
 ALTER TABLE hadal.alliances ADD COLUMN IF NOT EXISTS announcement text NOT NULL DEFAULT '';
 ALTER TABLE hadal.alliances ADD COLUMN IF NOT EXISTS language text NOT NULL DEFAULT '';
 ALTER TABLE hadal.alliance_members ADD COLUMN IF NOT EXISTS rank integer NOT NULL DEFAULT 0;
-ALTER TABLE hadal.alliance_members ADD COLUMN IF NOT EXISTS role text NOT NULL DEFAULT '';";
+ALTER TABLE hadal.alliance_members ADD COLUMN IF NOT EXISTS role text NOT NULL DEFAULT '';
+ALTER TABLE hadal.alliance_members ADD COLUMN IF NOT EXISTS level integer NOT NULL DEFAULT 0;
+ALTER TABLE hadal.alliance_members ADD COLUMN IF NOT EXISTS last_seen timestamptz;";
 
         private readonly NpgsqlDataSource _dataSource;
 
@@ -71,12 +73,13 @@ ALTER TABLE hadal.alliance_members ADD COLUMN IF NOT EXISTS role text NOT NULL D
                         reader.GetString(4), reader.GetFieldValue<DateTimeOffset>(5), reader.GetInt32(6), reader.GetString(7), reader.GetString(8), reader.GetString(9)));
             }
 
-            await using (var command = new NpgsqlCommand("SELECT player_id, alliance_id, name, power, joined_at, rank, role FROM hadal.alliance_members", connection))
+            await using (var command = new NpgsqlCommand("SELECT player_id, alliance_id, name, power, joined_at, rank, role, level, last_seen FROM hadal.alliance_members", connection))
             await using (var reader = await command.ExecuteReaderAsync(cancellationToken))
             {
                 while (await reader.ReadAsync(cancellationToken))
                     members.Add(new MemberRecord(reader.GetString(0), reader.GetString(1), reader.GetString(2), reader.GetInt64(3),
-                        reader.GetFieldValue<DateTimeOffset>(4), reader.GetInt32(5), reader.GetString(6)));
+                        reader.GetFieldValue<DateTimeOffset>(4), reader.GetInt32(5), reader.GetString(6), reader.GetInt32(7),
+                        reader.IsDBNull(8) ? null : reader.GetFieldValue<DateTimeOffset>(8)));
             }
 
             return (alliances, members);
@@ -110,10 +113,12 @@ ON CONFLICT (alliance_id) DO UPDATE SET name = EXCLUDED.name, tag = EXCLUDED.tag
             ExecuteAsync("DELETE FROM hadal.alliances WHERE alliance_id = @id", cancellationToken, ("id", allianceId));
 
         public Task SaveMemberAsync(MemberRecord m, CancellationToken cancellationToken) => ExecuteAsync(@"
-INSERT INTO hadal.alliance_members (player_id, alliance_id, name, power, joined_at, rank, role) VALUES (@p, @a, @name, @power, @at, @rank, @role)
+INSERT INTO hadal.alliance_members (player_id, alliance_id, name, power, joined_at, rank, role, level, last_seen)
+VALUES (@p, @a, @name, @power, @at, @rank, @role, @level, @seen)
 ON CONFLICT (player_id) DO UPDATE SET alliance_id = EXCLUDED.alliance_id, name = EXCLUDED.name, power = EXCLUDED.power, joined_at = EXCLUDED.joined_at,
-    rank = EXCLUDED.rank, role = EXCLUDED.role",
-            cancellationToken, ("p", m.PlayerId), ("a", m.AllianceId), ("name", m.Name), ("power", m.Power), ("at", m.JoinedAt), ("rank", m.Rank), ("role", m.Role));
+    rank = EXCLUDED.rank, role = EXCLUDED.role, level = EXCLUDED.level, last_seen = COALESCE(EXCLUDED.last_seen, hadal.alliance_members.last_seen)",
+            cancellationToken, ("p", m.PlayerId), ("a", m.AllianceId), ("name", m.Name), ("power", m.Power), ("at", m.JoinedAt), ("rank", m.Rank), ("role", m.Role),
+            ("level", m.Level), ("seen", (object?)m.LastSeen ?? DBNull.Value));
 
         public Task DeleteMemberAsync(string playerId, CancellationToken cancellationToken) =>
             ExecuteAsync("DELETE FROM hadal.alliance_members WHERE player_id = @p", cancellationToken, ("p", playerId));

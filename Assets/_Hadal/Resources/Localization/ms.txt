@@ -1165,3 +1165,8 @@ alliance.soon = {0} akan datang tidak lama lagi.
 alliance.rally.body = Teleport ke sisi ketua pakatan ({0}). Kos: {1}
 alliance.rally.go = Teleport
 alliance.language = Bahasa pakatan
+
+# Alliance members (docs/31 §2)
+alliance.leader.title = Ketua Pakatan
+alliance.titles = Gelaran pegawai
+alliance.duty.empty = Kosong

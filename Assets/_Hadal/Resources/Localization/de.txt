@@ -1165,3 +1165,8 @@ alliance.soon = {0} kommt bald.
 alliance.rally.body = Teleportiere dich zum Allianzanführer ({0}). Kosten: {1}
 alliance.rally.go = Teleportieren
 alliance.language = Allianzsprache
+
+# Alliance members (docs/31 §2)
+alliance.leader.title = Allianzanführer
+alliance.titles = Offizierstitel
+alliance.duty.empty = Unbesetzt

@@ -1165,3 +1165,8 @@ alliance.soon = {0}: скоро.
 alliance.rally.body = Телепортироваться к лидеру альянса ({0}). Цена: {1}
 alliance.rally.go = Телепорт
 alliance.language = Язык альянса
+
+# Alliance members (docs/31 §2)
+alliance.leader.title = Лидер альянса
+alliance.titles = Должности офицеров
+alliance.duty.empty = Свободно

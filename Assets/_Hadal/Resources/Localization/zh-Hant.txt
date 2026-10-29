@@ -1165,3 +1165,8 @@ alliance.soon = {0}即將推出。
 alliance.rally.body = 傳送到盟主（{0}）附近。花費：{1}
 alliance.rally.go = 傳送
 alliance.language = 聯盟語言
+
+# Alliance members (docs/31 §2)
+alliance.leader.title = 盟主
+alliance.titles = 官員職位
+alliance.duty.empty = 空缺

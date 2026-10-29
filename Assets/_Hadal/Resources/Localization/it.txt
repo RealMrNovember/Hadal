@@ -1165,3 +1165,8 @@ alliance.soon = {0} arriva presto.
 alliance.rally.body = Teletrasportati vicino al capo dell'alleanza ({0}). Costo: {1}
 alliance.rally.go = Teletrasporta
 alliance.language = Lingua dell'alleanza
+
+# Alliance members (docs/31 §2)
+alliance.leader.title = Capo dell'alleanza
+alliance.titles = Titoli degli ufficiali
+alliance.duty.empty = Vacante

@@ -151,7 +151,7 @@ namespace Hadal.Game.Social
                 session.SetInAlliance(alliance != null, now);
                 if (alliance != null)
                 {
-                    UpdateMember(alliance, session.PublicId, session.DisplayName, session.Power);
+                    UpdateMember(alliance, session.PublicId, session.DisplayName, session.Power, session.BaseLevel);
                     PromoteRecruits(alliance, now);
                     PushAlliance(alliance, now); // others see them online
                 }
@@ -180,7 +180,7 @@ namespace Hadal.Game.Social
                 var alliance = AllianceOf(session.PublicId);
                 if (alliance != null)
                 {
-                    UpdateMember(alliance, session.PublicId, session.DisplayName, session.Power);
+                    UpdateMember(alliance, session.PublicId, session.DisplayName, session.Power, session.BaseLevel, lastSeen: now);
                     PushAlliance(alliance, now);
                 }
             }
@@ -823,12 +823,16 @@ namespace Hadal.Game.Social
             Write(ct => _store.SaveMemberAsync(member, ct));
         }
 
-        private void UpdateMember(Alliance alliance, string playerId, string name, long power)
+        private void UpdateMember(Alliance alliance, string playerId, string name, long power, int level = 0, DateTimeOffset? lastSeen = null)
         {
             var index = alliance.Members.FindIndex(m => m.PlayerId == playerId);
             if (index < 0)
                 return;
-            var member = alliance.Members[index] with { Name = name, Power = power };
+            var current = alliance.Members[index];
+            var member = current with
+            {
+                Name = name, Power = power, Level = level > 0 ? level : current.Level, LastSeen = lastSeen ?? current.LastSeen
+            };
             _names[playerId] = name;
             alliance.Members[index] = member;
             Write(ct => _store.SaveMemberAsync(member, ct));
@@ -951,7 +955,9 @@ namespace Hadal.Game.Social
                         Online = online,
                         Rank = m.Rank,
                         Role = m.Role,
-                        AvatarId = AvatarOf(m.PlayerId)
+                        AvatarId = AvatarOf(m.PlayerId),
+                        Level = online ? s!.BaseLevel : m.Level,
+                        LastSeenMs = online ? 0 : m.LastSeen?.ToUnixTimeMilliseconds() ?? 0
                     };
                 }).OrderByDescending(m => m.Rank).ThenByDescending(m => m.Power).ToArray()
             };

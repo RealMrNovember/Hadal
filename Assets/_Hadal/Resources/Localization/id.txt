@@ -1165,3 +1165,8 @@ alliance.soon = {0} segera hadir.
 alliance.rally.body = Teleportasi ke dekat pemimpin aliansi ({0}). Biaya: {1}
 alliance.rally.go = Teleportasi
 alliance.language = Bahasa aliansi
+
+# Alliance members (docs/31 §2)
+alliance.leader.title = Pemimpin Aliansi
+alliance.titles = Gelar perwira
+alliance.duty.empty = Kosong

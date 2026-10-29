@@ -1165,3 +1165,8 @@ alliance.soon = {0} arrive bientôt.
 alliance.rally.body = Téléporte-toi près du chef de l'alliance ({0}). Coût : {1}
 alliance.rally.go = Téléporter
 alliance.language = Langue de l'alliance
+
+# Alliance members (docs/31 §2)
+alliance.leader.title = Chef de l'alliance
+alliance.titles = Titres d'officiers
+alliance.duty.empty = Vacant

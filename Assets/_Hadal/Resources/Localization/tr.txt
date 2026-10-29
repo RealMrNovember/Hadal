@@ -1166,3 +1166,8 @@ alliance.soon = {0} yakında geliyor.
 alliance.rally.body = İttifak liderinin ({0}) yakınına ışınlan. Bedel: {1}
 alliance.rally.go = Işınlan
 alliance.language = İttifak dili
+
+# Alliance members (docs/31 §2)
+alliance.leader.title = İttifak Lideri
+alliance.titles = Görevliler
+alliance.duty.empty = Boş

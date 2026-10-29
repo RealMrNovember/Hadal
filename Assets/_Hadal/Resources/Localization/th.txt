@@ -1165,3 +1165,8 @@ alliance.soon = {0} เร็ว ๆ นี้
 alliance.rally.body = เทเลพอร์ตไปใกล้ผู้นำพันธมิตร ({0}) ค่าใช้จ่าย: {1}
 alliance.rally.go = เทเลพอร์ต
 alliance.language = ภาษาของพันธมิตร
+
+# Alliance members (docs/31 §2)
+alliance.leader.title = ผู้นำพันธมิตร
+alliance.titles = ตำแหน่งเจ้าหน้าที่
+alliance.duty.empty = ว่าง

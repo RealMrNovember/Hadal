@@ -1165,3 +1165,8 @@ alliance.soon = {0}は近日公開。
 alliance.rally.body = 同盟リーダー（{0}）の近くへテレポート。費用：{1}
 alliance.rally.go = テレポート
 alliance.language = 同盟の言語
+
+# Alliance members (docs/31 §2)
+alliance.leader.title = 同盟リーダー
+alliance.titles = 役職
+alliance.duty.empty = 空席

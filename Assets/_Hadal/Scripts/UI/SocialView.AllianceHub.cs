@@ -11,8 +11,8 @@ namespace Hadal.UI
     /// <summary>
     /// The alliance hub (docs/31 §1, sampled from Last Asylum): a header card (banner, [TAG] Name, leader, power, members,
     /// language) with the officers' announcement under it, a two-column grid of tiles with red dots, and a bottom bar with
-    /// the logs, applications and settings. Pages that do not exist yet say so; War and Rally Point take hooks the PvP
-    /// screens can fill (<see cref="WarPage"/>, <see cref="RallyPrompt"/>).
+    /// the logs, applications and settings. Pages that do not exist yet say so; War opens the PvP war window and Rally
+    /// Point the PvP rally card (<see cref="RallyPointPrompt"/>).
     /// </summary>
     public sealed partial class SocialView
     {
@@ -21,16 +21,12 @@ namespace Hadal.UI
         private const int AllianceTabMembers = 2;
         private const int AllianceTabSettings = 3;
         private const int AllianceTabApplications = 4;
-        private const int AllianceTabRally = 5;
 
         private string _editAnnouncement;
         private string _editLanguage;
 
         /// <summary>Opens the alliance war page (attacks, defences, rallies), once PvP provides one.</summary>
         public Action WarPage { get; set; }
-
-        /// <summary>Opens the rally prompt (where the alliance gathers), once PvP provides one; else the alliance teleport shows.</summary>
-        public Action RallyPrompt { get; set; }
 
         private void OpenAllianceTab(int tab)
         {
@@ -79,8 +75,7 @@ namespace Hadal.UI
                 (Loc.T("alliance.tile.shop"), "shop", false, () => AllianceSoon("alliance.tile.shop")),
                 (Loc.T("alliance.tile.research"), "left_research", false, () => AllianceSoon("alliance.tile.research")),
                 (Loc.T("alliance.tile.rankings"), "power", false, () => AllianceSoon("alliance.tile.rankings")),
-                // TODO: call the PvP session's OpenRallyPoint() here once it is committed (docs/30 rally prompt).
-                (Loc.T("alliance.tile.rally"), "nav_world", false, () => { if (RallyPrompt != null) RallyPrompt(); else OpenAllianceTab(AllianceTabRally); }),
+                (Loc.T("alliance.tile.rally"), "nav_world", false, () => { Close(); RallyPointPrompt.Instance?.OpenRallyPoint(); }),
                 (Loc.T("alliance.tile.log"), "quest", false, () => AllianceSoon("alliance.tile.log"))
             };
             for (var start = 0; start < tiles.Length; start += 2)
@@ -182,30 +177,6 @@ namespace Hadal.UI
                 });
                 _editAnnouncement = _editLanguage = null;
             }, null, 0.25f, 0.1f, 0.75f, 0.9f);
-        }
-
-        /// <summary>
-        /// Until PvP's rally prompt (OpenRallyPoint) exists: the existing alliance teleport next to the leader, with its price.
-        /// </summary>
-        private void RenderRally(AllianceDto alliance)
-        {
-            Header(Loc.T("alliance.tile.rally"));
-            var leader = alliance.Members.FirstOrDefault(m => m.IsLeader);
-            var item = TeleportRules.ItemFor(TeleportRules.Alliance);
-            var held = View.Items.TryGetValue(item, out var n) ? n : 0;
-            var price = held > 0 ? Loc.F("world.teleport.item", held) : Loc.F("world.teleport.hadalite", TeleportRules.HadaliteFor(TeleportRules.Alliance).ToString("N0"));
-            var card = Card(200);
-            HudIconImage(card.transform, "item_teleport_alliance", 0.02f, 0.15f, 0.16f, 0.85f);
-            CardText(card.transform, Loc.F("alliance.rally.body", leader?.Name ?? "-", price), 26, UiKit.Text, 0.19f, 0.08f, 0.64f, 0.92f, TextAnchor.MiddleLeft);
-            var leaderId = leader?.PlayerId ?? string.Empty;
-            CardButton(card.transform, Loc.T("alliance.rally.go"), leader != null && leaderId != View.PlayerId, () =>
-            {
-                _commands.Dispatch(new TeleportCommand
-                {
-                    CommandId = NewId(), ClientSequence = NextSequence(), Mode = TeleportRules.Alliance, MemberId = leaderId
-                });
-                Close();
-            }, UiKit.Accent, 0.66f, 0.22f, 0.97f, 0.78f);
         }
     }
 }

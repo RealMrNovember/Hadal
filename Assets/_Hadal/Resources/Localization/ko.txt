@@ -1165,3 +1165,8 @@ alliance.soon = {0} 곧 출시됩니다.
 alliance.rally.body = 연맹 맹주({0}) 근처로 순간이동합니다. 비용: {1}
 alliance.rally.go = 순간이동
 alliance.language = 연맹 언어
+
+# Alliance members (docs/31 §2)
+alliance.leader.title = 연맹 맹주
+alliance.titles = 간부 직위
+alliance.duty.empty = 공석

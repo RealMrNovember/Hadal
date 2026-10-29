@@ -1166,3 +1166,8 @@ alliance.soon = {0} is coming soon.
 alliance.rally.body = Teleport next to the alliance leader ({0}). Cost: {1}
 alliance.rally.go = Teleport
 alliance.language = Alliance language
+
+# Alliance members (docs/31 §2)
+alliance.leader.title = Alliance Leader
+alliance.titles = Officer titles
+alliance.duty.empty = Vacant

@@ -1165,3 +1165,8 @@ alliance.soon = {0} قريبًا.
 alliance.rally.body = انتقل بجوار قائد التحالف ({0}). التكلفة: {1}
 alliance.rally.go = انتقال
 alliance.language = لغة التحالف
+
+# Alliance members (docs/31 §2)
+alliance.leader.title = قائد التحالف
+alliance.titles = ألقاب الضباط
+alliance.duty.empty = شاغر

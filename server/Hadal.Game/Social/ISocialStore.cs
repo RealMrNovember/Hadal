@@ -7,7 +7,8 @@ namespace Hadal.Game.Social
         string Emblem = "", string Announcement = "", string Language = "");
 
     /// <summary><see cref="Rank"/> 1–5 (0 = stored before ranks existed), <see cref="Role"/> an officer duty tag.</summary>
-    public sealed record MemberRecord(string PlayerId, string AllianceId, string Name, long Power, DateTimeOffset JoinedAt, int Rank = 0, string Role = "");
+    public sealed record MemberRecord(string PlayerId, string AllianceId, string Name, long Power, DateTimeOffset JoinedAt, int Rank = 0, string Role = "",
+        int Level = 0, DateTimeOffset? LastSeen = null);
 
     /// <summary>One chat line. <see cref="Channel"/> is "world", "alliance:&lt;id&gt;" or "dm:&lt;id&gt;:&lt;id&gt;" (ids in order).</summary>
     public sealed record ChatRecord(long Id, string Channel, string SenderId, string SenderName, string AllianceTag, string Text, DateTimeOffset SentAt, bool IsSystem);

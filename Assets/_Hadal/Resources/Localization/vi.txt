@@ -1165,3 +1165,8 @@ alliance.soon = {0} sắp ra mắt.
 alliance.rally.body = Dịch chuyển đến gần thủ lĩnh liên minh ({0}). Chi phí: {1}
 alliance.rally.go = Dịch chuyển
 alliance.language = Ngôn ngữ liên minh
+
+# Alliance members (docs/31 §2)
+alliance.leader.title = Thủ lĩnh liên minh
+alliance.titles = Chức danh sĩ quan
+alliance.duty.empty = Còn trống

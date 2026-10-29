@@ -53,6 +53,12 @@ namespace HADAL.Shared.DTOs
         /// <summary>Officer duty tag ("war", "logistics", "diplomacy", "scout") or empty.</summary>
         [ProtoMember(7)] public string Role { get; set; } = string.Empty;
         [ProtoMember(8)] public string AvatarId { get; set; } = string.Empty;
+
+        /// <summary>Core Reactor level (live when online, as last seen otherwise; 0 = not known yet).</summary>
+        [ProtoMember(9)] public int Level { get; set; }
+
+        /// <summary>When an offline member was last online (Unix ms; 0 = unknown or online).</summary>
+        [ProtoMember(10)] public long LastSeenMs { get; set; }
     }
 
     /// <summary>Alliance invitations for a player without an alliance, and where they applied (entity <c>EntityIds.AllianceInvites</c>).</summary>

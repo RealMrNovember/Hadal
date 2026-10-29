@@ -185,10 +185,6 @@ namespace Hadal.UI
                     BackToHub();
                     RenderSettings(alliance, myRank);
                     return;
-                case AllianceTabRally:
-                    BackToHub();
-                    RenderRally(alliance);
-                    return;
                 default:
                     _allianceTab = AllianceTabHub;
                     RenderHub(alliance, myRank);
@@ -196,48 +192,96 @@ namespace Hadal.UI
             }
         }
 
-        /// <summary>Members by rank with a manage card per member (step 2 of docs/31 rebuilds it LA-style).</summary>
+        private readonly System.Collections.Generic.HashSet<int> _collapsedRanks = new System.Collections.Generic.HashSet<int>();
+
+        private static int RankOfMember(AllianceMemberDto m) => m.Rank > 0 ? m.Rank : m.IsLeader ? AlliancePermissions.Leader : AlliancePermissions.Diver;
+
+        /// <summary>"Online", or when the member was last seen ("3 h ago").</summary>
+        private string LastSeen(AllianceMemberDto m)
+        {
+            if (m.Online)
+                return $"<color=#5BE37A>{Loc.T("world.online")}</color>";
+            if (m.LastSeenMs <= 0)
+                return Loc.T("world.offline");
+            var t = TimeSpan.FromMilliseconds(Math.Max(0, NowMs - m.LastSeenMs));
+            return t.TotalDays >= 1 ? Loc.F("mail.age.day", (int)t.TotalDays)
+                : t.TotalHours >= 1 ? Loc.F("mail.age.hour", (int)t.TotalHours)
+                : t.TotalMinutes >= 1 ? Loc.F("mail.age.min", (int)t.TotalMinutes)
+                : Loc.T("mail.age.now");
+        }
+
+        /// <summary>
+        /// Members, Last Asylum's layout (docs/31 §2): the leader's card, the officers' duty titles as portrait slots, then
+        /// collapsible rank groups R4 → R1 with counts (R4 against its seats), each member with portrait, level, power and
+        /// online / last seen, and the manage card (message, mail, rank, duty, hand over, remove) under the row.
+        /// </summary>
         private void RenderMembers(AllianceDto alliance, string me, int myRank)
         {
-            var lastRank = -1;
-            foreach (var member in alliance.Members)
+            var leader = alliance.Members.FirstOrDefault(m => m.IsLeader);
+            if (leader != null)
             {
-                // Rank groups R5 → R1 with a count, like the genre's member lists.
-                var memberRank = member.Rank > 0 ? member.Rank : member.IsLeader ? 5 : 2;
-                if (memberRank != lastRank)
+                Header(Loc.T("alliance.leader.title"));
+                MemberRow(leader, alliance, me, myRank, 190, new Color(0.18f, 0.14f, 0.05f, 1f));
+            }
+
+            // Officer duties: one titled slot each, the officer holding it or empty.
+            Header(Loc.T("alliance.titles"));
+            var duties = AlliancePermissions.Roles.Where(r => r.Length > 0).ToArray();
+            var row = UiKit.Rect("Titles", _list).Row(230);
+            for (var i = 0; i < duties.Length; i++)
+            {
+                var duty = duties[i];
+                var holder = alliance.Members.FirstOrDefault(m => m.Role == duty && RankOfMember(m) == AlliancePermissions.Officer);
+                var slot = UiKit.Box("Title", row, UiKit.Field);
+                slot.rectTransform.Place(i / (float)duties.Length + 0.005f, 0.02f, (i + 1) / (float)duties.Length - 0.005f, 0.98f);
+                var face = UiKit.Rect("Face", slot.transform).Place(0.2f, 0.36f, 0.8f, 0.94f);
+                if (holder != null)
                 {
-                    lastRank = memberRank;
-                    Header($"R{memberRank} · {RankName(memberRank)}  ({alliance.Members.Count(m => (m.Rank > 0 ? m.Rank : m.IsLeader ? 5 : 2) == memberRank)})");
+                    AvatarDisc.Draw(face, holder.AvatarId, holder.Name, holder.PlayerId);
+                    var id = holder.PlayerId;
+                    var name = holder.Name;
+                    var avatar = holder.AvatarId;
+                    var button = slot.gameObject.AddComponent<Button>();
+                    button.targetGraphic = slot;
+                    button.onClick.AddListener(() => ProfileCard.Instance?.Show(id, name, avatar));
+                }
+                else
+                {
+                    UiKit.Label("Empty", face, "+", 60, UiKit.Muted, TextAnchor.MiddleCenter, FontStyle.Bold).rectTransform.Place(0, 0, 1, 1);
                 }
 
-                var card = Card(150);
-                var dot = member.Online ? "<color=#38D6F2>●</color>" : "<color=#3A5560>●</color>";
-                var rank = member.Rank > 0 ? member.Rank : member.IsLeader ? 5 : 2;
-                var role = string.IsNullOrEmpty(member.Role) ? string.Empty : " · " + Loc.T("alliance.duty." + member.Role);
-                var face = UiKit.Rect("Face", card.transform).Place(0.015f, 0.1f, 0.15f, 0.9f);
-                AvatarDisc.Draw(face, member.AvatarId, member.Name, member.PlayerId);
-                face.gameObject.AddComponent<Image>().color = new Color(0, 0, 0, 0);
-                var faceId = member.PlayerId;
-                var faceName = member.Name;
-                var faceAvatar = member.AvatarId;
-                face.gameObject.AddComponent<Button>().onClick.AddListener(() => ProfileCard.Instance?.Show(faceId, faceName, faceAvatar));
-                CardText(card.transform, $"{dot} {member.Name}", 34, member.PlayerId == me ? UiKit.Accent : UiKit.Text,
-                    0.17f, 0.5f, 0.78f, 0.95f, TextAnchor.UpperLeft, FontStyle.Bold);
-                CardText(card.transform, $"<color=#FFB74D>R{rank} {RankName(rank)}{role}</color>   {Loc.F("hero.power", member.Power)}", 24, UiKit.Muted,
-                    0.17f, 0.08f, 0.78f, 0.5f);
+                CardText(slot.transform, Loc.T("alliance.duty." + duty), 24, UiKit.Amber, 0.02f, 0.18f, 0.98f, 0.36f, TextAnchor.MiddleCenter, FontStyle.Bold)
+                    .raycastTarget = false;
+                var label = CardText(slot.transform, holder?.Name ?? Loc.T("alliance.duty.empty"), 20, holder != null ? UiKit.Text : UiKit.Muted,
+                    0.02f, 0.01f, 0.98f, 0.18f, TextAnchor.MiddleCenter);
+                label.raycastTarget = false;
+                label.supportRichText = false;
+            }
 
-                if (member.PlayerId == me)
-                    continue;
-                var id = member.PlayerId;
-                CardButton(card.transform, _manage == id ? "▲" : "⋯", true, () =>
+            // Rank groups R4 → R1; a tap folds or opens one.
+            for (var rank = AlliancePermissions.Officer; rank >= AlliancePermissions.Recruit; rank--)
+            {
+                var group = alliance.Members.Where(m => !m.IsLeader && RankOfMember(m) == rank).ToList();
+                var open = !_collapsedRanks.Contains(rank);
+                var count = rank == AlliancePermissions.Officer ? $"{group.Count}/{AlliancePermissions.MaxOfficers}" : group.Count.ToString();
+                var head = Card(90);
+                head.color = new Color(0.04f, 0.1f, 0.15f, 1f);
+                var groupRank = rank;
+                var toggle = head.gameObject.AddComponent<Button>();
+                toggle.targetGraphic = head;
+                toggle.onClick.AddListener(() =>
                 {
-                    _manage = _manage == id ? string.Empty : id;
-                    _kickConfirm = _transferConfirm = string.Empty;
+                    if (!_collapsedRanks.Remove(groupRank))
+                        _collapsedRanks.Add(groupRank);
                     Render(force: false);
-                }, UiKit.Field, 0.8f, 0.2f, 0.97f, 0.8f);
-
-                if (_manage == id)
-                    RenderManage(member, rank, myRank, alliance);
+                });
+                CardText(head.transform, $"{(open ? "▼" : "▶")}  R{rank} · {RankName(rank)}", 30, UiKit.Accent, 0.03f, 0.05f, 0.7f, 0.95f,
+                    TextAnchor.MiddleLeft, FontStyle.Bold).raycastTarget = false;
+                CardText(head.transform, count, 30, UiKit.Text, 0.7f, 0.05f, 0.97f, 0.95f, TextAnchor.MiddleRight, FontStyle.Bold).raycastTarget = false;
+                if (!open)
+                    continue;
+                foreach (var member in group)
+                    MemberRow(member, alliance, me, myRank, 150, null);
             }
 
             var leave = Card(150);
@@ -256,6 +300,44 @@ namespace Hadal.UI
                 _allianceTab = 0;
                 _commands.Dispatch(new LeaveAllianceCommand { CommandId = NewId(), ClientSequence = NextSequence() });
             }, UiKit.Danger);
+        }
+
+        /// <summary>One member: portrait (opens the profile), name, rank and duty, level, power, online / last seen, and "⋯".</summary>
+        private void MemberRow(AllianceMemberDto member, AllianceDto alliance, string me, int myRank, float height, Color? fill)
+        {
+            var card = Card(height);
+            if (fill.HasValue)
+                card.color = fill.Value;
+            var rank = RankOfMember(member);
+            var face = UiKit.Rect("Face", card.transform).Place(0.015f, 0.1f, 0.15f, 0.9f);
+            AvatarDisc.Draw(face, member.AvatarId, member.Name, member.PlayerId);
+            face.gameObject.AddComponent<Image>().color = new Color(0, 0, 0, 0);
+            var faceId = member.PlayerId;
+            var faceName = member.Name;
+            var faceAvatar = member.AvatarId;
+            face.gameObject.AddComponent<Button>().onClick.AddListener(() => ProfileCard.Instance?.Show(faceId, faceName, faceAvatar));
+
+            var name = CardText(card.transform, member.Name, 32, member.PlayerId == me ? UiKit.Accent : UiKit.Text, 0.17f, 0.52f, 0.62f, 0.95f,
+                TextAnchor.MiddleLeft, FontStyle.Bold);
+            name.supportRichText = false;
+            var role = string.IsNullOrEmpty(member.Role) ? string.Empty : " · " + Loc.T("alliance.duty." + member.Role);
+            var level = member.Level > 0 ? Loc.F("world.level", member.Level) + "   " : string.Empty;
+            CardText(card.transform, $"<color=#FFB74D>R{rank} {RankName(rank)}{role}</color>\n{level}{Loc.F("hero.power", member.Power.ToString("N0"))}", 22,
+                UiKit.Muted, 0.17f, 0.04f, 0.62f, 0.54f, TextAnchor.MiddleLeft);
+            CardText(card.transform, LastSeen(member), 22, UiKit.Muted, 0.6f, 0.52f, 0.79f, 0.95f, TextAnchor.MiddleRight);
+
+            if (member.PlayerId == me)
+                return;
+            var id = member.PlayerId;
+            CardButton(card.transform, _manage == id ? "▲" : "⋯", true, () =>
+            {
+                _manage = _manage == id ? string.Empty : id;
+                _kickConfirm = _transferConfirm = string.Empty;
+                Render(force: false);
+            }, UiKit.Field, 0.81f, 0.2f, 0.97f, 0.8f);
+
+            if (_manage == id)
+                RenderManage(member, rank, myRank, alliance);
         }
 
         /// <summary>What the viewer may do to one member: message, rank up or down, duty, hand over, remove.</summary>
