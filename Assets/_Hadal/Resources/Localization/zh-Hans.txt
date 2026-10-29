@@ -1190,3 +1190,13 @@ alliance.battle.defence_lost = {0}击败了{1}的基地（X:{2} Y:{3}）。
 alliance.battle.scout = {0}侦察了{1}（X:{2} Y:{3}）。
 alliance.battle.rally_won = {0}的集结击败了{1}（X:{2} Y:{3}）。
 alliance.battle.rally_lost = {0}的集结败给了{1}（X:{2} Y:{3}）。
+
+# Alliance coins and shop (docs/31 §2)
+alliance.coins = 联盟币：{0}
+alliance.coins.help = 今日帮助获得的联盟币（每次帮助{0}）
+alliance.shop.refill = {0}后补货
+alliance.shop.stock = 剩余 {0}/{1}
+alliance.shop.price = {0} 联盟币
+alliance.shop.how = 帮助盟友（每天最多1,000）和联盟礼物可获得联盟币。库存每周一补充。
+reason.SoldOut = 本周已售罄。
+reason.NotEnoughCoins = 联盟币不足。

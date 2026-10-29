@@ -1190,3 +1190,13 @@ alliance.battle.defence_lost = {0}님이 {1}님의 기지를 격파 (X:{2} Y:{3}
 alliance.battle.scout = {0}님이 {1}을(를) 정찰 (X:{2} Y:{3}).
 alliance.battle.rally_won = {0}님의 집결이 {1}에 승리 (X:{2} Y:{3}).
 alliance.battle.rally_lost = {0}님의 집결이 {1}에 패배 (X:{2} Y:{3}).
+
+# Alliance coins and shop (docs/31 §2)
+alliance.coins = 연맹 코인: {0}
+alliance.coins.help = 오늘 도움으로 얻은 코인 (도움당 {0})
+alliance.shop.refill = {0} 후 재입고
+alliance.shop.stock = 남음 {0}/{1}
+alliance.shop.price = {0} 코인
+alliance.shop.how = 코인은 연맹원을 도와서(하루 최대 1,000)와 연맹 선물로 얻습니다. 재고는 매주 월요일에 다시 채워집니다.
+reason.SoldOut = 이번 주 품절입니다.
+reason.NotEnoughCoins = 연맹 코인이 부족합니다.

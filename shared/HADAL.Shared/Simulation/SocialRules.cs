@@ -33,6 +33,8 @@ namespace HADAL.Shared.Simulation
         UnknownPlayer = 22,
         AlreadyApplied = 23,
         NoApplication = 24,
+        SoldOut = 25,
+        NotEnoughCoins = 26,
     }
 
     /// <summary>Chat channels. Values are a wire contract.</summary>

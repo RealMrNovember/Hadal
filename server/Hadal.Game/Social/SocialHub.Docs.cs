@@ -9,7 +9,10 @@ namespace Hadal.Game.Social
         {
             var docs = await _store.LoadDocsAsync(cancellationToken);
             lock (_gate)
+            {
                 LoadLogs(docs);
+                LoadPurses(docs);
+            }
             _logger.LogInformation("Social hub: {Docs} alliance documents.", docs.Count);
         }
     }

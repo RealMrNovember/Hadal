@@ -1190,3 +1190,13 @@ alliance.battle.defence_lost = {0} versloeg de basis van {1} (X:{2} Y:{3}).
 alliance.battle.scout = {0} verkende {1} (X:{2} Y:{3}).
 alliance.battle.rally_won = De verzameling van {0} versloeg {1} (X:{2} Y:{3}).
 alliance.battle.rally_lost = De verzameling van {0} verloor van {1} (X:{2} Y:{3}).
+
+# Alliance coins and shop (docs/31 §2)
+alliance.coins = Alliantiemunten: {0}
+alliance.coins.help = Munten van helpen vandaag ({0} per hulp)
+alliance.shop.refill = Aangevuld over {0}
+alliance.shop.stock = Nog {0}/{1}
+alliance.shop.price = {0} munten
+alliance.shop.how = Munten verdien je met helpen (tot 1.000 per dag) en met alliantiegeschenken. De voorraad vult elke maandag aan.
+reason.SoldOut = Deze week uitverkocht.
+reason.NotEnoughCoins = Niet genoeg alliantiemunten.

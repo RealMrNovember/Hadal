@@ -1190,3 +1190,13 @@ alliance.battle.defence_lost = {0}が{1}の基地を撃破（X:{2} Y:{3}）。
 alliance.battle.scout = {0}が{1}を偵察（X:{2} Y:{3}）。
 alliance.battle.rally_won = {0}の集結が{1}に勝利（X:{2} Y:{3}）。
 alliance.battle.rally_lost = {0}の集結が{1}に敗北（X:{2} Y:{3}）。
+
+# Alliance coins and shop (docs/31 §2)
+alliance.coins = 同盟コイン：{0}
+alliance.coins.help = 本日の支援コイン（支援1回につき{0}）
+alliance.shop.refill = 補充まで{0}
+alliance.shop.stock = 残り{0}/{1}
+alliance.shop.price = {0}コイン
+alliance.shop.how = コインは同盟の仲間を支援する（1日最大1,000）と同盟ギフトで手に入ります。在庫は毎週月曜に補充されます。
+reason.SoldOut = 今週は売り切れです。
+reason.NotEnoughCoins = 同盟コインが足りません。

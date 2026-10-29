@@ -89,7 +89,8 @@ namespace Hadal.Game.Social
         public static bool Handles(CommandType type) => type is CommandType.SendChat or CommandType.CreateAlliance or CommandType.JoinAlliance
             or CommandType.LeaveAlliance or CommandType.BrowseAlliances or CommandType.KickMember or CommandType.RequestHelp or CommandType.HelpAll
             or CommandType.SetMemberRank or CommandType.TransferLeadership or CommandType.SetAllianceSettings or CommandType.InviteToAlliance
-            or CommandType.AnswerInvite or CommandType.AnswerApplication or CommandType.SetAllianceInfo or CommandType.ViewAllianceLog;
+            or CommandType.AnswerInvite or CommandType.AnswerApplication or CommandType.SetAllianceInfo or CommandType.ViewAllianceLog
+            or CommandType.BuyAllianceItem;
 
         /// <summary>Loads alliances and recent chat. Call once at startup, after the schema exists.</summary>
         public async Task InitializeAsync(CancellationToken cancellationToken)
@@ -162,7 +163,8 @@ namespace Hadal.Game.Social
                     HistoryChange(session.PublicId),
                     MyAllianceChange(session.PublicId),
                     HelpChange(session.PublicId, now),
-                    InvitesChange(session.PublicId, now)
+                    InvitesChange(session.PublicId, now),
+                    CoinsChange(session.PublicId, now)
                 }, now);
             }
         }
@@ -224,6 +226,12 @@ namespace Hadal.Game.Social
                         break;
                     case CommandType.TransferLeadership when TryDeserialize(envelope.Payload, out TransferLeadershipCommand? transfer):
                         Done(session, transfer!.CommandId, transfer.ClientSequence, Transfer(session.PublicId, transfer.MemberId, now), now);
+                        break;
+                    case CommandType.BuyAllianceItem when TryDeserialize(envelope.Payload, out BuyAllianceItemCommand? buy):
+                        // A purchase answers itself with its reward report; only a refusal is acknowledged here.
+                        var bought = Buy(session, buy!, now);
+                        if (bought != SocialRejectReason.None)
+                            Done(session, buy!.CommandId, buy.ClientSequence, bought, now);
                         break;
                     case CommandType.ViewAllianceLog when TryDeserialize(envelope.Payload, out ViewAllianceLogCommand? viewLog):
                         Done(session, viewLog!.CommandId, viewLog.ClientSequence, ViewLog(session, viewLog, now), now);
@@ -715,6 +723,7 @@ namespace Hadal.Game.Social
                 return SocialRejectReason.NothingToHelp;
 
             helper.RecordEvent("help", helped, now);
+            AwardHelpCoins(helper, helped, now);
             foreach (var (ownerId, (count, seconds)) in received)
             {
                 if (_online.TryGetValue(ownerId, out var owner))

@@ -1190,3 +1190,13 @@ alliance.battle.defence_lost = {0}擊敗了{1}的基地（X:{2} Y:{3}）。
 alliance.battle.scout = {0}偵察了{1}（X:{2} Y:{3}）。
 alliance.battle.rally_won = {0}的集結擊敗了{1}（X:{2} Y:{3}）。
 alliance.battle.rally_lost = {0}的集結敗給了{1}（X:{2} Y:{3}）。
+
+# Alliance coins and shop (docs/31 §2)
+alliance.coins = 聯盟幣：{0}
+alliance.coins.help = 今日幫助獲得的聯盟幣（每次幫助{0}）
+alliance.shop.refill = {0}後補貨
+alliance.shop.stock = 剩餘 {0}/{1}
+alliance.shop.price = {0} 聯盟幣
+alliance.shop.how = 幫助盟友（每天最多1,000）和聯盟禮物可獲得聯盟幣。庫存每週一補充。
+reason.SoldOut = 本週已售罄。
+reason.NotEnoughCoins = 聯盟幣不足。

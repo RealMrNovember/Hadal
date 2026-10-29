@@ -1191,3 +1191,13 @@ alliance.battle.defence_lost = {0} defeated {1}'s base (X:{2} Y:{3}).
 alliance.battle.scout = {0} scouted {1} (X:{2} Y:{3}).
 alliance.battle.rally_won = {0}'s rally defeated {1} (X:{2} Y:{3}).
 alliance.battle.rally_lost = {0}'s rally lost to {1} (X:{2} Y:{3}).
+
+# Alliance coins and shop (docs/31 §2)
+alliance.coins = Alliance coins: {0}
+alliance.coins.help = Coins from helping today ({0} per help)
+alliance.shop.refill = Refills in {0}
+alliance.shop.stock = Left {0}/{1}
+alliance.shop.price = {0} coins
+alliance.shop.how = Coins come from helping alliance mates (up to 1,000 a day) and from alliance gifts. Stock refills every Monday.
+reason.SoldOut = Sold out for this week.
+reason.NotEnoughCoins = Not enough alliance coins.

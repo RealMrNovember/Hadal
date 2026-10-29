@@ -1190,3 +1190,13 @@ alliance.battle.defence_lost = {0} menewaskan pangkalan {1} (X:{2} Y:{3}).
 alliance.battle.scout = {0} meninjau {1} (X:{2} Y:{3}).
 alliance.battle.rally_won = Himpunan {0} menewaskan {1} (X:{2} Y:{3}).
 alliance.battle.rally_lost = Himpunan {0} tewas kepada {1} (X:{2} Y:{3}).
+
+# Alliance coins and shop (docs/31 §2)
+alliance.coins = Syiling pakatan: {0}
+alliance.coins.help = Syiling daripada membantu hari ini ({0} setiap bantuan)
+alliance.shop.refill = Diisi semula dalam {0}
+alliance.shop.stock = Baki {0}/{1}
+alliance.shop.price = {0} syiling
+alliance.shop.how = Syiling diperoleh dengan membantu rakan pakatan (sehingga 1,000 sehari) dan daripada hadiah pakatan. Stok diisi semula setiap Isnin.
+reason.SoldOut = Habis untuk minggu ini.
+reason.NotEnoughCoins = Syiling pakatan tidak mencukupi.

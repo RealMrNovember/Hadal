@@ -1190,3 +1190,13 @@ alliance.battle.defence_lost = {0} ha sconfitto la base di {1} (X:{2} Y:{3}).
 alliance.battle.scout = {0} ha esplorato {1} (X:{2} Y:{3}).
 alliance.battle.rally_won = Il raduno di {0} ha sconfitto {1} (X:{2} Y:{3}).
 alliance.battle.rally_lost = Il raduno di {0} ha perso contro {1} (X:{2} Y:{3}).
+
+# Alliance coins and shop (docs/31 §2)
+alliance.coins = Monete d'alleanza: {0}
+alliance.coins.help = Monete dagli aiuti di oggi ({0} per aiuto)
+alliance.shop.refill = Rifornimento tra {0}
+alliance.shop.stock = Rimasti {0}/{1}
+alliance.shop.price = {0} monete
+alliance.shop.how = Le monete si guadagnano aiutando l'alleanza (fino a 1.000 al giorno) e con i regali d'alleanza. Le scorte si rinnovano ogni lunedì.
+reason.SoldOut = Esaurito per questa settimana.
+reason.NotEnoughCoins = Monete d'alleanza insufficienti.

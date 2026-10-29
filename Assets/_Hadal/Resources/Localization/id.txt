@@ -1190,3 +1190,13 @@ alliance.battle.defence_lost = {0} mengalahkan markas {1} (X:{2} Y:{3}).
 alliance.battle.scout = {0} mengintai {1} (X:{2} Y:{3}).
 alliance.battle.rally_won = Rally {0} mengalahkan {1} (X:{2} Y:{3}).
 alliance.battle.rally_lost = Rally {0} kalah dari {1} (X:{2} Y:{3}).
+
+# Alliance coins and shop (docs/31 §2)
+alliance.coins = Koin aliansi: {0}
+alliance.coins.help = Koin dari membantu hari ini ({0} per bantuan)
+alliance.shop.refill = Diisi ulang dalam {0}
+alliance.shop.stock = Sisa {0}/{1}
+alliance.shop.price = {0} koin
+alliance.shop.how = Koin didapat dengan membantu rekan aliansi (hingga 1.000 per hari) dan dari hadiah aliansi. Stok diisi ulang setiap Senin.
+reason.SoldOut = Habis untuk minggu ini.
+reason.NotEnoughCoins = Koin aliansi tidak cukup.

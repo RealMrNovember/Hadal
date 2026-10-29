@@ -54,7 +54,7 @@ namespace Hadal.UI
             CommandType.DiveStage, CommandType.SetMemberRank, CommandType.TransferLeadership, CommandType.SetAllianceSettings,
             CommandType.AnswerInvite, CommandType.AnswerApplication, CommandType.ClaimEventStage, CommandType.ClaimEventRank,
             CommandType.ClaimVipLogin, CommandType.ClaimVipChest, CommandType.ReadMail, CommandType.ClaimMail, CommandType.DeleteMail,
-            CommandType.SendMail, CommandType.SetAllianceInfo
+            CommandType.SendMail, CommandType.SetAllianceInfo, CommandType.BuyAllianceItem
         };
 
         private IStateSyncService _stateSync;
@@ -228,6 +228,8 @@ namespace Hadal.UI
                     _afterReward = Page.Vip;
                 else if (_page is Page.Mail or Page.MailDetail)
                     _afterReward = _page;
+                else if (_page is Page.Alliance)
+                    _afterReward = Page.Alliance;
                 _reward = report;
                 Open(Page.Reward);
             }
@@ -252,7 +254,7 @@ namespace Hadal.UI
         private string PageKey() => _page switch
         {
             Page.Heroes or Page.HeroDetail or Page.Pod => $"{_page}|{_heroId}|{HeroesKey()}|{View.QuestVersion}",
-            Page.Alliance => $"{_page}|{View.AllianceVersion}|{_confirmLeave}|{_allianceTab}|{View.AllianceLogVersion}|{_logTab}",
+            Page.Alliance => $"{_page}|{View.AllianceVersion}|{_confirmLeave}|{_allianceTab}|{View.AllianceLogVersion}|{_logTab}|{View.AllianceCoinsVersion}",
             Page.Chat => $"{_page}|{View.ChatVersion}|{_chatChannel}|{_chatPeer}|{View.ProfileVersion}",
             Page.Quests or Page.Bag => $"{_page}|{QuestKey()}",
             Page.Expedition => $"{_page}|{ExpeditionKey()}",

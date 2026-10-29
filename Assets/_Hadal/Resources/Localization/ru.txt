@@ -1190,3 +1190,13 @@ alliance.battle.defence_lost = {0} разбил базу {1} (X:{2} Y:{3}).
 alliance.battle.scout = {0} разведал {1} (X:{2} Y:{3}).
 alliance.battle.rally_won = Сбор {0} победил {1} (X:{2} Y:{3}).
 alliance.battle.rally_lost = Сбор {0} проиграл {1} (X:{2} Y:{3}).
+
+# Alliance coins and shop (docs/31 §2)
+alliance.coins = Монеты альянса: {0}
+alliance.coins.help = Монеты за помощь сегодня ({0} за помощь)
+alliance.shop.refill = Обновление через {0}
+alliance.shop.stock = Осталось {0}/{1}
+alliance.shop.price = {0} монет
+alliance.shop.how = Монеты дают за помощь союзникам (до 1000 в день) и из подарков альянса. Запасы обновляются каждый понедельник.
+reason.SoldOut = На этой неделе распродано.
+reason.NotEnoughCoins = Недостаточно монет альянса.

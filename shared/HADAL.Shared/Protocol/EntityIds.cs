@@ -94,6 +94,9 @@ namespace HADAL.Shared.Protocol
         /// <summary>Prefix of an alliance log (<c>AllianceLogDto</c>), followed by its kind ("log" or "battle").</summary>
         public const string AllianceLog = Alliance + "log:";
 
+        /// <summary>The player's alliance coins and this week's alliance shop (<c>AllianceCoinsDto</c>).</summary>
+        public const string AllianceCoins = Alliance + "coins";
+
         /// <summary>VIP points, level and today's claims (<c>VipStateDto</c>).</summary>
         public const string Vip = Base + "vip";
 

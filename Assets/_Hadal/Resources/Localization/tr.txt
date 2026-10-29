@@ -1191,3 +1191,13 @@ alliance.battle.defence_lost = {0}, {1} üssünü yendi (X:{2} Y:{3}).
 alliance.battle.scout = {0}, {1} üssünü keşfetti (X:{2} Y:{3}).
 alliance.battle.rally_won = {0} toplanması {1} hedefini yendi (X:{2} Y:{3}).
 alliance.battle.rally_lost = {0} toplanması {1} hedefine yenildi (X:{2} Y:{3}).
+
+# Alliance coins and shop (docs/31 §2)
+alliance.coins = İttifak jetonu: {0}
+alliance.coins.help = Bugün yardımdan kazanılan jeton (yardım başına {0})
+alliance.shop.refill = Yenilenmeye {0}
+alliance.shop.stock = Kalan {0}/{1}
+alliance.shop.price = {0} jeton
+alliance.shop.how = Jeton, ittifak arkadaşlarına yardım ederek (günde en çok 1.000) ve ittifak hediyelerinden kazanılır. Stok her pazartesi yenilenir.
+reason.SoldOut = Bu hafta için stok bitti.
+reason.NotEnoughCoins = Yeterli ittifak jetonun yok.

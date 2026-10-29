@@ -17,6 +17,18 @@ namespace Hadal.Core.StateSync
             AllianceLogVersion++;
         }
 
+        /// <summary>Alliance coins, today's help coins and this week's shop (docs/31 step 4).</summary>
+        public AllianceCoinsDto AllianceCoins { get; private set; } = new AllianceCoinsDto();
+        public int AllianceCoinsVersion { get; private set; }
+        public float AllianceCoinsAt { get; private set; }
+
+        public void ApplyAllianceCoins(AllianceCoinsDto coins)
+        {
+            AllianceCoins = coins ?? new AllianceCoinsDto();
+            AllianceCoinsAt = UnityEngine.Time.realtimeSinceStartup;
+            AllianceCoinsVersion++;
+        }
+
         /// <summary>The log of a kind ("log" or "battle"), or null before it was fetched.</summary>
         public AllianceLogDto AllianceLog(string kind) => _allianceLogs.TryGetValue(kind ?? string.Empty, out var log) ? log : null;
     }

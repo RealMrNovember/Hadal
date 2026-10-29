@@ -225,6 +225,13 @@ namespace Hadal.Core.StateSync
                 return true;
             }
 
+            if (id == EntityIds.AllianceCoins)
+            {
+                if (TryDeserializePayload(change.Payload, serialization, out AllianceCoinsDto coins))
+                    view.ApplyAllianceCoins(coins);
+                return true;
+            }
+
             if (id.StartsWith(EntityIds.AllianceLog, StringComparison.Ordinal))
             {
                 if (TryDeserializePayload(change.Payload, serialization, out AllianceLogDto allianceLog))

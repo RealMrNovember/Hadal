@@ -1190,3 +1190,13 @@ alliance.battle.defence_lost = هزم {0} قاعدة {1} (X:{2} Y:{3}).
 alliance.battle.scout = استطلع {0} {1} (X:{2} Y:{3}).
 alliance.battle.rally_won = تجمع {0} هزم {1} (X:{2} Y:{3}).
 alliance.battle.rally_lost = تجمع {0} خسر أمام {1} (X:{2} Y:{3}).
+
+# Alliance coins and shop (docs/31 §2)
+alliance.coins = عملات التحالف: {0}
+alliance.coins.help = عملات المساعدة اليوم ({0} لكل مساعدة)
+alliance.shop.refill = يتجدد بعد {0}
+alliance.shop.stock = المتبقي {0}/{1}
+alliance.shop.price = {0} عملة
+alliance.shop.how = تُكسب العملات بمساعدة رفاق التحالف (حتى 1,000 يوميًا) ومن هدايا التحالف. يتجدد المخزون كل يوم اثنين.
+reason.SoldOut = نفد المخزون هذا الأسبوع.
+reason.NotEnoughCoins = لا تملك عملات تحالف كافية.

@@ -1190,3 +1190,13 @@ alliance.battle.defence_lost = {0} เอาชนะฐานของ {1} (X:{
 alliance.battle.scout = {0} สอดแนม {1} (X:{2} Y:{3})
 alliance.battle.rally_won = การรวมพลของ {0} ชนะ {1} (X:{2} Y:{3})
 alliance.battle.rally_lost = การรวมพลของ {0} แพ้ {1} (X:{2} Y:{3})
+
+# Alliance coins and shop (docs/31 §2)
+alliance.coins = เหรียญพันธมิตร: {0}
+alliance.coins.help = เหรียญจากการช่วยวันนี้ ({0} ต่อครั้ง)
+alliance.shop.refill = เติมใหม่ใน {0}
+alliance.shop.stock = เหลือ {0}/{1}
+alliance.shop.price = {0} เหรียญ
+alliance.shop.how = ได้เหรียญจากการช่วยเพื่อนพันธมิตร (สูงสุด 1,000 ต่อวัน) และจากของขวัญพันธมิตร สินค้าเติมใหม่ทุกวันจันทร์
+reason.SoldOut = สินค้าหมดสำหรับสัปดาห์นี้
+reason.NotEnoughCoins = เหรียญพันธมิตรไม่พอ

@@ -181,6 +181,10 @@ namespace Hadal.UI
                     BackToHub();
                     RenderApplications(alliance);
                     return;
+                case AllianceTabShop:
+                    BackToHub();
+                    RenderAllianceShop();
+                    return;
                 case AllianceTabLog:
                     BackToHub();
                     RenderAllianceLog(AllianceLogKinds.Log);
@@ -531,6 +535,13 @@ namespace Hadal.UI
 
         private void RenderHelp()
         {
+            // Today's alliance coins from helping, like the genre's bar on top of the help list.
+            var coins = View.AllianceCoins ?? new AllianceCoinsDto();
+            var cap = Math.Max(1, coins.DailyHelpCoins > 0 ? coins.DailyHelpCoins : AllianceShopRules.DailyHelpCoins);
+            var bar = Card(120);
+            CardText(bar.transform, Loc.F("alliance.coins.help", AllianceShopRules.CoinsPerHelp), 24, UiKit.Text, 0.04f, 0.55f, 0.96f, 0.95f, TextAnchor.MiddleLeft);
+            ProgressBar(bar.transform, coins.HelpCoinsToday, cap, 0.04f, 0.12f, 0.96f, 0.45f);
+
             var open = View.HelpRequests.Where(r => !r.HelpedByMe).ToList();
             var all = Card(150);
             CardText(all.transform, open.Count > 0 ? Loc.F("alliance.help.open", open.Count) : Loc.T("alliance.help.none"), 30, UiKit.Text,
