@@ -1,7 +1,7 @@
 # HADAL — Proje Yol Haritası
 
 **Güncelleme:** 2026-10-29
-**Yayındaki sürüm:** istemci **0.9.0** (Android, `hadal.cicibyte.com/download/hadal.apk`); sunucu `main` @ `4f47658` (CT 160).
+**Yayındaki sürüm:** istemci **0.9.0** (Android, `hadal.cicibyte.com/download/hadal.apk`); sunucu `main` @ `4537025` (CT 160).
 **Sürüm kuralı:** Oyun 1.0'a kadar **0.x** ile ilerler. Android sürüm kodu `1.000.000 + major·10000 + minor·100 + patch`.
 
 **Kaynaklar:**
@@ -37,7 +37,7 @@ Sıralama araştırmanın ana önerisine göre yapıldı (§16): önce **kaynak 
 | **1** | Sağlamlık ve kalite kapıları | Canlıda oyuncu var. Ekonomi ve savaş hatası güveni bozar (§14). | 🟡 |
 | **2** | PvP adaleti ve savaş motoru sürümlemesi | Tamamlandı; kahraman metası ve sezon savaşı sonraki aşamalarda (docs/33). | ✅ |
 | **3** | İttifak bölgesi ve ittifak binaları | A, B aşamaları ve Şehir Listesi canlıda (docs/32). | ✅ |
-| **4** | Yeni deniz yaratıkları ve etkinlik boss'ları | PvE ekonomiyi ve ittifak hedefini besler (§6). | 🟡 |
+| **4** | Yeni deniz yaratıkları ve etkinlik boss'ları | Tamamlandı; boss hasar tablosu ve katkı ödülü sonra. | ✅ |
 | **5** | İlk oturum akışı ve öğretici | Oyuncu ilk 10 dakikada ne yapacağını anlamalı (§16). | ⬜ |
 | **6** | Hayatta kalma döngüsü (oksijen, enerji, acil durum) | Oyunun kendine has gerilimi; temayı ekonomiye bağlar. | ⬜ |
 | **7** | Etkinlik takvimi ve ittifak etkinlikleri | Günlük geri dönüş ve ortak hedef (§6.2, docs/29 E2–E6). | ⬜ |
@@ -124,19 +124,19 @@ Ayrıntılar aşağıda, aynı sırayla.
 
 ---
 
-## 4. Yeni deniz yaratıkları ve etkinlik boss'ları 🟡
+## 4. Yeni deniz yaratıkları ve etkinlik boss'ları ✅
 
 **Hedef:** Araştırma §6. Canavarlar ekonomiyi besler, etkinlik boss'ları ittifakın ortak hedefi olur.
 
-- 🟡 Kendi hattımızda (SDXL ve TRELLIS, doku2 GPU) üretilen, lisansı temiz yaratıklar. İndirilen modeller yalnızca görsel referans; CC0 keşiş balığı doğrudan kullanılabilir.
-  - Canavarlar: abis fener balığı, dev fener balığı, zırhlı dev yengeç
-  - Ortam canlıları: ışıklı balık sürüleri, denizanaları (yalnızca görsel)
-  - Etkinlik boss'ları: "Uçurum Ağzı" (dev keşiş balığı), "Derinlik Kraken'i"
-- ⬜ Kod tarafında animasyon (kuyruk, gövde dalgası, parlayan yem, yürüyüş, dokunaç) ve saldırı efekti
-- ⬜ Sunucuda yeni canavar türleri: derinliğe göre seviye, güç, sonar maliyeti, ödül
-- ⬜ Etkinlik boss'unda ittifak çapında hasar katkısı ve katkıya göre ödül
-
-**Çıkış kriteri:** Haritada yeni canavarlar dolaşıyor ve yenilebiliyor. Bir etkinlik boss'u ittifakça yenilip ödül dağıtılıyor.
+- ✅ Kendi hattımızda (SDXL → BiRefNet → TRELLIS, doku2 GPU) yalnızca metin tarifinden üretilen yaratıklar (`4537025`); indirilen örnek modellerin hiçbiri kullanılmadı (`art/THIRD_PARTY.md`, `art/gpu/creatures.json`). Mobil bütçe: 1,5–15 bin üçgen, 512–1024 doku.
+  - Canavarlar: abis fener balığı (Sv.10–28), fener ağızlı dev (Sv.20–35, başlangıç kuşaklarında çıkmaz), zırhlı dev yengeç (Sv.14–35)
+  - Ortam: ışıklı melek balığı sürüleri ve denizanaları kamerayı izler, uzaklaşınca gizlenir
+  - Etkinlik boss'ları (yalnızca etkinlikte): "Uçurum Ağzı" ve "Derinlik Kraken'i"
+- ✅ Animasyon: `Hadal/Creature` gölgelendiricisi (kuyruk ve gövde dalgası, dokunaç, çan nabzı, kıskaç, parlama, vuruş flaşı) ve `CreatureMotion` (yüzme yolu, yengeç adımı, süzülme, yem salınımı); takım varınca canavar atılır ve parlar, yenilen canavar batar
+- ✅ Sunucu kuralları (`1de1768`): kuşaklara göre ağırlıklı tür seçimi, türe göre güç ve ödül çarpanları
+- ✅ Etkinlik boss'u: etkinlik tanımında boss listesi; ortak can havuzu, her vuruş kendi öldürdüğü kadar düşer; hasar `boss_damage` olarak puanlanır ve ittifak yarışmasında ittifakların toplam hasarı sıralanır; son vuruşa gümüş (1/10 altın) sandık; admin panelinde "Uçurum Ağzı Uyanıyor" hazır şablonu
+- ⬜ Boss için oyun içi hasar tablosu, ölümde tüm katkı verenlere ödül, takvimle gezen boss'lar
+- ⬜ Denge: boss gövde çarpanları ve ödüller ilk tahmin; düşük seviyeli oyuncu yüksek seviyeli boss'a 0 hasar verebilir
 
 ---
 
