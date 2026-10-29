@@ -1,4 +1,5 @@
 using System.Collections;
+using Hadal.Core.Services;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -43,6 +44,14 @@ namespace Hadal.UI
 
         public bool IsDismissed => _dismissed;
         public Status Current => _current;
+
+        private void OnEnable()
+        {
+            AudioDirector.TitleShowing = true;
+            GameAudio.SetMusic(MusicTrack.Menu);
+        }
+
+        private void OnDisable() => AudioDirector.TitleShowing = false;
 
         public static TitleScreenView Create(Transform parent)
         {

@@ -111,6 +111,7 @@ namespace Hadal.UI
             Build();
             IsOpen = true;
             GameMode.InWorld = true;
+            Hadal.Core.Services.GameAudio.Play(Hadal.Core.Services.Sfx.SonarPing, 0.7f);
 
             _baseCamera = Camera.main;
             if (_baseCamera != null && _baseCamera != _camera)

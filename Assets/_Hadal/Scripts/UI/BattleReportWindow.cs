@@ -44,6 +44,7 @@ namespace Hadal.UI
 
         private void Show(BattleReportDto r)
         {
+            AudioDirector.BattleResolved(r.Won);
             var dim = UiKit.Box("Report", _canvas.transform, new Color(0, 0, 0, 0.65f));
             dim.rectTransform.Place(0, 0, 1, 1);
             dim.gameObject.AddComponent<Button>().onClick.AddListener(Close);

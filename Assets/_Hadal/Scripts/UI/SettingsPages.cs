@@ -100,7 +100,11 @@ namespace Hadal.UI
             UiKit.Switch("Music", column, Loc.T("sound.music"), () => GameSettings.MusicOn, v => GameSettings.MusicOn = v).Row(110);
             UiKit.Slider("MusicVolume", column, GameSettings.MusicVolume, v => GameSettings.MusicVolume = v).Row(80);
             UiKit.Switch("Effects", column, Loc.T("sound.effects"), () => GameSettings.SoundOn, v => GameSettings.SoundOn = v).Row(110);
-            UiKit.Slider("EffectsVolume", column, GameSettings.SoundVolume, v => GameSettings.SoundVolume = v).Row(80);
+            UiKit.Slider("EffectsVolume", column, GameSettings.SoundVolume, v =>
+            {
+                GameSettings.SoundVolume = v;
+                GameAudio.Play(Sfx.UiTap);
+            }).Row(80);
             UiKit.Switch("Vibration", column, Loc.T("sound.vibration"), () => GameSettings.Vibration, v =>
             {
                 GameSettings.Vibration = v;

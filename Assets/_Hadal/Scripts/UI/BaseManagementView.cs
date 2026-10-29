@@ -167,6 +167,11 @@ namespace Hadal.UI
             speedups.AddComponent<SpeedupWindow>().Initialize(_stateSync, _commands, _localBus);
             speedups.AddComponent<BattleReportWindow>().Initialize(_stateSync);
 
+            // Music for the screen on show, effects for what the server confirms.
+            var audio = new GameObject("AudioDirector");
+            audio.transform.SetParent(transform, false);
+            audio.AddComponent<AudioDirector>().Initialize(_stateSync, _localBus);
+
             // Profile cards over every screen: from chat faces, member lists and bases on the map.
             var profile = new GameObject("ProfileCard");
             profile.transform.SetParent(transform, false);

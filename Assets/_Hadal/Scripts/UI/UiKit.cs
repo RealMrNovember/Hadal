@@ -1,4 +1,5 @@
 using System;
+using Hadal.Core.Services;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
@@ -345,6 +346,7 @@ namespace Hadal.UI
             colors.pressedColor = new Color(0.75f, 0.75f, 0.75f, 1f);
             colors.disabledColor = new Color(0.45f, 0.45f, 0.45f, 0.6f);
             button.colors = colors;
+            button.onClick.AddListener(() => GameAudio.Play(close ? Sfx.PanelClose : Sfx.UiTap));
             if (onClick != null)
                 button.onClick.AddListener(onClick);
 
@@ -467,6 +469,7 @@ namespace Hadal.UI
             {
                 set(!get());
                 Render();
+                GameAudio.Play(Sfx.UiToggle);
             });
             Render();
             return button;

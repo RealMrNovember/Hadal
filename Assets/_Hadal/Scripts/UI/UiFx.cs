@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using HADAL.Shared.Enums;
+using Hadal.Core.Services;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -65,6 +66,7 @@ namespace Hadal.UI
         private void OnEnable()
         {
             _t = 0f;
+            GameAudio.Play(Sfx.PanelOpen);
             var rect = (RectTransform)transform;
             if (!_hasRest)
             {
@@ -134,6 +136,8 @@ namespace Hadal.UI
             if (string.IsNullOrEmpty(text))
                 return;
             EnsureRoot();
+            if (color == UiKit.Danger)
+                GameAudio.Play(Sfx.Error);
 
             // The same notice twice in a row just refreshes the first one.
             if (Entries.Count > 0 && Entries[^1].Rect.GetComponentInChildren<Text>().text == text)
