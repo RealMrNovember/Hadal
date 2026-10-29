@@ -30,6 +30,15 @@ namespace Hadal.Game.World
         public DateTimeOffset CreatedAt { get; set; }
         public DateTimeOffset? MovedAt { get; set; }
         public string PlacedBy { get; set; } = string.Empty;
+
+        /// <summary>An alliance building (docs/32 §2.3): work put in by members' teams until it stands.</summary>
+        public double Work { get; set; }
+        public bool Built { get; set; } = true;
+        public DateTimeOffset WorkAt { get; set; }
+
+        /// <summary>Durability as of <see cref="DurabilityAt"/>; a building at 0 is damaged and gives no bonus.</summary>
+        public double Durability { get; set; } = -1;
+        public DateTimeOffset DurabilityAt { get; set; }
     }
 
     public partial interface IWorldStore
@@ -254,7 +263,9 @@ ON CONFLICT (id) DO UPDATE SET world_id = EXCLUDED.world_id, alliance_id = EXCLU
         {
             EnsureLand(_clock.UtcNow);
             var alliance = _social.AllianceIdOf(playerId);
-            return alliance.Length > 0 && LandOwner(x, y) == alliance ? TerritoryRules.GatherBonus : 0;
+            return alliance.Length > 0 && LandOwner(x, y) == alliance
+                ? TerritoryRules.GatherBonus + LandBonus(alliance, AllianceLandRules.Rig, x, y, _clock.UtcNow) / 100.0
+                : 0;
         }
 
         /// <summary>A free tile on the alliance's land nearest its hub (alliance teleport). Caller holds the lock.</summary>
@@ -291,6 +302,7 @@ ON CONFLICT (id) DO UPDATE SET world_id = EXCLUDED.world_id, alliance_id = EXCLU
             {
                 MaintainRegions();
                 EnsureLand(now);
+                AdvanceBuildings(now);
                 var alliance = _social.AllianceIdOf(session.PublicId);
                 var rank = _social.RankOf(session.PublicId);
                 var reason = alliance.Length == 0 ? "NotInAlliance" : null;
@@ -303,6 +315,7 @@ ON CONFLICT (id) DO UPDATE SET world_id = EXCLUDED.world_id, alliance_id = EXCLU
                         AllianceLandRules.MoveHub => MoveHub(alliance, rank, command.X, command.Y, now),
                         AllianceLandRules.Remove => RemoveBeacon(alliance, rank, command.StrongholdId),
                         AllianceLandRules.Donate => Donate(session, alliance, command.StrongholdId, command.Resource, command.Amount, now),
+                        AllianceLandRules.PlaceBuilding => PlaceBuilding(session, alliance, rank, command.Resource, command.X, command.Y, now),
                         AllianceLandRules.AbandonCity => AbandonCity(alliance, rank, command.StrongholdId),
                         _ => "MalformedCommand"
                     };
@@ -404,6 +417,13 @@ ON CONFLICT (id) DO UPDATE SET world_id = EXCLUDED.world_id, alliance_id = EXCLU
                 return "NotOurs";
             if (s.Kind == AllianceLandRules.Hub)
                 return "HubRegion";
+            // Teams building or guarding it go home.
+            foreach (var r in _pvp.Values.Where(r => r.Mode == PvpRules.Reinforce && r.TargetId == s.Id).ToList())
+            {
+                SessionOf(r.AttackerId)?.SendHome(r.Members[0].MarchId, _clock.UtcNow, s.X, s.Y, _clock.UtcNow);
+                Drop(r);
+            }
+
             DropStructure(s);
             return null;
         }
@@ -411,10 +431,12 @@ ON CONFLICT (id) DO UPDATE SET world_id = EXCLUDED.world_id, alliance_id = EXCLU
         /// <summary>Members donate Titanium, Biomass or Food to the hub; each unit is a point; points raise its level.</summary>
         private string? Donate(PlayerSession session, string alliance, string id, string resource, long amount, DateTimeOffset now)
         {
-            if (!_structures.TryGetValue(id ?? string.Empty, out var hub) || hub.AllianceId != alliance || hub.Kind != AllianceLandRules.Hub)
+            if (!_structures.TryGetValue(id ?? string.Empty, out var hub) || hub.AllianceId != alliance || hub.Kind == AllianceLandRules.Beacon)
                 return "NotOurs";
             if (!Enum.TryParse(resource, out ResourceType type) || !AllianceLandRules.IsDonation(type) || amount <= 0)
                 return "MalformedCommand";
+            if (AllianceLandRules.IsBuilding(hub.Kind))
+                return DonateBuilding(session, hub, amount, type, now);
             if (hub.Level >= AllianceLandRules.MaxHubLevel)
                 return "MaxLevel";
             // Never more than the hub still needs up to its top level.
@@ -453,6 +475,7 @@ ON CONFLICT (id) DO UPDATE SET world_id = EXCLUDED.world_id, alliance_id = EXCLU
             {
                 MaintainRegions();
                 EnsureLand(now);
+                AdvanceBuildings(now);
                 Upsert(session);
                 session.Acknowledge(command.CommandId, command.ClientSequence, null, now, new List<EntityChangeDto> { TerritoryChange(session.PublicId, now) });
             }
@@ -481,14 +504,14 @@ ON CONFLICT (id) DO UPDATE SET world_id = EXCLUDED.world_id, alliance_id = EXCLU
                     Power = TroopRules.Power(troops, TerritoryRules.Garrison(r.Level, TerritoryRules.GarrisonShare(r.Share, r.ShareAt, now)).Troops
                         .ToDictionary(p => p.Key, p => (long)Math.Round(p.Value), StringComparer.Ordinal))
                 }).ToArray(),
-                Structures = _structures.Values.Select(s => new StructureDto
+                Structures = _structures.Values.Select(s => WithBuilding(new StructureDto
                 {
                     Id = s.Id, Kind = s.Kind, AllianceId = s.AllianceId, AllianceTag = TagOfAlliance(s.AllianceId), Color = TerritoryRules.ColorOf(s.AllianceId),
                     X = s.X, Y = s.Y, Level = s.Level, Points = s.Points,
                     PointsNext = s.Kind == AllianceLandRules.Hub && s.Level < AllianceLandRules.MaxHubLevel ? AllianceLandRules.HubPoints(s.Level) : 0,
                     ReadyAtMs = s.ReadyAt > now ? s.ReadyAt.ToUnixTimeMilliseconds() : 0, Cut = _cut.Contains(s.Id),
                     Radius = AllianceLandRules.Radius(s.Kind, s.Level)
-                }).ToArray(),
+                }, s, now)).ToArray(),
                 Land = _land.Select(p => p.Key.Item1 * 1_000_000 + p.Key.Item2 * 1_000 + landIndex[p.Value]).ToArray(),
                 LandAlliances = landAlliances.ToArray(),
                 LandColors = landAlliances.Select(TerritoryRules.ColorOf).ToArray(),
@@ -501,7 +524,9 @@ ON CONFLICT (id) DO UPDATE SET world_id = EXCLUDED.world_id, alliance_id = EXCLU
                 Held = alliance.Length == 0 ? 0 : Regions.Count(r => r.AllianceId == alliance),
                 Allowed = alliance.Length == 0 ? 0 : AllianceLandRules.MaxCities(members),
                 Beacons = alliance.Length == 0 ? 0 : BeaconsOf(alliance),
-                BeaconsAllowed = hub == null ? 0 : AllianceLandRules.MaxBeacons(members, hub.Level)
+                BeaconsAllowed = hub == null ? 0 : AllianceLandRules.MaxBeacons(members, hub.Level),
+                Members = members,
+                AlliancePower = alliance.Length == 0 ? 0 : AlliancePower(alliance, viewerId)
             };
             if (_bases.TryGetValue(viewerId, out var me))
                 (dto.MyX, dto.MyY) = (me.X, me.Y);

@@ -453,5 +453,77 @@ namespace Hadal.Game.Tests
             Send(mate, new RecallMarchCommand { CommandId = "back", MarchId = guard.MarchId }, CommandType.RecallMarch);
             Assert.Empty(lead.GarrisonForTests);
         }
+
+        /// <summary>Places a structure on the first free tile of our land around (cx, cy); returns its id.</summary>
+        private string PlaceOnLand(PlayerSession lead, RecordingConnection connection, string action, string kind, int cx, int cy)
+        {
+            var before = _world.Map.StructuresForTests().Select(s => s.Id).ToHashSet();
+            for (var r = 1; r < 6; r++)
+                for (var dx = -r; dx <= r; dx++)
+                    for (var dy = -r; dy <= r; dy++)
+                        if (Math.Max(Math.Abs(dx), Math.Abs(dy)) == r && Land(lead, connection, action, cx + dx, cy + dy, resource: kind) == null)
+                            return _world.Map.StructuresForTests().Single(s => !before.Contains(s.Id)).Id;
+            throw new InvalidOperationException("no free tile on the land");
+        }
+
+        private StructureDto StructureView(PlayerSession session, RecordingConnection connection, string id) =>
+            Territory(session, connection).Structures.Single(s => s.Id == id);
+
+        [Fact]
+        public async Task Members_build_an_alliance_building_with_their_teams_and_donations_raise_it()
+        {
+            var (lead, connection, mate, mateConnection) = await Alliance("bld");
+            var (lx, ly) = _world.Map.PositionOf(lead.PublicId)!.Value;
+            var (hx, hy) = PlantHub(lead, connection, lx + 3, ly);
+            Assert.Equal("BuildingLocked", Land(lead, connection, AllianceLandRules.PlaceBuilding, hx + 2, hy, resource: AllianceLandRules.Relay));
+
+            var (m4, m4Connection) = await Connect("bld-4");
+            var (m5, _) = await Connect("bld-5");
+            var allianceId = _world.Social.AllianceIdOf(lead.PublicId);
+            Send(m4, new JoinAllianceCommand { CommandId = "j4", AllianceId = allianceId }, CommandType.JoinAlliance);
+            Send(m5, new JoinAllianceCommand { CommandId = "j5", AllianceId = allianceId }, CommandType.JoinAlliance);
+            var relay = PlaceOnLand(lead, connection, AllianceLandRules.PlaceBuilding, AllianceLandRules.Relay, hx, hy);
+            Assert.True(StructureView(lead, connection, relay).UnderConstruction);
+
+            // A mate's team works on it until it stands.
+            Send(mate, new MarchPvpCommand { CommandId = "w", Mode = PvpRules.Reinforce, TargetKind = PvpRules.TargetStructure, TargetId = relay }, CommandType.MarchPvp);
+            Assert.Equal(CommandResultCode.Accepted, LastAck(mateConnection).Result);
+            var team = Pvp(mate);
+            _clock.UtcNow = team.ArrivesAt.AddSeconds(AllianceLandRules.BuildWork / team.Troops.Values.Sum() + 5);
+            var built = StructureView(lead, connection, relay);
+            Assert.False(built.UnderConstruction);
+            Assert.Equal(1, built.Guards);
+            Assert.Equal(AllianceLandRules.BonusPercent(AllianceLandRules.Relay, 1), built.Bonus);
+
+            Assert.Null(Land(m4, m4Connection, AllianceLandRules.Donate, id: relay, resource: "Titanium", amount: AllianceLandRules.BuildingPoints(1)));
+            Assert.Equal(2, StructureView(lead, connection, relay).Level);
+        }
+
+        [Fact]
+        public async Task An_enemy_wears_a_building_down_and_fells_a_beacon()
+        {
+            var (lead, connection, _, _) = await Alliance("siege");
+            var (lx, ly) = _world.Map.PositionOf(lead.PublicId)!.Value;
+            var (hx, hy) = PlantHub(lead, connection, lx + 3, ly);
+            var r1 = AllianceLandRules.HubRadius(1);
+            var beacon = string.Empty;
+            for (var dy = 0; dy < 8 && beacon.Length == 0; dy++)
+                if (Land(lead, connection, AllianceLandRules.PlaceBeacon, hx + r1 + 2, hy + dy) == null)
+                    beacon = _world.Map.StructuresForTests().Single(s => s.Kind == AllianceLandRules.Beacon).Id;
+            Assert.NotEmpty(beacon);
+
+            var (enemy, enemyConnection) = await Connect("siege-enemy", troops: 200_000);
+            var hub = _world.Map.StructuresForTests().Single(s => s.Kind == AllianceLandRules.Hub).Id;
+            Attack(enemy, hub, PvpRules.TargetStructure);
+            Assert.Equal("HubRegion", LastAck(enemyConnection).Reason);
+
+            // A beacon has 200 durability: a strong enough attack fells it at once.
+            Attack(enemy, beacon, PvpRules.TargetStructure);
+            Assert.Equal(CommandResultCode.Accepted, LastAck(enemyConnection).Result);
+            At(Pvp(enemy).ArrivesAt);
+            Assert.Equal("won", LastReport(enemy).Outcome);
+            Assert.DoesNotContain(_world.Map.StructuresForTests(), s => s.Id == beacon);
+            Assert.Equal(AllianceLogKinds.DefenceLost, _world.Social.LogOf(_world.Social.AllianceIdOf(lead.PublicId), AllianceLogKinds.Battle).Last().Type);
+        }
     }
 }

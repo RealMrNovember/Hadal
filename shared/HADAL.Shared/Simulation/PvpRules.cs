@@ -21,9 +21,12 @@ namespace HADAL.Shared.Simulation
         public const string TargetTeam = "team";
         public const string TargetStronghold = "stronghold";
 
+        /// <summary>An alliance building or beacon (docs/32 §2.3): reinforce builds or guards it, attack wears it down.</summary>
+        public const string TargetStructure = "structure";
+
         public static bool IsMode(string? mode) => mode is Attack or Scout or Reinforce or Rally or Join;
 
-        public static bool IsTargetKind(string? kind) => kind is TargetBase or TargetTeam or TargetStronghold;
+        public static bool IsTargetKind(string? kind) => kind is TargetBase or TargetTeam or TargetStronghold or TargetStructure;
 
         // --- Shields (§3) ------------------------------------------------------------------------
 

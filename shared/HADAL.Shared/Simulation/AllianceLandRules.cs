@@ -58,6 +58,52 @@ namespace HADAL.Shared.Simulation
         public static bool Touch(int x1, int y1, int r1, int x2, int y2, int r2) =>
             Math.Max(Math.Abs(x1 - x2), Math.Abs(y1 - y2)) <= r1 + r2 + 1;
 
+        // --- Alliance buildings (docs/32 §2.3) ----------------------------------------------------
+
+        public const string Relay = "relay";
+        public const string Rig = "rig";
+        public const string Cannon = "cannon";
+
+        public static readonly string[] Buildings = { Relay, Rig, Cannon };
+
+        public static bool IsBuilding(string? kind) => kind is Relay or Rig or Cannon;
+
+        public const string PlaceBuilding = "build";
+        public const int MaxBuildingLevel = 5;
+
+        /// <summary>Troop-seconds of work teams put in to raise a building (1,000 troops: 50 minutes).</summary>
+        public const double BuildWork = 3_000_000;
+
+        /// <summary>Members and alliance power a building needs.</summary>
+        public static (int Members, long Power) Unlock(string kind) => kind switch
+        {
+            Relay => (5, 0),
+            Rig => (10, 1_000_000),
+            Cannon => (15, 3_000_000),
+            _ => (int.MaxValue, long.MaxValue)
+        };
+
+        /// <summary>Bonus percent at a level: Relay defence, Rig gathering, Cannon attack.</summary>
+        public static int BonusPercent(string kind, int level) => kind switch
+        {
+            Relay => 3 * level,
+            Rig => 5 * level,
+            Cannon => 3 * level,
+            _ => 0
+        };
+
+        /// <summary>Donation points from building level n to n + 1.</summary>
+        public static long BuildingPoints(int level) => 30_000L * level * level;
+
+        /// <summary>Durability: a beacon 200, a building 1,000 per level.</summary>
+        public static double MaxDurability(string kind, int level) => kind == Beacon ? 200 : 1_000.0 * Math.Max(1, level);
+
+        /// <summary>A damaged building mends this share of its durability per hour.</summary>
+        public const double RepairPerHour = 0.1;
+
+        /// <summary>Durability an attack takes: the attackers' surviving power / 20, at least 100.</summary>
+        public static double Damage(long survivingPower) => Math.Max(100, survivingPower / 20.0);
+
         /// <summary>Resources a hub takes as donations.</summary>
         public static bool IsDonation(Enums.ResourceType type) =>
             type is Enums.ResourceType.Titanium or Enums.ResourceType.Biomass or Enums.ResourceType.Food;

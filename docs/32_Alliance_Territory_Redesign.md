@@ -54,10 +54,11 @@ by donations** (Lv 1–5), **defended** by members' reinforcing teams, and **att
 | İttifak Sondajı (Alliance Rig) | 10 members, 1 M power | +5 % gathering speed in the land |
 | Akıntı Topu (Current Cannon) | 15 members, 3 M power | +3 % attack for teams leaving bases in the land |
 
-- Durability `1,000 × level`. An attack the garrison loses takes durability equal to the attackers' surviving
-  power / 100; at 0 the building is **damaged** (no bonus) until repaired (refills 10 % per hour).
-- Structures (hub, beacons, buildings) are attackable once enemy land touches them is *not* required (keeps PvP
-  simple at our player count); shields do not cover them.
+- Durability `1,000 × level` (a beacon 200). An attack that beats the structure's own defence and its guards takes
+  durability equal to the attackers' surviving power / 20 (at least 100); at 0 a building is **damaged** (no bonus)
+  and mends 10 % per hour; a beacon at 0 falls.
+- Buildings and beacons can be attacked from anywhere (no land contact needed at our player count); the hub cannot
+  be attacked; shields do not cover structures.
 
 ### 2.4 Cities (Şehirler) — the old strongholds, as LA's City List
 - The 100 strongholds stay as **cities** (points, not regions): level by belt, an NPC garrison, +5 % gathering of

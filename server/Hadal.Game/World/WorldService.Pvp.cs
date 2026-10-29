@@ -270,6 +270,7 @@ CREATE TABLE IF NOT EXISTS hadal.world_pvp (
             {
                 PvpRules.TargetTeam => ResolveTeam(r, teams, sessions, at, now),
                 PvpRules.TargetStronghold => ResolveStronghold(r, teams, sessions, at, now),
+                PvpRules.TargetStructure => ResolveStructure(r, teams, sessions, at, now),
                 _ => ResolveBase(r, teams, stations, sessions, at, now)
             };
         }
@@ -318,6 +319,9 @@ CREATE TABLE IF NOT EXISTS hadal.world_pvp (
             var defenders = new List<IReadOnlyDictionary<string, long>> { snap.Troops };
             defenders.AddRange(guards.Select(g => g.Troops));
             var defence = Side(defenders, snap.HeroPowers);
+            // Alliance buildings on the land (docs/32 §2.3): the Relay for the defended base, the Cannon for the attacker's.
+            defence.DefPercent += BaseBonus(r.TargetOwnerId, AllianceLandRules.Relay, at);
+            attacker.AtkPercent += BaseBonus(r.AttackerId, AllianceLandRules.Cannon, at);
             var result = CombatRules.Resolve(troops, attacker, defence);
             var attackLosses = PvpRules.ShareLosses(teams.Select(t => (IReadOnlyDictionary<string, long>)t.Troops).ToList(), result.AttackerLost);
             var defenceLosses = PvpRules.ShareLosses(defenders, result.DefenderLost);
@@ -383,6 +387,7 @@ CREATE TABLE IF NOT EXISTS hadal.world_pvp (
             var troops = Catalog.Troops;
             var attacker = Side(teams.Select(t => t.Troops), teams[0].HeroPowers);
             var defence = Side(new[] { target.Troops }, target.HeroPowers);
+            attacker.AtkPercent += BaseBonus(r.AttackerId, AllianceLandRules.Cannon, at);
             var result = CombatRules.Resolve(troops, attacker, defence);
             var attackLosses = PvpRules.ShareLosses(teams.Select(t => (IReadOnlyDictionary<string, long>)t.Troops).ToList(), result.AttackerLost);
             var loads = teams.Select((t, i) => TroopRules.MarchLoad(troops, Minus(t.Troops, attackLosses[i]))).ToList();
@@ -557,6 +562,15 @@ CREATE TABLE IF NOT EXISTS hadal.world_pvp (
                             launch = new PvpLaunch(PvpRules.Rally, rally.TargetKind, rally.TargetId, rally.TargetOwnerId, TargetName(rally.TargetKind, rally.TargetOwnerId),
                                 me.X, me.Y, rally.ToX, rally.ToY, heroes, rally.Id, false, departs, lead.X, lead.Y);
                         break;
+                    case PvpRules.Reinforce when kind == PvpRules.TargetStructure:
+                        // Build or guard one of our alliance's buildings or beacons (docs/32 §2.3).
+                        if (!_structures.TryGetValue(command.TargetId ?? string.Empty, out var post) || post.AllianceId != myAlliance || myAlliance.Length == 0)
+                            reason = "NotOurs";
+                        else if (_pvp.Values.Count(s => s.Mode == PvpRules.Reinforce && s.TargetId == post.Id) >= PvpRules.MaxReinforcements)
+                            reason = "ReinforcementsFull";
+                        else
+                            launch = new PvpLaunch(PvpRules.Reinforce, PvpRules.TargetStructure, post.Id, string.Empty, string.Empty, me.X, me.Y, post.X, post.Y, heroes);
+                        break;
                     case PvpRules.Reinforce:
                         if (!_bases.TryGetValue(command.TargetId ?? string.Empty, out var mate) || mate.PlayerId == me.PlayerId)
                             reason = "UnknownPlayer";
@@ -658,6 +672,8 @@ CREATE TABLE IF NOT EXISTS hadal.world_pvp (
                 }
                 case PvpRules.TargetStronghold:
                     return StrongholdTarget(me, myAlliance, mode, targetId, heroes, departs);
+                case PvpRules.TargetStructure:
+                    return StructureTarget(me, myAlliance, mode, targetId, heroes, departs);
                 default:
                     return (null, "MalformedCommand");
             }

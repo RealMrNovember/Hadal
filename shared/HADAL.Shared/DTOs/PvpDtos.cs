@@ -191,6 +191,10 @@ namespace HADAL.Shared.DTOs
         /// <summary>The viewer's alliance: beacons placed and allowed, hub level.</summary>
         [ProtoMember(18)] public int Beacons { get; set; }
         [ProtoMember(19)] public int BeaconsAllowed { get; set; }
+
+        /// <summary>The viewer's alliance size and power (what unlocks alliance buildings).</summary>
+        [ProtoMember(20)] public int Members { get; set; }
+        [ProtoMember(21)] public long AlliancePower { get; set; }
     }
 
     /// <summary>An alliance hub or beacon on the map.</summary>
@@ -218,6 +222,15 @@ namespace HADAL.Shared.DTOs
         /// <summary>Cut off from the hub: it claims nothing until reconnected.</summary>
         [ProtoMember(12)] public bool Cut { get; set; }
         [ProtoMember(13)] public int Radius { get; set; }
+
+        /// <summary>Alliance buildings (docs/32 §2.3): still going up, the teams' work towards it, durability, guards, bonus %.</summary>
+        [ProtoMember(14)] public bool UnderConstruction { get; set; }
+        [ProtoMember(15)] public long Work { get; set; }
+        [ProtoMember(16)] public long WorkNeeded { get; set; }
+        [ProtoMember(17)] public long Durability { get; set; }
+        [ProtoMember(18)] public long MaxDurability { get; set; }
+        [ProtoMember(19)] public int Guards { get; set; }
+        [ProtoMember(20)] public int Bonus { get; set; }
     }
 
     [ProtoContract]
