@@ -6,7 +6,7 @@ namespace Hadal.Game.Tests
     /// <summary>Bases and resource nodes against a real PostgreSQL (HADAL_TEST_PG); skipped otherwise.</summary>
     public sealed class PostgresWorldStoreTests
     {
-        private static readonly string? ConnectionString = Environment.GetEnvironmentVariable("HADAL_TEST_PG");
+        private static readonly string? ConnectionString = PostgresTest.ConnectionString;
 
         [Fact]
         public async Task Nodes_round_trip_and_update_in_place()

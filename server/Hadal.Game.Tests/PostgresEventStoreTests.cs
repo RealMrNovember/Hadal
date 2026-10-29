@@ -7,7 +7,7 @@ namespace Hadal.Game.Tests
     /// <summary>Event definitions, scores and alliance totals against a real PostgreSQL (HADAL_TEST_PG); skipped otherwise.</summary>
     public sealed class PostgresEventStoreTests
     {
-        private static readonly string? ConnectionString = Environment.GetEnvironmentVariable("HADAL_TEST_PG");
+        private static readonly string? ConnectionString = PostgresTest.ConnectionString;
 
         [Fact]
         public async Task Events_scores_and_alliance_totals_round_trip()

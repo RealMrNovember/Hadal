@@ -10,7 +10,7 @@ namespace Hadal.Game.Tests
     /// </summary>
     public sealed class PostgresRepositoryTests
     {
-        private static readonly string? ConnectionString = Environment.GetEnvironmentVariable("HADAL_TEST_PG");
+        private static readonly string? ConnectionString = PostgresTest.ConnectionString;
 
         [Fact]
         public async Task CreateSaveLoad_RoundTrips()

@@ -21,7 +21,13 @@ healthy() {
 if [[ "${SKIP_TESTS:-0}" != "1" ]]; then
   echo "-- server tests"
   set -a; . "${SERVER}/.env"; set +a
-  export HADAL_TEST_PG="Host=127.0.0.1;Port=19005;Database=hadal;Username=hadal_app;Password=${HADAL_DB_PASSWORD}"
+  # The store tests write and delete rows (live-ops settings, catalog versions, coupons): they get a throwaway
+  # database next to the live one, never "hadal" itself (the tests refuse that name).
+  TEST_DB="hadal_test_deploy_$(date +%s)_$$"
+  docker exec hadal-postgres psql -q -v ON_ERROR_STOP=1 -U hadal_app -d postgres -c "CREATE DATABASE ${TEST_DB};"
+  trap 'docker exec hadal-postgres psql -q -U hadal_app -d postgres -c "DROP DATABASE IF EXISTS ${TEST_DB} WITH (FORCE);" >/dev/null 2>&1 || true' EXIT
+  export HADAL_TEST_PG="Host=127.0.0.1;Port=19005;Database=${TEST_DB};Username=hadal_app;Password=${HADAL_DB_PASSWORD}"
+  export HADAL_TEST_PG_REQUIRED=1
   if ! dotnet test "${SERVER}/Hadal.Game.Tests/Hadal.Game.Tests.csproj" --nologo > /tmp/hadal-deploy-tests.log 2>&1; then
     grep -E "\[FAIL\]| error |Failed!" /tmp/hadal-deploy-tests.log | head -20
     echo "!! tests failed — nothing deployed (full log: /tmp/hadal-deploy-tests.log)"

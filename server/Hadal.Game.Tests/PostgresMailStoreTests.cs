@@ -8,7 +8,7 @@ namespace Hadal.Game.Tests
     /// <summary>Mails against a real PostgreSQL (HADAL_TEST_PG); skipped otherwise.</summary>
     public sealed class PostgresMailStoreTests
     {
-        private static readonly string? ConnectionString = Environment.GetEnvironmentVariable("HADAL_TEST_PG");
+        private static readonly string? ConnectionString = PostgresTest.ConnectionString;
 
         [Fact]
         public async Task Mails_round_trip_and_a_claim_is_never_undone()

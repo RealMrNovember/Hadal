@@ -6,7 +6,7 @@ namespace Hadal.Game.Tests
     /// <summary>Alliances, members and chat against a real PostgreSQL (HADAL_TEST_PG); skipped otherwise.</summary>
     public sealed class PostgresSocialStoreTests
     {
-        private static readonly string? ConnectionString = Environment.GetEnvironmentVariable("HADAL_TEST_PG");
+        private static readonly string? ConnectionString = PostgresTest.ConnectionString;
 
         [Fact]
         public async Task Alliances_members_and_chat_round_trip()

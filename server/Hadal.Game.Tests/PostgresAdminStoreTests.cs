@@ -8,7 +8,7 @@ namespace Hadal.Game.Tests
     /// <summary>Overseer SQL against a real PostgreSQL (HADAL_TEST_PG); skipped when unset.</summary>
     public sealed class PostgresAdminStoreTests
     {
-        private static readonly string? ConnectionString = Environment.GetEnvironmentVariable("HADAL_TEST_PG");
+        private static readonly string? ConnectionString = PostgresTest.ConnectionString;
 
         [Fact]
         public async Task Admins_Coupons_Bans_LiveOps_Catalogs_Search()

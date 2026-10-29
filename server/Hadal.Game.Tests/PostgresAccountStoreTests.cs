@@ -7,7 +7,7 @@ namespace Hadal.Game.Tests
     /// <summary>Account store SQL against a real PostgreSQL (HADAL_TEST_PG); skipped when unset.</summary>
     public sealed class PostgresAccountStoreTests
     {
-        private static readonly string? ConnectionString = Environment.GetEnvironmentVariable("HADAL_TEST_PG");
+        private static readonly string? ConnectionString = PostgresTest.ConnectionString;
 
         [Fact]
         public async Task Profile_Links_AndTransferRotation()
