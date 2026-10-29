@@ -29,7 +29,11 @@ namespace Hadal.Game.Social
             if (string.IsNullOrEmpty(allianceId) || string.IsNullOrEmpty(type))
                 return;
             lock (_gate)
-                AppendLog(allianceId, AllianceLogKinds.Battle, type, args ?? Array.Empty<string>(), now);
+            {
+                // A battle log for an alliance that is gone (disbanded meanwhile) would only leave an orphan document.
+                if (_alliances.ContainsKey(allianceId))
+                    AppendLog(allianceId, AllianceLogKinds.Battle, type, args ?? Array.Empty<string>(), now);
+            }
         }
 
         /// <summary>A line of the alliance's own log ("research" from the research tree, …). Caller holds the lock.</summary>

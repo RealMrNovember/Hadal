@@ -630,6 +630,7 @@ namespace Hadal.Game.Social
                 _applications.Remove(alliance.Record.Id);
                 _channels.Remove(AllianceChannel(alliance.Record.Id));
                 Write(ct => _store.DeleteAllianceAsync(alliance.Record.Id, ct));
+                ForgetAllianceDocs(alliance.Record.Id);
                 return SocialRejectReason.None;
             }
 

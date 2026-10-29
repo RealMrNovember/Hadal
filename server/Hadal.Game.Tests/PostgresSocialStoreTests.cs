@@ -50,5 +50,32 @@ namespace Hadal.Game.Tests
             Assert.DoesNotContain(alliances, a => a.Id == alliance.Id);
             Assert.DoesNotContain(members, m => m.AllianceId == alliance.Id);
         }
+
+        /// <summary>Disband clean-up (roadmap §1): one alliance's documents go, a longer id with the same start stays.</summary>
+        [Fact]
+        public async Task Deleting_an_alliances_documents_removes_only_that_alliance()
+        {
+            if (string.IsNullOrEmpty(ConnectionString))
+                return; // not configured on this machine
+
+            await using var dataSource = NpgsqlDataSource.Create(ConnectionString);
+            var store = new PostgresSocialStore(dataSource);
+            await store.InitializeAsync(default);
+            var id = "doctest" + Guid.NewGuid().ToString("N")[..8];
+            var keys = new[] { $"a:{id}:log", $"a:{id}:research", $"a:{id}x:log", $"p:{id}:coins" };
+            try
+            {
+                foreach (var key in keys)
+                    await store.SaveDocAsync(key, "{\"k\":1}", default);
+                await store.DeleteDocsAsync($"a:{id}:", default);
+                var left = (await store.LoadDocsAsync(default)).Select(d => d.Key).Where(k => k.Contains(id, StringComparison.Ordinal)).OrderBy(k => k).ToList();
+                Assert.Equal(new[] { $"a:{id}x:log", $"p:{id}:coins" }, left);
+            }
+            finally
+            {
+                foreach (var key in keys)
+                    await store.DeleteDocsAsync(key, default);
+            }
+        }
     }
 }
