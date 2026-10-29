@@ -301,6 +301,20 @@ namespace Hadal.UI
         /// <summary>Opens the world map over a tile (wired by the base view).</summary>
         public Action<int, int> ShowOnMap;
 
+        /// <summary>
+        /// One line for a shared location outside the chat page (the HUD preview): "Üs konumu X:18 Y:134 · name".
+        /// Null when the text is not a location.
+        /// </summary>
+        internal static string PinPreview(string text)
+        {
+            var pin = Pin.Parse(text);
+            if (pin == null)
+                return null;
+            var title = pin.Title();
+            var line = $"{Loc.T("share.kind." + pin.Kind)} {Loc.F("world.coords", pin.X, pin.Y)}";
+            return string.IsNullOrEmpty(title) ? line : $"{line} · {title}";
+        }
+
         /// <summary>A shared map location: chat text "@loc|x|y|kind|label" drawn as a tappable card.</summary>
         private sealed class Pin
         {

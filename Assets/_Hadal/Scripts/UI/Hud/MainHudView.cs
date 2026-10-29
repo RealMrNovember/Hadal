@@ -599,7 +599,8 @@ namespace Hadal.UI.Hud
             }
 
             var tag = string.IsNullOrEmpty(line.AllianceTag) ? string.Empty : $"[{line.AllianceTag}]";
-            var text = (line.Text ?? string.Empty).Replace("<", "<​");
+            // A shared location shows as its words and coordinates, not the raw "@loc|…" it travels as.
+            var text = (SocialView.PinPreview(line.Text) ?? line.Text ?? string.Empty).Replace("<", "<​");
             return $"<color=#FFB74D>{tag}{(line.SenderName ?? string.Empty).Replace("<", "<​")}</color>: {text}";
         }
 
