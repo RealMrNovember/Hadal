@@ -1479,3 +1479,21 @@ research.march.total = Vitesse de marche totale +{0}% · trajet de 20 min → {1
 research.march.return = Vitesse de retour +{0}%
 march.speedbonus = +{0}% vitesse
 profile.marchspeed = Vitesse de marche +{0}%
+
+# Shields on the map, alarm actions (docs/30 §3, §5.1)
+pvp.shield.plate = Bouclier {0}
+pvp.beginner.plate = Protection débutant
+pvp.block.meBeginner = Tu es sous protection débutant : pas d'attaque contre des joueurs avant le Réacteur {0}.
+pvp.block.beginner = Cette base est sous protection débutant.
+pvp.block.shield = Cette base a un bouclier ({0} restant).
+pvp.target.shielded = Cible protégée — l'armée reviendra sans combattre
+pvp.alarm.goto = Aller à l'attaquant
+pvp.alarm.shield = Activer un bouclier
+pvp.alarm.help = Demander de l'aide
+pvp.alarm.blocked = Bouclier actif — l'attaque sera bloquée
+pvp.shield.incoming = Active un bouclier avant l'arrivée de l'attaque et elle sera bloquée. Envoyer une attaque ou un éclaireur brise ton bouclier.
+pvp.help.request = Je suis attaqué, envoyez des renforts !
+pvp.result.blocked = Ton bouclier a bloqué l'attaque de {0}.
+pvp.result.bounced = Ton attaque a heurté un bouclier ; ton armée est revenue sans pertes.
+mail.pvp.blocked = Ton bouclier a bloqué l'attaque de {0}.
+mail.pvp.bounced = Ton attaque a heurté un bouclier ; ton armée est revenue sans pertes.

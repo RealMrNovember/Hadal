@@ -131,6 +131,12 @@ namespace Hadal.Game
                 return _state.ShieldUntil > at;
         }
 
+        /// <summary>When the shield ends (null: none), for the map's shield dome.</summary>
+        internal DateTimeOffset? ShieldUntil
+        {
+            get { lock (_gate) return _state.ShieldUntil; }
+        }
+
         internal bool IsBeginner
         {
             get { lock (_gate) return PvpRules.IsBeginner(ReactorLevel()); }

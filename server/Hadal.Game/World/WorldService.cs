@@ -491,7 +491,9 @@ ON CONFLICT (player_id) DO UPDATE SET x = EXCLUDED.x, y = EXCLUDED.y, name = EXC
                             Level = online ? live!.BaseLevel : b.Level,
                             Power = online ? live!.Power : b.Power,
                             Online = online,
-                            AvatarId = online ? live!.AvatarId : b.Avatar
+                            AvatarId = online ? live!.AvatarId : b.Avatar,
+                            ShieldUntilMs = ShieldOf(b.PlayerId, now) is { } shield ? shield.ToUnixTimeMilliseconds() : 0,
+                            Recovery = IsRecoveryShield(b.PlayerId, now)
                         };
                     }).ToArray(),
                     Nodes = NodesInView(cx, cy, radius, mine, now),
@@ -514,6 +516,7 @@ ON CONFLICT (player_id) DO UPDATE SET x = EXCLUDED.x, y = EXCLUDED.y, name = EXC
                 ? (existing.X, existing.Y)
                 : PlaceBase();
             var record = new WorldBaseRecord(id, x, y, session.DisplayName, session.BaseLevel, session.Power, session.AvatarId);
+            NoteShield(id, session.ShieldUntil);
             if (existing == null)
                 _taken.Add((x, y));
             if (existing != record)

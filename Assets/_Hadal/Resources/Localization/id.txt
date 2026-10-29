@@ -1479,3 +1479,21 @@ research.march.total = Total kecepatan pasukan +{0}% · perjalanan 20 mnt → {1
 research.march.return = Kecepatan pulang +{0}%
 march.speedbonus = +{0}% kecepatan
 profile.marchspeed = Kecepatan pasukan +{0}%
+
+# Shields on the map, alarm actions (docs/30 §3, §5.1)
+pvp.shield.plate = Perisai {0}
+pvp.beginner.plate = Perlindungan pemula
+pvp.block.meBeginner = Kamu dalam perlindungan pemula: tidak bisa menyerang pemain sampai Reaktor {0}.
+pvp.block.beginner = Markas ini dalam perlindungan pemula.
+pvp.block.shield = Markas ini berperisai (sisa {0}).
+pvp.target.shielded = Target berperisai — pasukan akan kembali tanpa bertempur
+pvp.alarm.goto = Ke penyerang
+pvp.alarm.shield = Pasang perisai
+pvp.alarm.help = Minta bantuan
+pvp.alarm.blocked = Perisai aktif — serangan akan ditahan
+pvp.shield.incoming = Pasang perisai sebelum serangan tiba dan serangan itu ditahan. Mengirim serangan atau pengintai memecah perisaimu.
+pvp.help.request = Aku diserang, kirim bala bantuan!
+pvp.result.blocked = Perisaimu menahan serangan dari {0}.
+pvp.result.bounced = Seranganmu menabrak perisai; pasukanmu kembali tanpa kerugian.
+mail.pvp.blocked = Perisaimu menahan serangan dari {0}.
+mail.pvp.bounced = Seranganmu menabrak perisai; pasukanmu kembali tanpa kerugian.

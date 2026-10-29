@@ -1479,3 +1479,21 @@ research.march.total = Tổng tốc độ hành quân +{0}% · chuyến 20 phút
 research.march.return = Tốc độ trở về +{0}%
 march.speedbonus = +{0}% tốc độ
 profile.marchspeed = Tốc độ hành quân +{0}%
+
+# Shields on the map, alarm actions (docs/30 §3, §5.1)
+pvp.shield.plate = Khiên {0}
+pvp.beginner.plate = Bảo vệ tân thủ
+pvp.block.meBeginner = Bạn đang được bảo vệ tân thủ: không thể tấn công người chơi cho đến Lò phản ứng {0}.
+pvp.block.beginner = Căn cứ này đang được bảo vệ tân thủ.
+pvp.block.shield = Căn cứ này có khiên (còn {0}).
+pvp.target.shielded = Mục tiêu có khiên — quân sẽ quay về mà không giao chiến
+pvp.alarm.goto = Đến kẻ tấn công
+pvp.alarm.shield = Bật khiên
+pvp.alarm.help = Xin trợ giúp
+pvp.alarm.blocked = Khiên đang bật — đòn tấn công sẽ bị chặn
+pvp.shield.incoming = Bật khiên trước khi đòn tấn công đến và nó sẽ bị chặn. Gửi tấn công hoặc do thám sẽ phá khiên của bạn.
+pvp.help.request = Tôi đang bị tấn công, gửi viện binh!
+pvp.result.blocked = Khiên của bạn đã chặn đòn tấn công của {0}.
+pvp.result.bounced = Đòn tấn công của bạn trúng khiên; quân trở về không tổn thất.
+mail.pvp.blocked = Khiên của bạn đã chặn đòn tấn công của {0}.
+mail.pvp.bounced = Đòn tấn công của bạn trúng khiên; quân trở về không tổn thất.

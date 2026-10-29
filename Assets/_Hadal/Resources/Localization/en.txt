@@ -1480,3 +1480,21 @@ research.march.total = Total march speed +{0}% · a 20 min trip → {1}
 research.march.return = Return speed +{0}%
 march.speedbonus = +{0}% speed
 profile.marchspeed = March speed +{0}%
+
+# Shields on the map, alarm actions (docs/30 §3, §5.1)
+pvp.shield.plate = Shield {0}
+pvp.beginner.plate = Newbie protection
+pvp.block.meBeginner = You are under newbie protection: you cannot attack players until Reactor {0}.
+pvp.block.beginner = This base is under newbie protection.
+pvp.block.shield = This base is shielded ({0} left).
+pvp.target.shielded = Target shielded — the army will return without a battle
+pvp.alarm.goto = Go to attacker
+pvp.alarm.shield = Raise shield
+pvp.alarm.help = Ask for help
+pvp.alarm.blocked = Shield active — the attack will be blocked
+pvp.shield.incoming = Raise a shield before the attack lands and it is blocked. Sending an attack or scout breaks your shield.
+pvp.help.request = I'm under attack, send reinforcements!
+pvp.result.blocked = Your shield blocked the attack by {0}.
+pvp.result.bounced = Your attack hit a shield; your army returned without losses.
+mail.pvp.blocked = Your shield blocked the attack by {0}.
+mail.pvp.bounced = Your attack hit a shield; your army returned without losses.

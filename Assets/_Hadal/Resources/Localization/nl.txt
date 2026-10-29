@@ -1479,3 +1479,21 @@ research.march.total = Totale marssnelheid +{0}% · tocht van 20 min → {1}
 research.march.return = Terugkeersnelheid +{0}%
 march.speedbonus = +{0}% snelheid
 profile.marchspeed = Marssnelheid +{0}%
+
+# Shields on the map, alarm actions (docs/30 §3, §5.1)
+pvp.shield.plate = Schild {0}
+pvp.beginner.plate = Beginnersbescherming
+pvp.block.meBeginner = Je hebt beginnersbescherming: je kunt geen spelers aanvallen tot Reactor {0}.
+pvp.block.beginner = Deze basis heeft beginnersbescherming.
+pvp.block.shield = Deze basis heeft een schild (nog {0}).
+pvp.target.shielded = Doel beschermd — het leger keert zonder gevecht terug
+pvp.alarm.goto = Naar aanvaller
+pvp.alarm.shield = Schild activeren
+pvp.alarm.help = Hulp vragen
+pvp.alarm.blocked = Schild actief — de aanval wordt geblokkeerd
+pvp.shield.incoming = Activeer een schild voordat de aanval aankomt en hij wordt geblokkeerd. Zelf aanvallen of verkennen breekt je schild.
+pvp.help.request = Ik word aangevallen, stuur versterking!
+pvp.result.blocked = Je schild blokkeerde de aanval van {0}.
+pvp.result.bounced = Je aanval stuitte op een schild; je leger keerde zonder verliezen terug.
+mail.pvp.blocked = Je schild blokkeerde de aanval van {0}.
+mail.pvp.bounced = Je aanval stuitte op een schild; je leger keerde zonder verliezen terug.

@@ -380,7 +380,15 @@ namespace Hadal.UI
             }
 
             if (!me)
-                AddPvpItems(items, b, !string.IsNullOrEmpty(b.AllianceTag) && b.AllianceTag == View.MyAlliance?.Tag);
+            {
+                var ally = !string.IsNullOrEmpty(b.AllianceTag) && b.AllianceTag == View.MyAlliance?.Tag;
+                AddPvpItems(items, b, ally);
+                // Greyed-out attack buttons say why (live feedback: "it wouldn't let me attack you").
+                if (!ally && PvpBlock(b) is { } block)
+                    info += $"\n<color=#FFB347>{block}</color>";
+            }
+            else if (b.ShieldUntilMs > View.ServerNowMs)
+                info += $"\n<color=#7FE9FF>🛡 {Loc.F("pvp.shield.plate", Clock(b.ShieldUntilMs - View.ServerNowMs))}</color>";
 
             GlideTo(b.X, b.Y);
             var x = b.X;
@@ -410,6 +418,7 @@ namespace Hadal.UI
                 return;
 
             ApplyView();
+            UpdateShields();
             HandleSeaTap();
             TickTeamDetails();
             // Other players' teams start and turn back all the time: ask for the area again every few seconds.

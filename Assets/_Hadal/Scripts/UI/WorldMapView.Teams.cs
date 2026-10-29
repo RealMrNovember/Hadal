@@ -168,7 +168,7 @@ namespace Hadal.UI
                 new("left_search", Loc.T("base.details"), () => OpenTeamDetails(marchId)),
                 new("left_home", Loc.T("world.recall"), () => { Recall(marchId); StopFollowing(); }, !returning)
             };
-            var info = $"{Loc.F("march.crew.short", m.Crew)}   {Loc.F("march.to", m.X, m.Y)}";
+            var info = $"{Loc.F("march.crew.short", m.Crew)}   {Loc.F("march.to", m.X, m.Y)}" + TargetShieldNote(m);
             TargetMenu.Show(() => IsOpen ? _camera : null, () =>
                 {
                     var live = View.Marches?.Marches?.FirstOrDefault(x => x.Id == marchId);

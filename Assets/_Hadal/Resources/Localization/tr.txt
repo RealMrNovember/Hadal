@@ -1480,3 +1480,21 @@ research.march.total = Toplam yürüyüş hızı +%{0} · 20 dk'lık yol → {1}
 research.march.return = Dönüş hızı +%{0}
 march.speedbonus = +%{0} hız
 profile.marchspeed = Yürüyüş hızı +%{0}
+
+# Shields on the map, alarm actions (docs/30 §3, §5.1)
+pvp.shield.plate = Kalkan {0}
+pvp.beginner.plate = Acemi koruması
+pvp.block.meBeginner = Acemi korumasındasın: Reaktör {0} olana kadar oyunculara saldıramazsın.
+pvp.block.beginner = Bu üs acemi korumasında.
+pvp.block.shield = Bu üs kalkanlı ({0} kaldı).
+pvp.target.shielded = Hedef kalkanlı — ordu savaşmadan geri dönecek
+pvp.alarm.goto = Saldırana git
+pvp.alarm.shield = Kalkan aç
+pvp.alarm.help = Takviye iste
+pvp.alarm.blocked = Kalkan aktif — saldırı engellenecek
+pvp.shield.incoming = Saldırı varmadan kalkan açarsan saldırı engellenir. Saldırı ya da keşif göndermek kalkanı kırar.
+pvp.help.request = Saldırı altındayım, takviye gönderin!
+pvp.result.blocked = Kalkanın, {0} tarafından yapılan saldırıyı engelledi.
+pvp.result.bounced = Saldırın kalkana çarptı, ordun kayıpsız geri döndü.
+mail.pvp.blocked = Kalkanın, {0} tarafından yapılan saldırıyı engelledi.
+mail.pvp.bounced = Saldırın kalkana çarptı, ordun kayıpsız geri döndü.

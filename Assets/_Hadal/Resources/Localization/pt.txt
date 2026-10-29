@@ -1479,3 +1479,21 @@ research.march.total = Velocidade de marcha total +{0}% · viagem de 20 min → 
 research.march.return = Velocidade de retorno +{0}%
 march.speedbonus = +{0}% velocidade
 profile.marchspeed = Velocidade de marcha +{0}%
+
+# Shields on the map, alarm actions (docs/30 §3, §5.1)
+pvp.shield.plate = Escudo {0}
+pvp.beginner.plate = Proteção de novato
+pvp.block.meBeginner = Você está sob proteção de novato: não pode atacar jogadores até o Reator {0}.
+pvp.block.beginner = Esta base está sob proteção de novato.
+pvp.block.shield = Esta base tem escudo ({0} restantes).
+pvp.target.shielded = Alvo com escudo — o exército voltará sem lutar
+pvp.alarm.goto = Ir ao atacante
+pvp.alarm.shield = Ativar escudo
+pvp.alarm.help = Pedir ajuda
+pvp.alarm.blocked = Escudo ativo — o ataque será bloqueado
+pvp.shield.incoming = Ative um escudo antes de o ataque chegar e ele será bloqueado. Enviar um ataque ou exploração quebra seu escudo.
+pvp.help.request = Estou sob ataque, enviem reforços!
+pvp.result.blocked = Seu escudo bloqueou o ataque de {0}.
+pvp.result.bounced = Seu ataque bateu num escudo; seu exército voltou sem perdas.
+mail.pvp.blocked = Seu escudo bloqueou o ataque de {0}.
+mail.pvp.bounced = Seu ataque bateu num escudo; seu exército voltou sem perdas.

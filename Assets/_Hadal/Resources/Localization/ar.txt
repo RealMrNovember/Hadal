@@ -1479,3 +1479,21 @@ research.march.total = سرعة المسير الكلية +{0}% · رحلة 20 �
 research.march.return = سرعة العودة +{0}%
 march.speedbonus = +{0}% سرعة
 profile.marchspeed = سرعة المسير +{0}%
+
+# Shields on the map, alarm actions (docs/30 §3, §5.1)
+pvp.shield.plate = درع {0}
+pvp.beginner.plate = حماية المبتدئين
+pvp.block.meBeginner = أنت تحت حماية المبتدئين: لا يمكنك مهاجمة اللاعبين حتى المفاعل {0}.
+pvp.block.beginner = هذه القاعدة تحت حماية المبتدئين.
+pvp.block.shield = هذه القاعدة محمية بدرع (متبقٍ {0}).
+pvp.target.shielded = الهدف محمي بدرع — سيعود الجيش دون قتال
+pvp.alarm.goto = اذهب إلى المهاجم
+pvp.alarm.shield = تفعيل الدرع
+pvp.alarm.help = اطلب المساعدة
+pvp.alarm.blocked = الدرع مفعّل — سيتم صد الهجوم
+pvp.shield.incoming = فعّل درعًا قبل وصول الهجوم وسيتم صده. إرسال هجوم أو استطلاع يكسر درعك.
+pvp.help.request = أتعرض لهجوم، أرسلوا تعزيزات!
+pvp.result.blocked = صدّ درعك هجوم {0}.
+pvp.result.bounced = اصطدم هجومك بدرع؛ عاد جيشك دون خسائر.
+mail.pvp.blocked = صدّ درعك هجوم {0}.
+mail.pvp.bounced = اصطدم هجومك بدرع؛ عاد جيشك دون خسائر.

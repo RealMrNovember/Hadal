@@ -169,7 +169,13 @@ namespace Hadal.UI
             {
                 ShowOnMap = (x, y) => _social.ShowOnMap(x, y),
                 JoinRally = row => { Close(); _social.Close(); _map.JoinRally(row); },
-                Reinforce = (id, name, x, y) => { Close(); _social.Close(); _map.Reinforce(id, name, x, y); }
+                Reinforce = (id, name, x, y) => { Close(); _social.Close(); _map.Reinforce(id, name, x, y); },
+                RequestHelp = () =>
+                {
+                    var view = _stateSync.View.WorldView;
+                    if (view != null)
+                        _social.ShareLocation(view.MyX, view.MyY, "me", Loc.T("pvp.help.request"));
+                }
             });
 
             // Alliance rally point card with the instant alliance teleport (docs/30 §6.3.1).

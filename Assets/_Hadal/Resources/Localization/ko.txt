@@ -1479,3 +1479,21 @@ research.march.total = 총 행군 속도 +{0}% · 20분 거리 → {1}
 research.march.return = 귀환 속도 +{0}%
 march.speedbonus = 속도 +{0}%
 profile.marchspeed = 행군 속도 +{0}%
+
+# Shields on the map, alarm actions (docs/30 §3, §5.1)
+pvp.shield.plate = 보호막 {0}
+pvp.beginner.plate = 초보자 보호
+pvp.block.meBeginner = 초보자 보호 중: 반응로 {0}까지 플레이어를 공격할 수 없습니다.
+pvp.block.beginner = 이 기지는 초보자 보호 중입니다.
+pvp.block.shield = 이 기지는 보호막 중입니다 ({0} 남음).
+pvp.target.shielded = 목표에 보호막 — 부대가 전투 없이 귀환합니다
+pvp.alarm.goto = 공격자에게
+pvp.alarm.shield = 보호막 켜기
+pvp.alarm.help = 지원 요청
+pvp.alarm.blocked = 보호막 활성 — 공격이 막힙니다
+pvp.shield.incoming = 공격이 도착하기 전에 보호막을 켜면 막힙니다. 공격이나 정찰을 보내면 보호막이 해제됩니다.
+pvp.help.request = 공격받고 있어요, 지원군을 보내주세요!
+pvp.result.blocked = 보호막이 {0}의 공격을 막았습니다.
+pvp.result.bounced = 공격이 보호막에 막혀 부대가 손실 없이 귀환했습니다.
+mail.pvp.blocked = 보호막이 {0}의 공격을 막았습니다.
+mail.pvp.bounced = 공격이 보호막에 막혀 부대가 손실 없이 귀환했습니다.

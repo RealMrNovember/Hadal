@@ -108,7 +108,7 @@ namespace Hadal.UI
                 return;
             }
 
-            var open = !IBeginner && !PvpRules.IsBeginner(b.Level);
+            var open = PvpBlock(b) == null;
             items.Insert(0, new TargetMenu.Item("left_search", Loc.T("pvp.scout"), () =>
             {
                 SendPvp(PvpRules.Scout, PvpRules.TargetBase, target.PlayerId, null);

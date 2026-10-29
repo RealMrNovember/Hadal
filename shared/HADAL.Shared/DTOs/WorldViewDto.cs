@@ -118,5 +118,11 @@ namespace HADAL.Shared.DTOs
         [ProtoMember(7)] public long Power { get; set; }
         [ProtoMember(8)] public bool Online { get; set; }
         [ProtoMember(9)] public string AvatarId { get; set; } = string.Empty;
+
+        /// <summary>The base's shield ends then (0 = none); everyone sees the dome (docs/30 §3).</summary>
+        [ProtoMember(10)] public long ShieldUntilMs { get; set; }
+
+        /// <summary>The shield is the recovery shield after repeated defeats (docs/33 §2).</summary>
+        [ProtoMember(11)] public bool Recovery { get; set; }
     }
 }

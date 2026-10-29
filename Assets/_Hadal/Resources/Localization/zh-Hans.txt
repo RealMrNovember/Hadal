@@ -1479,3 +1479,21 @@ research.march.total = 总行军速度 +{0}% · 20分钟路程 → {1}
 research.march.return = 返航速度 +{0}%
 march.speedbonus = 速度 +{0}%
 profile.marchspeed = 行军速度 +{0}%
+
+# Shields on the map, alarm actions (docs/30 §3, §5.1)
+pvp.shield.plate = 护盾 {0}
+pvp.beginner.plate = 新手保护
+pvp.block.meBeginner = 你处于新手保护中：反应堆{0}级之前不能攻击玩家。
+pvp.block.beginner = 该基地处于新手保护中。
+pvp.block.shield = 该基地有护盾（剩余{0}）。
+pvp.target.shielded = 目标有护盾 — 部队将不战而返
+pvp.alarm.goto = 前往攻击者
+pvp.alarm.shield = 开启护盾
+pvp.alarm.help = 请求增援
+pvp.alarm.blocked = 护盾已开启 — 攻击将被挡下
+pvp.shield.incoming = 在攻击到达前开启护盾即可挡下。派出攻击或侦察会打破你的护盾。
+pvp.help.request = 我正遭受攻击，请派增援！
+pvp.result.blocked = 你的护盾挡下了{0}的攻击。
+pvp.result.bounced = 你的攻击撞上了护盾，部队无损返回。
+mail.pvp.blocked = 你的护盾挡下了{0}的攻击。
+mail.pvp.bounced = 你的攻击撞上了护盾，部队无损返回。

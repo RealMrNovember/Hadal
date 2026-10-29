@@ -770,5 +770,35 @@ namespace Hadal.Game.Tests
             Assert.StartsWith("loc:mail.pvp.scouted|pvp.kind.scouted|smail-a", seen.Title);
             Assert.Contains("loc:mail.pvp.scoutedBy|smail-a|", seen.Body);
         }
+        [Fact]
+        public async Task A_shield_raised_after_the_attack_left_bounces_it_and_both_sides_are_told_and_see_the_dome()
+        {
+            var (a, aConnection) = await Connect("dome-a");
+            var (b, _) = await Connect("dome-b", troops: 50);
+            b.StateForTests.Items[PvpRules.Shield8h] = 1;
+            Attack(a, b.PublicId);
+            var march = Pvp(a);
+            var sent = march.Troops.Values.Sum();
+
+            _clock.UtcNow = march.StartedAt.AddSeconds(1);
+            Send(b, new UseShieldCommand { CommandId = "dome-shield", ItemId = PvpRules.Shield8h }, CommandType.UseShield);
+
+            // Everyone sees the dome and its end on the map.
+            Send(a, new ViewWorldCommand { CommandId = "dome-view", X = march.X, Y = march.Y }, CommandType.ViewWorld);
+            var view = TestSupport.Serializer.Deserialize<WorldViewDto>(aConnection.Messages.Where(m => m.Delta != null).Select(m => m.Delta())
+                .SelectMany(d => d.Changes).Last(c => c.EntityId == EntityIds.WorldView).Payload);
+            Assert.Equal(b.StateForTests.ShieldUntil!.Value.ToUnixTimeMilliseconds(), view.Bases.Single(x => x.PlayerId == b.PublicId).ShieldUntilMs);
+            Assert.DoesNotContain(view.Bases, x => x.PlayerId != b.PublicId && x.ShieldUntilMs > 0);
+
+            At(march.ArrivesAt);
+            Assert.Equal("shielded", LastReport(a).Outcome);
+            Assert.Equal(sent, Pvp(a).Troops.Values.Sum()); // no battle, no losses: the army sails home
+            Assert.Contains("loc:mail.pvp.bounced", Assert.Single(BattleMails(a)).Body);
+            Assert.Contains("loc:mail.pvp.blocked|dome-a", Assert.Single(BattleMails(b)).Body);
+
+            // A new attack is refused before it sails.
+            Attack(a, b.PublicId);
+            Assert.Equal("TargetShielded", LastAck(aConnection).Reason);
+        }
     }
 }

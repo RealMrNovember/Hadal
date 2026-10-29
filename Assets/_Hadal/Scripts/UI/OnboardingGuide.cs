@@ -170,7 +170,9 @@ namespace Hadal.UI
             var quests = View.Quests;
             var guide = quests?.Guide;
             QuestData step = null;
-            var active = guide != null && Catalog.TryGetOnboarding(guide.Id, out step, out _) && !Off && !HiddenFor(guide.Id);
+            // An incoming attack outranks the guide: no arrow to monsters while the base is under fire (live feedback).
+            var active = guide != null && Catalog.TryGetOnboarding(guide.Id, out step, out _) && !Off && !HiddenFor(guide.Id)
+                         && PvpCenter.Instance?.UnderAttack != true;
             var inWorld = _actions.InWorld?.Invoke() ?? false;
             var sheet = _actions.SheetOpen?.Invoke() ?? false;
             var done = active && guide.Progress >= guide.Target;

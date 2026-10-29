@@ -1479,3 +1479,21 @@ research.march.total = Общая скорость марша +{0}% · путь 
 research.march.return = Скорость возвращения +{0}%
 march.speedbonus = +{0}% скорости
 profile.marchspeed = Скорость марша +{0}%
+
+# Shields on the map, alarm actions (docs/30 §3, §5.1)
+pvp.shield.plate = Щит {0}
+pvp.beginner.plate = Защита новичка
+pvp.block.meBeginner = У вас защита новичка: нельзя атаковать игроков до Реактора {0}.
+pvp.block.beginner = Эта база под защитой новичка.
+pvp.block.shield = На этой базе щит (осталось {0}).
+pvp.target.shielded = Цель под щитом — армия вернётся без боя
+pvp.alarm.goto = К атакующему
+pvp.alarm.shield = Включить щит
+pvp.alarm.help = Попросить помощи
+pvp.alarm.blocked = Щит активен — атака будет отражена
+pvp.shield.incoming = Включите щит до прибытия атаки — и она будет отражена. Отправка атаки или разведки снимает ваш щит.
+pvp.help.request = На меня напали, пришлите подкрепление!
+pvp.result.blocked = Ваш щит отразил атаку игрока {0}.
+pvp.result.bounced = Ваша атака наткнулась на щит; армия вернулась без потерь.
+mail.pvp.blocked = Ваш щит отразил атаку игрока {0}.
+mail.pvp.bounced = Ваша атака наткнулась на щит; армия вернулась без потерь.

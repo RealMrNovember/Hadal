@@ -1479,3 +1479,21 @@ research.march.total = Jumlah kelajuan kawad +{0}% · perjalanan 20 min → {1}
 research.march.return = Kelajuan pulang +{0}%
 march.speedbonus = +{0}% kelajuan
 profile.marchspeed = Kelajuan kawad +{0}%
+
+# Shields on the map, alarm actions (docs/30 §3, §5.1)
+pvp.shield.plate = Perisai {0}
+pvp.beginner.plate = Perlindungan pemula
+pvp.block.meBeginner = Anda dalam perlindungan pemula: tidak boleh menyerang pemain sehingga Reaktor {0}.
+pvp.block.beginner = Pangkalan ini dalam perlindungan pemula.
+pvp.block.shield = Pangkalan ini berperisai (baki {0}).
+pvp.target.shielded = Sasaran berperisai — tentera akan pulang tanpa bertempur
+pvp.alarm.goto = Ke penyerang
+pvp.alarm.shield = Pasang perisai
+pvp.alarm.help = Minta bantuan
+pvp.alarm.blocked = Perisai aktif — serangan akan disekat
+pvp.shield.incoming = Pasang perisai sebelum serangan tiba dan ia akan disekat. Menghantar serangan atau tinjauan memecahkan perisai anda.
+pvp.help.request = Saya diserang, hantar bantuan!
+pvp.result.blocked = Perisai anda menyekat serangan daripada {0}.
+pvp.result.bounced = Serangan anda terkena perisai; tentera anda pulang tanpa kerugian.
+mail.pvp.blocked = Perisai anda menyekat serangan daripada {0}.
+mail.pvp.bounced = Serangan anda terkena perisai; tentera anda pulang tanpa kerugian.

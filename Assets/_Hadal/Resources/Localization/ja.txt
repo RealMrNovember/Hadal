@@ -1479,3 +1479,21 @@ research.march.total = 行軍速度合計 +{0}% · 20分の道のり → {1}
 research.march.return = 帰還速度 +{0}%
 march.speedbonus = 速度 +{0}%
 profile.marchspeed = 行軍速度 +{0}%
+
+# Shields on the map, alarm actions (docs/30 §3, §5.1)
+pvp.shield.plate = シールド {0}
+pvp.beginner.plate = 初心者保護
+pvp.block.meBeginner = 初心者保護中：リアクター{0}まではプレイヤーを攻撃できません。
+pvp.block.beginner = この基地は初心者保護中です。
+pvp.block.shield = この基地はシールド中です（残り{0}）。
+pvp.target.shielded = 目標はシールド中 — 部隊は戦わずに帰還します
+pvp.alarm.goto = 攻撃者へ
+pvp.alarm.shield = シールドを張る
+pvp.alarm.help = 援軍を頼む
+pvp.alarm.blocked = シールド有効 — 攻撃は防がれます
+pvp.shield.incoming = 攻撃が届く前にシールドを張れば防げます。攻撃や偵察を送るとシールドは解除されます。
+pvp.help.request = 攻撃を受けています、援軍を！
+pvp.result.blocked = シールドが{0}の攻撃を防ぎました。
+pvp.result.bounced = 攻撃はシールドに阻まれ、部隊は損害なしで帰還しました。
+mail.pvp.blocked = シールドが{0}の攻撃を防ぎました。
+mail.pvp.bounced = 攻撃はシールドに阻まれ、部隊は損害なしで帰還しました。

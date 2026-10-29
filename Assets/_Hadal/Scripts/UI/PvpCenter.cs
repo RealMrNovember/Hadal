@@ -25,6 +25,9 @@ namespace Hadal.UI
             public Action<int, int> ShowOnMap;
             public Action<WarRowDto> JoinRally;
             public Action<string, string, int, int> Reinforce;
+
+            /// <summary>Asks the alliance for help: shares our base's position in a chat.</summary>
+            public Action RequestHelp;
         }
 
         public static PvpCenter Instance { get; private set; }
@@ -58,6 +61,13 @@ namespace Hadal.UI
 
         public bool IsOpen => _window != null;
 
+        /// <summary>A hostile march is on its way to us: the onboarding guide steps aside (live feedback).</summary>
+        public bool UnderAttack { get; private set; }
+
+        private RectTransform _bannerActions;
+        private ShieldDome _baseDome;
+        private float _nextDomeCheck;
+
         public void Initialize(IStateSyncService stateSync, ICommandDispatcher commands, Actions actions)
         {
             _stateSync = stateSync;
@@ -90,6 +100,23 @@ namespace Hadal.UI
             _bannerText.rectTransform.Place(0.02f, 0f, 0.98f, 1f);
             _banner.gameObject.SetActive(false);
 
+            // Under the banner: go to the attacker, raise a shield, ask the alliance for help.
+            _bannerActions = UiKit.Rect("BannerActions", _canvas.transform).Place(0.08f, 0.792f, 0.92f, 0.83f);
+            var actions = new (string Key, Action Act, Color Color)[]
+            {
+                ("pvp.alarm.goto", GoToAttacker, UiKit.Field),
+                ("pvp.alarm.shield", () => Open(0), UiKit.Primary),
+                ("pvp.alarm.help", () => _actions.RequestHelp?.Invoke(), UiKit.Ok)
+            };
+            for (var i = 0; i < actions.Length; i++)
+            {
+                var (key, act, color) = actions[i];
+                var button = UiKit.Button("Act" + i, _bannerActions, Loc.T(key), () => act(), color, 22);
+                ((RectTransform)button.transform).Place(i / 3f + 0.005f, 0f, (i + 1) / 3f - 0.005f, 1f);
+            }
+
+            _bannerActions.gameObject.SetActive(false);
+
             _windowCanvas = UiKit.Canvas("PvpWindow", 47);
             _windowCanvas.transform.SetParent(transform, false);
         }
@@ -104,9 +131,14 @@ namespace Hadal.UI
             var now = View.ServerNowMs;
             var incoming = (View.Pvp?.Incoming ?? Array.Empty<IncomingDto>()).Where(i => i.ArrivesAtMs > now - 2000).ToList();
             var threats = incoming.Where(i => i.Kind != PvpRules.Scout).ToList();
-            var pulse = threats.Count > 0 ? 0.25f + 0.25f * Mathf.Sin(Time.unscaledTime * 5f) : 0f;
+            // A shield up when the first threat lands blocks it: the edge turns calm cyan instead of red.
+            var shieldMs = View.Pvp?.ShieldUntilMs ?? 0;
+            var blocked = threats.Count > 0 && threats.All(i => shieldMs > i.ArrivesAtMs);
+            var pulse = threats.Count > 0 ? (blocked ? 0.12f + 0.08f * Mathf.Sin(Time.unscaledTime * 2f) : 0.25f + 0.25f * Mathf.Sin(Time.unscaledTime * 5f)) : 0f;
             foreach (var e in _edges)
-                e.color = new Color(1f, 0.1f, 0.08f, pulse);
+                e.color = blocked ? new Color(0.25f, 0.9f, 1f, pulse) : new Color(1f, 0.1f, 0.08f, pulse);
+            UnderAttack = threats.Count > 0;
+            UpdateBaseDome(now);
 
             if (incoming.Count > 0)
             {
@@ -116,9 +148,15 @@ namespace Hadal.UI
                     : first.TargetKind == PvpRules.TargetTeam ? Loc.T("pvp.alarm.team") : Loc.T("pvp.alarm.attack");
                 var left = Math.Max(0, (first.ArrivesAtMs - now) / 1000f);
                 var more = incoming.Count > 1 ? $"  (+{incoming.Count - 1})" : string.Empty;
-                _bannerText.text = $"⚠ {what}: {who} — {Loc.Duration(left)}{more}";
-                _bannerFill.color = first.Kind == PvpRules.Scout ? new Color(0.55f, 0.4f, 0.05f, 0.95f) : new Color(0.55f, 0.06f, 0.05f, 0.95f);
+                var shielded = shieldMs > first.ArrivesAtMs;
+                _bannerText.text = shielded
+                    ? $"🛡 {Loc.T("pvp.alarm.blocked")}: {who} — {Loc.Duration(left)}{more}"
+                    : $"⚠ {what}: {who} — {Loc.Duration(left)}{more}";
+                _bannerFill.color = shielded ? new Color(0.04f, 0.32f, 0.42f, 0.95f)
+                    : first.Kind == PvpRules.Scout ? new Color(0.55f, 0.4f, 0.05f, 0.95f) : new Color(0.55f, 0.06f, 0.05f, 0.95f);
                 _banner.gameObject.SetActive(_window == null);
+                _bannerActions.gameObject.SetActive(_window == null && _result == null);
+                _bannerActions.Find("Act2").gameObject.SetActive(View.MyAlliance != null);
 
                 // A new attack shakes the phone once.
                 foreach (var i in incoming.Where(i => _seenIncoming.Add(i.MarchId)))
@@ -135,6 +173,7 @@ namespace Hadal.UI
             else
             {
                 _banner.gameObject.SetActive(false);
+                _bannerActions.gameObject.SetActive(false);
             }
 
             // A mate's team reaching the base to guard it (docs/32 §2.6); what was already there at login is not news.
@@ -166,6 +205,37 @@ namespace Hadal.UI
 
             if (_window != null)
                 TickWindow(now);
+        }
+
+        /// <summary>Centres the map on the base the first incoming march came from.</summary>
+        private void GoToAttacker()
+        {
+            var now = View.ServerNowMs;
+            var first = (View.Pvp?.Incoming ?? Array.Empty<IncomingDto>()).Where(i => i.ArrivesAtMs > now - 2000).OrderBy(i => i.ArrivesAtMs).FirstOrDefault();
+            if (first != null)
+                _actions.ShowOnMap?.Invoke(first.FromX, first.FromY);
+        }
+
+        /// <summary>The dome over our own base in the base view while a shield or newbie protection is up.</summary>
+        private void UpdateBaseDome(long now)
+        {
+            if (Time.unscaledTime < _nextDomeCheck)
+                return;
+            _nextDomeCheck = Time.unscaledTime + 1f;
+            if (_baseDome == null)
+            {
+                // The base grid's ring lines (CircularGridRenderer lives in the gameplay assembly) give the base's size.
+                _nextDomeCheck = Time.unscaledTime + 5f;
+                var grid = FindObjectsByType<MonoBehaviour>(FindObjectsSortMode.None).FirstOrDefault(m => m.GetType().Name == "CircularGridRenderer");
+                var lines = grid != null ? grid.GetComponentsInChildren<LineRenderer>() : Array.Empty<LineRenderer>();
+                if (lines.Length == 0)
+                    return;
+                var radius = lines.Max(l => Mathf.Max(l.bounds.extents.x, l.bounds.extents.z));
+                _baseDome = ShieldDome.Create(grid.transform, radius * 1.08f);
+            }
+
+            var shield = View.Pvp?.ShieldUntilMs ?? 0;
+            _baseDome.Show(shield > now ? ShieldDome.Kind.Shield : PvpRules.IsBeginner(ReactorLevel()) ? ShieldDome.Kind.Beginner : ShieldDome.Kind.None);
         }
 
         private int ReactorLevel() =>
@@ -237,6 +307,8 @@ namespace Hadal.UI
             var won = Won(r);
             GameAudio.Play(won ? Sfx.Reward : Sfx.Error);
             var lines = new List<string> { ReportLine(r) };
+            if (r.Outcome == "shielded")
+                lines.Add(Hit(r) ? Loc.F("pvp.result.blocked", r.OpponentName) : Loc.T("pvp.result.bounced"));
             var loot = Loot(r.Plunder ?? Array.Empty<ResourceAmountEntry>(), Hit(r) ? "−" : "+");
             if (loot.Length > 0 && r.Kind != "scout")
                 lines.Add(loot);
@@ -434,6 +506,9 @@ namespace Hadal.UI
 
             if (outgoing)
                 UiKit.Label("Out", _body, Loc.T("pvp.shield.attackOut"), 22, UiKit.Amber, TextAnchor.MiddleCenter).rectTransform.Place(0, 0.12f, 1, 0.2f);
+            else if ((pvp.Incoming ?? Array.Empty<IncomingDto>()).Any(x => x.ArrivesAtMs > now && x.Kind != PvpRules.Scout))
+                UiKit.Label("Incoming", _body, shielded ? Loc.T("pvp.alarm.blocked") : Loc.T("pvp.shield.incoming"), 22, shielded ? UiKit.Ok : UiKit.Amber, TextAnchor.MiddleCenter)
+                    .rectTransform.Place(0, 0.12f, 1, 0.2f);
 
             // Who guards the base: alliance mates' teams, here or on their way.
             var guards = pvp.Garrison ?? Array.Empty<GarrisonDto>();

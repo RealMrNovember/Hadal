@@ -393,7 +393,10 @@ CREATE TABLE IF NOT EXISTS hadal.world_fairness (
                     plunder[key] = (long)Math.Floor(plunder[key] * share);
                 RecordWin(r.AttackerId, r.TargetOwnerId, at);
                 if (RecordDefeat(r.TargetOwnerId, at))
+                {
                     defender.GrantShield(at + PvpRules.RecoveryShield, now);
+                    NoteShield(r.TargetOwnerId, defender.ShieldUntil);
+                }
             }
             var plunderShares = PvpRules.ShareResources(plunder, loads);
 
@@ -586,7 +589,8 @@ CREATE TABLE IF NOT EXISTS hadal.world_fairness (
         private readonly Dictionary<string, DateTimeOffset> _recovered = new(StringComparer.Ordinal);
         private readonly ConcurrentQueue<(string Key, List<DateTimeOffset>? Times)> _fairnessWrites = new();
 
-        // Stored keys: "w|attacker|target" wins, "d|target" defeats, "r|target" the last recovery shield.
+        // Stored keys: "w|attacker|target" wins, "d|target" defeats, "r|target" the last recovery shield, "s|player" the
+        // shield's end (WorldService.Shields.cs).
         private void LoadFairness(Dictionary<string, List<DateTimeOffset>> stored)
         {
             foreach (var (key, times) in stored)
@@ -598,6 +602,8 @@ CREATE TABLE IF NOT EXISTS hadal.world_fairness (
                     _defeats[parts[1]] = times;
                 else if (parts.Length == 2 && parts[0] == "r" && times.Count > 0)
                     _recovered[parts[1]] = times[0];
+                else if (parts.Length == 2 && parts[0] == "s" && times.Count > 0)
+                    _shields[parts[1]] = times[0];
             }
         }
 
@@ -633,6 +639,7 @@ CREATE TABLE IF NOT EXISTS hadal.world_fairness (
                 _wins.Clear();
                 _defeats.Clear();
                 _recovered.Clear();
+                _shields.Clear();
             }
         }
 
@@ -790,6 +797,7 @@ CREATE TABLE IF NOT EXISTS hadal.world_fairness (
                 var (march, _) = session.TryStartPvp(launch, command.CommandId, command.ClientSequence, now);
                 if (march == null)
                     return;
+                NoteShield(me.PlayerId, session.ShieldUntil); // a hostile march breaks our own shield
 
                 var travel = (int)Math.Round((march.ArrivesAt - (march.Pvp!.DepartsAt ?? march.StartedAt)).TotalSeconds);
                 if (rally != null)
@@ -841,7 +849,7 @@ CREATE TABLE IF NOT EXISTS hadal.world_fairness (
                     var live = SessionOf(b.PlayerId);
                     if (live?.IsBeginner ?? PvpRules.IsBeginner(b.Level))
                         return (null, "TargetBeginner");
-                    if (live?.ShieldedAt(now) == true)
+                    if (live?.ShieldedAt(now) ?? ShieldOf(b.PlayerId, now) != null)
                         return (null, "TargetShielded");
                     // Fatigue (docs/33 §2); a much weaker target is never refused, it only yields less.
                     if (mode != PvpRules.Scout && PvpRules.FatigueShare(WinsOn(me.PlayerId, b.PlayerId, now)) <= 0)

@@ -1479,3 +1479,21 @@ research.march.total = Marschtempo gesamt +{0}% · 20 Min. Weg → {1}
 research.march.return = Rückkehrtempo +{0}%
 march.speedbonus = +{0}% Tempo
 profile.marchspeed = Marschtempo +{0}%
+
+# Shields on the map, alarm actions (docs/30 §3, §5.1)
+pvp.shield.plate = Schild {0}
+pvp.beginner.plate = Neulingsschutz
+pvp.block.meBeginner = Du stehst unter Neulingsschutz: Bis Reaktor {0} kannst du keine Spieler angreifen.
+pvp.block.beginner = Diese Basis steht unter Neulingsschutz.
+pvp.block.shield = Diese Basis hat einen Schild ({0} übrig).
+pvp.target.shielded = Ziel geschützt — die Armee kehrt ohne Kampf zurück
+pvp.alarm.goto = Zum Angreifer
+pvp.alarm.shield = Schild aktivieren
+pvp.alarm.help = Hilfe anfordern
+pvp.alarm.blocked = Schild aktiv — der Angriff wird abgewehrt
+pvp.shield.incoming = Aktivierst du einen Schild, bevor der Angriff eintrifft, wird er abgewehrt. Ein eigener Angriff oder eine Erkundung bricht den Schild.
+pvp.help.request = Ich werde angegriffen, schickt Verstärkung!
+pvp.result.blocked = Dein Schild hat den Angriff von {0} abgewehrt.
+pvp.result.bounced = Dein Angriff traf auf einen Schild; deine Armee kehrte ohne Verluste zurück.
+mail.pvp.blocked = Dein Schild hat den Angriff von {0} abgewehrt.
+mail.pvp.bounced = Dein Angriff traf auf einen Schild; deine Armee kehrte ohne Verluste zurück.

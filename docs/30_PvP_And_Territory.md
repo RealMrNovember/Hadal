@@ -131,6 +131,23 @@ log it received as history; a fought battle left nothing in the mailbox.
   dead/wounded and resources lost, the latest four, "Ayrıntılar postanda".
 - **Later:** Android push notifications for an incoming attack and a lost defence while the app is closed.
 
+### 5.6 Shields you can see, base taps, alarm actions (0.9.4, live feedback)
+- **Tapping a base** opens its menu on the model too, not only on the name plate (the nearest base within a tile).
+  Greyed-out *Saldır / Keşfet / Ralli* now say why: our newbie protection (until Reactor 6), the target's, or its
+  shield with the time left. A raised guide bubble could also cover a plate; the guide now steps aside (below).
+- **Shield dome:** `WorldBaseDto.ShieldUntilMs` / `Recovery` carry every base's shield to every viewer (read live
+  from a loaded session, else remembered in the fairness store as `s|player`, so offline bases show it too). The map
+  draws a translucent dome (cyan shield, amber recovery shield, green newbie protection) and the time left under the
+  plate ("Kalkan 7:52:10"); the base view draws the dome over our own base.
+- **Attacks on a shield:** refused before sailing ("TargetShielded", also for an unloaded target). A march already on
+  its way when the shield goes up bounces at arrival: no battle, no losses, home; both get the result card and a mail
+  ("Saldırın kalkana çarptı, ordun kayıpsız geri döndü" / "Kalkanın, X tarafından yapılan saldırıyı engelledi"). Our
+  own team's menu shows "Hedef kalkanlı" as soon as the target's dome is up.
+- **Alarm:** when the shield covers the arrival, the banner turns cyan: "Kalkan aktif — saldırı engellenecek". Under
+  the banner: *Saldırana git* (centre the map on the attacker's base), *Kalkan aç* (shield tab) and, in an alliance,
+  *Takviye iste* (share our position in chat). The shield tab reminds that sending an attack or a scout breaks the
+  shield. While a hostile march is incoming, the onboarding guide (docs/34) hides its bubble and map arrow.
+
 ## 6. Alliance territory
 
 ### 6.1 Regions and strongholds

@@ -60,6 +60,9 @@ namespace Hadal.Game.World
             else
                 lines.Add(Line("mail.pvp.target", who));
             lines.Add(Line("mail.pvp.at", r.X, r.Y));
+            // A shield up at the arrival instant: no battle, no losses, the army sails home.
+            if (r.Outcome == "shielded")
+                lines.Add(hit ? Line("mail.pvp.blocked", who) : Line("mail.pvp.bounced"));
 
             if (r.Rounds > 0)
             {

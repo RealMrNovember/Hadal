@@ -1479,3 +1479,21 @@ research.march.total = ความเร็วการเดินทัพร
 research.march.return = ความเร็วกลับ +{0}%
 march.speedbonus = ความเร็ว +{0}%
 profile.marchspeed = ความเร็วการเดินทัพ +{0}%
+
+# Shields on the map, alarm actions (docs/30 §3, §5.1)
+pvp.shield.plate = โล่ {0}
+pvp.beginner.plate = การป้องกันมือใหม่
+pvp.block.meBeginner = คุณอยู่ในการป้องกันมือใหม่: โจมตีผู้เล่นไม่ได้จนกว่าเตาปฏิกรณ์ระดับ {0}
+pvp.block.beginner = ฐานนี้อยู่ในการป้องกันมือใหม่
+pvp.block.shield = ฐานนี้มีโล่ (เหลือ {0})
+pvp.target.shielded = เป้าหมายมีโล่ — กองทัพจะกลับโดยไม่ได้รบ
+pvp.alarm.goto = ไปหาผู้โจมตี
+pvp.alarm.shield = เปิดโล่
+pvp.alarm.help = ขอความช่วยเหลือ
+pvp.alarm.blocked = โล่ทำงานอยู่ — การโจมตีจะถูกบล็อก
+pvp.shield.incoming = เปิดโล่ก่อนการโจมตีมาถึงแล้วจะถูกบล็อก การส่งโจมตีหรือสอดแนมจะทำให้โล่แตก
+pvp.help.request = ฉันถูกโจมตี ส่งกำลังเสริมมาด้วย!
+pvp.result.blocked = โล่ของคุณบล็อกการโจมตีของ {0}
+pvp.result.bounced = การโจมตีของคุณชนโล่ กองทัพกลับมาโดยไม่สูญเสีย
+mail.pvp.blocked = โล่ของคุณบล็อกการโจมตีของ {0}
+mail.pvp.bounced = การโจมตีของคุณชนโล่ กองทัพกลับมาโดยไม่สูญเสีย

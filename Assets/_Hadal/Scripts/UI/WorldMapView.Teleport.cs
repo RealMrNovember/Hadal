@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using HADAL.Shared.Commands;
 using HADAL.Shared.DTOs;
 using HADAL.Shared.Simulation;
@@ -82,13 +83,18 @@ namespace Hadal.UI
             var view = View.WorldView;
             if (view == null || tile.x < 0 || tile.y < 0 || tile.x >= view.MapSize || tile.y >= view.MapSize)
                 return;
-            // Bases, nodes and monsters answer through their own plates.
-            foreach (var b in view.Bases ?? Array.Empty<WorldBaseDto>())
+            // A base answers on its model too, not only its plate (live feedback: tapping an enemy base did nothing): the
+            // nearest base within a tile opens its menu.
+            var hit = (view.Bases ?? Array.Empty<WorldBaseDto>())
+                .Where(b => Math.Abs(b.X - tile.x) <= 1 && Math.Abs(b.Y - tile.y) <= 1)
+                .OrderBy(b => Math.Abs(b.X - tile.x) + Math.Abs(b.Y - tile.y)).FirstOrDefault();
+            if (hit != null)
             {
-                if (b.X == tile.x && b.Y == tile.y)
-                    return;
+                ShowBase(hit, hit.PlayerId == View.PlayerId);
+                return;
             }
 
+            // Nodes and monsters answer through their own plates.
             foreach (var n in view.Nodes ?? Array.Empty<WorldNodeDto>())
             {
                 if (n.X == tile.x && n.Y == tile.y)
