@@ -383,6 +383,10 @@ CREATE TABLE IF NOT EXISTS hadal.world_fairness (
             {
                 // Attack fatigue (docs/33 §2): repeated wins by the same attacker on the same base take less.
                 share = PvpRules.FatigueShare(WinsOn(r.AttackerId, r.TargetOwnerId, at));
+                // A much weaker base yields half (docs/33 §2), on top of fatigue.
+                var attackerPower = sessions.TryGetValue(r.AttackerId, out var lead) ? lead.Power : 0;
+                if (PvpRules.OutOfBand(attackerPower, defender.Power))
+                    share *= PvpRules.WeakTargetShare;
                 plunder = PvpRules.Plunder(snap.Wallet, snap.Protected, loads.Sum());
                 foreach (var key in plunder.Keys.ToList())
                     plunder[key] = (long)Math.Floor(plunder[key] * share);
@@ -833,9 +837,7 @@ CREATE TABLE IF NOT EXISTS hadal.world_fairness (
                         return (null, "TargetBeginner");
                     if (live?.ShieldedAt(now) == true)
                         return (null, "TargetShielded");
-                    // Power band and fatigue (docs/33 §2).
-                    if (PvpRules.OutOfBand(me.Power, live?.Power ?? b.Power))
-                        return (null, "TargetTooWeak");
+                    // Fatigue (docs/33 §2); a much weaker target is never refused, it only yields less.
                     if (mode != PvpRules.Scout && PvpRules.FatigueShare(WinsOn(me.PlayerId, b.PlayerId, now)) <= 0)
                         return (null, "Fatigue");
                     return (new PvpLaunch(mode, kind, b.PlayerId, b.PlayerId, b.Name, me.X, me.Y, b.X, b.Y, heroes, string.Empty, mode == PvpRules.Rally, departs,

@@ -1334,3 +1334,10 @@ reason.StarterZone = 新規プレイヤーの区域には同盟領地を作れ�
 
 # Protected storage (docs/33 §2)
 pvp.protected = 保護（略奪不可）: {0}
+
+# PvP win estimate and weak targets (docs/33 §2, §6)
+pvp.estimate.win = 予測: 勝利
+pvp.estimate.hard = 予測: 厳しい
+pvp.estimate.lose = 予測: 敗北
+pvp.estimate.unknown = 予測: 不明 — まず偵察を
+pvp.weakTarget = 目標はかなり弱く、略奪が減ります。

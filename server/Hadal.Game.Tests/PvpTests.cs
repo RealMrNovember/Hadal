@@ -527,13 +527,28 @@ namespace Hadal.Game.Tests
         }
 
         [Fact]
-        public async Task A_much_stronger_player_cannot_attack_a_small_base()
+        public async Task A_much_stronger_player_may_attack_a_small_base_but_takes_half_the_plunder()
         {
             var (a, aConnection) = await Connect("band-a", troops: 3_000_000);
             var (b, _) = await Connect("band-b", troops: 10);
             Assert.True(a.Power > PvpRules.PowerBand * b.Power);
             Attack(a, b.PublicId);
-            Assert.Equal("TargetTooWeak", LastAck(aConnection).Reason);
+            Assert.Equal(CommandResultCode.Accepted, LastAck(aConnection).Result);
+            At(Pvp(a).ArrivesAt);
+            Assert.Equal("won", LastReport(a).Outcome);
+            Assert.Equal((int)(PvpRules.WeakTargetShare * 100), LastReport(a).PlunderShare);
+        }
+
+        [Fact]
+        public void The_estimate_uses_the_combat_rules()
+        {
+            var troops = Catalog.Troops;
+            var mine = new Dictionary<string, long> { [TroopRules.Key("armored", 3)] = 5_000 };
+            Assert.Equal(CombatOutlook.Unknown, CombatEstimate.Of(troops, mine, new[] { 100 }, null));
+            Assert.Equal(CombatOutlook.Win, CombatEstimate.Of(troops, mine, new[] { 100 },
+                CombatEstimate.Army(new Dictionary<string, long> { [TroopRules.Key("armored", 1)] = 100 })));
+            Assert.Equal(CombatOutlook.Lose, CombatEstimate.Of(troops, mine, new[] { 100 },
+                CombatEstimate.Army(new Dictionary<string, long> { [TroopRules.Key("armored", 5)] = 50_000 })));
         }
 
         [Fact]

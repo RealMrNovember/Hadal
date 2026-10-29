@@ -1334,3 +1334,10 @@ reason.StarterZone = لا يمكن إنشاء أرض تحالف في منطقة 
 
 # Protected storage (docs/33 §2)
 pvp.protected = محمي (لا يُنهب): {0}
+
+# PvP win estimate and weak targets (docs/33 §2, §6)
+pvp.estimate.win = التقدير: فوز
+pvp.estimate.hard = التقدير: صعب
+pvp.estimate.lose = التقدير: خسارة
+pvp.estimate.unknown = التقدير غير معروف — استطلع أولًا
+pvp.weakTarget = الهدف أضعف منك بكثير؛ غنيمة أقل.

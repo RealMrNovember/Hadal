@@ -1335,3 +1335,10 @@ reason.StarterZone = Yeni oyuncuların bölgesine ittifak toprağı kurulamaz.
 
 # Protected storage (docs/33 §2)
 pvp.protected = Korunan (yağmalanamaz): {0}
+
+# PvP win estimate and weak targets (docs/33 §2, §6)
+pvp.estimate.win = Tahmin: Kazanır
+pvp.estimate.hard = Tahmin: Zor
+pvp.estimate.lose = Tahmin: Kaybeder
+pvp.estimate.unknown = Tahmin: Bilinmiyor — önce keşif yap
+pvp.weakTarget = Hedef senden çok zayıf; yağma azalır.

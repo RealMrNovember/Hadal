@@ -1335,3 +1335,10 @@ reason.StarterZone = Alliance land cannot go up in the new players' zone.
 
 # Protected storage (docs/33 §2)
 pvp.protected = Protected (cannot be looted): {0}
+
+# PvP win estimate and weak targets (docs/33 §2, §6)
+pvp.estimate.win = Estimate: Win
+pvp.estimate.hard = Estimate: Hard
+pvp.estimate.lose = Estimate: Lose
+pvp.estimate.unknown = Estimate: unknown — scout first
+pvp.weakTarget = The target is much weaker than you; less loot.

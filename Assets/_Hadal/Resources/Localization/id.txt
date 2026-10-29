@@ -1334,3 +1334,10 @@ reason.StarterZone = Wilayah aliansi tidak bisa di zona pemain baru.
 
 # Protected storage (docs/33 §2)
 pvp.protected = Terlindungi (tak bisa dijarah): {0}
+
+# PvP win estimate and weak targets (docs/33 §2, §6)
+pvp.estimate.win = Perkiraan: Menang
+pvp.estimate.hard = Perkiraan: Sulit
+pvp.estimate.lose = Perkiraan: Kalah
+pvp.estimate.unknown = Perkiraan: tidak diketahui — intai dulu
+pvp.weakTarget = Target jauh lebih lemah; jarahan berkurang.

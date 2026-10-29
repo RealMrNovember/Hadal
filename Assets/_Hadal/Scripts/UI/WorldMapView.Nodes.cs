@@ -379,7 +379,7 @@ namespace Hadal.UI
             if (troopCount <= 0)
                 text = $"<color=#FF8A80>{Loc.T("march.notroops")}</color>";
             else if (pvp != null)
-                text = $"{Loc.F("pvp.myPower", TroopRules.Power(troops, aboard).ToString("N0"))}   {pvp.Info}\n{Loc.F("world.monster.trip", Loc.Duration(trip))}";
+                text = PvpSetupText(pvp, aboard, members.Select(m => m.Power).ToList(), trip);
             else if (monster != null)
             {
                 var cost = MonsterRules.Kind(monster.Type)?.Sonar ?? 40;

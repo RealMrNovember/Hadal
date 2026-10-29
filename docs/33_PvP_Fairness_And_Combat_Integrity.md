@@ -20,9 +20,9 @@ for testing and live in `PvpRules` / `CombatRules` / `AllianceLandRules`.
 ## 2. Fairness
 
 - **Beginner protection** (had): Core Reactor < 6 cannot attack or be attacked.
-- **Power band** (new): a base attack, scout or rally on a base is refused when the attacker's power is more than
-  **4×** the target's ("TargetTooWeak"). Teams on the map and alliance structures are not covered (they are chosen
-  risks).
+- **Power band** (changed after the user's feedback): nothing refuses an attack. When the attacker's power is more
+  than **4×** the target's, the attack goes ahead but takes **half** the plunder (on top of fatigue), and the attack
+  setup warns "Hedef senden çok zayıf; yağma azalır".
 - **Attack fatigue** (new): per attacker and target, wins on the same base within **2 hours** cut the plunder:
   1st 100 %, 2nd 50 %, 3rd 25 %; a 4th attack is refused ("Fatigue").
 - **Limited offline protection** (new): a base that loses **3 defences within 6 hours** gets a **2-hour recovery
@@ -63,3 +63,10 @@ for testing and live in `PvpRules` / `CombatRules` / `AllianceLandRules`.
 - **Target change**: not allowed; recall and send again.
 - **Starter buffer** (new): no alliance hub, beacon or building in the outermost base belt (the Hadal Threshold where
   new bases land), so big alliances cannot fence in new players.
+
+## 6. Win estimate before attacking
+- `CombatEstimate.Of` (shared) runs `CombatRules` v2 without a seed on what the player can see: their chosen team with
+  its heroes against the enemy army — a base from a scout report of the last 30 minutes, a city or building from its
+  known garrison (guards standing at a building are not visible). It answers **Kazanır / Zor / Kaybeder**; with no
+  scouted army it says "Bilinmiyor — önce keşif yap". A rally's estimate is for the player's own team.
+- The real battle uses the armies at the arrival instant (and a narrow random factor), so it is an estimate.

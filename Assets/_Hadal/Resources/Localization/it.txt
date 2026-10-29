@@ -1334,3 +1334,10 @@ reason.StarterZone = Nessun territorio d'alleanza nella zona dei nuovi giocatori
 
 # Protected storage (docs/33 §2)
 pvp.protected = Protetto (non saccheggiabile): {0}
+
+# PvP win estimate and weak targets (docs/33 §2, §6)
+pvp.estimate.win = Stima: Vittoria
+pvp.estimate.hard = Stima: Difficile
+pvp.estimate.lose = Stima: Sconfitta
+pvp.estimate.unknown = Stima: sconosciuta — prima esplora
+pvp.weakTarget = Il bersaglio è molto più debole; meno bottino.

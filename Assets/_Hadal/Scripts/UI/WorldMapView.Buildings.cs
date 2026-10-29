@@ -114,7 +114,7 @@ namespace Hadal.UI
                 items.Insert(0, new TargetMenu.Item("nav_heroes", s.UnderConstruction ? Loc.T("bld.build") : Loc.T("bld.guard"), () => OpenPvpSetup(new PvpPlan
                 {
                     Title = title, X = target.X, Y = target.Y, Info = s.UnderConstruction ? Loc.T("bld.build.info") : Loc.T("pvp.reinforce.info"),
-                    GoLabel = s.UnderConstruction ? Loc.T("bld.build") : Loc.T("bld.guard"), GoColor = AllyBlue,
+                    GoLabel = s.UnderConstruction ? Loc.T("bld.build") : Loc.T("bld.guard"), GoColor = AllyBlue, Friendly = true,
                     Send = heroes => SendPvp(PvpRules.Reinforce, PvpRules.TargetStructure, target.Id, heroes)
                 })));
                 if (building && !s.UnderConstruction)
@@ -126,9 +126,12 @@ namespace Hadal.UI
                 items.Insert(0, new TargetMenu.Item("event_war", Loc.T("world.attack"), () => OpenPvpSetup(new PvpPlan
                 {
                     Title = title, X = target.X, Y = target.Y, Info = Loc.F("bld.durability", target.Durability.ToString("N0"), target.MaxDurability.ToString("N0")),
-                    GoLabel = Loc.T("world.attack"), GoColor = AttackRed, Send = heroes => SendPvp(PvpRules.Attack, PvpRules.TargetStructure, target.Id, heroes)
+                    GoLabel = Loc.T("world.attack"), GoColor = AttackRed, Send = heroes => SendPvp(PvpRules.Attack, PvpRules.TargetStructure, target.Id, heroes),
+                    // Its own defence is known; guards standing at it are not (docs/33 §6).
+                    Enemy = TerritoryRules.Garrison(Math.Max(1, target.Level), target.UnderConstruction ? 0.2 : 0.5)
                 }), open));
-                items.Insert(1, new TargetMenu.Item("side_alliance", Loc.T("pvp.rally"), () => OpenMuster(title, target.X, target.Y, PvpRules.TargetStructure, target.Id),
+                items.Insert(1, new TargetMenu.Item("side_alliance", Loc.T("pvp.rally"), () => OpenMuster(title, target.X, target.Y, PvpRules.TargetStructure, target.Id,
+                    TerritoryRules.Garrison(Math.Max(1, target.Level), target.UnderConstruction ? 0.2 : 0.5)),
                     open && View.MyAlliance != null));
             }
         }

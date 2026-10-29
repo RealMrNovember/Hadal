@@ -4,6 +4,7 @@ using System.Linq;
 using HADAL.Shared.Commands;
 using HADAL.Shared.DTOs;
 using HADAL.Shared.Simulation;
+using Hadal.Core.Catalog;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -26,6 +27,56 @@ namespace Hadal.UI
             public string GoLabel;
             public Color GoColor;
             public Action<string[]> Send;
+
+            /// <summary>The enemy army as far as we know it (scout report, garrison); null = unknown (docs/33 §6).</summary>
+            public BattleSide Enemy;
+
+            /// <summary>No estimate at all (reinforcements, building work).</summary>
+            public bool Friendly;
+
+            /// <summary>The target is much weaker than us: the attack goes ahead with half the plunder (docs/33 §2).</summary>
+            public bool WeakTarget;
+        }
+
+        /// <summary>The PvP lines of the team setup: my power, the plan's info, the win estimate, the trip.</summary>
+        private string PvpSetupText(PvpPlan pvp, Dictionary<string, long> aboard, List<int> heroPowers, int trip)
+        {
+            var troops = ClientCatalog.Catalog.Troops;
+            var text = $"{Loc.F("pvp.myPower", TroopRules.Power(troops, aboard).ToString("N0"))}   {pvp.Info}";
+            if (!pvp.Friendly)
+            {
+                var outlook = CombatEstimate.Of(troops, aboard, heroPowers, pvp.Enemy);
+                var color = outlook switch
+                {
+                    CombatOutlook.Win => "#5BE37A",
+                    CombatOutlook.Hard => "#FFB347",
+                    CombatOutlook.Lose => "#FF8A80",
+                    _ => "#8CA9B5"
+                };
+                text += $"\n<color={color}>{Loc.T("pvp.estimate." + outlook.ToString().ToLowerInvariant())}</color>";
+                if (pvp.WeakTarget)
+                    text += $"  <color=#FFB347>{Loc.T("pvp.weakTarget")}</color>";
+            }
+
+            return text + $"\n{Loc.F("world.monster.trip", Loc.Duration(trip))}";
+        }
+
+        /// <summary>A base's army from a scout report of the last 30 minutes; null when we have none.</summary>
+        private BattleSide ScoutedArmy(string playerId)
+        {
+            var fresh = View.ServerNowMs - 30 * 60 * 1000L;
+            var scout = (View.WarLog.Reports ?? Array.Empty<PvpReportDto>())
+                .FirstOrDefault(r => r.Kind == "scout" && r.OpponentId == playerId && r.AtMs >= fresh);
+            return scout == null
+                ? null
+                : CombatEstimate.Army((scout.Defender ?? Array.Empty<BattleStackDto>()).Select(s => new KeyValuePair<string, long>(TroopRules.Key(s.Type, s.Tier), s.Start)));
+        }
+
+        /// <summary>Our own power as the map shows it, for the weak-target warning.</summary>
+        private long MyPower()
+        {
+            var view = View.WorldView;
+            return (view?.Bases ?? Array.Empty<WorldBaseDto>()).FirstOrDefault(b => b.PlayerId == View.PlayerId)?.Power ?? 0;
         }
 
         private PvpPlan _pvpPlan;
@@ -51,7 +102,7 @@ namespace Hadal.UI
             {
                 items.Insert(0, new TargetMenu.Item("nav_heroes", Loc.T("pvp.reinforce"), () => OpenPvpSetup(new PvpPlan
                 {
-                    Title = label, X = target.X, Y = target.Y, Info = Loc.T("pvp.reinforce.info"), GoLabel = Loc.T("pvp.reinforce"), GoColor = AllyBlue,
+                    Title = label, X = target.X, Y = target.Y, Info = Loc.T("pvp.reinforce.info"), GoLabel = Loc.T("pvp.reinforce"), GoColor = AllyBlue, Friendly = true,
                     Send = heroes => SendPvp(PvpRules.Reinforce, PvpRules.TargetBase, target.PlayerId, heroes)
                 })));
                 return;
@@ -64,10 +115,11 @@ namespace Hadal.UI
                 TargetMenu.Hide();
             }, open));
             items.Insert(0, new TargetMenu.Item("side_alliance", Loc.T("pvp.rally"),
-                () => OpenMuster(label, target.X, target.Y, PvpRules.TargetBase, target.PlayerId), open && View.MyAlliance != null));
+                () => OpenMuster(label, target.X, target.Y, PvpRules.TargetBase, target.PlayerId, ScoutedArmy(target.PlayerId)), open && View.MyAlliance != null));
             items.Insert(0, new TargetMenu.Item("event_war", Loc.T("world.attack"), () => OpenPvpSetup(new PvpPlan
             {
                 Title = label, X = target.X, Y = target.Y, Info = Loc.F("pvp.enemyPower", ScoutedPower(target.PlayerId)), GoLabel = Loc.T("world.attack"),
+                Enemy = ScoutedArmy(target.PlayerId), WeakTarget = PvpRules.OutOfBand(MyPower(), target.Power),
                 GoColor = AttackRed, Send = heroes => SendPvp(PvpRules.Attack, PvpRules.TargetBase, target.PlayerId, heroes)
             }), open));
         }
@@ -108,7 +160,7 @@ namespace Hadal.UI
         }
 
         /// <summary>Rally muster: 1, 3, 5 or 10 minutes, then the team setup.</summary>
-        private void OpenMuster(string title, int x, int y, string kind, string targetId)
+        private void OpenMuster(string title, int x, int y, string kind, string targetId, BattleSide enemy = null)
         {
             TargetMenu.Hide();
             ClosePopup();
@@ -130,6 +182,7 @@ namespace Hadal.UI
                 var button = UiKit.Button("Muster" + seconds, card.transform, Loc.F("pvp.minutes", seconds / 60), () => OpenPvpSetup(new PvpPlan
                 {
                     Title = title, X = x, Y = y, Info = Loc.F("pvp.rally.info", seconds / 60), GoLabel = Loc.T("pvp.rally.start"), GoColor = AttackRed,
+                    Enemy = enemy,
                     Send = heroes => SendPvp(PvpRules.Rally, kind, targetId, heroes, seconds)
                 }), UiKit.Primary, 30);
                 ((RectTransform)button.transform).Place(x0, 0.12f, x0 + 0.21f, 0.4f);
@@ -152,7 +205,7 @@ namespace Hadal.UI
         {
             Open(() => OpenPvpSetup(new PvpPlan
             {
-                Title = name, X = x, Y = y, Info = Loc.T("pvp.reinforce.info"), GoLabel = Loc.T("pvp.reinforce"), GoColor = AllyBlue,
+                Title = name, X = x, Y = y, Info = Loc.T("pvp.reinforce.info"), GoLabel = Loc.T("pvp.reinforce"), GoColor = AllyBlue, Friendly = true,
                 Send = heroes => SendPvp(PvpRules.Reinforce, PvpRules.TargetBase, playerId, heroes)
             }));
         }
@@ -247,9 +300,10 @@ namespace Hadal.UI
                 items.Add(new TargetMenu.Item("event_war", Loc.T("world.attack"), () => OpenPvpSetup(new PvpPlan
                 {
                     Title = title, X = target.X, Y = target.Y, Info = Loc.F("pvp.garrison", target.Power.ToString("N0")), GoLabel = Loc.T("world.attack"),
+                    Enemy = TerritoryRules.Garrison(target.Level),
                     GoColor = AttackRed, Send = heroes => SendPvp(PvpRules.Attack, PvpRules.TargetStronghold, target.Id, heroes)
                 }), hasLand));
-                items.Add(new TargetMenu.Item("side_alliance", Loc.T("pvp.rally"), () => OpenMuster(title, target.X, target.Y, PvpRules.TargetStronghold, target.Id),
+                items.Add(new TargetMenu.Item("side_alliance", Loc.T("pvp.rally"), () => OpenMuster(title, target.X, target.Y, PvpRules.TargetStronghold, target.Id, TerritoryRules.Garrison(target.Level)),
                     hasLand));
             }
 

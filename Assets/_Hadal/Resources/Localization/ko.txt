@@ -1334,3 +1334,10 @@ reason.StarterZone = 신규 플레이어 구역에는 연맹 영토를 만들 �
 
 # Protected storage (docs/33 §2)
 pvp.protected = 보호됨(약탈 불가): {0}
+
+# PvP win estimate and weak targets (docs/33 §2, §6)
+pvp.estimate.win = 예상: 승리
+pvp.estimate.hard = 예상: 어려움
+pvp.estimate.lose = 예상: 패배
+pvp.estimate.unknown = 예상: 알 수 없음 — 먼저 정찰하세요
+pvp.weakTarget = 목표가 훨씬 약해 약탈이 줄어듭니다.

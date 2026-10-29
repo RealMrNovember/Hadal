@@ -1334,3 +1334,10 @@ reason.StarterZone = Não é possível criar território na zona de novos jogado
 
 # Protected storage (docs/33 §2)
 pvp.protected = Protegido (não saqueável): {0}
+
+# PvP win estimate and weak targets (docs/33 §2, §6)
+pvp.estimate.win = Estimativa: Vitória
+pvp.estimate.hard = Estimativa: Difícil
+pvp.estimate.lose = Estimativa: Derrota
+pvp.estimate.unknown = Estimativa: desconhecida — espione antes
+pvp.weakTarget = O alvo é muito mais fraco; menos saque.

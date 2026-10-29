@@ -158,8 +158,13 @@ namespace HADAL.Shared.Simulation
 
         // --- Fairness (docs/33 §2) ----------------------------------------------------------------
 
-        /// <summary>A base attack is refused when the attacker is more than this many times stronger.</summary>
+        /// <summary>
+        /// A target this many times weaker than the attacker is "much weaker" (docs/33 §2): the attack goes ahead, but the
+        /// plunder is cut to <see cref="WeakTargetShare"/>.
+        /// </summary>
         public const double PowerBand = 4;
+
+        public const double WeakTargetShare = 0.5;
 
         public static bool OutOfBand(long attackerPower, long targetPower) => targetPower > 0 && attackerPower > PowerBand * targetPower;
 

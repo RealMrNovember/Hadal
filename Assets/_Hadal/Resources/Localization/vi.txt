@@ -1334,3 +1334,10 @@ reason.StarterZone = Không thể lập lãnh thổ trong vùng người chơi m
 
 # Protected storage (docs/33 §2)
 pvp.protected = Được bảo vệ (không thể cướp): {0}
+
+# PvP win estimate and weak targets (docs/33 §2, §6)
+pvp.estimate.win = Dự đoán: Thắng
+pvp.estimate.hard = Dự đoán: Khó
+pvp.estimate.lose = Dự đoán: Thua
+pvp.estimate.unknown = Dự đoán: chưa rõ — hãy do thám trước
+pvp.weakTarget = Mục tiêu yếu hơn nhiều; ít chiến lợi hơn.

@@ -1334,3 +1334,10 @@ reason.StarterZone = สร้างดินแดนพันธมิตร�
 
 # Protected storage (docs/33 §2)
 pvp.protected = ป้องกันไว้ (ปล้นไม่ได้): {0}
+
+# PvP win estimate and weak targets (docs/33 §2, §6)
+pvp.estimate.win = ประเมิน: ชนะ
+pvp.estimate.hard = ประเมิน: ยาก
+pvp.estimate.lose = ประเมิน: แพ้
+pvp.estimate.unknown = ประเมิน: ไม่ทราบ — สอดแนมก่อน
+pvp.weakTarget = เป้าหมายอ่อนกว่ามาก ได้ของปล้นน้อยลง
