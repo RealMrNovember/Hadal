@@ -39,6 +39,8 @@ namespace Hadal.UI
         private Image _bannerFill;
         private Text _bannerText;
         private readonly HashSet<string> _seenIncoming = new();
+        private readonly HashSet<string> _arrivedGuards = new();
+        private bool _guardsKnown;
 
         private Canvas _windowCanvas;
         private GameObject _window;
@@ -133,6 +135,17 @@ namespace Hadal.UI
             {
                 _banner.gameObject.SetActive(false);
             }
+
+            // A mate's team reaching the base to guard it (docs/32 §2.6); what was already there at login is not news.
+            foreach (var g in View.Pvp?.Garrison ?? Array.Empty<GarrisonDto>())
+            {
+                if (g.ArrivesAtMs > now || !_arrivedGuards.Add(g.MarchId))
+                    continue;
+                if (_guardsKnown)
+                    Toaster.Show(Loc.F("pvp.guard.arrived", g.OwnerName), UiKit.Ok);
+            }
+
+            _guardsKnown = true;
 
             while (View.TryTakeWarReport(out var report))
                 Toaster.Show(ReportLine(report), Won(report) ? UiKit.Ok : UiKit.Danger);
@@ -276,6 +289,16 @@ namespace Hadal.UI
 
             if (outgoing)
                 UiKit.Label("Out", _body, Loc.T("pvp.shield.attackOut"), 22, UiKit.Amber, TextAnchor.MiddleCenter).rectTransform.Place(0, 0.12f, 1, 0.2f);
+
+            // Who guards the base: alliance mates' teams, here or on their way.
+            var guards = pvp.Garrison ?? Array.Empty<GarrisonDto>();
+            if (guards.Length > 0)
+            {
+                var names = string.Join(", ", guards.Select(g => g.ArrivesAtMs > now
+                    ? $"{g.OwnerName} ({CostChips.Compact(g.Troops)}, {Loc.Duration((g.ArrivesAtMs - now) / 1000f)})"
+                    : $"{g.OwnerName} ({CostChips.Compact(g.Troops)})"));
+                UiKit.Label("Guards", _body, Loc.F("pvp.guards", names), 22, UiKit.Ok, TextAnchor.MiddleLeft).rectTransform.Place(0, 0.2f, 1, 0.245f);
+            }
 
             // What is coming, with Go buttons.
             var incoming = (pvp.Incoming ?? Array.Empty<IncomingDto>()).Where(x => x.ArrivesAtMs > now).OrderBy(x => x.ArrivesAtMs).Take(2).ToList();

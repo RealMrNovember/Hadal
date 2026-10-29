@@ -6,8 +6,9 @@ using UnityEngine;
 namespace Hadal.UI
 {
     /// <summary>
-    /// Paints the strategic map (docs/30 §6.4) into a texture: regions in their owner's colour with brighter borders,
-    /// unowned water dark, and every base as a dot (cyan mine, blue alliance, pale red others). Two pixels per tile.
+    /// Paints the strategic map (docs/32 §2.5) into a texture: alliances' land in their colour with brighter edges, open
+    /// water dark, cities as small dots, and every base as a dot (cyan mine, blue alliance, pale red others). Two pixels
+    /// per tile.
     /// </summary>
     public static class TerritoryPainter
     {
@@ -26,36 +27,46 @@ namespace Hadal.UI
             if (texture == null || texture.width != size * Scale)
                 texture = new Texture2D(size * Scale, size * Scale, TextureFormat.RGBA32, false) { filterMode = FilterMode.Point, wrapMode = TextureWrapMode.Clamp };
 
-            var map = TerritoryRules.Map(size);
-            var owner = new Color32[TerritoryRules.Cells * TerritoryRules.Cells];
-            var border = new Color32[owner.Length];
+            // The alliances' land (docs/32): each claimed tile in its owner's colour, brighter where the land ends.
+            var owner = new int[size * size];
             for (var i = 0; i < owner.Length; i++)
+                owner[i] = -1;
+            foreach (var packed in territory.Land ?? Array.Empty<int>())
             {
-                owner[i] = new Color32(6, 18, 28, 150);
-                border[i] = new Color32(70, 100, 120, 200);
+                var lx = packed / 1_000_000;
+                var ly = packed / 1_000 % 1_000;
+                if (lx >= 0 && ly >= 0 && lx < size && ly < size)
+                    owner[ly * size + lx] = packed % 1_000;
             }
 
-            foreach (var s in territory.Strongholds ?? Array.Empty<StrongholdDto>())
-            {
-                if (s.Region < 0 || s.Region >= owner.Length || s.Color < 0)
-                    continue;
-                var c = AllianceColor(s.Color, 1f);
-                owner[s.Region] = new Color(c.r * 0.55f, c.g * 0.55f, c.b * 0.55f, s.Hub ? 0.8f : 0.65f);
-                border[s.Region] = new Color(Mathf.Min(1, c.r * 1.3f), Mathf.Min(1, c.g * 1.3f), Mathf.Min(1, c.b * 1.3f), 1f);
-            }
-
+            var colors = territory.LandColors ?? Array.Empty<int>();
             var width = size * Scale;
             var pixels = new Color32[width * width];
+            var sea = new Color32(6, 18, 28, 110);
             for (var y = 0; y < size; y++)
             {
                 for (var x = 0; x < size; x++)
                 {
-                    var r = map[y * size + x];
-                    var edge = (x > 0 && map[y * size + x - 1] != r) || (x < size - 1 && map[y * size + x + 1] != r)
-                               || (y > 0 && map[(y - 1) * size + x] != r) || (y < size - 1 && map[(y + 1) * size + x] != r);
-                    Dot(pixels, width, x, y, edge ? border[r] : owner[r]);
+                    var o = owner[y * size + x];
+                    if (o < 0 || o >= colors.Length)
+                    {
+                        Dot(pixels, width, x, y, sea);
+                        continue;
+                    }
+
+                    var c = AllianceColor(colors[o], 1f);
+                    var edge = x == 0 || y == 0 || x == size - 1 || y == size - 1 || owner[y * size + x - 1] != o || owner[y * size + x + 1] != o
+                               || owner[(y - 1) * size + x] != o || owner[(y + 1) * size + x] != o;
+                    Dot(pixels, width, x, y, edge
+                        ? new Color(Mathf.Min(1, c.r * 1.3f), Mathf.Min(1, c.g * 1.3f), Mathf.Min(1, c.b * 1.3f), 1f)
+                        : new Color(c.r * 0.55f, c.g * 0.55f, c.b * 0.55f, 0.6f));
                 }
             }
+
+            // Cities as small grey (or owner-coloured) dots.
+            foreach (var city in territory.Strongholds ?? Array.Empty<StrongholdDto>())
+                if (city.X >= 0 && city.Y >= 0 && city.X < size && city.Y < size)
+                    Dot(pixels, width, city.X, city.Y, city.Color >= 0 ? (Color32)AllianceColor(city.Color, 1f) : new Color32(200, 200, 210, 255));
 
             foreach (var packed in territory.Bases ?? Array.Empty<int>())
             {

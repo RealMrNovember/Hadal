@@ -280,7 +280,7 @@ ON CONFLICT (id) DO UPDATE SET world_id = EXCLUDED.world_id, alliance_id = EXCLU
                 return "NoHub";
             if (Regions.Count(r => r.AllianceId == alliance) >= AllianceLandRules.MaxCities(_social.MemberCount(alliance)))
                 return "TooManyCities";
-            return NearLand(alliance, city.X, city.Y, AllianceLandRules.CityReach) ? null : "NotAdjacent";
+            return NearLand(alliance, city.X, city.Y, AllianceLandRules.CityReach) ? null : "CityTooFar";
         }
 
         // --- Commands ----------------------------------------------------------------------------
@@ -357,7 +357,7 @@ ON CONFLICT (id) DO UPDATE SET world_id = EXCLUDED.world_id, alliance_id = EXCLU
             if (owner.Length > 0 && owner != alliance)
                 return "OtherLand";
             if (!NearLand(alliance, x, y, AllianceLandRules.PlaceReach))
-                return "NotAdjacent";
+                return "LandTooFar";
             if (!FreeForStructure(x, y))
                 return "TileTaken";
             if (!session.TryCharge(new[] { new KeyValuePair<ResourceType, long>(ResourceType.Titanium, AllianceLandRules.BeaconCost(placed)) }, now))

@@ -414,7 +414,7 @@ namespace Hadal.Game.Tests
             Assert.Equal(string.Empty, _world.Map.LandOwnerForTests(bx + AllianceLandRules.BeaconRadius, by));
             _clock.UtcNow = _clock.UtcNow.AddMinutes(AllianceLandRules.BeaconBuildMinutes);
             Assert.Equal(alliance, _world.Map.LandOwnerForTests(bx + AllianceLandRules.BeaconRadius, by));
-            Assert.Equal("NotAdjacent", Land(lead, connection, AllianceLandRules.PlaceBeacon, hx + 40, hy + 40));
+            Assert.Equal("LandTooFar", Land(lead, connection, AllianceLandRules.PlaceBeacon, hx + 40, hy + 40));
         }
 
         [Fact]
@@ -429,7 +429,7 @@ namespace Hadal.Game.Tests
             var (hx, hy) = PlantHub(lead, connection, city.X + AllianceLandRules.HubRadius(1) + 2, city.Y);
             var far = cities.First(c => Math.Max(Math.Abs(c.X - hx), Math.Abs(c.Y - hy)) > 40);
             Attack(lead, far.Id, PvpRules.TargetStronghold);
-            Assert.Equal("NotAdjacent", LastAck(connection).Reason);
+            Assert.Equal("CityTooFar", LastAck(connection).Reason);
 
             Attack(lead, city.Id, PvpRules.TargetStronghold);
             Assert.Equal(CommandResultCode.Accepted, LastAck(connection).Result);

@@ -28,6 +28,7 @@ namespace Hadal.UI
                 new("nav_world", Loc.T("world.teleport.here"), () => Teleport(TeleportRules.Target, x, y, string.Empty)),
                 new("chat", Loc.T("share.title"), () => ShareLocation?.Invoke(x, y, "tile", Loc.F("world.coords", x, y)))
             };
+            AddLandItems(items, x, y);
             GlideTo(x, y);
             TargetMenu.Show(() => IsOpen ? _camera : null, () => TileToWorld(x, y) + Vector3.up * 1f, Loc.T("world.teleport.sea"), info, items);
         }

@@ -183,6 +183,7 @@ namespace Hadal.UI
             }
 
             var visible = _popup == null;
+            var myAlliance = territory.MyAllianceId ?? string.Empty;
             foreach (var s in territory.Strongholds ?? Array.Empty<StrongholdDto>())
             {
                 if (!_strongholdPlates.TryGetValue(s.Id, out var plate))
@@ -191,21 +192,26 @@ namespace Hadal.UI
                     _strongholdPlates[s.Id] = plate;
                 }
 
+                // Cities are a quiet layer (docs/32 §2.4): a plate only for my alliance's cities, cities under attack, and
+                // cities close to the camera when zoomed in. The rest are dots on the strategic map.
+                var ours = myAlliance.Length > 0 && s.AllianceId == myAlliance;
+                var close = !Strategic && Vector3.Distance(TileToWorld(s.X, s.Y), _focus) < 160f;
                 var top = Project(TileToWorld(s.X, s.Y) + Vector3.up * 2f, out var onScreen);
-                var near = Vector3.Distance(TileToWorld(s.X, s.Y), _focus) < 900f;
-                plate.gameObject.SetActive(visible && onScreen && near && (Strategic ? s.Level >= 1 : true));
+                plate.gameObject.SetActive(visible && onScreen && (ours || s.UnderAttack || close));
                 plate.anchoredPosition = top;
                 var owner = string.IsNullOrEmpty(s.AllianceTag) ? string.Empty : $"[{s.AllianceTag}] ";
-                var name = s.Level >= TerritoryRules.ThroneLevel ? Loc.T("pvp.throne") : Loc.T("pvp.stronghold");
+                var name = s.Level >= TerritoryRules.ThroneLevel ? Loc.T("pvp.throne") : Loc.T("city.name");
                 var text = plate.Find("Name").GetComponent<Text>();
-                text.text = $"{owner}{(s.Hub ? "⚑ " : string.Empty)}{name} {Loc.F("base.level", s.Level)}{(s.UnderAttack ? " ⚔" : string.Empty)}";
-                text.fontSize = Strategic ? 22 : 26;
+                text.text = $"{owner}{name} {Loc.F("base.level", s.Level)}{(s.UnderAttack ? " ⚔" : string.Empty)}";
+                text.fontSize = Strategic ? 22 : 24;
                 plate.GetComponent<Image>().color = s.Color >= 0 ? AllianceColor(s.Color, 0.9f) : new Color(0.08f, 0.1f, 0.14f, 0.85f);
                 var info = s;
                 var button = plate.GetComponent<Button>();
                 button.onClick.RemoveAllListeners();
                 button.onClick.AddListener(() => ShowStronghold(info));
             }
+
+            UpdateStructures(territory, visible);
         }
 
         private RectTransform BuildStrongholdPlate(string id)
@@ -221,19 +227,19 @@ namespace Hadal.UI
 
         private static Color AllianceColor(int index, float alpha) => TerritoryPainter.AllianceColor(index, alpha);
 
-        /// <summary>A stronghold: level, owner, garrison; attack or rally it, plant the hub, move the hub, abandon the region.</summary>
+        /// <summary>A city (Last Asylum's City List): level, owner, garrison, its bonus; attack or rally it when it neighbours our land.</summary>
         private void ShowStronghold(StrongholdDto s)
         {
             var territory = View.Territory;
             var mine = territory != null && !string.IsNullOrEmpty(territory.MyAllianceId) && s.AllianceId == territory.MyAllianceId;
             var rank = View.MyRank();
-            var hasTerritory = territory != null && territory.Held > 0;
+            var hasLand = territory != null && territory.RallyIsHub;
             var throne = s.Level >= TerritoryRules.ThroneLevel;
-            var owner = string.IsNullOrEmpty(s.AllianceTag) ? Loc.T("pvp.unowned") : $"[{s.AllianceTag}]{(s.Hub ? " ⚑" : string.Empty)}";
+            var owner = string.IsNullOrEmpty(s.AllianceTag) ? Loc.T("pvp.unowned") : $"[{s.AllianceTag}]";
             var info = $"{owner}   {Loc.F("pvp.garrison", s.Power.ToString("N0"))}\n{Loc.F("world.coords", s.X, s.Y)}";
             if (territory != null && territory.Allowed > 0)
-                info += $"\n{Loc.F("pvp.regions", territory.Held, territory.Allowed)}";
-            var title = $"{(throne ? Loc.T("pvp.throne") : Loc.T("pvp.stronghold"))} {Loc.F("base.level", s.Level)}";
+                info += $"\n{Loc.F("city.owned", territory.Held, territory.Allowed)}";
+            var title = $"{(throne ? Loc.T("pvp.throne") : Loc.T("city.name"))} {Loc.F("base.level", s.Level)}";
             var items = new List<TargetMenu.Item>();
             var target = s;
             if (!mine && !throne)
@@ -242,31 +248,20 @@ namespace Hadal.UI
                 {
                     Title = title, X = target.X, Y = target.Y, Info = Loc.F("pvp.garrison", target.Power.ToString("N0")), GoLabel = Loc.T("world.attack"),
                     GoColor = AttackRed, Send = heroes => SendPvp(PvpRules.Attack, PvpRules.TargetStronghold, target.Id, heroes)
-                }), hasTerritory && !s.Hub));
+                }), hasLand));
                 items.Add(new TargetMenu.Item("side_alliance", Loc.T("pvp.rally"), () => OpenMuster(title, target.X, target.Y, PvpRules.TargetStronghold, target.Id),
-                    hasTerritory && !s.Hub));
+                    hasLand));
             }
 
-            if (!hasTerritory && string.IsNullOrEmpty(s.AllianceId) && s.Level <= TerritoryRules.MaxPlantLevel && View.MyAlliance != null)
-                items.Add(new TargetMenu.Item("nav_world", Loc.T("pvp.plant"), () => Territory(TerritoryRules.Plant, target.Id),
-                    rank >= AlliancePermissions.Officer));
-            if (mine && !s.Hub)
-            {
-                items.Add(new TargetMenu.Item("nav_world", Loc.T("pvp.moveHub"), () => Territory(TerritoryRules.Move, target.Id), rank >= AlliancePermissions.Leader));
-                items.Add(new TargetMenu.Item("left_home", Loc.T("pvp.abandon"), () => Territory(TerritoryRules.Abandon, target.Id), rank >= AlliancePermissions.Leader));
-            }
-
+            if (mine)
+                items.Add(new TargetMenu.Item("left_home", Loc.T("city.abandon"), () => LandCommand(AllianceLandRules.AbandonCity, target.Id),
+                    rank >= AlliancePermissions.Leader));
             items.Add(new TargetMenu.Item("chat", Loc.T("share.title"), () => ShareLocation?.Invoke(target.X, target.Y, mine ? "base" : "enemy", title)));
             GlideTo(s.X, s.Y);
             var x = s.X;
             var y = s.Y;
-            TargetMenu.Show(() => IsOpen ? _camera : null, () => TileToWorld(x, y) + Vector3.up * 2f, title, info, items);
-        }
-
-        private void Territory(string action, string strongholdId)
-        {
-            TargetMenu.Hide();
-            _commands.Dispatch(new TerritoryCommand { CommandId = Guid.NewGuid().ToString("N"), ClientSequence = ++_sequence, Action = action, StrongholdId = strongholdId });
+            TargetMenu.Show(() => IsOpen ? _camera : null, () => TileToWorld(x, y) + Vector3.up * 2f, title,
+                info + (hasLand || mine || throne ? string.Empty : "\n" + Loc.T("city.needHub")), items);
         }
 
         // --- Strategic zoom ----------------------------------------------------------------------
