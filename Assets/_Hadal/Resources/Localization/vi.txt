@@ -906,3 +906,25 @@ item.vip = Điểm VIP {0}
 item.vip.desc = Dùng để cộng điểm VIP.
 reward.vip = +{0} điểm VIP
 reason.VipTooLow = Rương VIP mở ở VIP 1.
+
+# Teleports
+world.teleport.here = Dịch chuyển tới đây
+world.teleport.sea = Biển khơi
+world.teleport.random = Dịch chuyển ngẫu nhiên
+world.teleport.ally = Đến cạnh đồng minh
+world.teleport.item = Có {0} máy dịch chuyển trong túi
+world.teleport.hadalite = Tốn {0} Hadalit
+world.teleport.done = Căn cứ đã chuyển tới vị trí mới.
+reason.TeamsOut = Mọi đội phải về căn cứ mới dịch chuyển được.
+reason.TileTaken = Ô này đã có người.
+reason.NotEnoughHadalite = Không đủ Hadalit.
+reason.NoRoom = Không có ô trống gần đây.
+reason.OutOfMap = Ô này nằm ngoài bản đồ.
+item.teleport_random = Máy dịch chuyển ngẫu nhiên
+item.teleport_random.desc = Chuyển căn cứ tới một chỗ trống ngẫu nhiên trong vùng an toàn.
+item.teleport_target = Máy dịch chuyển định vị
+item.teleport_target.desc = Chuyển căn cứ tới ô trống bạn chọn trên bản đồ.
+item.teleport_alliance = Máy dịch chuyển liên minh
+item.teleport_alliance.desc = Chuyển căn cứ tới cạnh một thành viên liên minh.
+bag.teleport.target = Chạm vào một ô trống trên bản đồ rồi chọn "Dịch chuyển tới đây".
+bag.teleport.ally = Chạm vào căn cứ của thành viên liên minh trên bản đồ rồi chọn "Đến cạnh đồng minh".

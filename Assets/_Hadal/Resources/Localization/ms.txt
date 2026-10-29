@@ -906,3 +906,25 @@ item.vip = Mata VIP {0}
 item.vip.desc = Guna untuk menambah mata VIP.
 reward.vip = +{0} mata VIP
 reason.VipTooLow = Peti VIP dibuka pada VIP 1.
+
+# Teleports
+world.teleport.here = Teleport ke sini
+world.teleport.sea = Laut lepas
+world.teleport.random = Teleport rawak
+world.teleport.ally = Ke sisi sekutu
+world.teleport.item = {0} teleporter dalam beg
+world.teleport.hadalite = Kos {0} Hadalit
+world.teleport.done = Pangkalan anda telah berpindah ke tempat baharu.
+reason.TeamsOut = Semua pasukan anda mesti berada di pangkalan untuk teleport.
+reason.TileTaken = Petak itu sudah diduduki.
+reason.NotEnoughHadalite = Hadalit tidak mencukupi.
+reason.NoRoom = Tiada petak kosong berdekatan.
+reason.OutOfMap = Petak itu di luar peta.
+item.teleport_random = Teleporter Rawak
+item.teleport_random.desc = Memindahkan pangkalan anda ke tempat kosong rawak dalam zon selamat.
+item.teleport_target = Teleporter Bersasar
+item.teleport_target.desc = Memindahkan pangkalan anda ke petak kosong pilihan anda di peta.
+item.teleport_alliance = Teleporter Pakatan
+item.teleport_alliance.desc = Memindahkan pangkalan anda ke sebelah ahli pakatan.
+bag.teleport.target = Ketik petak kosong di peta dan pilih "Teleport ke sini".
+bag.teleport.ally = Ketik pangkalan ahli pakatan di peta dan pilih "Ke sisi sekutu".

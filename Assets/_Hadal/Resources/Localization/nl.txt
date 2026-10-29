@@ -906,3 +906,25 @@ item.vip = VIP-punten {0}
 item.vip.desc = Gebruik om VIP-punten toe te voegen.
 reward.vip = +{0} VIP-punten
 reason.VipTooLow = De VIP-kist gaat open bij VIP 1.
+
+# Teleports
+world.teleport.here = Hierheen teleporteren
+world.teleport.sea = Open zee
+world.teleport.random = Willekeurig teleporteren
+world.teleport.ally = Naar bondgenoot
+world.teleport.item = {0} teleporters in je tas
+world.teleport.hadalite = Kost {0} Hadaliet
+world.teleport.done = Je basis is naar de nieuwe plek verplaatst.
+reason.TeamsOut = Al je teams moeten thuis zijn om te teleporteren.
+reason.TileTaken = Dat vak is bezet.
+reason.NotEnoughHadalite = Niet genoeg Hadaliet.
+reason.NoRoom = Geen vrij vak in de buurt.
+reason.OutOfMap = Dat vak ligt buiten de kaart.
+item.teleport_random = Willekeurige teleporter
+item.teleport_random.desc = Verplaatst je basis naar een willekeurige vrije plek in de veilige zone.
+item.teleport_target = Gerichte teleporter
+item.teleport_target.desc = Verplaatst je basis naar een vrij vak dat je op de kaart kiest.
+item.teleport_alliance = Alliantieteleporter
+item.teleport_alliance.desc = Verplaatst je basis naast een alliantielid.
+bag.teleport.target = Tik op een leeg vak op de kaart en kies 'Hierheen teleporteren'.
+bag.teleport.ally = Tik op de basis van een alliantielid op de kaart en kies 'Naar bondgenoot'.

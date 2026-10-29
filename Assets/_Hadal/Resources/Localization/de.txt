@@ -906,3 +906,25 @@ item.vip = VIP-Punkte {0}
 item.vip.desc = Benutzen, um VIP-Punkte hinzuzufügen.
 reward.vip = +{0} VIP-Punkte
 reason.VipTooLow = Die VIP-Truhe öffnet ab VIP 1.
+
+# Teleports
+world.teleport.here = Hierher teleportieren
+world.teleport.sea = Offenes Meer
+world.teleport.random = Zufallsteleport
+world.teleport.ally = Zum Verbündeten
+world.teleport.item = {0} Teleporter in der Tasche
+world.teleport.hadalite = Kosten: {0} Hadalit
+world.teleport.done = Deine Basis ist an ihren neuen Ort umgezogen.
+reason.TeamsOut = Zum Teleportieren müssen alle Teams zu Hause sein.
+reason.TileTaken = Dieses Feld ist belegt.
+reason.NotEnoughHadalite = Nicht genug Hadalit.
+reason.NoRoom = Kein freies Feld in der Nähe.
+reason.OutOfMap = Dieses Feld liegt außerhalb der Karte.
+item.teleport_random = Zufalls-Teleporter
+item.teleport_random.desc = Versetzt deine Basis an einen zufälligen freien Ort in der sicheren Zone.
+item.teleport_target = Ziel-Teleporter
+item.teleport_target.desc = Versetzt deine Basis auf ein freies Feld deiner Wahl auf der Karte.
+item.teleport_alliance = Allianz-Teleporter
+item.teleport_alliance.desc = Versetzt deine Basis neben ein Allianzmitglied.
+bag.teleport.target = Tippe auf der Karte auf ein leeres Feld und wähle „Hierher teleportieren“.
+bag.teleport.ally = Tippe auf der Karte auf die Basis eines Allianzmitglieds und wähle „Zum Verbündeten“.

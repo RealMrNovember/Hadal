@@ -906,3 +906,25 @@ item.vip = Очки VIP {0}
 item.vip.desc = Используйте, чтобы получить очки VIP.
 reward.vip = +{0} очков VIP
 reason.VipTooLow = Сундук VIP открывается с VIP 1.
+
+# Teleports
+world.teleport.here = Переместиться сюда
+world.teleport.sea = Открытое море
+world.teleport.random = Случайный телепорт
+world.teleport.ally = К союзнику
+world.teleport.item = Телепортов в сумке: {0}
+world.teleport.hadalite = Стоимость: {0} Хадалит
+world.teleport.done = База перемещена на новое место.
+reason.TeamsOut = Для телепорта все отряды должны быть на базе.
+reason.TileTaken = Эта клетка занята.
+reason.NotEnoughHadalite = Недостаточно Хадалит.
+reason.NoRoom = Рядом нет свободных клеток.
+reason.OutOfMap = Эта клетка за пределами карты.
+item.teleport_random = Случайный телепорт
+item.teleport_random.desc = Перемещает базу в случайное свободное место в безопасной зоне.
+item.teleport_target = Точный телепорт
+item.teleport_target.desc = Перемещает базу на выбранную вами свободную клетку карты.
+item.teleport_alliance = Телепорт альянса
+item.teleport_alliance.desc = Перемещает базу к участнику альянса.
+bag.teleport.target = Нажмите на пустую клетку на карте и выберите «Переместиться сюда».
+bag.teleport.ally = Нажмите на базу участника альянса на карте и выберите «К союзнику».

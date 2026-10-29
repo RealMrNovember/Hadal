@@ -906,3 +906,25 @@ item.vip = VIPポイント{0}
 item.vip.desc = 使用するとVIPポイントを獲得。
 reward.vip = +{0} VIPポイント
 reason.VipTooLow = VIP宝箱はVIP 1で解放されます。
+
+# Teleports
+world.teleport.here = ここへテレポート
+world.teleport.sea = 外洋
+world.teleport.random = ランダムテレポート
+world.teleport.ally = 同盟員の隣へ
+world.teleport.item = バッグにテレポーター{0}個
+world.teleport.hadalite = コスト：{0}ハダライト
+world.teleport.done = 基地が新しい場所に移動しました。
+reason.TeamsOut = テレポートするには全部隊が基地に戻っている必要があります。
+reason.TileTaken = そのマスは使用中です。
+reason.NotEnoughHadalite = ハダライトが足りません。
+reason.NoRoom = 近くに空きマスがありません。
+reason.OutOfMap = そのマスはマップの外です。
+item.teleport_random = ランダムテレポーター
+item.teleport_random.desc = 基地を安全地帯内のランダムな空き地へ移動します。
+item.teleport_target = 指定テレポーター
+item.teleport_target.desc = 基地をマップ上で選んだ空きマスへ移動します。
+item.teleport_alliance = 同盟テレポーター
+item.teleport_alliance.desc = 基地を同盟メンバーの隣へ移動します。
+bag.teleport.target = マップの空きマスをタップして「ここへテレポート」を選んでください。
+bag.teleport.ally = マップで同盟メンバーの基地をタップして「同盟員の隣へ」を選んでください。

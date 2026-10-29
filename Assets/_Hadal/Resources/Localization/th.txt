@@ -906,3 +906,25 @@ item.vip = แต้ม VIP {0}
 item.vip.desc = ใช้เพื่อเพิ่มแต้ม VIP
 reward.vip = +{0} แต้ม VIP
 reason.VipTooLow = หีบ VIP เปิดได้ที่ VIP 1
+
+# Teleports
+world.teleport.here = วาร์ปมาที่นี่
+world.teleport.sea = ทะเลเปิด
+world.teleport.random = วาร์ปสุ่ม
+world.teleport.ally = ไปข้างพันธมิตร
+world.teleport.item = มีเครื่องวาร์ป {0} ชิ้นในกระเป๋า
+world.teleport.hadalite = ใช้ {0} ฮาดาไลต์
+world.teleport.done = ย้ายฐานไปที่ใหม่แล้ว
+reason.TeamsOut = ทุกทีมต้องกลับฐานก่อนจึงจะวาร์ปได้
+reason.TileTaken = ช่องนี้มีคนใช้แล้ว
+reason.NotEnoughHadalite = ฮาดาไลต์ไม่พอ
+reason.NoRoom = ไม่มีช่องว่างใกล้ๆ
+reason.OutOfMap = ช่องนี้อยู่นอกแผนที่
+item.teleport_random = เครื่องวาร์ปสุ่ม
+item.teleport_random.desc = ย้ายฐานของคุณไปยังจุดว่างแบบสุ่มในเขตปลอดภัย
+item.teleport_target = เครื่องวาร์ปเจาะจง
+item.teleport_target.desc = ย้ายฐานของคุณไปยังช่องว่างที่คุณเลือกบนแผนที่
+item.teleport_alliance = เครื่องวาร์ปพันธมิตร
+item.teleport_alliance.desc = ย้ายฐานของคุณไปข้างสมาชิกพันธมิตร
+bag.teleport.target = แตะช่องว่างบนแผนที่แล้วเลือก "วาร์ปมาที่นี่"
+bag.teleport.ally = แตะฐานของสมาชิกพันธมิตรบนแผนที่แล้วเลือก "ไปข้างพันธมิตร"

@@ -906,3 +906,25 @@ item.vip = VIP點數{0}
 item.vip.desc = 使用後增加VIP點數。
 reward.vip = +{0} VIP點數
 reason.VipTooLow = VIP寶箱在VIP 1解鎖。
+
+# Teleports
+world.teleport.here = 傳送到此處
+world.teleport.sea = 公海
+world.teleport.random = 隨機傳送
+world.teleport.ally = 傳送到盟友旁
+world.teleport.item = 背包中有{0}個傳送器
+world.teleport.hadalite = 花費{0}深淵晶
+world.teleport.done = 基地已遷至新位置。
+reason.TeamsOut = 所有隊伍必須返回基地才能傳送。
+reason.TileTaken = 該地塊已被佔用。
+reason.NotEnoughHadalite = 深淵晶不足。
+reason.NoRoom = 附近沒有空地塊。
+reason.OutOfMap = 該地塊在地圖外。
+item.teleport_random = 隨機傳送器
+item.teleport_random.desc = 將基地遷至安全區內隨機的空位。
+item.teleport_target = 定點傳送器
+item.teleport_target.desc = 將基地遷至你在地圖上選擇的空地塊。
+item.teleport_alliance = 聯盟傳送器
+item.teleport_alliance.desc = 將基地遷至聯盟成員旁邊。
+bag.teleport.target = 在地圖上點擊空地塊，然後選擇「傳送到此處」。
+bag.teleport.ally = 在地圖上點擊聯盟成員的基地，然後選擇「傳送到盟友旁」。

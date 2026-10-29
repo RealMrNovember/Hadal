@@ -906,3 +906,25 @@ item.vip = Puntos VIP {0}
 item.vip.desc = Úsalo para sumar puntos VIP.
 reward.vip = +{0} puntos VIP
 reason.VipTooLow = El cofre VIP se abre en VIP 1.
+
+# Teleports
+world.teleport.here = Teletransportar aquí
+world.teleport.sea = Mar abierto
+world.teleport.random = Teleport aleatorio
+world.teleport.ally = Ir junto al aliado
+world.teleport.item = {0} teletransportadores en la bolsa
+world.teleport.hadalite = Cuesta {0} Hadalita
+world.teleport.done = Tu base se ha movido a su nuevo lugar.
+reason.TeamsOut = Todos tus equipos deben estar en la base para teletransportarte.
+reason.TileTaken = Esa casilla está ocupada.
+reason.NotEnoughHadalite = No tienes suficiente Hadalita.
+reason.NoRoom = No hay casillas libres cerca.
+reason.OutOfMap = Esa casilla está fuera del mapa.
+item.teleport_random = Teletransportador aleatorio
+item.teleport_random.desc = Mueve tu base a un lugar libre al azar en la zona segura.
+item.teleport_target = Teletransportador dirigido
+item.teleport_target.desc = Mueve tu base a una casilla libre que elijas en el mapa.
+item.teleport_alliance = Teletransportador de alianza
+item.teleport_alliance.desc = Mueve tu base junto a un miembro de la alianza.
+bag.teleport.target = Toca una casilla vacía en el mapa y elige «Teletransportar aquí».
+bag.teleport.ally = Toca la base de un miembro de la alianza en el mapa y elige «Ir junto al aliado».

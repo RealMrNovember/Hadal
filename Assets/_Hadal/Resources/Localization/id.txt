@@ -906,3 +906,25 @@ item.vip = Poin VIP {0}
 item.vip.desc = Gunakan untuk menambah poin VIP.
 reward.vip = +{0} poin VIP
 reason.VipTooLow = Peti VIP terbuka di VIP 1.
+
+# Teleports
+world.teleport.here = Teleportasi ke sini
+world.teleport.sea = Laut lepas
+world.teleport.random = Teleportasi acak
+world.teleport.ally = Ke sisi sekutu
+world.teleport.item = {0} teleporter di tas
+world.teleport.hadalite = Biaya {0} Hadalit
+world.teleport.done = Markasmu sudah pindah ke tempat baru.
+reason.TeamsOut = Semua timmu harus di markas untuk teleportasi.
+reason.TileTaken = Petak itu sudah terisi.
+reason.NotEnoughHadalite = Hadalit tidak cukup.
+reason.NoRoom = Tidak ada petak kosong di dekat sini.
+reason.OutOfMap = Petak itu di luar peta.
+item.teleport_random = Teleporter Acak
+item.teleport_random.desc = Memindahkan markasmu ke tempat kosong acak di zona aman.
+item.teleport_target = Teleporter Terarah
+item.teleport_target.desc = Memindahkan markasmu ke petak kosong yang kamu pilih di peta.
+item.teleport_alliance = Teleporter Aliansi
+item.teleport_alliance.desc = Memindahkan markasmu ke sebelah anggota aliansi.
+bag.teleport.target = Ketuk petak kosong di peta lalu pilih "Teleportasi ke sini".
+bag.teleport.ally = Ketuk markas anggota aliansi di peta lalu pilih "Ke sisi sekutu".

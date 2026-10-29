@@ -906,3 +906,25 @@ item.vip = نقاط VIP {0}
 item.vip.desc = استخدمه لإضافة نقاط VIP.
 reward.vip = +{0} نقطة VIP
 reason.VipTooLow = يُفتح صندوق VIP عند VIP 1.
+
+# Teleports
+world.teleport.here = انتقل إلى هنا
+world.teleport.sea = بحر مفتوح
+world.teleport.random = انتقال عشوائي
+world.teleport.ally = بجوار الحليف
+world.teleport.item = {0} أجهزة نقل في الحقيبة
+world.teleport.hadalite = التكلفة: {0} الهاداليت
+world.teleport.done = انتقلت قاعدتك إلى مكانها الجديد.
+reason.TeamsOut = يجب أن تعود كل فرقك إلى القاعدة للانتقال.
+reason.TileTaken = هذا المربع مشغول.
+reason.NotEnoughHadalite = لا يوجد هاداليت كافٍ.
+reason.NoRoom = لا يوجد مربع فارغ قريب.
+reason.OutOfMap = هذا المربع خارج الخريطة.
+item.teleport_random = جهاز نقل عشوائي
+item.teleport_random.desc = ينقل قاعدتك إلى مكان فارغ عشوائي في المنطقة الآمنة.
+item.teleport_target = جهاز نقل موجَّه
+item.teleport_target.desc = ينقل قاعدتك إلى مربع فارغ تختاره على الخريطة.
+item.teleport_alliance = جهاز نقل التحالف
+item.teleport_alliance.desc = ينقل قاعدتك بجوار أحد أعضاء التحالف.
+bag.teleport.target = اضغط على مربع فارغ في الخريطة واختر «انتقل إلى هنا».
+bag.teleport.ally = اضغط على قاعدة عضو في التحالف على الخريطة واختر «بجوار الحليف».
