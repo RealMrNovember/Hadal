@@ -24,6 +24,7 @@ namespace Hadal.UI
         }
 
         private readonly Dictionary<string, RouteView> _routes = new();
+        private readonly Dictionary<string, RectTransform> _gatherBadges = new();
         private static Material _routeMaterial;
 
         private const float SubScale = 2.6f;
@@ -183,7 +184,7 @@ namespace Hadal.UI
             {
                 live.Add(m.Id);
                 var route = RouteFor(m.Id, 0, null);
-                DrawRoute(route, m.FromX, m.FromY, m.X, m.Y, visible);
+                DrawRoute(route, m.FromX, m.FromY, m.X, m.Y, visible && !(now >= m.ArrivesAtMs && now < m.GatheredAtMs));
             }
 
             foreach (var w in View.WorldView?.Marches ?? Array.Empty<WorldMarchDto>())
@@ -192,7 +193,15 @@ namespace Hadal.UI
                     continue;
                 live.Add(w.Id);
                 var route = RouteFor(w.Id, w.Relation, string.IsNullOrEmpty(w.AllianceTag) ? w.OwnerName : $"[{w.AllianceTag}] {w.OwnerName}");
-                DrawRoute(route, w.FromX, w.FromY, w.ToX, w.ToY, visible);
+                var gathering = now >= w.ArrivesAtMs && now < w.GatheredAtMs;
+                DrawRoute(route, w.FromX, w.FromY, w.ToX, w.ToY, visible && !gathering);
+                GatherBadge(w.Id, w.ToX, w.ToY, w.Relation, visible && gathering, null);
+                if (gathering)
+                {
+                    route.Sub.gameObject.SetActive(false);
+                    route.Plate.gameObject.SetActive(false);
+                    continue;
+                }
 
                 // Their submarine on its timetable, facing where it goes.
                 var at = Position(w.FromX, w.FromY, w.ToX, w.ToY, w.StartedAtMs, w.ArrivesAtMs, w.GatheredAtMs, w.HomeAtMs, now);
@@ -207,6 +216,12 @@ namespace Hadal.UI
                 route.Plate.anchoredPosition = top;
             }
 
+            foreach (var id in _gatherBadges.Keys.Where(k => !live.Contains(k)).ToList())
+            {
+                Destroy(_gatherBadges[id].gameObject);
+                _gatherBadges.Remove(id);
+            }
+
             foreach (var id in _routes.Keys.Where(k => !live.Contains(k)).ToList())
             {
                 var route = _routes[id];
@@ -217,6 +232,50 @@ namespace Hadal.UI
                     Destroy(route.Plate.gameObject);
                 _routes.Remove(id);
             }
+        }
+
+        /// <summary>
+        /// A team gathering on a node is just a round badge over it, coloured by who it belongs to (green own, blue
+        /// alliance, red enemy) — enough to know who holds the node without a submarine parked on it.
+        /// </summary>
+        private void GatherBadge(string id, int x, int y, int relation, bool show, Action tapped)
+        {
+            if (!_gatherBadges.TryGetValue(id, out var badge))
+            {
+                if (!show)
+                    return;
+                var color = RouteColor(relation);
+                var ring = UiKit.Box("GatherBadge", _labels, color);
+                ring.sprite = UiKit.Circle;
+                ring.rectTransform.sizeDelta = new Vector2(76f, 76f);
+                ring.gameObject.AddComponent<Outline>().effectColor = new Color(0f, 0f, 0f, 0.6f);
+                var inner = UiKit.Box("Inner", ring.transform, new Color(0.03f, 0.08f, 0.12f, 0.92f));
+                inner.sprite = UiKit.Circle;
+                inner.rectTransform.Place(0.1f, 0.1f, 0.9f, 0.9f);
+                inner.raycastTarget = false;
+                var icon = UiKit.Rect("Icon", inner.transform).gameObject.AddComponent<Image>();
+                icon.sprite = Hud.HudIcons.Get(relation == 2 ? "event_war" : "nav_heroes");
+                icon.preserveAspect = true;
+                icon.raycastTarget = false;
+                ((RectTransform)icon.transform).Place(0.16f, 0.16f, 0.84f, 0.84f);
+                if (tapped != null)
+                {
+                    ring.gameObject.AddComponent<Button>().onClick.AddListener(() => tapped());
+                    ring.gameObject.AddComponent<PressFeedback>();
+                }
+                else
+                {
+                    ring.raycastTarget = false;
+                }
+
+                badge = ring.rectTransform;
+                badge.SetAsFirstSibling();
+                _gatherBadges[id] = badge;
+            }
+
+            var top = Project(TileToWorld(x, y) + Vector3.up * 7f, out var onScreen);
+            badge.gameObject.SetActive(show && onScreen);
+            badge.anchoredPosition = top + new Vector2(-150f, 0f);
         }
 
         private RouteView RouteFor(string id, int relation, string ownerLabel)

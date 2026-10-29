@@ -52,6 +52,17 @@ namespace Hadal.UI
                     FillFigures(team.Group, m);
                 }
 
+                // While it gathers the team is only a badge on the node; the submarine shows again on the way home.
+                var gathering = now >= m.ArrivesAtMs && now < m.GatheredAtMs;
+                team.Group.gameObject.SetActive(!gathering);
+                GatherBadge(m.Id, m.X, m.Y, 0, gathering && _popup == null, () => FollowTeam(m.Id));
+                if (gathering)
+                {
+                    team.Ring.gameObject.SetActive(false);
+                    team.Plate.gameObject.SetActive(false);
+                    continue;
+                }
+
                 var at = MarchPosition(m, now);
                 var heading = now < m.ArrivesAtMs ? TileToWorld(m.X, m.Y) - TileToWorld(m.FromX, m.FromY)
                     : now >= m.GatheredAtMs ? TileToWorld(m.FromX, m.FromY) - TileToWorld(m.X, m.Y) : Vector3.zero;
