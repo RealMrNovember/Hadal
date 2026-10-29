@@ -1,5 +1,6 @@
 using System.Collections.Concurrent;
 using Hadal.Game.Events;
+using Hadal.Game.Mailbox;
 using Hadal.Game.Persistence;
 using Hadal.Game.Social;
 using Hadal.Game.World;
@@ -55,7 +56,8 @@ namespace Hadal.Game
             IClock clock,
             INetworkSerializer serializer,
             ILogger<GameWorld> logger,
-            IEventStore? eventStore = null)
+            IEventStore? eventStore = null,
+            IMailStore? mailStore = null)
         {
             _runtime = runtime;
             _repository = repository;
@@ -74,7 +76,11 @@ namespace Hadal.Game
                 TagOf = Social.TagOf,
                 AllianceInfo = Social.AllianceInfo
             };
+            Mail = new MailService(mailStore ?? new InMemoryMailStore(), serializer, logger);
         }
+
+        /// <summary>The mailbox: system, Overseer, event and alliance mails with attachments (docs/29 §2.1).</summary>
+        public MailService Mail { get; }
 
         /// <summary>Overseer-run events: contests, sign-in rewards, rankings (docs/29).</summary>
         public EventService Events { get; }
@@ -240,6 +246,29 @@ namespace Hadal.Game
             }
         }
 
+        /// <summary>
+        /// Mails one player (by account id), online or not. False when the player does not exist. Attachments wait in the
+        /// mail until the player claims them.
+        /// </summary>
+        public async Task<bool> SendMailAsync(string identityKey, MailDraft draft, CancellationToken cancellationToken)
+        {
+            var playerId = _sessions.TryGetValue(identityKey, out var session)
+                ? session.PublicId
+                : (await _repository.LoadByIdentityAsync(identityKey, cancellationToken))?.PlayerId.ToString("N");
+            if (playerId == null)
+                return false;
+            await Mail.SendAsync(new[] { playerId }, draft, _clock.UtcNow, cancellationToken);
+            return true;
+        }
+
+        /// <summary>Mails every player there is (an Overseer announcement); returns how many received it.</summary>
+        public async Task<int> SendMailToAllAsync(MailDraft draft, CancellationToken cancellationToken)
+        {
+            var ids = (await _repository.ListPlayerIdsAsync(cancellationToken)).Select(id => id.ToString("N"))
+                .Concat(_sessions.Values.Select(s => s.PublicId)).Distinct(StringComparer.Ordinal).ToList();
+            return await Mail.SendAsync(ids, draft, _clock.UtcNow, cancellationToken);
+        }
+
         /// <summary>Live state when the player is loaded, otherwise the stored state; null if unknown.</summary>
         public async Task<PlayerState?> DescribeAsync(string identityKey, CancellationToken cancellationToken) =>
             _sessions.TryGetValue(identityKey, out var session)
@@ -270,6 +299,7 @@ namespace Hadal.Game
 
             var publicId = playerId.Value.ToString("N");
             Social.ForgetPlayer(publicId, now);
+            Mail.Forget(publicId);
             await Map.ForgetAsync(publicId, now, cancellationToken);
             _logger.LogInformation("Deleted player {PlayerId} (identity {IdentityKey}).", publicId, identityKey);
             return true;
@@ -306,6 +336,16 @@ namespace Hadal.Game
                 }
 
                 var now = _clock.UtcNow;
+                try
+                {
+                    await Mail.LoadAsync(session.PublicId, now, cancellationToken);
+                }
+                catch (Exception exception) when (exception is not OperationCanceledException)
+                {
+                    // The game goes on without the mailbox; the next login tries again.
+                    _logger.LogError(exception, "Loading the mails of player {PlayerId} failed.", session.PlayerId);
+                }
+
                 session.DisplayName = string.IsNullOrWhiteSpace(displayName) ? "Diver" : displayName;
                 session.ApplyOfflineHelps(Social.TakeOfflineHelps(session.PublicId), now);
 
@@ -319,6 +359,7 @@ namespace Hadal.Game
                 Social.OnConnected(session, now);
                 Map.OnConnected(session);
                 Events.OnConnected(session, now);
+                Mail.OnConnected(session, now);
 
                 return session;
             }
@@ -336,6 +377,8 @@ namespace Hadal.Game
                 Map.Handle(session, envelope, _clock.UtcNow);
             else if (EventService.Handles(envelope.Type))
                 Events.Handle(session, envelope, _clock.UtcNow);
+            else if (MailService.Handles(envelope.Type))
+                Mail.Handle(session, envelope, _clock.UtcNow);
             else
                 session.HandleCommand(envelope, _clock.UtcNow);
         }
@@ -349,6 +392,7 @@ namespace Hadal.Game
             Social.OnDisconnected(session, _clock.UtcNow);
             Map.OnDisconnected(session);
             Events.OnDisconnected(session);
+            Mail.OnDisconnected(session);
 
             await SaveAsync(session, cancellationToken);
 
@@ -381,6 +425,15 @@ namespace Hadal.Game
             catch (Exception exception)
             {
                 _logger.LogError(exception, "Event housekeeping failed.");
+            }
+
+            try
+            {
+                Mail.Tick(now);
+            }
+            catch (Exception exception)
+            {
+                _logger.LogError(exception, "Mail housekeeping failed.");
             }
         }
 

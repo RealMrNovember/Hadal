@@ -69,6 +69,16 @@ ALTER TABLE hadal.players ADD COLUMN IF NOT EXISTS extras jsonb NOT NULL DEFAULT
             return id is Guid g ? g : null;
         }
 
+        public async Task<IReadOnlyList<Guid>> ListPlayerIdsAsync(CancellationToken cancellationToken)
+        {
+            await using var command = _dataSource.CreateCommand("SELECT player_id FROM hadal.players");
+            var list = new List<Guid>();
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+            while (await reader.ReadAsync(cancellationToken))
+                list.Add(reader.GetGuid(0));
+            return list;
+        }
+
         public async Task<IReadOnlyList<(string IdentityKey, Guid PlayerId, DateTimeOffset CreatedAt)>> ListWithoutAccountAsync(CancellationToken cancellationToken)
         {
             // hadal.accounts belongs to the gateway; a server without it has no accounts to compare with.

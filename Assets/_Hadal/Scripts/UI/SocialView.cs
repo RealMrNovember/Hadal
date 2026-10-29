@@ -38,7 +38,9 @@ namespace Hadal.UI
             Events,
             EventRanking,
             Vip,
-            Shop
+            Shop,
+            Mail,
+            MailDetail
         }
 
         private static readonly CommandType[] OwnCommands =
@@ -49,7 +51,7 @@ namespace Hadal.UI
             CommandType.ClaimQuest, CommandType.ClaimDailyChest, CommandType.OpenItem, CommandType.RecruitHero,
             CommandType.DiveStage, CommandType.SetMemberRank, CommandType.TransferLeadership, CommandType.SetAllianceSettings,
             CommandType.AnswerInvite, CommandType.AnswerApplication, CommandType.ClaimEventStage, CommandType.ClaimEventRank,
-            CommandType.ClaimVipLogin, CommandType.ClaimVipChest
+            CommandType.ClaimVipLogin, CommandType.ClaimVipChest, CommandType.ReadMail, CommandType.ClaimMail, CommandType.DeleteMail
         };
 
         private IStateSyncService _stateSync;
@@ -219,6 +221,8 @@ namespace Hadal.UI
                     _afterReward = Page.Events;
                 else if (_page is Page.Vip)
                     _afterReward = Page.Vip;
+                else if (_page is Page.Mail or Page.MailDetail)
+                    _afterReward = _page;
                 _reward = report;
                 Open(Page.Reward);
             }
@@ -248,6 +252,7 @@ namespace Hadal.UI
             Page.Expedition => $"{_page}|{ExpeditionKey()}",
             Page.Events or Page.EventRanking => $"{_page}|{EventsKey()}",
             Page.Vip or Page.Shop => $"{_page}|{VipKey()}",
+            Page.Mail or Page.MailDetail => $"{_page}|{MailKey()}",
             _ => _page.ToString()
         };
 
@@ -310,6 +315,8 @@ namespace Hadal.UI
                 case Page.EventRanking: RenderEventRanking(); break;
                 case Page.Vip: RenderVip(); break;
                 case Page.Shop: RenderShop(); break;
+                case Page.Mail: RenderMail(); break;
+                case Page.MailDetail: RenderMailDetail(); break;
             }
 
             if (_page == Page.Chat && atBottom)
@@ -359,6 +366,7 @@ namespace Hadal.UI
                 CommandType.RequestHelp => Loc.T("alliance.help.requested"),
                 CommandType.HelpAll => Loc.T("alliance.help.sent"),
                 CommandType.RecruitHero => Loc.T("hero.recruited"),
+                CommandType.DeleteMail => Loc.T("mail.deleted"),
                 _ => string.Empty
             };
             if (text.Length > 0)

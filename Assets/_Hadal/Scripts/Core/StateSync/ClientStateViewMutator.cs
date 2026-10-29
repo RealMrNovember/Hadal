@@ -228,6 +228,12 @@ namespace Hadal.Core.StateSync
                 return true;
             }
 
+            if (id == EntityIds.Mail)
+            {
+                view.ApplyMail(TryDeserializePayload(change.Payload, serialization, out MailListDto mail) ? mail : new MailListDto());
+                return true;
+            }
+
             if (id == EntityIds.Events)
             {
                 view.ApplyEvents(TryDeserializePayload(change.Payload, serialization, out EventListDto events) ? events : new EventListDto());

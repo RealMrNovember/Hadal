@@ -151,6 +151,16 @@ namespace Hadal.Core.StateSync
             VipVersion++;
         }
 
+        /// <summary>The mailbox, newest first, with the unread count (docs/29 §2.1).</summary>
+        public MailListDto Mail { get; private set; } = new MailListDto();
+        public int MailVersion { get; private set; }
+
+        public void ApplyMail(MailListDto mail)
+        {
+            Mail = mail ?? new MailListDto();
+            MailVersion++;
+        }
+
         /// <summary>Events the player can see, with their progress (docs/29).</summary>
         public EventListDto Events { get; private set; } = new EventListDto();
         public int EventsVersion { get; private set; }

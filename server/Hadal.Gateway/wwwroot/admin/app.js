@@ -123,7 +123,7 @@ async function start() {
 }
 
 // ---------------------------------------------------------------- Router
-const PAGES = { overview, players, coupons, events, liveops, balance, chat, audit, admins };
+const PAGES = { overview, players, coupons, events, mail, liveops, balance, chat, audit, admins };
 
 function route() {
   if (!state.user) return;
@@ -328,6 +328,9 @@ async function playerDetail(root, id) {
     el("h2", {}, "Eşya gönder (çantaya)"),
     el("div", { class: "row" }, GRANT_ITEMS.map(([id, name]) => el("label", {}, name, itemInputs[id])),
       el("button", { class: "primary", onclick: () => grant().catch((e) => toast(e.message, true)) }, "Uygula")),
+    el("h2", {}, "Posta gönder"),
+    el("p", { class: "muted" }, "Oyuncunun oyun içi posta kutusuna düşer; ekler oyuncu \"Al\" deyince çantaya ve cüzdana geçer. Posta 30 gün sonra silinir, alınmamış ekler de gider."),
+    mailForm((body) => api(`players/${id}/mail`, { method: "POST", body }).then(() => toast("Posta gönderildi."))),
     el("h2", {}, "VIP ayarla"),
     el("p", { class: "muted" }, "Bir seviye seçersen puan o seviyenin eşiğine ayarlanır; seçmezsen yazdığın puan aynen uygulanır (artırma ya da azaltma)."),
     el("div", { class: "row" }, el("label", {}, "VIP seviyesi", vipLevel), el("label", {}, "VIP puanı", vipPoints),
@@ -414,6 +417,57 @@ function bagName(id) {
   if (t) return `Asker paketi: ${fmtNum(Number(t[3]))} × T${t[2]} ${TROOP_TR[t[1]] || t[1]}`;
   const known = GRANT_ITEMS.find(([itemId]) => itemId === id);
   return known ? known[1] : id;
+}
+
+/**
+ * The mail form (docs/29 §2.1): sender, title, text and attachments in the grant's shape (resources, bag items).
+ * `send` gets the request body and returns a promise; the form clears once it resolves (unless with false).
+ */
+function mailForm(send) {
+  const sender = el("input", { placeholder: "Boş: HADAL Komuta", maxlength: "40" });
+  const title = el("input", { placeholder: "Başlık", maxlength: "80" });
+  const text = el("textarea", { class: "short mail-body", placeholder: "Mesaj", maxlength: "2000" });
+  const note = el("input", { placeholder: "Not (denetim kaydı için)" });
+  const amounts = Object.fromEntries(RESOURCES.map((r) => [r, el("input", { type: "number", min: "0", step: "1", placeholder: "0" })]));
+  const items = Object.fromEntries(GRANT_ITEMS.map(([id]) => [id, el("input", { type: "number", min: "0", step: "1", placeholder: "0" })]));
+  const button = el("button", { class: "primary" }, "Posta gönder");
+  button.addEventListener("click", async () => {
+    const body = { title: title.value.trim(), body: text.value.trim(), sender: sender.value.trim(), amounts: {}, items: {}, note: note.value };
+    if (!body.title) return toast("Başlık gerekli.", true);
+    for (const r of RESOURCES) if (Number(amounts[r].value) > 0) body.amounts[r] = Number(amounts[r].value);
+    for (const [id, input] of Object.entries(items)) if (Number(input.value) > 0) body.items[id] = Number(input.value);
+    button.disabled = true;
+    try {
+      if ((await send(body)) === false) return; // cancelled: keep what was typed
+      [sender, title, text, note, ...Object.values(amounts), ...Object.values(items)].forEach((n) => (n.value = ""));
+    } catch (e) {
+      toast(e.message, true);
+    } finally {
+      button.disabled = false;
+    }
+  });
+  return el("div", { class: "mail-form" },
+    el("div", { class: "row" }, el("label", {}, "Gönderen", sender), el("label", {}, "Başlık", title)),
+    el("label", {}, "Mesaj", text),
+    el("p", { class: "muted" }, "Ek: kaynaklar (oyuncu alınca kapsül olarak çantaya; Hadalit ve Süperalaşım cüzdana)"),
+    el("div", { class: "row" }, RESOURCES.map((r) => el("label", {}, RESOURCE_TR[r], amounts[r]))),
+    el("p", { class: "muted" }, "Ek: eşyalar (çantaya)"),
+    el("div", { class: "row" }, GRANT_ITEMS.map(([id, name]) => el("label", {}, name, items[id]))),
+    el("div", { class: "row" }, el("label", {}, "Not", note), button));
+}
+
+/** Mail to every player (an announcement, a compensation after maintenance). */
+async function mail(root) {
+  if (!can("gm")) return render(root, el("div", { class: "card" }, el("h1", {}, "Posta"), el("p", { class: "muted" }, "Posta göndermek için Oyun Yöneticisi yetkisi gerekir.")));
+  render(root, el("div", { class: "card" },
+    el("h1", {}, "Herkese posta gönder"),
+    el("p", { class: "muted" }, "Şu an kayıtlı her oyuncunun posta kutusuna birer kopya düşer (sonra katılanlara gitmez). " +
+      "Ekleri her oyuncu kendisi alır; posta 30 gün sonra silinir. Tek bir oyuncuya göndermek için oyuncunun sayfasını kullan."),
+    mailForm(async (body) => {
+      if (!confirm(`"${body.title}" başlıklı posta TÜM oyunculara gönderilsin mi?`)) return false;
+      const r = await api("mail/all", { method: "POST", body });
+      toast(`Posta ${fmtNum(r.sent)} oyuncuya gönderildi.`);
+    })));
 }
 
 async function coupons(root, targetId) {

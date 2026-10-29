@@ -298,6 +298,10 @@ namespace Hadal.Gateway.Admin
 
             api.MapEventEndpoints();
 
+            // --- Mail (docs/29 §2.1) ----------------------------------------------------------
+
+            api.MapMailEndpoints();
+
             // --- Coupons --------------------------------------------------------------------
 
             api.MapGet("/coupons", async (AdminPrincipal _, IAdminStore store, CancellationToken ct) =>
@@ -482,7 +486,7 @@ namespace Hadal.Gateway.Admin
 
         private const long MaxGrant = 1_000_000_000_000;
 
-        private static Dictionary<ResourceType, long>? ParseAmounts(Dictionary<string, long>? raw)
+        internal static Dictionary<ResourceType, long>? ParseAmounts(Dictionary<string, long>? raw)
         {
             if (raw == null)
                 return null;

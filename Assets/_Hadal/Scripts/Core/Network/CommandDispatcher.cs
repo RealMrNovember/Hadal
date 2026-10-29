@@ -164,6 +164,9 @@ namespace Hadal.Core.Network
                 ClaimVipLoginCommand => CommandType.ClaimVipLogin,
                 ClaimVipChestCommand => CommandType.ClaimVipChest,
                 TeleportCommand => CommandType.Teleport,
+                ReadMailCommand => CommandType.ReadMail,
+                ClaimMailCommand => CommandType.ClaimMail,
+                DeleteMailCommand => CommandType.DeleteMail,
                 MarchAttackCommand => CommandType.MarchAttack,
                 _ => CommandType.Unknown
             };

@@ -213,6 +213,7 @@ namespace Hadal.UI
                 Events = () => { Close(); _social.OpenEvents(); },
                 Vip = () => { Close(); _social.OpenVip(); },
                 Shop = () => { Close(); _social.OpenShop(); },
+                Mail = () => { Close(); _social.OpenMail(); },
                 ClaimQuest = id => _social.ClaimQuest(id),
                 Building = key => { _social.Close(); _map.Close(); OpenBuilding(key); },
                 Toast = Toast,

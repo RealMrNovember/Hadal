@@ -18,5 +18,8 @@ namespace Hadal.Game.Persistence
 
         /// <summary>Players whose identity has no account (left by load and acceptance tests).</summary>
         Task<IReadOnlyList<(string IdentityKey, Guid PlayerId, DateTimeOffset CreatedAt)>> ListWithoutAccountAsync(CancellationToken cancellationToken);
+
+        /// <summary>Every player's id (mail to everyone).</summary>
+        Task<IReadOnlyList<Guid>> ListPlayerIdsAsync(CancellationToken cancellationToken);
     }
 }

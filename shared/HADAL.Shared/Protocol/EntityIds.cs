@@ -91,6 +91,9 @@ namespace HADAL.Shared.Protocol
         /// <summary>VIP points, level and today's claims (<c>VipStateDto</c>).</summary>
         public const string Vip = Base + "vip";
 
+        /// <summary>The player's mailbox, newest first, with the unread count (<c>MailListDto</c>).</summary>
+        public const string Mail = Base + "mail";
+
         public const string Event = "event:";
 
         /// <summary>Every event the player can see with their progress (<c>EventListDto</c>).</summary>

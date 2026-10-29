@@ -58,5 +58,8 @@ namespace HADAL.Shared.Enums
         [ProtoEnum] ClaimVipLogin = 50,
         [ProtoEnum] ClaimVipChest = 51,
         [ProtoEnum] Teleport = 52,
+        [ProtoEnum] ReadMail = 53,
+        [ProtoEnum] ClaimMail = 54,
+        [ProtoEnum] DeleteMail = 55,
     }
 }
