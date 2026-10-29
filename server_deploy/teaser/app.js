@@ -1,5 +1,5 @@
-/* HADAL landing page: language toggle (EN/TR) and the decorative depth gauge.
-   English lives in index.html; Turkish lives here. No trackers, no network calls. */
+/* HADAL landing page: language toggle (EN/TR/IT) and the decorative depth gauge.
+   English lives in index.html; Turkish and Italian live here. No trackers, no network calls. */
 (function () {
   'use strict';
 
@@ -150,10 +150,154 @@
     'ft.rights': 'Tüm hakları saklıdır.'
   };
 
+  var IT = {
+    'skip': "Vai al contenuto",
+    'nav.label': "Menu principale",
+    'nav.world': "Mondo",
+    'nav.gameplay': "Gameplay",
+    'nav.status': "Stato",
+    'nav.install': "Installazione",
+    'nav.faq': "FAQ",
+    'lang.label': "Lingua",
+    'hero.eyebrow': "Accesso anticipato · Build di prova Android",
+    'hero.t1': "Sotto l’abisso,",
+    'hero.t2': "l’umanità ricomincia.",
+    'hero.lead': "Un MMO strategico di costruzione di basi negli abissi per iOS e Android. Costruisci le ultime cupole dell’umanità a 11.000 metri di profondità, mantieni l’ossigeno in circolo e manda i tuoi sottomarini in un buio molto più antico di noi.",
+    'hero.cta': "Scarica la build di prova Android (APK)",
+    'hero.howto': "Come installare",
+    'hero.note': "Android 8.0+ · Gratis · Richiede una connessione Internet",
+    'badge.apple': "App Store — in arrivo",
+    'badge.google': "Google Play — in arrivo",
+    'badge.small': "Presto su",
+    'badge.small2': "Presto su",
+    'hero.phoneAlt': "Schermata iniziale di HADAL su un telefono Android: il logo HADAL, il motto e la scritta “Tocca per iniziare”",
+    'hero.phoneCap': "Schermata iniziale, build di prova attuale",
+    'world.kicker': "Il mondo",
+    'world.title': "Anno 2249. La superficie è morta.",
+    'world.p1': "L’atmosfera è diventata tossica. La luce del sole è diventata letale. I continenti non possono più ospitare la vita. Ciò che restava dell’umanità si è ritirato nella Zona Adale, lo strato più profondo dell’oceano, sigillandosi dentro cupole pressurizzate undici chilometri sotto le onde.",
+    'world.p2': "Non sono stati i primi ad arrivare. Sul fondo dell’oceano giacciono i resti di una civiltà biomeccanica vissuta milioni di anni prima di noi: templi, macchine che sembrano ancora respirare, soldati conosciuti solo come The Forgotten. L’umanità li ha risvegliati.",
+    'world.p3': "Da qualche parte al centro della mappa si trova The Core. Nessuno di quelli che sono andati a cercarlo è tornato con una risposta chiara.",
+    'world.f1k': "Profondità",
+    'world.f1v': "11.000 m",
+    'world.f2k': "Luce",
+    'world.f2v': "Quasi nulla",
+    'world.f3k': "Pressione",
+    'world.f3v': "Letale, ogni secondo",
+    'world.f4k': "Vicini",
+    'world.f4v': "Più antichi di noi",
+    'world.quote': "“Sono uno degli ultimi esseri umani rimasti. Cerco di sopravvivere nel buio. Ma in quel buio qualcosa di molto più antico di me mi sta osservando.”",
+    'world.creaturesLabel': "Immagini delle creature",
+    'world.c1': "Immagine di una creatura rana pescatrice degli abissi",
+    'world.c2': "Immagine di una medusa sirena viola",
+    'world.c3': "Immagine dell’Iron Leviathan, una bestia marina biomeccanica coperta di spine",
+    'world.cap': "Modelli delle creature dal set grafico in sviluppo.",
+    'gp.kicker': "Gameplay",
+    'gp.title': "Costruisci. Respira. Scendi più a fondo.",
+    'gp.lead': "La tua base è la tua casa e la tua identità: cupole disposte attorno a un unico reattore, che crescono verso l’esterno man mano che sopravvivi. Ogni tua mossa è verificata dal server di gioco, così il mondo resta equo per tutti e la tua base continua a funzionare anche quando non ci sei.",
+    'gp.lineupAlt': "Edifici della base di HADAL su piattaforme esagonali illuminati di ciano e ambra: reattore, cupole, laboratori e torri",
+    'gp.lineupCap': "Edifici della base dalle illustrazioni attuali.",
+    'tag.live': "Giocabile ora",
+    'tag.partial': "Parzialmente giocabile",
+    'tag.dev': "In sviluppo",
+    'tag.planned': "Pianificato",
+    'gp.p1t': "Costruzione e potenziamento della base",
+    'gp.p1': "Al centro c’è il Reattore Centrale; tutto il resto si costruisce negli anelli attorno a esso. Tocca uno slot vuoto per costruire, tocca un edificio per potenziarlo. Nessun edificio può superare il livello del reattore: ogni progresso parte dal cuore della tua base.",
+    'gp.p1a': "I lavori avanzano con l’orologio del server, anche quando sei offline",
+    'gp.p1b': "Le attese brevi le offriamo noi: gli ultimi cinque minuti finiscono gratis",
+    'gp.p1c': "Durante il potenziamento l’edificio continua a produrre al livello precedente",
+    'gp.p2t': "Economia di sopravvivenza",
+    'gp.p2': "Sei risorse tengono in vita una colonia. L’ossigeno viene sempre per primo: se finisce, la base muore. L’energia arriva dal reattore, la biomassa dagli organismi viventi, il titanio dai tuoi droni; l’hadalite si trova solo nelle zone più profonde.",
+    'gp.resLabel': "Risorse",
+    'res.o2': "Ossigeno",
+    'res.energy': "Energia",
+    'res.food': "Cibo",
+    'res.bio': "Biomassa",
+    'res.ti': "Titanio",
+    'res.hadalite': "Hadalite",
+    'gp.p3t': "Spedizioni in sottomarino",
+    'gp.p3': "Costruisci i sottomarini nel Molo Sottomarini, assegna tre eroi e mandali nel buio: foreste bioluminescenti, città sommerse, vecchi laboratori umani, templi alieni. In alcune zone non puoi accendere le luci. Ti resta solo il sonar.",
+    'gp.sub1': "Immagine di un sottomarino da ricognizione arancione",
+    'gp.sub2': "Immagine di un sottomarino da carico giallo",
+    'gp.p4t': "Alleanze e PvP",
+    'gp.p4': "Nessuno sopravvive da solo nell’abisso. Le alleanze costruiranno strutture comuni e città sottomarine insieme; le cupole rivali si assedieranno a vicenda. E tutte le strade portano alla guerra per The Core, al centro del mondo.",
+    'gp.bTitle': "Cosa c’è negli anelli",
+    'b.reactor': "Reattore Centrale",
+    'b.oxygen': "Impianto di Ossigeno",
+    'b.food': "Laboratorio Alimentare",
+    'b.bio': "Bio-laboratorio",
+    'b.drone': "Fabbrica di Droni",
+    'b.research': "Centro di Ricerca",
+    'b.dock': "Molo Sottomarini",
+    'b.shield': "Generatore di Scudi",
+    'b.mega': "Mega Cupola",
+    'st.kicker': "Stato dello sviluppo",
+    'st.title': "Accesso anticipato, in tutta trasparenza.",
+    'st.lead': "HADAL è in sviluppo attivo. La build di prova Android è una prima parte del gioco: la base funziona, gli abissi sono ancora in costruzione. Ecco a che punto siamo:",
+    'st.nowTag': "Disponibile",
+    'st.nowTitle': "Oggi nella build di prova",
+    'st.n1': "Account ospite immediato, nessuna registrazione",
+    'st.n2': "Base circolare con il Reattore Centrale al suo cuore",
+    'st.n3': "Costruzione e potenziamento con tempi reali",
+    'st.n4': "Produzione di risorse lato server, anche offline",
+    'st.n5': "Protezione dell’account con codice di trasferimento per cambiare telefono",
+    'st.n6': "Codici regalo e annunci nel gioco",
+    'st.nextTag': "In arrivo",
+    'st.nextTitle': "Su cosa stiamo lavorando",
+    'st.x1': "Costruzione completa della base: apertura degli anelli, mega cupole, demolizione degli edifici",
+    'st.x2': "Ciclo di sopravvivenza: consumo di ossigeno, allarmi ed emergenze",
+    'st.x3': "Presentazione: nuova interfaccia, grafica subacquea e audio",
+    'st.laterTag': "Più avanti",
+    'st.laterTitle': "Nella roadmap",
+    'st.l1': "Sottomarini, pressione ed esplorazione col sonar",
+    'st.l2': "Eroi, nemici e combattimento",
+    'st.l3': "Mappa del mondo condivisa, alleanze, PvP e assedi",
+    'st.l4': "Leviatani, The Core e lancio su App Store / Google Play",
+    'st.shot1': "Schermata della build di prova: pannello del Reattore Centrale di livello 1, produzione di energia e costo del livello successivo",
+    'st.shot1cap': "Pannello del Reattore Centrale",
+    'st.shot2': "Schermata della build di prova: un Impianto di Ossigeno in costruzione con il conto alla rovescia e il pulsante Completa gratis",
+    'st.shot2cap': "Costruzione con completamento gratuito",
+    'st.cap': "Schermate prese dalla build di sviluppo attuale, senza ritocchi. Grafica e interfaccia sono provvisorie e cambieranno.",
+    'in.kicker': "Installazione",
+    'in.title': "Installare la build di prova Android",
+    'in.lead': "La build di prova non è ancora su Google Play, quindi Android la installa come file. Ci vuole circa un minuto.",
+    'in.s1t': "Controlla il telefono",
+    'in.s1': "Servono Android 8.0 o superiore e una connessione Internet. Per ora l’iPhone non è supportato.",
+    'in.s2t': "Scarica l’APK",
+    'in.s2': "Apri questa pagina sul telefono e tocca il pulsante di download. Il browser potrebbe avvisarti che questo tipo di file può essere dannoso; scegli “Scarica comunque”.",
+    'in.s3t': "Consenti questa origine",
+    'in.s3': "Apri il file scaricato. Se Android lo chiede, tocca Impostazioni, attiva “Consenti da questa origine” per il browser e torna indietro.",
+    'in.s4t': "Installa e apri",
+    'in.s4': "Tocca Installa, poi Apri. Nella schermata iniziale tocca per iniziare. Il tuo account ospite viene creato automaticamente.",
+    'in.note': "Scarica HADAL solo da questo sito. Poiché la build non arriva dal Play Store, Google Play Protect potrebbe mostrare un avviso; per le build di prova è normale.",
+    'faq.title': "Domande dalla superficie",
+    'faq.q1': "Che tipo di gioco è HADAL?",
+    'faq.a1': "Un MMO strategico di costruzione di basi ambientato sul fondo dell’oceano. Fai crescere una colonia di cupole attorno a un reattore e gestisci le risorse che la tengono in vita. Con l’avanzare dello sviluppo manderai i sottomarini in esplorazione e formerai alleanze con altri giocatori.",
+    'faq.q2': "Quando arriverà su App Store e Google Play?",
+    'faq.a2': "Non c’è ancora una data di uscita. HADAL è in test ad accesso anticipato; le versioni per gli store arriveranno quando il gioco sarà pronto. Fino ad allora, per giocare usa la build di prova Android di questa pagina.",
+    'faq.q3': "Esiste una versione per iPhone?",
+    'faq.a3': "Non ancora. HADAL è sviluppato sia per iOS sia per Android, ma la build di prova attuale è solo per Android.",
+    'faq.q4': "La build di prova è a pagamento?",
+    'faq.a4': "No. Scaricare e giocare la build di prova Android è gratis.",
+    'faq.q5': "I miei progressi passeranno alla versione completa?",
+    'faq.a5': "Non possiamo prometterlo. Questa è una build di prova; i progressi potrebbero essere azzerati man mano che il gioco cambia prima dell’uscita.",
+    'faq.q6': "Come proteggo il mio account se cambio telefono?",
+    'faq.a6': "Il tuo account ospite resta sul dispositivo. Nel gioco apri Profilo e Account e tocca Proteggi account: imposta una password e riceverai un codice di trasferimento. Sul nuovo telefono usa “Accedi con un altro account” con quel codice e la password. L’accesso con Google e Apple arriverà più avanti.",
+    'faq.q7': "Posso giocare offline?",
+    'faq.a7': "Per giocare serve una connessione, perché il mondo è gestito dal server di gioco. Ma la tua base lavora anche senza di te: mentre sei via i lavori finiscono e la produzione continua.",
+    'faq.q8': "Perché Android mostra un avviso per l’APK?",
+    'faq.a8': "Android mostra un avviso per ogni app installata fuori da uno store. La build di prova di HADAL è pubblicata da CiciByte Technology, Inc.; scaricala solo da questo sito.",
+    'ft.tag': "Sotto l’abisso, l’umanità ricomincia.",
+    'ft.rights': "Tutti i diritti riservati."
+  };
+
   var META = {
     en: {
       title: 'HADAL — Deep-Sea Strategy MMO',
       desc: "HADAL is a deep-sea base-building strategy MMO for iOS and Android. Build humanity's last domes 11,000 metres down. Early access: the Android test build is available now."
+    },
+    it: {
+      title: 'HADAL — MMO strategico negli abissi',
+      desc: 'HADAL è un MMO strategico di costruzione di basi negli abissi per iOS e Android. Costruisci le ultime cupole dell’umanità a 11.000 metri di profondità. Accesso anticipato: la build di prova Android è disponibile ora.'
     },
     tr: {
       title: 'HADAL — Derin Deniz Strateji MMO’su',
@@ -173,30 +317,35 @@
   Array.prototype.forEach.call(altNodes, function (el) { EN.alt[el.getAttribute('data-i18n-alt')] = el.getAttribute('alt'); });
   Array.prototype.forEach.call(ariaNodes, function (el) { EN.aria[el.getAttribute('data-i18n-aria')] = el.getAttribute('aria-label'); });
 
+  var DICT = { tr: TR, it: IT };
+  var LOCALE = { en: 'en-US', tr: 'tr-TR', it: 'it-IT' };
+
   function apply(lang) {
-    var tr = lang === 'tr';
+    if (!LOCALE[lang]) lang = 'en';
+    var dict = DICT[lang];
     Array.prototype.forEach.call(textNodes, function (el) {
       var k = el.getAttribute('data-i18n');
-      var v = tr ? TR[k] : EN.text[k];
+      var v = dict ? dict[k] : EN.text[k];
       if (v == null) return;
-      if (tr) el.textContent = v; else el.innerHTML = v;
+      if (dict) el.textContent = v; else el.innerHTML = v;
     });
     Array.prototype.forEach.call(altNodes, function (el) {
       var k = el.getAttribute('data-i18n-alt');
-      var v = tr ? TR[k] : EN.alt[k];
+      var v = dict ? dict[k] : EN.alt[k];
       if (v != null) el.setAttribute('alt', v);
     });
     Array.prototype.forEach.call(ariaNodes, function (el) {
       var k = el.getAttribute('data-i18n-aria');
-      var v = tr ? TR[k] : EN.aria[k];
+      var v = dict ? dict[k] : EN.aria[k];
       if (v != null) el.setAttribute('aria-label', v);
     });
-    document.documentElement.lang = tr ? 'tr' : 'en';
-    document.title = META[tr ? 'tr' : 'en'].title;
-    if (descMeta) descMeta.setAttribute('content', META[tr ? 'tr' : 'en'].desc);
+    document.documentElement.lang = lang;
+    document.title = META[lang].title;
+    if (descMeta) descMeta.setAttribute('content', META[lang].desc);
     Array.prototype.forEach.call(document.querySelectorAll('.lang__btn'), function (b) {
-      b.setAttribute('aria-pressed', String(b.getAttribute('data-lang') === (tr ? 'tr' : 'en')));
+      b.setAttribute('aria-pressed', String(b.getAttribute('data-lang') === lang));
     });
+    updateDepth();
   }
 
   function stored() {
@@ -207,12 +356,11 @@
   }
 
   var initial = stored();
-  if (initial !== 'en' && initial !== 'tr') {
-    // First visit: follow the browser if it prefers Turkish, otherwise English.
+  if (!LOCALE[initial]) {
+    // First visit: follow the browser if it prefers Turkish or Italian, otherwise English.
     var nav = (navigator.languages && navigator.languages[0]) || navigator.language || '';
-    initial = /^tr\b/i.test(nav) ? 'tr' : 'en';
+    initial = /^tr\b/i.test(nav) ? 'tr' : /^it\b/i.test(nav) ? 'it' : 'en';
   }
-  if (initial === 'tr') apply('tr');
 
   Array.prototype.forEach.call(document.querySelectorAll('.lang__btn'), function (btn) {
     btn.addEventListener('click', function () {
@@ -221,6 +369,8 @@
       remember(lang);
     });
   });
+
+  if (initial !== 'en') apply(initial);
 
   // Footer year
   var y = document.getElementById('year');
@@ -238,7 +388,7 @@
     var t = Math.min(1, Math.max(0, window.scrollY / range));
     var m = Math.round((t * MAX) / 10) * 10;
     if (fill) fill.style.width = (t * 100).toFixed(1) + '%';
-    if (value) value.textContent = (m ? '-' : '') + m.toLocaleString(document.documentElement.lang === 'tr' ? 'tr-TR' : 'en-US') + ' m';
+    if (value) value.textContent = (m ? '-' : '') + m.toLocaleString(LOCALE[document.documentElement.lang] || 'en-US') + ' m';
   }
   window.addEventListener('scroll', function () {
     if (!ticking) { ticking = true; window.requestAnimationFrame(updateDepth); }
