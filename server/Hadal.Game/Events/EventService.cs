@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Threading.Channels;
 using HADAL.Shared.Catalog;
 using HADAL.Shared.Commands;
@@ -79,9 +80,50 @@ namespace Hadal.Game.Events
         private void RefreshBosses(DateTimeOffset now) =>
             _liveBosses = _events.Values
                 .Where(e => e.Def.Status == EventStatus.Published && PhaseOf(e.Def, now) == EventPhase.Live)
-                .SelectMany(e => e.Def.Bosses.Select((b, i) => new EventBossSpawn(e.Def.Id, i, b.Kind, b.Level, b.X, b.Y, e.Def.EndsAt))
+                .SelectMany(e => e.Def.Bosses.Select((b, i) =>
+                    {
+                        var progress = e.Def.BossProgress.FirstOrDefault(p => p.Index == i);
+                        return new EventBossSpawn(e.Def.Id, i, b.Kind, b.Level, b.X, b.Y, e.Def.EndsAt, progress?.Left ?? -1,
+                            progress == null ? null : new Dictionary<string, long>(progress.Damage, StringComparer.Ordinal));
+                    })
                     .Where(b => !e.Def.PaidBosses.Contains(b.Index)))
                 .ToArray();
+
+        private readonly ConcurrentQueue<(string EventId, int Index, string PlayerId, long Delta, long Left)> _bossHits = new();
+
+        /// <summary>
+        /// A hit on an event boss (a negative delta takes a recalled hit back) with the body left after it. Lock-free: the
+        /// world calls it under its own lock; the hits are folded into the stored definition on the next housekeeping.
+        /// </summary>
+        public void RecordBossHit(string eventId, int index, string playerId, long delta, long left) =>
+            _bossHits.Enqueue((eventId, index, playerId, delta, left));
+
+        /// <summary>Writes the queued boss hits into the definitions (write-behind, one save per event). Caller holds the lock.</summary>
+        private void FlushBossHits()
+        {
+            var changed = new HashSet<Live>();
+            while (_bossHits.TryDequeue(out var hit))
+            {
+                if (!_events.TryGetValue(hit.EventId, out var live) || live.Def.PaidBosses.Contains(hit.Index))
+                    continue;
+                var progress = live.Def.BossProgress.FirstOrDefault(p => p.Index == hit.Index);
+                if (progress == null)
+                    live.Def.BossProgress.Add(progress = new EventBossProgress { Index = hit.Index });
+                progress.Left = Math.Max(0, hit.Left);
+                var total = (progress.Damage.TryGetValue(hit.PlayerId, out var had) ? had : 0) + hit.Delta;
+                if (total > 0)
+                    progress.Damage[hit.PlayerId] = total;
+                else
+                    progress.Damage.Remove(hit.PlayerId);
+                changed.Add(live);
+            }
+
+            foreach (var live in changed)
+            {
+                var copy = live.Def.Clone();
+                Write(ct => _store.SaveEventAsync(copy, ct));
+            }
+        }
 
         /// <summary>
         /// The prizes of a boss that died or whose event ended (EventBossRewards.Plan), once: the boss is marked paid in the
@@ -91,10 +133,12 @@ namespace Hadal.Game.Events
         {
             lock (_gate)
             {
+                FlushBossHits();
                 if (!_events.TryGetValue(outcome.EventId, out var live) || live.Def.PaidBosses.Contains(outcome.Index))
                     return new List<BossPrize>();
                 var def = live.Def;
                 def.PaidBosses.Add(outcome.Index);
+                def.BossProgress.RemoveAll(p => p.Index == outcome.Index);
                 RefreshBosses(now);
                 var copy = def.Clone();
                 Write(ct => _store.SaveEventAsync(copy, ct));
@@ -233,6 +277,7 @@ namespace Hadal.Game.Events
                     _logger.LogInformation("Event {Id} is now {Phase}.", live.Def.Id, phase);
                 }
 
+                FlushBossHits();
                 RefreshBosses(now);
 
                 // Rankings moved since the last round: re-sort and show the new ranks to those taking part.
@@ -656,6 +701,7 @@ namespace Hadal.Game.Events
                     def.CreatedBy = by;
                     def.CreatedAt = now;
                     def.PaidBosses = new List<int>();
+                    def.BossProgress = new List<EventBossProgress>();
                     live = new Live();
                     _events[def.Id] = live;
                 }
@@ -672,6 +718,7 @@ namespace Hadal.Game.Events
                     def.CreatedBy = live.Def.CreatedBy;
                     def.CreatedAt = live.Def.CreatedAt;
                     def.PaidBosses = live.Def.PaidBosses.ToList(); // the Overseer cannot pay a boss twice
+                    def.BossProgress = live.Def.BossProgress; // nor reset a boss's body or its damage
                 }
 
                 def.UpdatedAt = now;
@@ -794,6 +841,7 @@ namespace Hadal.Game.Events
             def.BossRanks = (def.BossRanks ?? new List<EventTierConfig>()).OrderBy(b => b.From).ToList();
             def.BossParticipation ??= new List<EventRewardConfig>();
             def.PaidBosses ??= new List<int>();
+            def.BossProgress ??= new List<EventBossProgress>();
             foreach (var a in def.Actions.Concat(def.Phases.SelectMany(p => p.Actions)))
                 a.Per = Math.Max(1, a.Per);
         }
@@ -920,7 +968,10 @@ namespace Hadal.Game.Events
         {
             var done = new TaskCompletionSource();
             lock (_gate)
+            {
+                FlushBossHits();
                 Flush();
+            }
             Write(_ =>
             {
                 done.SetResult();

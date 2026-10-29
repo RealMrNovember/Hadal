@@ -23,10 +23,12 @@ namespace Hadal.Game.Tests
         private readonly FakeClock _clock = new();
         private readonly GameWorld _world;
 
+        private readonly InMemoryEventStore _events = new();
+
         public BossPrizeTests()
         {
             _world = new GameWorld(new CatalogRuntime(Catalog), new InMemoryPlayerRepository(), new InMemorySocialStore(), new InMemoryWorldStore(),
-                _clock, TestSupport.Serializer, NullLogger<GameWorld>.Instance);
+                _clock, TestSupport.Serializer, NullLogger<GameWorld>.Instance, _events);
         }
 
         private static string Id() => Guid.NewGuid().ToString("N");
@@ -216,6 +218,46 @@ namespace Hadal.Game.Tests
             Assert.Equal(new[] { 0 }, _world.Events.Get(eventId, _clock.UtcNow)!.Definition.PaidBosses);
             Tick();
             Assert.Equal(before, _world.Mail.MailsOf(expected[0], _clock.UtcNow).Count);
+        }
+
+        [Fact]
+        public async Task A_restart_mid_event_keeps_the_body_and_every_players_damage()
+        {
+            var (a, _) = await Connect("bp-r-a");
+            var (b, _) = await Connect("bp-r-b", 10000);
+            var (x, y) = _world.Map.PositionOf(a.PublicId)!.Value;
+            var eventId = Publish(x + 1, y);
+            Tick();
+            var boss = Boss(a);
+            Send(a, new MarchAttackCommand { CommandId = "r1", MonsterId = boss.Id }, CommandType.MarchAttack);
+            Send(b, new MarchAttackCommand { CommandId = "r2", MonsterId = boss.Id }, CommandType.MarchAttack);
+            var (c, _) = await Connect("bp-r-c", 10000);
+            Send(c, new MarchAttackCommand { CommandId = "r3", MonsterId = boss.Id }, CommandType.MarchAttack);
+            Send(c, new RecallMarchCommand { CommandId = "r4", MarchId = c.MarchesForTests.Single().Id }, CommandType.RecallMarch); // taken back
+            var left = boss.HpLeft;
+            var damage = _world.Map.BossDamage(boss.Id).ToDictionary(p => p.Key, p => p.Value);
+            Assert.Equal(2, damage.Count);
+            Assert.True(left < boss.HpMax);
+            Tick(); // write-behind
+            await _world.Events.DrainAsync();
+
+            // The server restarts: a new world on the same event store.
+            var restarted = new GameWorld(new CatalogRuntime(Catalog), new InMemoryPlayerRepository(), new InMemorySocialStore(), new InMemoryWorldStore(),
+                _clock, TestSupport.Serializer, NullLogger<GameWorld>.Instance, _events);
+            await restarted.Events.InitializeAsync(_clock.UtcNow, default);
+            Assert.Empty(restarted.Map.TakeFinishedBosses(_clock.UtcNow));
+            var back = restarted.Map.MonstersForTests().Single(m => m.IsBoss);
+            Assert.Equal(boss.Id, back.Id);
+            Assert.Equal(left, back.HpLeft);
+            Assert.Equal(damage, restarted.Map.BossDamage(back.Id).ToDictionary(p => p.Key, p => p.Value));
+
+            // And it still pays them all when the event ends.
+            Assert.Equal(string.Empty, restarted.Events.EndNow(eventId, _clock.UtcNow));
+            restarted.Events.Tick(_clock.UtcNow.AddSeconds(6));
+            var outcome = Assert.Single(restarted.Map.TakeFinishedBosses(_clock.UtcNow.AddSeconds(6)));
+            var prizes = restarted.Events.ClaimBossPrizes(outcome, _clock.UtcNow);
+            Assert.Equal(damage.Keys.OrderBy(k => k), prizes.Select(p => p.PlayerId).OrderBy(k => k));
+            Assert.Equal(damage[a.PublicId], prizes.Single(p => p.PlayerId == a.PublicId).Damage);
         }
 
         [Fact]

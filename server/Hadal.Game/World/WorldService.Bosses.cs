@@ -17,6 +17,9 @@ namespace Hadal.Game.World
         /// <summary>The bosses of live events (EventService.LiveBosses); read without the event lock.</summary>
         public Func<IReadOnlyList<EventBossSpawn>>? EventBosses { get; set; }
 
+        /// <summary>Each hit (or recalled hit, negative) with the body left: EventService.RecordBossHit stores it write-behind.</summary>
+        public Action<string, int, string, long, long>? BossHit { get; set; }
+
         public static string BossId(string eventId, int index) => $"e:{eventId}:{index}";
 
         private readonly List<BossOutcome> _bossOutcomes = new();
@@ -86,6 +89,16 @@ namespace Hadal.Game.World
                     Id = id, Type = kind.Id, Level = level, X = tile.X, Y = tile.Y, EventId = spawn.EventId, EndsAt = spawn.EndsAt, BossIndex = spawn.Index,
                     HpMax = MonsterRules.Count(kind, level), HpLeft = MonsterRules.Count(kind, level)
                 };
+                // Back after a restart: the body it had left and who hit it; a body already spent pays out at once.
+                if (spawn.Left >= 0)
+                {
+                    boss.HpLeft = Math.Min(boss.HpMax, spawn.Left);
+                    foreach (var pair in spawn.Damage ?? new Dictionary<string, long>())
+                        boss.Damage[pair.Key] = pair.Value;
+                    if (boss.HpLeft <= 0)
+                        boss.DefeatedAt = now;
+                }
+
                 _monsters[id] = boss;
                 _monsterAt[tile] = boss;
                 _logger.LogInformation("Event boss {Kind} level {Level} is at {X}:{Y} until {EndsAt}.", kind.Id, level, tile.X, tile.Y, spawn.EndsAt);
@@ -135,6 +148,7 @@ namespace Hadal.Game.World
             boss.Damage[playerId] = (boss.Damage.TryGetValue(playerId, out var had) ? had : 0) + damage;
             boss.Pending.RemoveAll(p => p.ArrivesAt <= march.StartedAt); // fought already: no longer recallable
             boss.Pending.Add((playerId, march.Id, damage, march.ArrivesAt));
+            BossHit?.Invoke(boss.EventId, boss.BossIndex, playerId, damage, boss.HpLeft);
             if (boss.HpLeft <= 0 || march.Battle?.Won == true)
             {
                 boss.HpLeft = 0;
@@ -152,6 +166,7 @@ namespace Hadal.Game.World
                 boss.Pending.Remove(hit);
                 boss.HpLeft += hit.Damage;
                 boss.Damage[playerId] = Math.Max(0, boss.Damage[playerId] - hit.Damage);
+                BossHit?.Invoke(boss.EventId, boss.BossIndex, playerId, -hit.Damage, boss.HpLeft);
             }
 
             if (boss.HpLeft > 0)

@@ -61,6 +61,9 @@ namespace Hadal.Game.Events
         /// <summary>Boss indices already paid out (each boss pays once, also across restarts).</summary>
         public List<int> PaidBosses { get; set; } = new();
 
+        /// <summary>What each live boss has left and who hit it how hard, written behind so a restart mid-event keeps it.</summary>
+        public List<EventBossProgress> BossProgress { get; set; } = new();
+
         public string Note { get; set; } = string.Empty;
         public string CreatedBy { get; set; } = string.Empty;
         public DateTimeOffset CreatedAt { get; set; }
@@ -122,8 +125,22 @@ namespace Hadal.Game.Events
         public int Y { get; set; }
     }
 
-    /// <summary>A boss of a live event as the world map places it.</summary>
-    public sealed record EventBossSpawn(string EventId, int Index, string Kind, int Level, int X, int Y, DateTimeOffset EndsAt);
+    /// <summary>
+    /// A boss of a live event as the world map places it; after a restart it comes back with the body it had left
+    /// (<paramref name="Left"/>, -1 = untouched) and its damage by player.
+    /// </summary>
+    public sealed record EventBossSpawn(string EventId, int Index, string Kind, int Level, int X, int Y, DateTimeOffset EndsAt,
+        long Left = -1, IReadOnlyDictionary<string, long>? Damage = null);
+
+    /// <summary>A boss's stored progress (EventDefinition.BossProgress).</summary>
+    public sealed class EventBossProgress
+    {
+        public int Index { get; set; }
+
+        /// <summary>Body left; -1 = never hit.</summary>
+        public long Left { get; set; } = -1;
+        public Dictionary<string, long> Damage { get; set; } = new(StringComparer.Ordinal);
+    }
 
     /// <summary>Same meaning as the catalog's RewardData: resource, item or shards (hero cards).</summary>
     public sealed class EventRewardConfig
