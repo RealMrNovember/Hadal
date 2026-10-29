@@ -20,7 +20,7 @@ namespace Hadal.UI
                 InWorld = () => _map.IsOpen,
                 OpenBuilding = id => { _social.Close(); _map.Close(); OpenHighest(id); },
                 BuildNew = id => { _social.Close(); _map.Close(); OpenBuildFor(id); },
-                OpenConstruction = () => { _social.Close(); _map.Close(); OpenConstructionForHelp(); },
+                AllianceChat = () => { Close(); _map.Close(); _social.OpenAllianceChat(); },
                 Heroes = () => { Close(); _social.OpenHeroes(); },
                 Expand = () => { _social.Close(); _map.Close(); OpenExpand(); },
                 Bag = () => { Close(); _social.OpenBag(); },
@@ -73,26 +73,6 @@ namespace Hadal.UI
             }
 
             OpenExpand();
-        }
-
-        /// <summary>
-        /// Somewhere to ask for help: a construction past the free-finish window (its panel has the help button), else
-        /// the Research Center (a study runs long enough), else the build list for one.
-        /// </summary>
-        private void OpenConstructionForHelp()
-        {
-            var now = Time.realtimeSinceStartup;
-            var running = Buildings().FirstOrDefault(b => b.IsUnderConstruction && b.constructionEndsAt - now > _catalog.Progression.freeFinishSeconds);
-            if (!string.IsNullOrEmpty(running.instanceKey))
-            {
-                OpenBuilding(running.instanceKey);
-                return;
-            }
-
-            if (Buildings().Any(b => b.definitionId == ResearchRules.CenterId && b.level > 0))
-                OpenResearchFromHud();
-            else
-                OpenBuildFor(ResearchRules.CenterId);
         }
     }
 }

@@ -147,7 +147,7 @@ Ayrıntılar aşağıda, aynı sırayla.
 - ✅ 15 adımlık sunucu otoriteli rehber zinciri (görev sistemine bağlı): reaktör, ilk üretim, ilk kahraman, ilk canavar, ilk ödül, ilk toplama seferi; ödüller doğrudan cüzdana, hiçbir adım zamanlayıcıda takılmaz. Gerçek bakiyeyle uçtan uca test: 12. adım (ilk toplama) 20 dakikanın altında.
 - ✅ Rehber arayüzü: Komutan Rourke baloncuğu, dokunulacak düğmede nabız halkası, haritada hedef oku; her zaman kapatılabilir, sunucunun adımından devam eder.
 - ✅ Kilit görünürlüğü: Araştırma ve PvP düğmelerinde "Sv.X" rozeti, görev panelinde "Yakında açılacaklar".
-- ✅ İlk gün hedefi: ittifaka katılma, yardım isteme ve yardım alma (ödüllü).
+- ✅ İlk gün hedefi: ittifaka katılma, ittifak sohbetine bir mesaj, bir yardım alma ya da verme (ödüllü).
 - ✅ Huni ölçümü: `hadal.onboarding_events` + Overseer "İlk Oturum Hunisi" (adım başına ulaşan, ortanca süre, ilk 10 dakikada takılan oranı).
 - ⬜ Yayın (sunucu + 0.9.3) ve ilk huni verisiyle adım ödüllerinin ayarı
 

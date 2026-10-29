@@ -55,7 +55,8 @@ namespace Hadal.Tests.EditMode
             Assert.AreEqual("Territory", OnboardingGuide.TargetOf(steps["ob_gather"]));
             Assert.AreEqual("Bag", OnboardingGuide.TargetOf(steps["ob_open"]));
             Assert.AreEqual("Alliance", OnboardingGuide.TargetOf(steps["ob_alliance"]));
-            Assert.AreEqual("Help", OnboardingGuide.TargetOf(steps["ob_helped"]));
+            Assert.AreEqual("Chat", OnboardingGuide.TargetOf(steps["ob_alliance_chat"]));
+            Assert.AreEqual("Help", OnboardingGuide.TargetOf(steps["ob_help"]));
         }
 
         [Test]

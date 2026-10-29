@@ -11,7 +11,7 @@ namespace Hadal.UI.Hud
     /// </summary>
     public sealed partial class MainHudView
     {
-        private static readonly string[] GuideNames = { "Task", "Quests", "Help", "Research", "Expand", "Alliance", "Bag", "Mail", "Heroes", "Territory" };
+        private static readonly string[] GuideNames = { "Task", "Quests", "Help", "Research", "Expand", "Alliance", "Bag", "Mail", "Heroes", "Territory", "Chat" };
 
         private bool _taskGuide;
         private GameObject _researchLock;

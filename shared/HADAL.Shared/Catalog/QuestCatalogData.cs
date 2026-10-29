@@ -41,7 +41,7 @@ namespace HADAL.Shared.Catalog
     /// <summary>
     /// A task. type: "level" (target building reaches count), "count" (own count of target building),
     /// "counter" (event counter target reaches count: upgrade, research, salvage, boost, pod, heroTrain,
-    /// help, chat, gather, attack, monster, open, helpAsk, helped), "heroLevel" (any hero at level count),
+    /// help, chat, gather, attack, monster, open, helpAsk, helped, allianceChat, assist), "heroLevel" (any hero at level count),
     /// "heroes" (own count heroes), "alliance" (be in one), "rings" (count base rings open).
     /// </summary>
     [Serializable]

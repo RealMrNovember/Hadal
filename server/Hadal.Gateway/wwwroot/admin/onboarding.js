@@ -15,8 +15,10 @@ const ONBOARDING_STEPS = {
   ob_open: "İlk ödül (çantadan aç)",
   ob_gather: "İlk toplama seferi",
   ob_alliance: "İttifaka katıl",
-  ob_help_ask: "Yardım iste",
-  ob_helped: "Yardım al",
+  ob_alliance_chat: "İttifak sohbetine yaz",
+  ob_help: "Yardım al ya da yardım et",
+  ob_help_ask: "Yardım iste (eski adım)",
+  ob_helped: "Yardım al (eski adım)",
 };
 
 const fmtSeconds = (s) => (s >= 3600 ? `${Math.floor(s / 3600)} sa ${Math.round((s % 3600) / 60)} dk` : s >= 60 ? `${Math.floor(s / 60)} dk ${s % 60} sn` : `${s} sn`);

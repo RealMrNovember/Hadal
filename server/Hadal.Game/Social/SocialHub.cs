@@ -310,6 +310,8 @@ namespace Hadal.Game.Social
 
             _lastChat[session.PublicId] = now;
             session.RecordEvent("chat", 1, now);
+            if (command.Channel == (int)ChatChannel.Alliance)
+                session.RecordEvent("allianceChat", 1, now);
             Post(new ChatRecord(_nextChatId++, channel, session.PublicId, session.DisplayName, alliance?.Record.Tag ?? string.Empty, text, now, false), now);
             return SocialRejectReason.None;
         }

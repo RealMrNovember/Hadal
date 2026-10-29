@@ -29,8 +29,8 @@ namespace Hadal.UI
             /// <summary>Opens the build list on a free slot that takes this building.</summary>
             public Action<string> BuildNew;
 
-            /// <summary>Opens a running construction (to ask for help), else the reactor.</summary>
-            public Action OpenConstruction;
+            /// <summary>The chat page on the alliance channel.</summary>
+            public Action AllianceChat;
 
             public Action Heroes;
             public Action Expand;
@@ -208,7 +208,8 @@ namespace Hadal.UI
             "alliance" => "Alliance",
             "counter" when step.target is "monster" or "gather" => "Territory",
             "counter" when step.target == "open" => "Bag",
-            "counter" when step.target == "helped" => "Help",
+            "counter" when step.target is "helped" or "assist" => "Help",
+            "counter" when step.target == "allianceChat" => "Chat",
             _ => "GuideGo"
         };
 
@@ -274,10 +275,10 @@ namespace Hadal.UI
                 case "counter" when step.target == "open":
                     _actions.Bag?.Invoke();
                     break;
-                case "counter" when step.target == "helpAsk":
-                    _actions.OpenConstruction?.Invoke();
+                case "counter" when step.target == "allianceChat":
+                    _actions.AllianceChat?.Invoke();
                     break;
-                case "counter" when step.target == "helped":
+                case "counter" when step.target is "helped" or "assist":
                     _actions.AllianceHelp?.Invoke();
                     break;
             }

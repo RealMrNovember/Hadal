@@ -56,7 +56,9 @@ namespace HADAL.Shared.Simulation
         {
             "upgrade", "research", "salvage", "boost", "pod", "heroTrain", "help", "chat",
             // Counted since the first-session guide (docs/34): marches, monster wins, bag items opened, alliance help asked and received.
-            "gather", "attack", "monster", "open", "helpAsk", "helped"
+            "gather", "attack", "monster", "open", "helpAsk", "helped",
+            // An alliance chat message; alliance help given or received.
+            "allianceChat", "assist"
         };
 
         public static bool IsKnownType(string? type) => type is "level" or "count" or "counter" or "heroLevel" or "heroes" or "alliance" or "rings";

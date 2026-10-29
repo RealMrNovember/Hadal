@@ -11,6 +11,13 @@ namespace Hadal.UI
     /// </summary>
     public sealed partial class SocialView
     {
+        /// <summary>The chat page on the alliance channel (the guide's alliance-chat step).</summary>
+        public void OpenAllianceChat()
+        {
+            _chatChannel = View.MyAlliance != null ? ChatChannel.Alliance : ChatChannel.World;
+            Open(Page.Chat);
+        }
+
         private void RenderGuide(QuestStateDto state)
         {
             var guide = state.Guide;

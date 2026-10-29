@@ -22,6 +22,9 @@ namespace Hadal.Game
             _state.DailyCounters[counter] = (_state.DailyCounters.TryGetValue(counter, out var d) ? d : 0) + amount;
             _state.IsDirty = true;
             _questsDirty = true;
+            // Alliance help either way round, given or received (the guide's help step, docs/34).
+            if (counter is "help" or "helped")
+                Record("assist", amount);
         }
 
         /// <summary>Events that happen outside the session (alliance help, chat) — the hub calls this.</summary>

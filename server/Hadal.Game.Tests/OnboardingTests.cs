@@ -201,7 +201,7 @@ namespace Hadal.Game.Tests
             // The first-session milestone well inside the 15-20 minutes (here only the marches take time).
             Assert.True(_clock.UtcNow - began < TimeSpan.FromMinutes(20), $"took {_clock.UtcNow - began}");
 
-            // Day one: join an alliance, ask for help and get it.
+            // Day one: join an alliance, say hello in its chat, help a mate (or be helped).
             Claim(session, "ob_alliance");
             Assert.Equal(nameof(QuestRejectReason.NotDone), LastAck(connection).Reason);
             var (founder, founderConnection) = await Connect("guide-founder");
@@ -212,17 +212,28 @@ namespace Hadal.Game.Tests
             Assert.Equal(CommandResultCode.Accepted, LastAck(connection).Result);
             ClaimOk(session, connection, "ob_alliance");
 
-            // Help is asked on a running construction (the clock stands still here, so even a short one is running).
-            var plant = Building(session, "oxygen_plant");
-            _world.HandleCommand(session, TestSupport.Upgrade(plant.BuildingId));
-            Assert.True(LastAck(connection).Result == CommandResultCode.Accepted, LastAck(connection).Reason);
-            Send(session, new RequestHelpCommand { CommandId = Id(), Kind = HelpKinds.Build, BuildingEntityId = plant.BuildingId }, CommandType.RequestHelp);
+            // World chat does not count; the alliance channel does.
+            Send(session, new SendChatCommand { CommandId = Id(), Channel = (int)ChatChannel.World, Text = "hello world" }, CommandType.SendChat);
             Assert.Equal(CommandResultCode.Accepted, LastAck(connection).Result);
-            ClaimOk(session, connection, "ob_help_ask");
+            Claim(session, "ob_alliance_chat");
+            Assert.Equal(nameof(QuestRejectReason.NotDone), LastAck(connection).Reason);
+            _clock.Advance(TimeSpan.FromSeconds(5));
+            Send(session, new SendChatCommand { CommandId = Id(), Channel = (int)ChatChannel.Alliance, Text = "hello mates" }, CommandType.SendChat);
+            Assert.Equal(CommandResultCode.Accepted, LastAck(connection).Result);
+            ClaimOk(session, connection, "ob_alliance_chat");
 
-            Send(founder, new HelpAllCommand { CommandId = Id() }, CommandType.HelpAll);
+            // Giving a help completes the last step (receiving one does too, see below).
+            Claim(session, "ob_help");
+            Assert.Equal(nameof(QuestRejectReason.NotDone), LastAck(connection).Reason);
+            founder.StateForTests.Wallet[ResourceType.Titanium] = 10_000;
+            var founderReactor = Building(founder, BuildingProgression.ReactorId);
+            _world.HandleCommand(founder, TestSupport.Upgrade(founderReactor.BuildingId));
+            Assert.True(LastAck(founderConnection).Result == CommandResultCode.Accepted, LastAck(founderConnection).Reason);
+            Send(founder, new RequestHelpCommand { CommandId = Id(), Kind = HelpKinds.Build, BuildingEntityId = founderReactor.BuildingId }, CommandType.RequestHelp);
             Assert.Equal(CommandResultCode.Accepted, LastAck(founderConnection).Result);
-            ClaimOk(session, connection, "ob_helped");
+            Send(session, new HelpAllCommand { CommandId = Id() }, CommandType.HelpAll);
+            Assert.Equal(CommandResultCode.Accepted, LastAck(connection).Result);
+            ClaimOk(session, connection, "ob_help");
 
             Assert.Null(Quests(connection).Guide);
             Assert.Equal(OnboardingStatus.Done, session.StateForTests.OnboardingStatus);
@@ -232,6 +243,33 @@ namespace Hadal.Game.Tests
             Assert.Equal(Enumerable.Range(0, Steps.Length + 1), log.Select(e => e.Step));
             Assert.Equal(Steps, log.Skip(1).Select(e => e.StepId));
             Assert.True(log.Zip(log.Skip(1)).All(p => p.First.Seconds <= p.Second.Seconds));
+        }
+
+        [Fact]
+        public async Task Receiving_a_help_also_completes_the_help_step()
+        {
+            var (founder, founderConnection) = await Connect("guide-helper");
+            founder.StateForTests.Wallet[ResourceType.Titanium] = 10_000;
+            Send(founder, new CreateAllianceCommand { CommandId = Id(), Name = "Helper House", Tag = "HLP" }, CommandType.CreateAlliance);
+            Assert.Equal(CommandResultCode.Accepted, LastAck(founderConnection).Result);
+            var (session, connection) = await Connect("guide-helped");
+            Send(session, new JoinAllianceCommand { CommandId = Id(), AllianceId = Latest<AllianceDto>(founderConnection, EntityIds.MyAlliance).Id }, CommandType.JoinAlliance);
+            Assert.Equal(CommandResultCode.Accepted, LastAck(connection).Result);
+            session.StateForTests.OnboardingIndex = Array.IndexOf(Steps, "ob_help");
+
+            session.StateForTests.Wallet[ResourceType.Titanium] = 10_000;
+            var reactor = Building(session, BuildingProgression.ReactorId);
+            _world.HandleCommand(session, TestSupport.Upgrade(reactor.BuildingId));
+            Send(session, new RequestHelpCommand { CommandId = Id(), Kind = HelpKinds.Build, BuildingEntityId = reactor.BuildingId }, CommandType.RequestHelp);
+            Assert.Equal(CommandResultCode.Accepted, LastAck(connection).Result);
+            Claim(session, "ob_help");
+            Assert.Equal(nameof(QuestRejectReason.NotDone), LastAck(connection).Reason); // asking alone is not enough
+
+            Send(founder, new HelpAllCommand { CommandId = Id() }, CommandType.HelpAll);
+            Assert.Equal(CommandResultCode.Accepted, LastAck(founderConnection).Result);
+            Claim(session, "ob_help");
+            Assert.Equal(CommandResultCode.Accepted, LastAck(connection).Result);
+            Assert.Equal(OnboardingStatus.Done, session.StateForTests.OnboardingStatus);
         }
 
         [Fact]

@@ -1,5 +1,5 @@
 {
-  "version": 11,
+  "version": 12,
   "_note": "Single source of truth for buildings, resources and base layout. Read by the server (validation, economy) and by Hadal > Setup in Unity (ScriptableObjects). Rules and the balance table: docs/23_Base_Management.md. Rates are per simulation tick (SimulationTick.IntervalSeconds) at level 1. buildCost/buildSeconds are for level 1; higher levels scale by progression.costGrowth/timeGrowth. requiredReactorLevel gates a building, maxCount caps how many a base may own.",
   "resources": [
     {
@@ -11246,8 +11246,8 @@
       {"id": "ob_open", "type": "counter", "target": "open", "count": 1, "rewards": [{"type": "resource", "id": "Titanium", "amount": 500}, {"type": "resource", "id": "Food", "amount": 300}]},
       {"id": "ob_gather", "type": "counter", "target": "gather", "count": 1, "rewards": [{"type": "item", "id": "chest_silver", "amount": 1}, {"type": "resource", "id": "Hadalite", "amount": 30}]},
       {"id": "ob_alliance", "type": "alliance", "target": "", "count": 1, "rewards": [{"type": "resource", "id": "Titanium", "amount": 1000}, {"type": "resource", "id": "Hadalite", "amount": 50}]},
-      {"id": "ob_help_ask", "type": "counter", "target": "helpAsk", "count": 1, "rewards": [{"type": "item", "id": "speed_any_5", "amount": 3}]},
-      {"id": "ob_helped", "type": "counter", "target": "helped", "count": 1, "rewards": [{"type": "item", "id": "chest_silver", "amount": 1}, {"type": "item", "id": "card_rare", "amount": 1}, {"type": "resource", "id": "Hadalite", "amount": 50}]}
+      {"id": "ob_alliance_chat", "type": "counter", "target": "allianceChat", "count": 1, "rewards": [{"type": "item", "id": "speed_any_5", "amount": 3}]},
+      {"id": "ob_help", "type": "counter", "target": "assist", "count": 1, "rewards": [{"type": "item", "id": "chest_silver", "amount": 1}, {"type": "item", "id": "card_rare", "amount": 1}, {"type": "resource", "id": "Hadalite", "amount": 50}]}
     ]
   },
   "items": [

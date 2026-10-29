@@ -2,7 +2,7 @@
 
 **Document:** Game Design · HADAL
 **Language:** TR (canonical design voice)
-**Status:** İlk sürüm uygulandı (2026-10-29, istemci 0.9.3, katalog tasarımı v11). İçerik `shared/catalog/catalog.json` → `quests.onboarding`.
+**Status:** İlk sürüm uygulandı (2026-10-29, istemci 0.9.3, katalog tasarımı v12). İçerik `shared/catalog/catalog.json` → `quests.onboarding`.
 
 ---
 
@@ -29,12 +29,12 @@ Hikâye görevlerinden ayrı, ama aynı görev sistemiyle çalışan kısa bir z
 | 11 | Çantadan bir eşya aç (ilk ödül) | `open` sayacı | 500 Titanyum, 300 Gıda |
 | 12 | İlk toplama seferi | `gather` sayacı (sefer başlayınca) | Gümüş Sandık, 30 Hadalit |
 | 13 | İttifaka katıl | ittifak üyeliği | 1.000 Titanyum, 50 Hadalit |
-| 14 | İttifaktan yardım iste | `helpAsk` sayacı | 3 × 5 dk hızlandırma |
-| 15 | İttifaktan yardım al | `helped` sayacı | Gümüş Sandık, Nadir Kahraman Kartı, 50 Hadalit |
+| 14 | İttifak sohbetine bir mesaj yaz | `allianceChat` sayacı (ittifak kanalına mesaj) | 3 × 5 dk hızlandırma |
+| 15 | Bir yardım al ya da bir ittifak arkadaşına yardım et | `assist` sayacı (alınan ya da verilen yardım) | Gümüş Sandık, Nadir Kahraman Kartı, 50 Hadalit |
 
 - 1–12 ilk oturum, 13–15 ilk gün hedefidir.
 - Canavar seferden önce gelir: Reaktör 4'te tek sefer kuyruğu vardır; canavar takımı eve dönerken 11. adım (çantadan ödül açma) aradaki boşluğu doldurur.
-- Yardım butonu yalnızca ücretsiz bitirme penceresini (5 dk) aşan işlerde çıkar; 14. adımın "Git"i bu yüzden Araştırma Merkezi'ne götürür.
+- Yardım isteme butonu yalnızca ücretsiz bitirme penceresini (5 dk) aşan işlerde çıkar ve ilk gün işler kısadır; bu yüzden ilk gün adımları yardım istemeyi değil, ittifak sohbetinde selamlaşmayı ve yardımı herhangi bir yönden (almak ya da vermek) ister. 14. adımın "Git"i sohbeti ittifak kanalında açar, 15. adımınki ittifakın Yardım sekmesini.
 
 ## Kurallar
 
@@ -58,7 +58,7 @@ Hikâye görevlerinden ayrı, ama aynı görev sistemiyle çalışan kısa bir z
 
 ## Teknik Not
 
-- Paylaşılan: `QuestCatalogData.onboarding`, `GameCatalog.TryGetOnboarding`, yeni görev türü `rings`, yeni sayaçlar (`gather`, `attack`, `monster`, `open`, `helpAsk`, `helped`), `OnboardingRules` (atlama eşiği, yakında açılacaklar), `QuestStateDto.Guide/GuideNumber/GuideTotal` (protobuf alan 8–10). "troops" ödülü yalnızca rehber adımlarında geçerlidir.
+- Paylaşılan: `QuestCatalogData.onboarding`, `GameCatalog.TryGetOnboarding`, yeni görev türü `rings`, yeni sayaçlar (`gather`, `attack`, `monster`, `open`, `helpAsk`, `helped`, `allianceChat`, `assist`: `help` ya da `helped` her artışında `assist` de artar), `OnboardingRules` (atlama eşiği, yakında açılacaklar), `QuestStateDto.Guide/GuideNumber/GuideTotal` (protobuf alan 8–10). "troops" ödülü yalnızca rehber adımlarında geçerlidir.
 - Sunucu: `PlayerSession.Onboarding.cs`, `Onboarding/OnboardingStore.cs` (bellek ve Postgres), `Onboarding/OnboardingFunnel.cs`, Overseer `GET /admin/api/onboarding/funnel?cohort=new&days=30`.
 - İstemci: `OnboardingGuide` (baloncuk, halka, Git), `MainHudView.Guide`, `BaseManagementView.Guide`, `WorldMapView.Guide`, `SocialView.Onboarding`, `Hud/GuideTargets`.
-- Katalog tasarım sürümü 11'e çıktı: yayında dosya, saklı katalogu geçer (`CatalogBootstrap`).
+- Katalog tasarım sürümü 12 (11: ilk rehber; 12: 14–15. adımlar `ob_alliance_chat` ve `ob_help` oldu). Yayında dosya, saklı katalogu geçer (`CatalogBootstrap`). Eski `ob_help_ask` / `ob_helped` satırları hunide kendi adlarıyla kalır.
