@@ -493,7 +493,7 @@ namespace Hadal.UI
                 var row = UiKit.Box("March", _marchPanel, new Color(0.03f, 0.10f, 0.14f, 0.88f));
                 row.rectTransform.Place(0, y1 - rowHeight, 1f, y1);
                 var march = m;
-                row.gameObject.AddComponent<Button>().onClick.AddListener(() => FollowTeam(march.Id));
+                row.gameObject.AddComponent<Button>().onClick.AddListener(() => OpenTeamDetails(march.Id));
                 if (catalog.TryGetHero(m.HeroId, out var def))
                     SocialView.Portrait(row.transform, def, true, 0.01f, 0.06f, 0.2f, 0.94f);
                 else

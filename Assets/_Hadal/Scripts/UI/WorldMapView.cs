@@ -406,6 +406,7 @@ namespace Hadal.UI
 
             ApplyView();
             HandleSeaTap();
+            TickTeamDetails();
             // Other players' teams start and turn back all the time: ask for the area again every few seconds.
             if (_requested.x >= 0 && Time.unscaledTime >= _nextViewRefresh)
             {
