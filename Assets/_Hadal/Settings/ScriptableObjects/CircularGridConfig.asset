@@ -14,7 +14,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _slotYOffset: 0.05
   _maxRings: 12
-  _startingUnlockedRings: 4
+  _startingUnlockedRings: 1
   _rotationSnapDegrees: 60
   _outerRingBaseSectors: 6
   _outerRingSectorIncrement: 2
