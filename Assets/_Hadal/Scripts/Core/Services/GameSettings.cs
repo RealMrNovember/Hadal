@@ -53,6 +53,16 @@ namespace Hadal.Core.Services
             set => SetBool("vibration", value);
         }
 
+        /// <summary>
+        /// Accessibility: alerts (the incoming-attack vignette, impact flash, screen shake) hold still instead of
+        /// pulsing and flashing.
+        /// </summary>
+        public static bool ReduceAlertEffects
+        {
+            get => GetBool("reduceAlertEffects", false);
+            set => SetBool("reduceAlertEffects", value);
+        }
+
         public static GraphicsQuality Quality
         {
             get => (GraphicsQuality)Mathf.Clamp(PlayerPrefs.GetInt(Prefix + "quality", DefaultQuality()), 0, 2);

@@ -1563,3 +1563,7 @@ kingdom.status.full = Dolu
 kingdom.status.closed = Kapalı
 kingdom.mine = Senin krallığın
 reason.OtherKingdom = Başka bir krallıktaki oyuncuya posta gönderilemez.
+graphics.reducealerts = Uyarı efektlerini azalt
+graphics.reducealerts.hint = Saldırı uyarısı yanıp sönmez, ekran sarsılmaz; kenarlar sakin bir gölgeyle kalır.
+pvp.alarm.eta = Varış
+pvp.alarm.more = +{0} saldırı daha

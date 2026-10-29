@@ -1562,3 +1562,7 @@ kingdom.status.full = เต็ม
 kingdom.status.closed = ปิด
 kingdom.mine = อาณาจักรของคุณ
 reason.OtherKingdom = ไม่สามารถส่งจดหมายถึงผู้เล่นในอาณาจักรอื่น
+graphics.reducealerts = ลดเอฟเฟกต์การแจ้งเตือน
+graphics.reducealerts.hint = สัญญาณเตือนการโจมตีจะไม่กะพริบหรือสั่นจอ ขอบจอจะเรืองแสงคงที่
+pvp.alarm.eta = มาถึงใน
+pvp.alarm.more = อีก +{0}

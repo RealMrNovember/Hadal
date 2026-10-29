@@ -1562,3 +1562,7 @@ kingdom.status.full = Vol
 kingdom.status.closed = Gesloten
 kingdom.mine = Jouw koninkrijk
 reason.OtherKingdom = Je kunt geen post sturen naar een speler in een ander koninkrijk.
+graphics.reducealerts = Waarschuwingseffecten beperken
+graphics.reducealerts.hint = Het aanvalsalarm knippert en schudt niet meer; de schermranden blijven rustig gloeien.
+pvp.alarm.eta = Aankomst over
+pvp.alarm.more = +{0} meer

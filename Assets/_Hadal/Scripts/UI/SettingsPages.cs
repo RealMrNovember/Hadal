@@ -130,6 +130,9 @@ namespace Hadal.UI
                 () => GameSettings.FrameRate >= 60 ? 1 : 0, i => GameSettings.FrameRate = i == 1 ? 60 : 30).Row(110);
             UiKit.Switch("PowerSaving", column, Loc.T("graphics.power"), () => GameSettings.PowerSaving, v => GameSettings.PowerSaving = v).Row(110);
             UiKit.Label("PowerHint", column, Loc.T("graphics.power.hint"), 30, UiKit.Muted).Row(80);
+            UiKit.Switch("ReduceAlerts", column, Loc.T("graphics.reducealerts"), () => GameSettings.ReduceAlertEffects,
+                v => GameSettings.ReduceAlertEffects = v).Row(110);
+            UiKit.Label("ReduceAlertsHint", column, Loc.T("graphics.reducealerts.hint"), 30, UiKit.Muted).Row(80);
             UiKit.Rect("Spacer", column).Row(20);
             Back(column, () => Show(_home));
         }

@@ -1562,3 +1562,7 @@ kingdom.status.full = Lleno
 kingdom.status.closed = Cerrado
 kingdom.mine = Tu reino
 reason.OtherKingdom = No puedes enviar correo a un jugador de otro reino.
+graphics.reducealerts = Reducir efectos de alerta
+graphics.reducealerts.hint = La alarma de ataque deja de parpadear y temblar; los bordes mantienen un brillo fijo.
+pvp.alarm.eta = Llega en
+pvp.alarm.more = +{0} más

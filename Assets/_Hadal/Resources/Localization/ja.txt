@@ -1562,3 +1562,7 @@ kingdom.status.full = 満員
 kingdom.status.closed = 閉鎖
 kingdom.mine = あなたの王国
 reason.OtherKingdom = 別の王国のプレイヤーにはメールを送れません。
+graphics.reducealerts = 警告エフェクトを減らす
+graphics.reducealerts.hint = 攻撃警報の点滅と画面の揺れを止め、画面端は穏やかに光ります。
+pvp.alarm.eta = 到着まで
+pvp.alarm.more = 他 +{0}

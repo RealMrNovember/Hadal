@@ -1562,3 +1562,7 @@ kingdom.status.full = ممتلئة
 kingdom.status.closed = مغلقة
 kingdom.mine = مملكتك
 reason.OtherKingdom = لا يمكنك مراسلة لاعب في مملكة أخرى.
+graphics.reducealerts = تقليل مؤثرات التنبيه
+graphics.reducealerts.hint = يتوقف إنذار الهجوم عن الوميض والاهتزاز؛ تبقى حواف الشاشة بتوهج ثابت.
+pvp.alarm.eta = الوصول خلال
+pvp.alarm.more = +{0} أخرى

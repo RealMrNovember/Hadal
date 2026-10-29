@@ -1562,3 +1562,7 @@ kingdom.status.full = Đầy
 kingdom.status.closed = Đóng
 kingdom.mine = Vương quốc của bạn
 reason.OtherKingdom = Không thể gửi thư cho người chơi ở vương quốc khác.
+graphics.reducealerts = Giảm hiệu ứng cảnh báo
+graphics.reducealerts.hint = Cảnh báo tấn công không nhấp nháy hay rung màn hình; viền màn hình sáng đều.
+pvp.alarm.eta = Đến sau
+pvp.alarm.more = thêm +{0}

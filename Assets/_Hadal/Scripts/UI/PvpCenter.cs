@@ -38,10 +38,12 @@ namespace Hadal.UI
         private ulong _sequence;
 
         private Canvas _canvas;
-        private readonly List<Image> _edges = new();
-        private RectTransform _banner;
-        private Image _bannerFill;
-        private Text _bannerText;
+        private AlertVignette _vignette;
+        private AttackBanner _banner;
+        private readonly Dictionary<string, long> _firstSeenMs = new();
+        private readonly HashSet<string> _landed = new();
+        private float _nextPing;
+        private AlarmMood _mood;
         private readonly HashSet<string> _seenIncoming = new();
         private readonly HashSet<string> _arrivedGuards = new();
         private bool _guardsKnown;
@@ -81,27 +83,15 @@ namespace Hadal.UI
         {
             _canvas = UiKit.Canvas("PvpAlarm", 45);
             _canvas.transform.SetParent(transform, false);
-            var edge = new Color(1f, 0.1f, 0.08f, 0f);
-            foreach (var (x0, y0, x1, y1) in new[] { (0f, 0.96f, 1f, 1f), (0f, 0f, 1f, 0.04f), (0f, 0f, 0.05f, 1f), (0.95f, 0f, 1f, 1f) })
-            {
-                var image = UiKit.Box("Edge", _canvas.transform, edge);
-                image.rectTransform.Place(x0, y0, x1, y1);
-                image.raycastTarget = false;
-                _edges.Add(image);
-            }
-
-            _bannerFill = UiKit.Box("Banner", _canvas.transform, new Color(0.55f, 0.06f, 0.05f, 0.95f));
-            _banner = _bannerFill.rectTransform;
-            _banner.Place(0.08f, 0.835f, 0.92f, 0.875f);
-            _bannerFill.gameObject.AddComponent<Outline>().effectColor = new Color(1f, 0.4f, 0.3f, 0.9f);
-            _bannerFill.gameObject.AddComponent<Button>().onClick.AddListener(() => Open(0));
-            _bannerFill.gameObject.AddComponent<PressFeedback>();
-            _bannerText = UiKit.Label("Text", _banner, string.Empty, 26, Color.white, TextAnchor.MiddleCenter, FontStyle.Bold);
-            _bannerText.rectTransform.Place(0.02f, 0f, 0.98f, 1f);
-            _banner.gameObject.SetActive(false);
+            // The edge vignette lives on its own canvas under the HUD (AlertVignette); the card and its actions sit in
+            // the safe area at the top.
+            _vignette = AlertVignette.Create(transform);
+            var safe = UiKit.Rect("Safe", _canvas.transform).Place(0, 0, 1, 1);
+            safe.gameObject.AddComponent<Hud.SafeArea>();
+            _banner = AttackBanner.Create(safe, () => Open(0));
 
             // Under the banner: go to the attacker, raise a shield, ask the alliance for help.
-            _bannerActions = UiKit.Rect("BannerActions", _canvas.transform).Place(0.08f, 0.792f, 0.92f, 0.83f);
+            _bannerActions = UiKit.Rect("BannerActions", safe).Place(0.035f, 0.738f, 0.965f, 0.782f);
             var actions = new (string Key, Action Act, Color Color)[]
             {
                 ("pvp.alarm.goto", GoToAttacker, UiKit.Field),
@@ -111,8 +101,8 @@ namespace Hadal.UI
             for (var i = 0; i < actions.Length; i++)
             {
                 var (key, act, color) = actions[i];
-                var button = UiKit.Button("Act" + i, _bannerActions, Loc.T(key), () => act(), color, 22);
-                ((RectTransform)button.transform).Place(i / 3f + 0.005f, 0f, (i + 1) / 3f - 0.005f, 1f);
+                var button = UiKit.Button("Act" + i, _bannerActions, Loc.T(key), () => act(), color, UiKit.TypeScale.Body);
+                ((RectTransform)button.transform).Place(i / 3f, 0f, (i + 1) / 3f, 1f, 5f);
             }
 
             _bannerActions.gameObject.SetActive(false);
@@ -129,52 +119,14 @@ namespace Hadal.UI
                 return;
 
             var now = View.ServerNowMs;
-            var incoming = (View.Pvp?.Incoming ?? Array.Empty<IncomingDto>()).Where(i => i.ArrivesAtMs > now - 2000).ToList();
+            var incoming = Incoming(now);
             var threats = incoming.Where(i => i.Kind != PvpRules.Scout).ToList();
-            // A shield up when the first threat lands blocks it: the edge turns calm cyan instead of red.
-            var shieldMs = View.Pvp?.ShieldUntilMs ?? 0;
+            // A shield up when the first threat lands blocks it: the alarm turns calm teal instead of red.
+            var shieldMs = AlarmDemo.Active ? AlarmDemo.ShieldUntilMs : View.Pvp?.ShieldUntilMs ?? 0;
             var blocked = threats.Count > 0 && threats.All(i => shieldMs > i.ArrivesAtMs);
-            var pulse = threats.Count > 0 ? (blocked ? 0.12f + 0.08f * Mathf.Sin(Time.unscaledTime * 2f) : 0.25f + 0.25f * Mathf.Sin(Time.unscaledTime * 5f)) : 0f;
-            foreach (var e in _edges)
-                e.color = blocked ? new Color(0.25f, 0.9f, 1f, pulse) : new Color(1f, 0.1f, 0.08f, pulse);
             UnderAttack = threats.Count > 0;
             UpdateBaseDome(now);
-
-            if (incoming.Count > 0)
-            {
-                var first = incoming.OrderBy(i => i.ArrivesAtMs).First();
-                var who = (string.IsNullOrEmpty(first.AttackerTag) ? string.Empty : $"[{first.AttackerTag}] ") + first.AttackerName;
-                var what = first.Kind == PvpRules.Rally ? Loc.T("pvp.alarm.rally") : first.Kind == PvpRules.Scout ? Loc.T("pvp.alarm.scout")
-                    : first.TargetKind == PvpRules.TargetTeam ? Loc.T("pvp.alarm.team") : Loc.T("pvp.alarm.attack");
-                var left = Math.Max(0, (first.ArrivesAtMs - now) / 1000f);
-                var more = incoming.Count > 1 ? $"  (+{incoming.Count - 1})" : string.Empty;
-                var shielded = shieldMs > first.ArrivesAtMs;
-                _bannerText.text = shielded
-                    ? $"🛡 {Loc.T("pvp.alarm.blocked")}: {who} — {Loc.Duration(left)}{more}"
-                    : $"⚠ {what}: {who} — {Loc.Duration(left)}{more}";
-                _bannerFill.color = shielded ? new Color(0.04f, 0.32f, 0.42f, 0.95f)
-                    : first.Kind == PvpRules.Scout ? new Color(0.55f, 0.4f, 0.05f, 0.95f) : new Color(0.55f, 0.06f, 0.05f, 0.95f);
-                _banner.gameObject.SetActive(_window == null);
-                _bannerActions.gameObject.SetActive(_window == null && _result == null);
-                _bannerActions.Find("Act2").gameObject.SetActive(View.MyAlliance != null);
-
-                // A new attack shakes the phone once.
-                foreach (var i in incoming.Where(i => _seenIncoming.Add(i.MarchId)))
-                {
-                    if (i.Kind != PvpRules.Scout)
-                    {
-#if UNITY_ANDROID || UNITY_IOS
-                        Handheld.Vibrate();
-#endif
-                        Toaster.Show($"⚠ {what}: {who}", UiKit.Danger);
-                    }
-                }
-            }
-            else
-            {
-                _banner.gameObject.SetActive(false);
-                _bannerActions.gameObject.SetActive(false);
-            }
+            TickAlarm(now, incoming, threats, blocked, shieldMs);
 
             // A mate's team reaching the base to guard it (docs/32 §2.6); what was already there at login is not news.
             foreach (var g in View.Pvp?.Garrison ?? Array.Empty<GarrisonDto>())
@@ -207,11 +159,88 @@ namespace Hadal.UI
                 TickWindow(now);
         }
 
+        /// <summary>Marches on their way to us (or landed in the last two seconds); the adb demo stands in when it runs.</summary>
+        private List<IncomingDto> Incoming(long now) =>
+            (AlarmDemo.Poll(now) ?? View.Pvp?.Incoming ?? Array.Empty<IncomingDto>()).Where(i => i.ArrivesAtMs > now - 2000).ToList();
+
+        /// <summary>
+        /// The incoming-attack alarm (docs/40 §1): the edge vignette's mood and tempo, the alert card, a low sonar ping
+        /// now and then, and on impact a flash, a short shake and a buzz. Everything eases in and returns to rest.
+        /// </summary>
+        private void TickAlarm(long now, List<IncomingDto> incoming, List<IncomingDto> threats, bool blocked, long shieldMs)
+        {
+            var dt = Mathf.Min(Time.unscaledDeltaTime, 0.1f);
+            var firstThreat = threats.Where(i => i.ArrivesAtMs > now).OrderBy(i => i.ArrivesAtMs).FirstOrDefault();
+            var threatLeft = firstThreat != null ? (firstThreat.ArrivesAtMs - now) / 1000f : 0f;
+            var mood = threats.Count > 0 ? blocked ? AlarmMood.Shielded : AlarmMood.Threat : incoming.Count > 0 ? AlarmMood.Scout : AlarmMood.None;
+            _vignette.Tick(firstThreat == null && mood == AlarmMood.Threat ? AlarmMood.None : mood, threatLeft, dt);
+
+            // Impact: an unshielded attack reaching its arrival time while we watch.
+            foreach (var i in threats)
+            {
+                if (i.ArrivesAtMs > now || shieldMs > i.ArrivesAtMs || !_landed.Add(i.MarchId))
+                    continue;
+                _vignette.Flash();
+                _banner.Jolt();
+                ScreenShake.Add(0.75f);
+                GameAudio.Play(Sfx.BattleHit);
+                Buzz();
+            }
+
+            if (incoming.Count == 0)
+            {
+                _banner.Show(false);
+                _banner.Tick(dt, 2f, true);
+                _bannerActions.gameObject.SetActive(false);
+                _mood = AlarmMood.None;
+                return;
+            }
+
+            var first = incoming.OrderBy(i => i.ArrivesAtMs).First();
+            if (!_firstSeenMs.ContainsKey(first.MarchId))
+                _firstSeenMs[first.MarchId] = now;
+            var who = (string.IsNullOrEmpty(first.AttackerTag) ? string.Empty : $"[{first.AttackerTag}] ") + first.AttackerName;
+            var what = first.Kind == PvpRules.Rally ? Loc.T("pvp.alarm.rally") : first.Kind == PvpRules.Scout ? Loc.T("pvp.alarm.scout")
+                : first.TargetKind == PvpRules.TargetTeam ? Loc.T("pvp.alarm.team") : Loc.T("pvp.alarm.attack");
+            var left = Math.Max(0, (first.ArrivesAtMs - now) / 1000f);
+            var shielded = shieldMs > first.ArrivesAtMs && first.Kind != PvpRules.Scout;
+            var cardMood = shielded ? AlarmMood.Shielded : first.Kind == PvpRules.Scout ? AlarmMood.Scout : AlarmMood.Threat;
+            var total = Math.Max(1L, first.ArrivesAtMs - _firstSeenMs[first.MarchId]);
+            var more = incoming.Count > 1 ? Loc.F("pvp.alarm.more", incoming.Count - 1) : string.Empty;
+            _banner.Set(cardMood, shielded ? Loc.T("pvp.alarm.blocked") : what, who, more, left, (first.ArrivesAtMs - now) / (float)total);
+            _banner.Show(_window == null);
+            _banner.Tick(dt, cardMood == AlarmMood.Threat ? AlarmTempo.Threat(left).Period : 3f, cardMood != AlarmMood.Threat);
+            _bannerActions.gameObject.SetActive(_window == null && _result == null && _banner.Showing);
+            _bannerActions.Find("Act2").gameObject.SetActive(View.MyAlliance != null);
+
+            // A new attack buzzes the phone once; a low sonar ping repeats, quicker as the impact nears.
+            var fresh = false;
+            foreach (var i in incoming.Where(i => _seenIncoming.Add(i.MarchId)))
+                fresh |= i.Kind != PvpRules.Scout;
+            if (fresh)
+                Buzz();
+            if (cardMood != _mood || Time.unscaledTime >= _nextPing && cardMood == AlarmMood.Threat)
+            {
+                GameAudio.Play(Sfx.SonarPing, cardMood == AlarmMood.Threat ? Mathf.Lerp(0.35f, 0.6f, AlarmTempo.Urgency(left)) : 0.3f);
+                _nextPing = Time.unscaledTime + AlarmTempo.PingInterval(left);
+            }
+
+            _mood = cardMood;
+        }
+
+        private static void Buzz()
+        {
+#if UNITY_ANDROID || UNITY_IOS
+            if (GameSettings.Vibration)
+                Handheld.Vibrate();
+#endif
+        }
+
         /// <summary>Centres the map on the base the first incoming march came from.</summary>
         private void GoToAttacker()
         {
             var now = View.ServerNowMs;
-            var first = (View.Pvp?.Incoming ?? Array.Empty<IncomingDto>()).Where(i => i.ArrivesAtMs > now - 2000).OrderBy(i => i.ArrivesAtMs).FirstOrDefault();
+            var first = Incoming(now).OrderBy(i => i.ArrivesAtMs).FirstOrDefault();
             if (first != null)
                 _actions.ShowOnMap?.Invoke(first.FromX, first.FromY);
         }

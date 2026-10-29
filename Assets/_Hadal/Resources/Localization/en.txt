@@ -1563,3 +1563,7 @@ kingdom.status.full = Full
 kingdom.status.closed = Closed
 kingdom.mine = Your kingdom
 reason.OtherKingdom = You cannot mail a player in another kingdom.
+graphics.reducealerts = Reduce alert effects
+graphics.reducealerts.hint = The attack alarm stops pulsing and shaking; the screen edges keep a steady glow.
+pvp.alarm.eta = Arrives in
+pvp.alarm.more = +{0} more

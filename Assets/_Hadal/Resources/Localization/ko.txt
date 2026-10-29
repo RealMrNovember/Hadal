@@ -1562,3 +1562,7 @@ kingdom.status.full = 가득 참
 kingdom.status.closed = 닫힘
 kingdom.mine = 내 왕국
 reason.OtherKingdom = 다른 왕국의 플레이어에게는 우편을 보낼 수 없습니다.
+graphics.reducealerts = 경보 효과 줄이기
+graphics.reducealerts.hint = 공격 경보가 깜박이거나 화면을 흔들지 않고, 화면 가장자리가 은은하게 빛납니다.
+pvp.alarm.eta = 도착까지
+pvp.alarm.more = 외 +{0}

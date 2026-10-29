@@ -1562,3 +1562,7 @@ kingdom.status.full = Заполнено
 kingdom.status.closed = Закрыто
 kingdom.mine = Ваше королевство
 reason.OtherKingdom = Нельзя отправить письмо игроку из другого королевства.
+graphics.reducealerts = Ослабить эффекты тревоги
+graphics.reducealerts.hint = Тревога атаки не мигает и не трясёт экран; края светятся ровно.
+pvp.alarm.eta = Прибытие через
+pvp.alarm.more = ещё +{0}

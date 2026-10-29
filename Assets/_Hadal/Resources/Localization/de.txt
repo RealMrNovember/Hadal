@@ -1562,3 +1562,7 @@ kingdom.status.full = Voll
 kingdom.status.closed = Geschlossen
 kingdom.mine = Dein Königreich
 reason.OtherKingdom = Spielern in einem anderen Königreich kannst du keine Post schicken.
+graphics.reducealerts = Warneffekte reduzieren
+graphics.reducealerts.hint = Der Angriffsalarm pulsiert und wackelt nicht mehr; die Bildränder leuchten ruhig.
+pvp.alarm.eta = Ankunft in
+pvp.alarm.more = +{0} weitere

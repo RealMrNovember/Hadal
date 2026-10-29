@@ -1562,3 +1562,7 @@ kingdom.status.full = 已滿
 kingdom.status.closed = 關閉
 kingdom.mine = 你的王國
 reason.OtherKingdom = 無法給其他王國的玩家發送郵件。
+graphics.reducealerts = 減弱警報特效
+graphics.reducealerts.hint = 攻擊警報不再閃爍和震屏，螢幕邊緣保持柔和的光暈。
+pvp.alarm.eta = 抵達倒數
+pvp.alarm.more = 另有 +{0}

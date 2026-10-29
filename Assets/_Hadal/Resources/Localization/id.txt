@@ -1562,3 +1562,7 @@ kingdom.status.full = Penuh
 kingdom.status.closed = Ditutup
 kingdom.mine = Kerajaanmu
 reason.OtherKingdom = Kamu tidak bisa mengirim surat ke pemain di kerajaan lain.
+graphics.reducealerts = Kurangi efek peringatan
+graphics.reducealerts.hint = Alarm serangan tidak berkedip dan bergetar; tepi layar tetap bercahaya tenang.
+pvp.alarm.eta = Tiba dalam
+pvp.alarm.more = +{0} lagi
