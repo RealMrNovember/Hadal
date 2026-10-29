@@ -38,7 +38,7 @@ Sıralama araştırmanın ana önerisine göre yapıldı (§16): önce **kaynak 
 | **2** | PvP adaleti ve savaş motoru sürümlemesi | Tamamlandı; kahraman metası ve sezon savaşı sonraki aşamalarda (docs/33). | ✅ |
 | **3** | İttifak bölgesi ve ittifak binaları | A, B aşamaları ve Şehir Listesi canlıda (docs/32). | ✅ |
 | **4** | Yeni deniz yaratıkları ve etkinlik boss'ları | Tamamlandı; boss hasar tablosu ve katkı ödülü sonra. | ✅ |
-| **5** | İlk oturum akışı ve öğretici | Oyuncu ilk 10 dakikada ne yapacağını anlamalı (§16). | ⬜ |
+| **5** | İlk oturum akışı ve öğretici | Rehber, kilit görünürlüğü ve huni ölçümü kodda; yayın ve ilk huni verisi bekleniyor (docs/34). | 🟡 |
 | **6** | Hayatta kalma döngüsü (oksijen, enerji, acil durum) | Oyunun kendine has gerilimi; temayı ekonomiye bağlar. | ⬜ |
 | **7** | Etkinlik takvimi ve ittifak etkinlikleri | Günlük geri dönüş ve ortak hedef (§6.2, docs/29 E2–E6). | ⬜ |
 | **8** | Asenkron arena ve düello | Kısa oturumlu, adil PvP (§5.1, §13.1). | ⬜ |
@@ -140,13 +140,16 @@ Ayrıntılar aşağıda, aynı sırayla.
 
 ---
 
-## 5. İlk oturum akışı ve öğretici ⬜
+## 5. İlk oturum akışı ve öğretici 🟡
 
-**Hedef:** Araştırma §16'nın ilk sorusu: "Oyuncu ilk 10 dakikada ne yaptığını anlıyor mu?"
+**Hedef:** Araştırma §16'nın ilk sorusu: "Oyuncu ilk 10 dakikada ne yaptığını anlıyor mu?" Ayrıntı: `docs/34_First_Session_Guide.md`.
 
-- ⬜ İlk 15–20 dakikalık rehberli akış: reaktör, ilk üretim, ilk kahraman, ilk toplama seferi, ilk canavar, ilk ödül
-- ⬜ Görev zincirinin bu akışa bağlanması. Kilitli özelliklerin ne zaman açılacağının görünmesi.
-- ⬜ İlk gün hedefi: ittifaka katılma ve bir yardım alma
+- ✅ 15 adımlık sunucu otoriteli rehber zinciri (görev sistemine bağlı): reaktör, ilk üretim, ilk kahraman, ilk canavar, ilk ödül, ilk toplama seferi; ödüller doğrudan cüzdana, hiçbir adım zamanlayıcıda takılmaz. Gerçek bakiyeyle uçtan uca test: 12. adım (ilk toplama) 20 dakikanın altında.
+- ✅ Rehber arayüzü: Komutan Rourke baloncuğu, dokunulacak düğmede nabız halkası, haritada hedef oku; her zaman kapatılabilir, sunucunun adımından devam eder.
+- ✅ Kilit görünürlüğü: Araştırma ve PvP düğmelerinde "Sv.X" rozeti, görev panelinde "Yakında açılacaklar".
+- ✅ İlk gün hedefi: ittifaka katılma, yardım isteme ve yardım alma (ödüllü).
+- ✅ Huni ölçümü: `hadal.onboarding_events` + Overseer "İlk Oturum Hunisi" (adım başına ulaşan, ortanca süre, ilk 10 dakikada takılan oranı).
+- ⬜ Yayın (sunucu + 0.9.3) ve ilk huni verisiyle adım ödüllerinin ayarı
 
 **Çıkış kriteri:** Yeni hesap yardımsız ilk kilometre taşına ulaşır. Huniden ilk 10 dakikada terk oranı ölçülür.
 
