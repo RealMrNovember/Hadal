@@ -1273,3 +1273,26 @@ reason.OtherLand = 他の同盟の領地、またはその近くです。
 reason.LandTooFar = ビーコンは領地の外2マスまでに設置できます。
 reason.CityTooFar = 都市が領地に隣接していません。
 reason.TooManyCities = これ以上の都市は保持できません。
+
+# Alliance buildings (docs/32 §2.3)
+bld.place = 同盟施設
+bld.relay = 圧力リレー
+bld.rig = 同盟掘削リグ
+bld.cannon = 海流砲
+bld.relay.desc = 領地内のメンバー基地の防御+{0}%。
+bld.rig.desc = 領地内の採集速度+{0}%。
+bld.cannon.desc = 領地内の基地から出撃する部隊の攻撃+{0}%。
+bld.unlock = 解放: メンバー{0}人、戦力{1}
+bld.built = 建設済み
+bld.build = 建設
+bld.build.info = 部隊が施設へ向かい兵で建設し、完成後は守備します。
+bld.guard = 守備
+bld.work = 建設: {0}%
+bld.durability = 耐久: {0}/{1}
+bld.damaged = 損傷: 修復中はボーナスなし。
+bld.guards = 守備部隊: {0}
+bld.remove = 施設を撤去
+reason.BuildingLocked = この施設にはメンバーと戦力がもっと必要です。
+reason.AlreadyBuilt = 同盟はこの施設をすでに持っています。
+reason.NotBuilt = 施設はまだ完成していません。
+reason.UnknownStructure = 施設が見つかりません。

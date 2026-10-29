@@ -1273,3 +1273,26 @@ reason.OtherLand = 此處為其他聯盟領地或距離過近。
 reason.LandTooFar = 信標最多豎立在領地外2格內。
 reason.CityTooFar = 該城市不與你們的領地相鄰。
 reason.TooManyCities = 聯盟無法佔領更多城市。
+
+# Alliance buildings (docs/32 §2.3)
+bld.place = 聯盟建築
+bld.relay = 壓力中繼站
+bld.rig = 聯盟鑽井
+bld.cannon = 洋流炮
+bld.relay.desc = 領地內成員基地防禦+{0}%。
+bld.rig.desc = 領地內採集速度+{0}%。
+bld.cannon.desc = 從領地內基地出發的隊伍攻擊+{0}%。
+bld.unlock = 解鎖：{0}名成員，{1}戰力
+bld.built = 已建造
+bld.build = 建造
+bld.build.info = 隊伍前往建築用兵力建造，完成後駐守。
+bld.guard = 駐守
+bld.work = 建造：{0}%
+bld.durability = 耐久：{0}/{1}
+bld.damaged = 受損：修復期間無加成。
+bld.guards = 駐守隊伍：{0}
+bld.remove = 拆除建築
+reason.BuildingLocked = 建造該建築需要更多成員和戰力。
+reason.AlreadyBuilt = 聯盟已擁有該建築。
+reason.NotBuilt = 建築尚未完工。
+reason.UnknownStructure = 未找到建築。

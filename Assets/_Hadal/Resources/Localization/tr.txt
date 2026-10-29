@@ -1274,3 +1274,26 @@ reason.OtherLand = Burası başka bir ittifakın toprağı ya da çok yakını.
 reason.LandTooFar = Şamandıra ittifak toprağının en fazla 2 kare dışına dikilebilir.
 reason.CityTooFar = Şehir ittifak toprağına komşu değil.
 reason.TooManyCities = İttifak daha fazla şehir tutamaz; üye sayısını artırın.
+
+# Alliance buildings (docs/32 §2.3)
+bld.place = İttifak Yapısı Kur
+bld.relay = Basınç Rölesi
+bld.rig = İttifak Sondajı
+bld.cannon = Akıntı Topu
+bld.relay.desc = Topraktaki üyelerin üslerine +%{0} savunma.
+bld.rig.desc = Toprakta toplama hızı +%{0}.
+bld.cannon.desc = Topraktaki üslerden çıkan takımlara +%{0} saldırı.
+bld.unlock = Açılır: {0} üye, {1} güç
+bld.built = Kurulu
+bld.build = İnşa Et
+bld.build.info = Takım yapıya gider, askerleri onu inşa eder; bitince orada nöbet tutar.
+bld.guard = Nöbet Tut
+bld.work = İnşaat: %{0}
+bld.durability = Dayanıklılık: {0}/{1}
+bld.damaged = Hasarlı: bonus vermiyor, zamanla onarılıyor.
+bld.guards = Nöbetteki takımlar: {0}
+bld.remove = Yapıyı Kaldır
+reason.BuildingLocked = Bu yapı için ittifakın daha fazla üyeye ve güce ihtiyacı var.
+reason.AlreadyBuilt = İttifakın bu yapıya zaten sahip.
+reason.NotBuilt = Yapı henüz inşa edilmedi.
+reason.UnknownStructure = Yapı bulunamadı.

@@ -1273,3 +1273,26 @@ reason.OtherLand = Dat is land van een andere alliantie, of te dichtbij.
 reason.LandTooFar = Een baken staat hooguit 2 vakjes buiten jullie land.
 reason.CityTooFar = De stad grenst niet aan jullie land.
 reason.TooManyCities = Je alliantie kan geen steden meer houden.
+
+# Alliance buildings (docs/32 §2.3)
+bld.place = Alliantiegebouw
+bld.relay = Drukrelais
+bld.rig = Alliantieboortoren
+bld.cannon = Stromingskanon
+bld.relay.desc = +{0}% verdediging voor basissen van leden op het land.
+bld.rig.desc = +{0}% verzamelsnelheid op het land.
+bld.cannon.desc = +{0}% aanval voor teams uit basissen op het land.
+bld.unlock = Vrij bij {0} leden, {1} kracht
+bld.built = Gebouwd
+bld.build = Bouwen
+bld.build.info = Het team bouwt het gebouw met zijn troepen en bewaakt het daarna.
+bld.guard = Bewaken
+bld.work = Bouw: {0}%
+bld.durability = Duurzaamheid: {0}/{1}
+bld.damaged = Beschadigd: geen bonus tijdens herstel.
+bld.guards = Teams op wacht: {0}
+bld.remove = Gebouw verwijderen
+reason.BuildingLocked = Je alliantie heeft meer leden en kracht nodig.
+reason.AlreadyBuilt = Je alliantie heeft dit gebouw al.
+reason.NotBuilt = Het gebouw is nog niet af.
+reason.UnknownStructure = Bouwwerk niet gevonden.

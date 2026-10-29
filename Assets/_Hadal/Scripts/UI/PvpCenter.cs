@@ -351,7 +351,10 @@ namespace Hadal.UI
         /// <summary>One line for a report: what happened, against whom, and how it ended.</summary>
         private static string ReportLine(PvpReportDto r)
         {
-            var who = r.StrongholdId.Length > 0 ? $"{Loc.T("pvp.stronghold")} {Loc.F("base.level", r.StrongholdLevel)}"
+            // A city ("k12"), an alliance building ("relay", "rig", "cannon") or a beacon.
+            var place = AllianceLandRules.IsBuilding(r.StrongholdId) ? Loc.T("bld." + r.StrongholdId)
+                : r.StrongholdId == AllianceLandRules.Beacon ? Loc.T("land.beacon") : Loc.T("city.name");
+            var who = r.StrongholdId.Length > 0 ? $"{place} {Loc.F("base.level", r.StrongholdLevel)}"
                 : (string.IsNullOrEmpty(r.OpponentTag) ? string.Empty : $"[{r.OpponentTag}] ") + r.OpponentName;
             var kind = Loc.T("pvp.kind." + r.Kind);
             var outcome = Loc.T("pvp.outcome." + r.Outcome);

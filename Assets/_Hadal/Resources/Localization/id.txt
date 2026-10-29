@@ -1273,3 +1273,26 @@ reason.OtherLand = Itu wilayah aliansi lain atau terlalu dekat.
 reason.LandTooFar = Suar maksimal 2 petak di luar wilayahmu.
 reason.CityTooFar = Kota tidak berbatasan dengan wilayahmu.
 reason.TooManyCities = Aliansimu tak bisa memegang kota lagi.
+
+# Alliance buildings (docs/32 §2.3)
+bld.place = Bangunan Aliansi
+bld.relay = Relai Tekanan
+bld.rig = Pengebor Aliansi
+bld.cannon = Meriam Arus
+bld.relay.desc = +{0}% pertahanan markas anggota di wilayah.
+bld.rig.desc = +{0}% kecepatan mengumpulkan di wilayah.
+bld.cannon.desc = +{0}% serangan untuk tim dari markas di wilayah.
+bld.unlock = Terbuka: {0} anggota, {1} kekuatan
+bld.built = Sudah ada
+bld.build = Bangun
+bld.build.info = Tim membangun dengan pasukannya, lalu berjaga di sana.
+bld.guard = Jaga
+bld.work = Pembangunan: {0}%
+bld.durability = Ketahanan: {0}/{1}
+bld.damaged = Rusak: tanpa bonus selama diperbaiki.
+bld.guards = Tim berjaga: {0}
+bld.remove = Hapus Bangunan
+reason.BuildingLocked = Aliansimu butuh lebih banyak anggota dan kekuatan.
+reason.AlreadyBuilt = Aliansimu sudah punya bangunan ini.
+reason.NotBuilt = Bangunan belum selesai.
+reason.UnknownStructure = Bangunan tidak ditemukan.

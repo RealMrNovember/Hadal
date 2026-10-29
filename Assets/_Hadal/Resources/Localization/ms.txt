@@ -1273,3 +1273,26 @@ reason.OtherLand = Itu wilayah pakatan lain atau terlalu dekat.
 reason.LandTooFar = Suar paling jauh 2 petak di luar wilayah anda.
 reason.CityTooFar = Bandar tidak bersempadan dengan wilayah anda.
 reason.TooManyCities = Pakatan anda tidak boleh memegang lebih bandar.
+
+# Alliance buildings (docs/32 §2.3)
+bld.place = Bangunan Pakatan
+bld.relay = Geganti Tekanan
+bld.rig = Pelantar Pakatan
+bld.cannon = Meriam Arus
+bld.relay.desc = +{0}% pertahanan pangkalan ahli di wilayah.
+bld.rig.desc = +{0}% kelajuan mengumpul di wilayah.
+bld.cannon.desc = +{0}% serangan untuk pasukan dari pangkalan di wilayah.
+bld.unlock = Dibuka: {0} ahli, {1} kuasa
+bld.built = Sudah dibina
+bld.build = Bina
+bld.build.info = Pasukan membina dengan tenteranya, kemudian berkawal di situ.
+bld.guard = Kawal
+bld.work = Pembinaan: {0}%
+bld.durability = Ketahanan: {0}/{1}
+bld.damaged = Rosak: tiada bonus semasa dibaiki.
+bld.guards = Pasukan berkawal: {0}
+bld.remove = Buang Bangunan
+reason.BuildingLocked = Pakatan anda perlukan lebih ahli dan kuasa.
+reason.AlreadyBuilt = Pakatan anda sudah ada bangunan ini.
+reason.NotBuilt = Bangunan belum siap.
+reason.UnknownStructure = Struktur tidak ditemui.

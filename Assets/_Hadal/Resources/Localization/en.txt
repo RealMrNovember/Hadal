@@ -1274,3 +1274,26 @@ reason.OtherLand = That is another alliance's land, or too close to it.
 reason.LandTooFar = A beacon goes up at most 2 tiles outside your land.
 reason.CityTooFar = The city does not neighbour your land.
 reason.TooManyCities = Your alliance cannot hold more cities; grow the member count.
+
+# Alliance buildings (docs/32 §2.3)
+bld.place = Alliance Building
+bld.relay = Pressure Relay
+bld.rig = Alliance Rig
+bld.cannon = Current Cannon
+bld.relay.desc = +{0}% defence for member bases on the land.
+bld.rig.desc = +{0}% gathering speed on the land.
+bld.cannon.desc = +{0}% attack for teams leaving bases on the land.
+bld.unlock = Unlocks at {0} members, {1} power
+bld.built = Built
+bld.build = Build
+bld.build.info = The team goes to the building and its troops build it; then it stands guard.
+bld.guard = Guard
+bld.work = Construction: {0}%
+bld.durability = Durability: {0}/{1}
+bld.damaged = Damaged: no bonus while it mends.
+bld.guards = Teams on guard: {0}
+bld.remove = Remove Building
+reason.BuildingLocked = Your alliance needs more members and power for this building.
+reason.AlreadyBuilt = Your alliance already has this building.
+reason.NotBuilt = The building is not finished yet.
+reason.UnknownStructure = Structure not found.

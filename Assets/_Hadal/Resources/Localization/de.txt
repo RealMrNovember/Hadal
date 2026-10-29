@@ -1273,3 +1273,26 @@ reason.OtherLand = Das ist Land einer anderen Allianz oder zu nah daran.
 reason.LandTooFar = Eine Signalboje steht höchstens 2 Felder außerhalb eures Landes.
 reason.CityTooFar = Die Stadt grenzt nicht an euer Land.
 reason.TooManyCities = Eure Allianz kann keine weiteren Städte halten.
+
+# Alliance buildings (docs/32 §2.3)
+bld.place = Allianzgebäude
+bld.relay = Druckrelais
+bld.rig = Allianzbohrturm
+bld.cannon = Strömungskanone
+bld.relay.desc = +{0} % Verteidigung für Mitgliederbasen im Land.
+bld.rig.desc = +{0} % Sammelgeschwindigkeit im Land.
+bld.cannon.desc = +{0} % Angriff für Trupps aus Basen im Land.
+bld.unlock = Ab {0} Mitgliedern, {1} Stärke
+bld.built = Errichtet
+bld.build = Bauen
+bld.build.info = Der Trupp baut mit seinen Truppen am Gebäude und bewacht es danach.
+bld.guard = Bewachen
+bld.work = Bau: {0} %
+bld.durability = Haltbarkeit: {0}/{1}
+bld.damaged = Beschädigt: kein Bonus, während es repariert wird.
+bld.guards = Wachen: {0}
+bld.remove = Gebäude abreißen
+reason.BuildingLocked = Für dieses Gebäude braucht eure Allianz mehr Mitglieder und Stärke.
+reason.AlreadyBuilt = Eure Allianz hat dieses Gebäude schon.
+reason.NotBuilt = Das Gebäude ist noch nicht fertig.
+reason.UnknownStructure = Bauwerk nicht gefunden.

@@ -1273,3 +1273,26 @@ reason.OtherLand = Đây là lãnh thổ liên minh khác hoặc quá gần.
 reason.LandTooFar = Phao chỉ dựng tối đa 2 ô ngoài lãnh thổ.
 reason.CityTooFar = Thành không giáp lãnh thổ của bạn.
 reason.TooManyCities = Liên minh không thể giữ thêm thành.
+
+# Alliance buildings (docs/32 §2.3)
+bld.place = Công trình liên minh
+bld.relay = Trạm áp suất
+bld.rig = Giàn khoan liên minh
+bld.cannon = Pháo dòng chảy
+bld.relay.desc = +{0}% phòng thủ cho căn cứ thành viên trong lãnh thổ.
+bld.rig.desc = +{0}% tốc độ thu thập trong lãnh thổ.
+bld.cannon.desc = +{0}% tấn công cho đội xuất phát từ căn cứ trong lãnh thổ.
+bld.unlock = Mở khi có {0} thành viên, {1} lực lượng
+bld.built = Đã xây
+bld.build = Xây dựng
+bld.build.info = Đội đến xây bằng binh lính, xong thì canh gác ở đó.
+bld.guard = Canh gác
+bld.work = Xây dựng: {0}%
+bld.durability = Độ bền: {0}/{1}
+bld.damaged = Hư hại: không có thưởng khi đang sửa.
+bld.guards = Đội canh gác: {0}
+bld.remove = Gỡ công trình
+reason.BuildingLocked = Liên minh cần thêm thành viên và lực lượng.
+reason.AlreadyBuilt = Liên minh đã có công trình này.
+reason.NotBuilt = Công trình chưa xây xong.
+reason.UnknownStructure = Không tìm thấy công trình.

@@ -1273,3 +1273,26 @@ reason.OtherLand = Это земля другого альянса или сли
 reason.LandTooFar = Буй ставится не дальше 2 клеток от вашей земли.
 reason.CityTooFar = Город не граничит с вашей землёй.
 reason.TooManyCities = Альянс не может удерживать больше городов.
+
+# Alliance buildings (docs/32 §2.3)
+bld.place = Здание альянса
+bld.relay = Реле давления
+bld.rig = Буровая альянса
+bld.cannon = Течейная пушка
+bld.relay.desc = +{0}% защиты базам участников на земле.
+bld.rig.desc = +{0}% скорости сбора на земле.
+bld.cannon.desc = +{0}% атаки отрядам с баз на земле.
+bld.unlock = Откроется: {0} участников, {1} силы
+bld.built = Построено
+bld.build = Строить
+bld.build.info = Отряд строит здание своими войсками, затем охраняет его.
+bld.guard = Охранять
+bld.work = Стройка: {0}%
+bld.durability = Прочность: {0}/{1}
+bld.damaged = Повреждено: без бонуса, пока чинится.
+bld.guards = Отрядов на страже: {0}
+bld.remove = Снести здание
+reason.BuildingLocked = Альянсу нужно больше участников и силы.
+reason.AlreadyBuilt = У альянса уже есть это здание.
+reason.NotBuilt = Здание ещё не достроено.
+reason.UnknownStructure = Сооружение не найдено.

@@ -1273,3 +1273,26 @@ reason.OtherLand = C'est la terre d'une autre alliance, ou trop près.
 reason.LandTooFar = Une balise se pose à 2 cases au plus de vos terres.
 reason.CityTooFar = La ville ne touche pas vos terres.
 reason.TooManyCities = Ton alliance ne peut pas tenir plus de villes.
+
+# Alliance buildings (docs/32 §2.3)
+bld.place = Bâtiment d'alliance
+bld.relay = Relais de pression
+bld.rig = Foreuse d'alliance
+bld.cannon = Canon à courant
+bld.relay.desc = +{0} % défense pour les bases des membres sur les terres.
+bld.rig.desc = +{0} % vitesse de collecte sur les terres.
+bld.cannon.desc = +{0} % attaque pour les équipes partant des bases des terres.
+bld.unlock = Débloqué à {0} membres, {1} puissance
+bld.built = Construit
+bld.build = Construire
+bld.build.info = L'équipe construit le bâtiment avec ses troupes, puis le garde.
+bld.guard = Garder
+bld.work = Construction : {0} %
+bld.durability = Solidité : {0}/{1}
+bld.damaged = Endommagé : aucun bonus pendant la réparation.
+bld.guards = Équipes de garde : {0}
+bld.remove = Retirer le bâtiment
+reason.BuildingLocked = Ton alliance a besoin de plus de membres et de puissance.
+reason.AlreadyBuilt = Ton alliance a déjà ce bâtiment.
+reason.NotBuilt = Le bâtiment n'est pas encore terminé.
+reason.UnknownStructure = Structure introuvable.

@@ -1273,3 +1273,26 @@ reason.OtherLand = เป็นดินแดนของพันธมิต�
 reason.LandTooFar = ตั้งทุ่นได้ห่างจากดินแดนไม่เกิน 2 ช่อง
 reason.CityTooFar = เมืองไม่ติดกับดินแดนของคุณ
 reason.TooManyCities = พันธมิตรถือครองเมืองเพิ่มไม่ได้
+
+# Alliance buildings (docs/32 §2.3)
+bld.place = อาคารพันธมิตร
+bld.relay = รีเลย์แรงดัน
+bld.rig = แท่นขุดพันธมิตร
+bld.cannon = ปืนใหญ่กระแสน้ำ
+bld.relay.desc = ป้องกัน +{0}% ให้ฐานสมาชิกในดินแดน
+bld.rig.desc = ความเร็วเก็บทรัพยากรในดินแดน +{0}%
+bld.cannon.desc = โจมตี +{0}% ให้ทีมที่ออกจากฐานในดินแดน
+bld.unlock = ปลดล็อก: สมาชิก {0} คน พลัง {1}
+bld.built = สร้างแล้ว
+bld.build = สร้าง
+bld.build.info = ทีมไปสร้างอาคารด้วยกำลังพล เสร็จแล้วจะเฝ้าที่นั่น
+bld.guard = เฝ้า
+bld.work = การก่อสร้าง: {0}%
+bld.durability = ความทนทาน: {0}/{1}
+bld.damaged = เสียหาย: ไม่มีโบนัสระหว่างซ่อม
+bld.guards = ทีมที่เฝ้า: {0}
+bld.remove = รื้ออาคาร
+reason.BuildingLocked = พันธมิตรต้องมีสมาชิกและพลังมากขึ้น
+reason.AlreadyBuilt = พันธมิตรมีอาคารนี้แล้ว
+reason.NotBuilt = อาคารยังสร้างไม่เสร็จ
+reason.UnknownStructure = ไม่พบสิ่งก่อสร้าง

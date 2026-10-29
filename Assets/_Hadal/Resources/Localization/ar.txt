@@ -1273,3 +1273,26 @@ reason.OtherLand = هذه أرض تحالف آخر أو قريبة جدًا من
 reason.LandTooFar = تُنصب المنارة على بعد مربعين كحد أقصى من أرضكم.
 reason.CityTooFar = المدينة لا تجاور أرضكم.
 reason.TooManyCities = لا يمكن لتحالفك امتلاك مزيد من المدن.
+
+# Alliance buildings (docs/32 §2.3)
+bld.place = مبنى التحالف
+bld.relay = مرحّل الضغط
+bld.rig = منصة حفر التحالف
+bld.cannon = مدفع التيار
+bld.relay.desc = +{0}% دفاع لقواعد الأعضاء على الأرض.
+bld.rig.desc = +{0}% سرعة الجمع على الأرض.
+bld.cannon.desc = +{0}% هجوم للفرق الخارجة من قواعد على الأرض.
+bld.unlock = يُفتح عند {0} عضوًا و{1} قوة
+bld.built = مبني
+bld.build = ابنِ
+bld.build.info = يبني الفريق المبنى بجنوده ثم يحرسه.
+bld.guard = احرس
+bld.work = البناء: {0}%
+bld.durability = المتانة: {0}/{1}
+bld.damaged = متضرر: لا مكافأة أثناء الإصلاح.
+bld.guards = فرق الحراسة: {0}
+bld.remove = أزل المبنى
+reason.BuildingLocked = يحتاج تحالفك إلى مزيد من الأعضاء والقوة.
+reason.AlreadyBuilt = لدى تحالفك هذا المبنى بالفعل.
+reason.NotBuilt = المبنى لم يكتمل بعد.
+reason.UnknownStructure = لم يُعثر على المنشأة.

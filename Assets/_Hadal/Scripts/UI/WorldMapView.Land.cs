@@ -54,6 +54,7 @@ namespace Hadal.UI
             items.Add(new TargetMenu.Item("side_alliance", Loc.F("land.beacon.place", AllianceLandRules.BeaconCost(t.Beacons).ToString("N0")),
                 () => LandCommand(AllianceLandRules.PlaceBeacon, x: x, y: y), rank >= AlliancePermissions.Officer && t.Beacons < t.BeaconsAllowed));
             items.Add(new TargetMenu.Item("nav_world", Loc.T("land.moveHub"), () => LandCommand(AllianceLandRules.MoveHub, x: x, y: y), rank >= AlliancePermissions.Leader));
+            AddBuildingItem(items, x, y);
         }
 
         /// <summary>Hub and beacon flags: the hub always, beacons when zoomed in or our own.</summary>
@@ -77,10 +78,13 @@ namespace Hadal.UI
                 plate.gameObject.SetActive(visible && onScreen && (hub || ours || !Strategic));
                 plate.anchoredPosition = top;
                 var color = s.Color >= 0 ? AllianceColor(s.Color, 1f) : Color.white;
-                plate.Find("Flag").GetComponent<Image>().color = s.Cut ? new Color(0.5f, 0.5f, 0.5f, 0.9f) : color;
+                var flag = plate.Find("Flag").GetComponent<Image>();
+                flag.sprite = Hud.HudIcons.Get(BuildingIcon(s.Kind));
+                flag.color = s.Cut || s.UnderConstruction || (AllianceLandRules.IsBuilding(s.Kind) && s.Durability <= 0) ? new Color(0.5f, 0.5f, 0.5f, 0.9f) : color;
                 var label = plate.Find("Name").GetComponent<Text>();
                 var tag = string.IsNullOrEmpty(s.AllianceTag) ? string.Empty : $"[{s.AllianceTag}] ";
                 label.text = hub ? $"{tag}{Loc.T("land.hub")} {Loc.F("base.level", s.Level)}"
+                    : AllianceLandRules.IsBuilding(s.Kind) ? $"{tag}{Loc.T("bld." + s.Kind)} {Loc.F("base.level", s.Level)}"
                     : s.ReadyAtMs > now ? $"{tag}{Loc.Duration(Math.Max(0, (s.ReadyAtMs - now) / 1000f))}" : tag.Trim();
                 label.gameObject.SetActive(hub || !Strategic);
                 plate.localScale = Vector3.one * (hub ? 1.25f : 0.85f);
@@ -121,7 +125,7 @@ namespace Hadal.UI
             var ours = t != null && !string.IsNullOrEmpty(t.MyAllianceId) && s.AllianceId == t.MyAllianceId;
             var hub = s.Kind == AllianceLandRules.Hub;
             var tag = string.IsNullOrEmpty(s.AllianceTag) ? string.Empty : $"[{s.AllianceTag}] ";
-            var title = tag + (hub ? Loc.T("land.hub") : Loc.T("land.beacon"));
+            var title = tag + (hub ? Loc.T("land.hub") : AllianceLandRules.IsBuilding(s.Kind) ? Loc.T("bld." + s.Kind) : Loc.T("land.beacon"));
             var lines = new List<string> { $"{Loc.F("base.level", s.Level)}   {Loc.F("land.radius", s.Radius)}   {Loc.F("world.coords", s.X, s.Y)}" };
             if (hub && s.PointsNext > 0)
                 lines.Add(Loc.F("land.points", s.Points.ToString("N0"), s.PointsNext.ToString("N0")));
@@ -131,22 +135,25 @@ namespace Hadal.UI
                 lines.Add($"<color=#FFB347>{Loc.T("land.cut")}</color>");
             if (ours && hub && t != null)
                 lines.Add(Loc.F("land.beacons", t.Beacons, t.BeaconsAllowed));
+            if (AllianceLandRules.IsBuilding(s.Kind) && s.PointsNext > 0)
+                lines.Add(Loc.F("land.points", s.Points.ToString("N0"), s.PointsNext.ToString("N0")));
 
             var items = new List<TargetMenu.Item>();
             var target = s;
             if (ours && hub)
                 items.Add(new TargetMenu.Item("res_titanium", Loc.T("land.donate"), () => OpenDonate(target), s.PointsNext > 0));
             if (ours && !hub)
-                items.Add(new TargetMenu.Item("left_home", Loc.T("land.remove"), () => LandCommand(AllianceLandRules.Remove, target.Id),
+                items.Add(new TargetMenu.Item("left_home", Loc.T(AllianceLandRules.IsBuilding(target.Kind) ? "bld.remove" : "land.remove"), () => LandCommand(AllianceLandRules.Remove, target.Id),
                     View.MyRank() >= AlliancePermissions.Officer));
             items.Add(new TargetMenu.Item("chat", Loc.T("share.title"), () => ShareLocation?.Invoke(target.X, target.Y, ours ? "base" : "enemy", title)));
+            AddBuildingMenu(s, ours, lines, items, title);
             GlideTo(s.X, s.Y);
             var x = s.X;
             var y = s.Y;
             TargetMenu.Show(() => IsOpen ? _camera : null, () => TileToWorld(x, y) + Vector3.up * 2f, title, string.Join("\n", lines), items);
         }
 
-        /// <summary>Donating to the hub: three resources, three amounts each.</summary>
+        /// <summary>Donating to the hub or a building: three resources, three amounts each.</summary>
         private void OpenDonate(StructureDto hub)
         {
             TargetMenu.Hide();

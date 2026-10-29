@@ -1273,3 +1273,26 @@ reason.OtherLand = È territorio di un'altra alleanza o troppo vicino.
 reason.LandTooFar = Un faro va al massimo 2 caselle fuori dal territorio.
 reason.CityTooFar = La città non confina con il territorio.
 reason.TooManyCities = L'alleanza non può tenere altre città.
+
+# Alliance buildings (docs/32 §2.3)
+bld.place = Edificio d'alleanza
+bld.relay = Relè di pressione
+bld.rig = Trivella d'alleanza
+bld.cannon = Cannone a corrente
+bld.relay.desc = +{0}% difesa per le basi dei membri nel territorio.
+bld.rig.desc = +{0}% velocità di raccolta nel territorio.
+bld.cannon.desc = +{0}% attacco per le squadre che partono dalle basi nel territorio.
+bld.unlock = Si sblocca con {0} membri, {1} potenza
+bld.built = Costruito
+bld.build = Costruisci
+bld.build.info = La squadra costruisce l'edificio con le truppe, poi lo sorveglia.
+bld.guard = Difendi
+bld.work = Costruzione: {0}%
+bld.durability = Resistenza: {0}/{1}
+bld.damaged = Danneggiato: nessun bonus finché si ripara.
+bld.guards = Squadre di guardia: {0}
+bld.remove = Rimuovi edificio
+reason.BuildingLocked = L'alleanza ha bisogno di più membri e potenza.
+reason.AlreadyBuilt = L'alleanza ha già questo edificio.
+reason.NotBuilt = L'edificio non è ancora finito.
+reason.UnknownStructure = Struttura non trovata.
