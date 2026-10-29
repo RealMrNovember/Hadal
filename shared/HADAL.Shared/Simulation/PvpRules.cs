@@ -107,12 +107,47 @@ namespace HADAL.Shared.Simulation
             return result;
         }
 
-        /// <summary>Teams outside a base lose half their fallen as dead, half come home wounded.</summary>
-        public static (long Dead, long Wounded) SplitOutside(long lost)
+        /// <summary>Attackers always lose this share of their fallen as dead (docs/33 §2).</summary>
+        public const double AttackerDeadShare = 0.25;
+
+        /// <summary>
+        /// Fallen troops become wounded while the owner's Med Bay has <paramref name="room"/>, the rest die; an attacking team
+        /// loses <see cref="AttackerDeadShare"/> of them as dead first (docs/33 §2).
+        /// </summary>
+        public static (long Dead, long Wounded) Split(long lost, long room, bool attacking)
         {
-            var wounded = lost / 2;
+            if (lost <= 0)
+                return (0, 0);
+            var mustDie = attacking ? (long)Math.Ceiling(lost * AttackerDeadShare) : 0;
+            var wounded = Math.Min(Math.Max(0, room), lost - mustDie);
             return (lost - wounded, wounded);
         }
+
+        // --- Fairness (docs/33 §2) ----------------------------------------------------------------
+
+        /// <summary>A base attack is refused when the attacker is more than this many times stronger.</summary>
+        public const double PowerBand = 4;
+
+        public static bool OutOfBand(long attackerPower, long targetPower) => targetPower > 0 && attackerPower > PowerBand * targetPower;
+
+        public static readonly TimeSpan FatigueWindow = TimeSpan.FromHours(2);
+
+        /// <summary>Plunder share by earlier wins of the same attacker on the same base within the window; 0 = refused.</summary>
+        public static double FatigueShare(int earlierWins) => earlierWins switch
+        {
+            0 => 1,
+            1 => 0.5,
+            2 => 0.25,
+            _ => 0
+        };
+
+        public static readonly TimeSpan RecoveryWindow = TimeSpan.FromHours(6);
+        public const int RecoveryAfterDefeats = 3;
+        public static readonly TimeSpan RecoveryShield = TimeSpan.FromHours(2);
+        public static readonly TimeSpan RecoveryCooldown = TimeSpan.FromHours(24);
+
+        /// <summary>Every team in a rally brings at least this many troops.</summary>
+        public const long MinRallyTroops = 100;
 
         /// <summary>
         /// Shares a side's losses by "type:tier" among its contributors in proportion to what each brought, rounding so

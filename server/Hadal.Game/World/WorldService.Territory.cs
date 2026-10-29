@@ -225,7 +225,7 @@ ON CONFLICT (region) DO UPDATE SET alliance_id = EXCLUDED.alliance_id, hub = EXC
             var troops = Catalog.Troops;
             var garrison = TerritoryRules.Garrison(region.Level, share);
             var attacker = Side(teams.Select(t => t.Troops), teams[0].HeroPowers);
-            var result = CombatRules.Resolve(troops, attacker, garrison);
+            var result = CombatRules.Resolve(troops, attacker, garrison, seed: CombatRules.SeedOf(r.Id));
             var losses = PvpRules.ShareLosses(teams.Select(t => (IReadOnlyDictionary<string, long>)t.Troops).ToList(), result.AttackerLost);
 
             var start = garrison.Troops.ToDictionary(p => p.Key, p => (long)Math.Round(p.Value), StringComparer.Ordinal);
@@ -264,7 +264,8 @@ ON CONFLICT (region) DO UPDATE SET alliance_id = EXCLUDED.alliance_id, hub = EXC
                     Outcome = result.AttackerWon ? "won" : "lost", X = r.ToX, Y = r.ToY, Rounds = result.Rounds,
                     Attacker = Stacks(attStart, result.AttackerLost), Defender = Stacks(start, result.DefenderLost),
                     AttackerPower = TroopRules.Power(troops, attStart), DefenderPower = TroopRules.Power(troops, start),
-                    Dead = dead, Wounded = wounded, StrongholdId = region.Id, StrongholdLevel = region.Level, Captured = captured
+                    Dead = dead, Wounded = wounded, StrongholdId = region.Id, StrongholdLevel = region.Level, Captured = captured,
+                    Contribution = Contribution(team.Troops, attStart)
                 }, string.Empty, now);
             }
 

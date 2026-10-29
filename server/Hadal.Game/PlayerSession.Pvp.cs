@@ -35,7 +35,11 @@ namespace Hadal.Game
     /// <summary>A PvP march as the world asks a session to start it.</summary>
     public sealed record PvpLaunch(
         string Mode, string TargetKind, string TargetId, string TargetOwnerId, string TargetName, int HomeX, int HomeY, int ToX, int ToY,
-        IReadOnlyList<string> HeroIds, string RallyId = "", bool Leader = false, DateTimeOffset? DepartsAt = null, int ViaX = 0, int ViaY = 0);
+        IReadOnlyList<string> HeroIds, string RallyId = "", bool Leader = false, DateTimeOffset? DepartsAt = null, int ViaX = 0, int ViaY = 0)
+    {
+        /// <summary>Rallies: every team brings at least this many troops (docs/33 §3).</summary>
+        public long MinTroops => Mode == PvpRules.Rally ? PvpRules.MinRallyTroops : 1;
+    }
 
     /// <summary>A team as the world reads it for a battle.</summary>
     public sealed record PvpTeam(string MarchId, string OwnerId, Dictionary<string, long> Troops, List<int> HeroPowers, int Speed, int X, int Y,
@@ -98,6 +102,18 @@ namespace Hadal.Game
             Payload = _serializer.Serialize(new WarLogDto { Reports = _state.WarLog.ToArray() })
         };
 
+        /// <summary>The recovery shield after repeated defeats (docs/33 §2): extends the shield to at least <paramref name="until"/>.</summary>
+        internal void GrantShield(DateTimeOffset until, DateTimeOffset now)
+        {
+            lock (_gate)
+            {
+                if (!(_state.ShieldUntil >= until))
+                    _state.ShieldUntil = until;
+                _state.IsDirty = true;
+                SendDelta(now, new List<EntityChangeDto> { PvpChange(now) });
+            }
+        }
+
         /// <summary>The shield is up at <paramref name="at"/>.</summary>
         internal bool ShieldedAt(DateTimeOffset at)
         {
@@ -156,6 +172,8 @@ namespace Hadal.Game
                         reason = teamReason.ToString();
                     else if (aboard.Values.Sum() <= 0)
                         reason = MarchRejectReason.NoTroops.ToString();
+                    else if (aboard.Values.Sum() < launch.MinTroops)
+                        reason = "TooFewTroops";
                 }
 
                 var speed = scout ? PvpRules.ScoutSpeed : TroopRules.MarchSpeed(_catalog.Troops, aboard.Keys);
@@ -321,7 +339,7 @@ namespace Hadal.Game
                 var march = _state.Marches.FirstOrDefault(m => m.Id == marchId);
                 if (march == null)
                     return (0, 0);
-                var (dead, wounded) = TakeLosses(march, lost);
+                var (dead, wounded) = TakeLosses(march, lost, AttackingTeam(march));
                 foreach (var pair in plunder.Where(p => p.Value > 0))
                     march.Cargo[pair.Key] = (march.Cargo.TryGetValue(pair.Key, out var c) ? c : 0) + pair.Value;
 
@@ -343,10 +361,21 @@ namespace Hadal.Game
             }
         }
 
-        /// <summary>Half the fallen of a team out on the map die, half ride home wounded. Caller holds the lock.</summary>
-        private (long Dead, long Wounded) TakeLosses(MarchState march, IReadOnlyDictionary<string, long> lost)
+        private static bool AttackingTeam(MarchState march) => march.Pvp is { Mode: PvpRules.Attack or PvpRules.Scout or PvpRules.Rally };
+
+        /// <summary>Med Bay room left for more wounded: capacity minus the wounded, the healing and those riding home.</summary>
+        private long MedBayRoom() =>
+            Math.Max(0, TroopRules.InfirmaryCapacity(_catalog.Troops, Levels()) - _state.Wounded.Values.Sum() - (_state.Healing?.Troops.Values.Sum() ?? 0)
+                        - _state.Marches.Sum(m => m.WoundedAboard.Values.Sum()));
+
+        /// <summary>
+        /// A team out on the map loses troops: they ride home wounded while the Med Bay has room, the rest die; attackers
+        /// always lose a quarter of their fallen (docs/33 §2). Caller holds the lock.
+        /// </summary>
+        private (long Dead, long Wounded) TakeLosses(MarchState march, IReadOnlyDictionary<string, long> lost, bool attacking)
         {
             long dead = 0, wounded = 0;
+            var room = MedBayRoom();
             foreach (var pair in lost.Where(p => p.Value > 0))
             {
                 var have = march.Troops.TryGetValue(pair.Key, out var n) ? n : 0;
@@ -356,7 +385,8 @@ namespace Hadal.Game
                 march.Troops[pair.Key] = have - fall;
                 if (march.Troops[pair.Key] <= 0)
                     march.Troops.Remove(pair.Key);
-                var (d, w) = PvpRules.SplitOutside(fall);
+                var (d, w) = PvpRules.Split(fall, room, attacking);
+                room -= w;
                 dead += d;
                 wounded += w;
                 if (w > 0)
@@ -379,7 +409,7 @@ namespace Hadal.Game
                 var march = _state.Marches.FirstOrDefault(m => m.Id == marchId);
                 if (march == null)
                     return (string.Empty, 0, 0, 0);
-                var (dead, wounded) = TakeLosses(march, lost);
+                var (dead, wounded) = TakeLosses(march, lost, attacking: false);
                 var cargo = GatherRules.Gathered(march.Rates, Math.Max(0, (Min(at, march.GatheredAt) - march.ArrivesAt).TotalSeconds));
                 foreach (var pair in taken)
                     if (cargo.ContainsKey(pair.Key))

@@ -206,7 +206,7 @@ namespace Hadal.Game.Tests
             // The attacker jumps next to the node so the team is still at work when it arrives.
             foreach (var (dx, dy) in new[] { (1, 0), (-1, 0), (0, 1), (0, -1), (1, 1), (-1, -1), (2, 0), (0, 2), (-2, 0), (0, -2) })
             {
-                Send(a, new TeleportCommand { CommandId = "t", Mode = TeleportRules.Target, X = node.X + dx, Y = node.Y + dy }, CommandType.Teleport);
+                Send(a, new TeleportCommand { CommandId = "t" + dx + "_" + dy, Mode = TeleportRules.Target, X = node.X + dx, Y = node.Y + dy }, CommandType.Teleport);
                 if (LastAck(aConnection).Result == CommandResultCode.Accepted)
                     break;
             }
@@ -257,7 +257,7 @@ namespace Hadal.Game.Tests
                 CommandType.MarchPvp);
             Assert.Equal(CommandResultCode.Accepted, LastAck(leadConnection).Result);
             var rally = _world.Map.PvpForTests().Single();
-            Send(mate, new MarchPvpCommand { CommandId = "j", Mode = PvpRules.Join, TargetId = rally.Id }, CommandType.MarchPvp);
+            Send(mate, new MarchPvpCommand { CommandId = "rally-join", Mode = PvpRules.Join, TargetId = rally.Id }, CommandType.MarchPvp);
             Assert.Equal(CommandResultCode.Accepted, LastAck(mateConnection).Result);
             Assert.Equal(2, _world.Map.PvpForTests().Single().Members.Count);
 
@@ -524,6 +524,133 @@ namespace Hadal.Game.Tests
             Assert.Equal("won", LastReport(enemy).Outcome);
             Assert.DoesNotContain(_world.Map.StructuresForTests(), s => s.Id == beacon);
             Assert.Equal(AllianceLogKinds.DefenceLost, _world.Social.LogOf(_world.Social.AllianceIdOf(lead.PublicId), AllianceLogKinds.Battle).Last().Type);
+        }
+
+        [Fact]
+        public async Task A_much_stronger_player_cannot_attack_a_small_base()
+        {
+            var (a, aConnection) = await Connect("band-a", troops: 3_000_000);
+            var (b, _) = await Connect("band-b", troops: 10);
+            Assert.True(a.Power > PvpRules.PowerBand * b.Power);
+            Attack(a, b.PublicId);
+            Assert.Equal("TargetTooWeak", LastAck(aConnection).Reason);
+        }
+
+        [Fact]
+        public async Task Repeated_wins_on_one_base_take_less_and_three_defeats_raise_a_recovery_shield()
+        {
+            var (a, aConnection) = await Connect("fat-a");
+            var (b, _) = await Connect("fat-b", troops: 40);
+            // Next door, so three round trips fit in the fatigue window.
+            var (bx, by) = _world.Map.PositionOf(b.PublicId)!.Value;
+            foreach (var (dx, dy) in new[] { (1, 0), (-1, 0), (0, 1), (0, -1), (1, 1), (-1, -1), (2, 0), (0, 2), (-2, 0), (0, -2) })
+            {
+                Send(a, new TeleportCommand { CommandId = "near" + dx + dy, Mode = TeleportRules.Target, X = bx + dx, Y = by + dy }, CommandType.Teleport);
+                if (LastAck(aConnection).Result == CommandResultCode.Accepted)
+                    break;
+            }
+
+            var shares = new List<int>();
+            for (var i = 0; i < 3; i++)
+            {
+                b.StateForTests.Troops[Light] = 40;
+                Attack(a, b.PublicId);
+                Assert.Equal(CommandResultCode.Accepted, LastAck(aConnection).Result);
+                var march = Pvp(a);
+                At(march.ArrivesAt);
+                Assert.Equal("won", LastReport(a).Outcome);
+                shares.Add(LastReport(a).PlunderShare);
+                At(Pvp(a).HomeAt);
+            }
+
+            Assert.Equal(new[] { 100, 50, 25 }, shares);
+            // The third lost defence in six hours raised a two-hour recovery shield.
+            Assert.True(b.StateForTests.ShieldUntil > _clock.UtcNow);
+
+            // Without the shield a fourth attack within the fatigue window is refused.
+            b.StateForTests.ShieldUntil = null;
+            Attack(a, b.PublicId);
+            Assert.Equal("Fatigue", LastAck(aConnection).Reason);
+        }
+
+        [Fact]
+        public void Fallen_troops_are_wounded_while_the_med_bay_has_room_and_attackers_always_lose_a_quarter()
+        {
+            Assert.Equal((25L, 75L), PvpRules.Split(100, 1_000, attacking: true));
+            Assert.Equal((90L, 10L), PvpRules.Split(100, 10, attacking: true));
+            Assert.Equal((0L, 100L), PvpRules.Split(100, 1_000, attacking: false));
+            Assert.Equal((100L, 0L), PvpRules.Split(100, 0, attacking: false));
+        }
+
+        [Fact]
+        public void A_seeded_battle_reproduces_exactly()
+        {
+            var troops = Catalog.Troops;
+            BattleSide Army(long n)
+            {
+                var side = new BattleSide();
+                side.Troops[TroopRules.Key("armored", 3)] = n;
+                side.Troops[TroopRules.Key("arc", 3)] = n;
+                return side;
+            }
+
+            var seed = CombatRules.SeedOf("p0123456789");
+            var first = CombatRules.Resolve(troops, Army(1000), Army(1000), seed: seed);
+            var again = CombatRules.Resolve(troops, Army(1000), Army(1000), seed: seed);
+            Assert.Equal(first.AttackerWon, again.AttackerWon);
+            Assert.Equal(first.AttackerLost, again.AttackerLost);
+            Assert.Equal(first.DefenderLost, again.DefenderLost);
+            Assert.Equal(seed, CombatRules.SeedOf("p0123456789"));
+        }
+
+        [Fact]
+        public async Task A_fought_battle_reports_its_seed_rule_version_and_contribution()
+        {
+            var (a, _) = await Connect("rep-a");
+            var (b, _) = await Connect("rep-b", troops: 50);
+            Attack(a, b.PublicId);
+            var march = Pvp(a);
+            At(march.ArrivesAt);
+            var report = LastReport(a);
+            Assert.Equal(CombatRules.SeedOf(march.Id), report.Seed);
+            Assert.Equal(CombatRules.Version, report.RuleVersion);
+            Assert.Equal(100, report.Contribution);
+        }
+
+        [Fact]
+        public async Task A_rally_team_needs_a_minimum_of_troops()
+        {
+            var (lead, leadConnection) = await Connect("min-lead", troops: PvpRules.MinRallyTroops - 1);
+            var (mate, _) = await Connect("min-mate");
+            var (target, _) = await Connect("min-target", troops: 10);
+            Ally(lead, leadConnection, mate);
+            Send(lead, new MarchPvpCommand { CommandId = "min-rally", Mode = PvpRules.Rally, TargetKind = PvpRules.TargetBase, TargetId = target.PublicId, MusterSeconds = 60 },
+                CommandType.MarchPvp);
+            Assert.Equal("TooFewTroops", LastAck(leadConnection).Reason);
+        }
+
+        [Fact]
+        public async Task An_attack_on_its_way_cannot_be_sped_up()
+        {
+            var (a, aConnection) = await Connect("spd-a");
+            var (b, _) = await Connect("spd-b", troops: 50);
+            a.StateForTests.Items["speed_march_p50"] = 1;
+            Attack(a, b.PublicId);
+            var march = Pvp(a);
+            Send(a, new UseSpeedupCommand { CommandId = "spd", ItemId = "speed_march_p50", Target = march.Id }, CommandType.UseSpeedup);
+            Assert.Equal(CommandResultCode.Rejected, LastAck(aConnection).Result);
+            Assert.Equal(march.ArrivesAt, Pvp(a).ArrivesAt);
+        }
+
+        [Fact]
+        public async Task No_alliance_land_goes_up_in_the_starter_belt()
+        {
+            var (lead, connection, _, _) = await Alliance("starter");
+            var world = Catalog.World;
+            var starter = world.belts.Where(b => b.bases).OrderByDescending(b => b.outer).First();
+            var size = world.size;
+            var tile = Enumerable.Range(0, size * size).Select(i => (X: i % size, Y: i / size)).First(t => GatherRules.BeltOf(world, t.X, t.Y) == starter);
+            Assert.Equal("StarterZone", Land(lead, connection, AllianceLandRules.PlaceHub, tile.X, tile.Y));
         }
     }
 }

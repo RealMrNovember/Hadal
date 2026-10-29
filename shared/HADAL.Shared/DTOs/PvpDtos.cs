@@ -107,6 +107,16 @@ namespace HADAL.Shared.DTOs
         [ProtoMember(19)] public string StrongholdId { get; set; } = string.Empty;
         [ProtoMember(20)] public int StrongholdLevel { get; set; }
         [ProtoMember(21)] public bool Captured { get; set; }
+
+        /// <summary>Integrity (docs/33 §4): the seed and the rule version the battle used.</summary>
+        [ProtoMember(22)] public int Seed { get; set; }
+        [ProtoMember(23)] public int RuleVersion { get; set; }
+
+        /// <summary>This player's share of their side (troops brought), in percent.</summary>
+        [ProtoMember(24)] public int Contribution { get; set; }
+
+        /// <summary>Attack fatigue: the plunder share this attack got (100 = full).</summary>
+        [ProtoMember(25)] public int PlunderShare { get; set; } = 100;
     }
 
     /// <summary>The alliance's war list (entity <c>EntityIds.AllianceWar</c>, docs/30 §5.4).</summary>

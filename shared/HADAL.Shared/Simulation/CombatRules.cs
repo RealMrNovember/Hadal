@@ -83,8 +83,31 @@ namespace HADAL.Shared.Simulation
             return (Math.Round(BaseAtk * (t?.atk ?? 1) * scale), Math.Round(BaseDef * (t?.def ?? 1) * scale), Math.Round(BaseHp * (t?.hp ?? 1) * scale));
         }
 
-        public static BattleResult Resolve(TroopCatalogData troops, BattleSide attacker, BattleSide defender, int maxRounds = MaxRounds)
+        /// <summary>The battle rules' version, stored with every PvP report (docs/33 §4).</summary>
+        public const int Version = 2;
+
+        /// <summary>The narrow random factor a seeded battle applies per side per round (docs/33 §4).</summary>
+        public const double RandomSpread = 0.03;
+
+        /// <summary>A stable seed from a battle id, so the same battle reproduces on any machine.</summary>
+        public static int SeedOf(string battleId)
         {
+            unchecked
+            {
+                var h = (int)2166136261;
+                foreach (var c in battleId ?? string.Empty)
+                    h = (h ^ c) * 16777619;
+                return h & 0x7FFFFFFF;
+            }
+        }
+
+        /// <summary>
+        /// Resolves a battle. Without a seed it is fully deterministic (PvE, the guide's worked battles); with one, each
+        /// side's damage in each round is scaled by a factor in [1 − RandomSpread, 1 + RandomSpread] drawn from it.
+        /// </summary>
+        public static BattleResult Resolve(TroopCatalogData troops, BattleSide attacker, BattleSide defender, int maxRounds = MaxRounds, int? seed = null)
+        {
+            var random = seed.HasValue ? new Random(seed.Value) : null;
             var sides = new[] { attacker, defender };
             var counts = sides.Select(s => s.Troops.Where(p => p.Value > 0).ToDictionary(p => p.Key, p => p.Value, StringComparer.Ordinal)).ToArray();
             var start = counts.Select(c => new Dictionary<string, double>(c, StringComparer.Ordinal)).ToArray();
@@ -106,6 +129,8 @@ namespace HADAL.Shared.Simulation
             for (round = 1; round <= maxRounds; round++)
             {
                 var losses = new[] { new Dictionary<string, double>(StringComparer.Ordinal), new Dictionary<string, double>(StringComparer.Ordinal) };
+                var luck = random == null ? new[] { 1.0, 1.0 }
+                    : new[] { 1 + (random.NextDouble() * 2 - 1) * RandomSpread, 1 + (random.NextDouble() * 2 - 1) * RandomSpread };
                 for (var i = 0; i < 2; i++)
                 {
                     var j = 1 - i;
@@ -136,7 +161,7 @@ namespace HADAL.Shared.Simulation
                             foreach (var target in row)
                             {
                                 var (_, def, hp) = stats[j][target.Key];
-                                var damage = pair.Value * atk * atk / (atk + def) * Counter(type, TypeOf(target.Key)) * RoundFactor * share * target.Value / rowSum;
+                                var damage = pair.Value * atk * atk / (atk + def) * Counter(type, TypeOf(target.Key)) * RoundFactor * share * target.Value / rowSum * luck[i];
                                 losses[j][target.Key] = (losses[j].TryGetValue(target.Key, out var l) ? l : 0) + damage / hp;
                             }
                         }

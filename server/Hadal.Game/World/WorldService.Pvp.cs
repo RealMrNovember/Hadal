@@ -322,14 +322,24 @@ CREATE TABLE IF NOT EXISTS hadal.world_pvp (
             // Alliance buildings on the land (docs/32 §2.3): the Relay for the defended base, the Cannon for the attacker's.
             defence.DefPercent += BaseBonus(r.TargetOwnerId, AllianceLandRules.Relay, at);
             attacker.AtkPercent += BaseBonus(r.AttackerId, AllianceLandRules.Cannon, at);
-            var result = CombatRules.Resolve(troops, attacker, defence);
+            var result = CombatRules.Resolve(troops, attacker, defence, seed: CombatRules.SeedOf(r.Id));
             var attackLosses = PvpRules.ShareLosses(teams.Select(t => (IReadOnlyDictionary<string, long>)t.Troops).ToList(), result.AttackerLost);
             var defenceLosses = PvpRules.ShareLosses(defenders, result.DefenderLost);
 
             var plunder = new Dictionary<ResourceType, long>();
             var loads = teams.Select((t, i) => TroopRules.MarchLoad(troops, Minus(t.Troops, attackLosses[i]))).ToList();
+            var share = 1.0;
             if (result.AttackerWon)
+            {
+                // Attack fatigue (docs/33 §2): repeated wins by the same attacker on the same base take less.
+                share = PvpRules.FatigueShare(WinsOn(r.AttackerId, r.TargetOwnerId, at));
                 plunder = PvpRules.Plunder(snap.Wallet, snap.Reactor, loads.Sum());
+                foreach (var key in plunder.Keys.ToList())
+                    plunder[key] = (long)Math.Floor(plunder[key] * share);
+                RecordWin(r.AttackerId, r.TargetOwnerId, at);
+                if (RecordDefeat(r.TargetOwnerId, at))
+                    defender.GrantShield(at + PvpRules.RecoveryShield, now);
+            }
             var plunderShares = PvpRules.ShareResources(plunder, loads);
 
             var (homeDead, homeWounded) = defender.ApplyBaseLosses(defenceLosses[0], plunder, now);
@@ -368,6 +378,8 @@ CREATE TABLE IF NOT EXISTS hadal.world_pvp (
                 var report = Base(kind, result.AttackerWon);
                 (report.Dead, report.Wounded) = (dead, wounded);
                 report.Plunder = ResourceAmountEntry.FromMap(plunderShares[i]);
+                report.Contribution = Contribution(team.Troops, attStart);
+                report.PlunderShare = (int)Math.Round(share * 100);
                 Tell(sessions[team.OwnerId], report, r.TargetOwnerId, now);
             }
 
@@ -388,7 +400,7 @@ CREATE TABLE IF NOT EXISTS hadal.world_pvp (
             var attacker = Side(teams.Select(t => t.Troops), teams[0].HeroPowers);
             var defence = Side(new[] { target.Troops }, target.HeroPowers);
             attacker.AtkPercent += BaseBonus(r.AttackerId, AllianceLandRules.Cannon, at);
-            var result = CombatRules.Resolve(troops, attacker, defence);
+            var result = CombatRules.Resolve(troops, attacker, defence, seed: CombatRules.SeedOf(r.Id));
             var attackLosses = PvpRules.ShareLosses(teams.Select(t => (IReadOnlyDictionary<string, long>)t.Troops).ToList(), result.AttackerLost);
             var loads = teams.Select((t, i) => TroopRules.MarchLoad(troops, Minus(t.Troops, attackLosses[i]))).ToList();
             var taken = result.AttackerWon ? PvpRules.Fit(target.CargoAt, loads.Sum()) : new Dictionary<ResourceType, long>();
@@ -435,6 +447,7 @@ CREATE TABLE IF NOT EXISTS hadal.world_pvp (
                 var report = Report(r.Mode == PvpRules.Rally ? "rally" : "attack", result.AttackerWon);
                 (report.Dead, report.Wounded) = (d, w);
                 report.Plunder = ResourceAmountEntry.FromMap(takenShares[i]);
+                report.Contribution = Contribution(team.Troops, attStart);
                 Tell(sessions[team.OwnerId], report, r.TargetOwnerId, now);
             }
 
@@ -482,6 +495,13 @@ CREATE TABLE IF NOT EXISTS hadal.world_pvp (
 
         private void Tell(PlayerSession session, PvpReportDto report, string opponentId, DateTimeOffset now)
         {
+            // Every fought battle names its seed and rule version so it can be reproduced (docs/33 §4).
+            if (report.Rounds > 0)
+            {
+                report.Seed = CombatRules.SeedOf(report.Id);
+                report.RuleVersion = CombatRules.Version;
+            }
+
             if (opponentId.Length > 0)
             {
                 report.OpponentId = opponentId;
@@ -490,6 +510,44 @@ CREATE TABLE IF NOT EXISTS hadal.world_pvp (
             }
 
             session.AddWarLog(report, now);
+        }
+
+        /// <summary>A team's share of its side, in percent (docs/33 §3).</summary>
+        private static int Contribution(IReadOnlyDictionary<string, long> team, IReadOnlyDictionary<string, long> side)
+        {
+            var total = side.Values.Sum();
+            return total <= 0 ? 0 : (int)Math.Round(100.0 * team.Values.Sum() / total);
+        }
+
+        // --- Fairness memory (docs/33 §2): wins per attacker and base, defeats per base, recovery shields ---------
+
+        private readonly Dictionary<(string, string), List<DateTimeOffset>> _wins = new();
+        private readonly Dictionary<string, List<DateTimeOffset>> _defeats = new(StringComparer.Ordinal);
+        private readonly Dictionary<string, DateTimeOffset> _recovered = new(StringComparer.Ordinal);
+
+        private int WinsOn(string attackerId, string targetId, DateTimeOffset at) =>
+            _wins.TryGetValue((attackerId, targetId), out var list) ? list.Count(t => at - t < PvpRules.FatigueWindow) : 0;
+
+        private void RecordWin(string attackerId, string targetId, DateTimeOffset at)
+        {
+            if (!_wins.TryGetValue((attackerId, targetId), out var list))
+                _wins[(attackerId, targetId)] = list = new List<DateTimeOffset>();
+            list.RemoveAll(t => at - t >= PvpRules.FatigueWindow);
+            list.Add(at);
+        }
+
+        /// <summary>Counts a lost defence; true when the base has earned its recovery shield (3 in 6 h, once a day).</summary>
+        private bool RecordDefeat(string targetId, DateTimeOffset at)
+        {
+            if (!_defeats.TryGetValue(targetId, out var list))
+                _defeats[targetId] = list = new List<DateTimeOffset>();
+            list.RemoveAll(t => at - t >= PvpRules.RecoveryWindow);
+            list.Add(at);
+            if (list.Count < PvpRules.RecoveryAfterDefeats || (_recovered.TryGetValue(targetId, out var last) && at - last < PvpRules.RecoveryCooldown))
+                return false;
+            _recovered[targetId] = at;
+            list.Clear();
+            return true;
         }
 
         private static readonly IReadOnlyDictionary<string, long> Empty = new Dictionary<string, long>(StringComparer.Ordinal);
@@ -653,6 +711,11 @@ CREATE TABLE IF NOT EXISTS hadal.world_pvp (
                         return (null, "TargetBeginner");
                     if (live?.ShieldedAt(now) == true)
                         return (null, "TargetShielded");
+                    // Power band and fatigue (docs/33 §2).
+                    if (PvpRules.OutOfBand(me.Power, live?.Power ?? b.Power))
+                        return (null, "TargetTooWeak");
+                    if (mode != PvpRules.Scout && PvpRules.FatigueShare(WinsOn(me.PlayerId, b.PlayerId, now)) <= 0)
+                        return (null, "Fatigue");
                     return (new PvpLaunch(mode, kind, b.PlayerId, b.PlayerId, b.Name, me.X, me.Y, b.X, b.Y, heroes, string.Empty, mode == PvpRules.Rally, departs,
                         me.X, me.Y), null);
                 }

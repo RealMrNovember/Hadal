@@ -330,6 +330,17 @@ ON CONFLICT (id) DO UPDATE SET world_id = EXCLUDED.world_id, alliance_id = EXCLU
             }
         }
 
+        /// <summary>
+        /// The starter buffer (docs/33 §5): the outermost belt where bases may stand is where new bases land; no alliance
+        /// hub, beacon or building goes up there.
+        /// </summary>
+        private bool InStarterBelt(int x, int y)
+        {
+            var world = Catalog.World;
+            var starter = world.belts.Where(b => b.bases).OrderByDescending(b => b.outer).FirstOrDefault();
+            return starter != null && GatherRules.BeltOf(world, x, y) == starter;
+        }
+
         /// <summary>A free tile where bases may stand and nothing else is. Caller holds the lock.</summary>
         private bool FreeForStructure(int x, int y) =>
             x >= 0 && y >= 0 && x < MapSize && y < MapSize && CanStand(x, y) && !_structureAt.ContainsKey((x, y));
@@ -342,6 +353,8 @@ ON CONFLICT (id) DO UPDATE SET world_id = EXCLUDED.world_id, alliance_id = EXCLU
                 return "HasTerritory";
             if (_social.MemberCount(alliance) < AllianceLandRules.HubMinMembers)
                 return "TooFewMembers";
+            if (InStarterBelt(x, y))
+                return "StarterZone";
             if (!FreeForStructure(x, y))
                 return "TileTaken";
             for (var dx = -AllianceLandRules.OtherAllianceGap; dx <= AllianceLandRules.OtherAllianceGap; dx++)
@@ -371,6 +384,8 @@ ON CONFLICT (id) DO UPDATE SET world_id = EXCLUDED.world_id, alliance_id = EXCLU
                 return "OtherLand";
             if (!NearLand(alliance, x, y, AllianceLandRules.PlaceReach))
                 return "LandTooFar";
+            if (InStarterBelt(x, y))
+                return "StarterZone";
             if (!FreeForStructure(x, y))
                 return "TileTaken";
             if (!session.TryCharge(new[] { new KeyValuePair<ResourceType, long>(ResourceType.Titanium, AllianceLandRules.BeaconCost(placed)) }, now))

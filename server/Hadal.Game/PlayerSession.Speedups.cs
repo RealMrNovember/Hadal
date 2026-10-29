@@ -120,6 +120,10 @@ namespace Hadal.Game
             if (march == null)
                 return SpeedupRejectReason.NothingToSpeedUp;
 
+            // A hostile march's battle time is fixed when it sets out (docs/33 §5); only its way home can be sped up.
+            if (now < march.ArrivesAt && march.Pvp is { Mode: PvpRules.Attack or PvpRules.Scout or PvpRules.Rally })
+                return SpeedupRejectReason.WrongTarget;
+
             if (now < march.ArrivesAt)
             {
                 var cut = TimeSpan.FromSeconds(Speedups.Cut(value, percent, count, (march.ArrivesAt - now).TotalSeconds));

@@ -153,7 +153,7 @@ namespace Hadal.Game.World
             var defenders = new List<IReadOnlyDictionary<string, long>> { own };
             defenders.AddRange(posts.Select(p => (IReadOnlyDictionary<string, long>)p.Team.Troops));
             var defence = Side(defenders, posts.Count > 0 ? posts[0].Team.HeroPowers : new List<int>());
-            var result = CombatRules.Resolve(troops, attacker, defence);
+            var result = CombatRules.Resolve(troops, attacker, defence, seed: CombatRules.SeedOf(r.Id));
             var attackLosses = PvpRules.ShareLosses(teams.Select(t => (IReadOnlyDictionary<string, long>)t.Troops).ToList(), result.AttackerLost);
             var defenceLosses = PvpRules.ShareLosses(defenders, result.DefenderLost);
 
@@ -204,6 +204,7 @@ namespace Hadal.Game.World
                 var (dead, wounded) = sessions[team.OwnerId].SettleTeam(team.MarchId, at, attackLosses[i], NoResources, turnHome: true, now);
                 var report = Report(r.Mode == PvpRules.Rally ? "rally" : "attack", result.AttackerWon);
                 (report.Dead, report.Wounded) = (dead, wounded);
+                report.Contribution = Contribution(team.Troops, attStart);
                 Tell(sessions[team.OwnerId], report, string.Empty, now);
             }
 
