@@ -176,11 +176,20 @@ namespace Hadal.UI
             var from = TileToWorld(fromX, fromY);
             var to = TileToWorld(toX, toY);
             if (now < arrives)
-                return Vector3.Lerp(from, to, Mathf.InverseLerp(started, arrives, now));
+                return Vector3.Lerp(from, to, Progress(started, arrives, now));
             if (now < gathered)
                 return to;
-            var back = home - gathered;
-            return Vector3.Lerp(to, from, back <= 0 ? 1f : Mathf.Clamp01((now - gathered) / (float)back));
+            return Vector3.Lerp(to, from, Progress(gathered, home, now));
+        }
+
+        /// <summary>
+        /// How far through [from, until] <paramref name="now"/> is. Unix ms do not fit a float (steps of ~2 minutes),
+        /// so the differences are taken in longs first.
+        /// </summary>
+        private static float Progress(long from, long until, long now)
+        {
+            var span = until - from;
+            return span <= 0 ? 1f : Mathf.Clamp01((float)((double)(now - from) / span));
         }
     }
 }

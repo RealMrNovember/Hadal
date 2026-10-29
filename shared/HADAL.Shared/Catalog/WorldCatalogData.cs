@@ -35,8 +35,8 @@ namespace HADAL.Shared.Catalog
         public int hadaliteDailyCap = 60;
         public int maxVeins = 12;
 
-        /// <summary>Travel time per tile at base speed (docs/rehber 08 §4).</summary>
-        public int marchSecondsPerTile = 60;
+        /// <summary>Travel time per km (one tile is 1 km) at base speed (docs/rehber 08 §4).</summary>
+        public int marchSecondsPerTile = 12;
     }
 
     [Serializable]

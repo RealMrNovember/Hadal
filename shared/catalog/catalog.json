@@ -1,5 +1,5 @@
 {
-  "version": 9,
+  "version": 10,
   "_note": "Single source of truth for buildings, resources and base layout. Read by the server (validation, economy) and by Hadal > Setup in Unity (ScriptableObjects). Rules and the balance table: docs/23_Base_Management.md. Rates are per simulation tick (SimulationTick.IntervalSeconds) at level 1. buildCost/buildSeconds are for level 1; higher levels scale by progression.costGrowth/timeGrowth. requiredReactorLevel gates a building, maxCount caps how many a base may own.",
   "resources": [
     {
@@ -11551,7 +11551,7 @@
     "respawnMinutes": 30,
     "hadaliteDailyCap": 60,
     "maxVeins": 12,
-    "marchSecondsPerTile": 60
+    "marchSecondsPerTile": 12
   },
   "ringUnlocks": [
     {

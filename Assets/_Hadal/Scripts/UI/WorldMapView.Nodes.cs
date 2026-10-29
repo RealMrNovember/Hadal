@@ -434,14 +434,7 @@ namespace Hadal.UI
         /// <summary>Where a march is now, in tiles (outbound, at the node, or on the way back).</summary>
         private Vector3 MarchPosition(MarchDto m, long now)
         {
-            var from = TileToWorld(m.FromX, m.FromY);
-            var to = TileToWorld(m.X, m.Y);
-            if (now < m.ArrivesAtMs)
-                return Vector3.Lerp(from, to, Mathf.InverseLerp(m.StartedAtMs, m.ArrivesAtMs, now));
-            if (now < m.GatheredAtMs)
-                return to;
-            var back = m.HomeAtMs - m.GatheredAtMs;
-            return Vector3.Lerp(to, from, back <= 0 ? 1f : Mathf.Clamp01((now - m.GatheredAtMs) / (float)back));
+            return Position(m.FromX, m.FromY, m.X, m.Y, m.StartedAtMs, m.ArrivesAtMs, m.GatheredAtMs, m.HomeAtMs, now);
         }
 
         /// <summary>Every team on the map: the player's own as a team with its plate, all of them on dashed routes.</summary>
