@@ -91,8 +91,6 @@ namespace Hadal.UI
         private const float ScoutYaw = -90f;
         private const float HaulerYaw = 180f;
 
-        private static Material _bubbleMaterial;
-
         /// <summary>Soft round bubbles left behind in the water as the submarine moves, rising and fading.</summary>
         private static void AddBubbleTrail(Transform pivot)
         {
@@ -133,45 +131,13 @@ namespace Hadal.UI
 
             var color = ps.colorOverLifetime;
             color.enabled = true;
-            var fade = new Gradient();
-            fade.SetKeys(new[] { new GradientColorKey(Color.white, 0f), new GradientColorKey(Color.white, 1f) },
-                new[] { new GradientAlphaKey(0f, 0f), new GradientAlphaKey(1f, 0.12f), new GradientAlphaKey(0.7f, 0.6f), new GradientAlphaKey(0f, 1f) });
-            color.color = fade;
+            color.color = Hadal.Core.Art.BubbleFx.Fade();
 
             var renderer = go.GetComponent<ParticleSystemRenderer>();
-            renderer.material = BubbleMaterial();
+            renderer.material = Hadal.Core.Art.BubbleFx.Material();
             renderer.renderMode = ParticleSystemRenderMode.Billboard;
             renderer.sortingFudge = -10f;
             ps.Play();
-        }
-
-        /// <summary>A bubble: clear middle, bright rim and a small highlight, drawn once.</summary>
-        private static Material BubbleMaterial()
-        {
-            if (_bubbleMaterial != null)
-                return _bubbleMaterial;
-            const int n = 32;
-            var texture = new Texture2D(n, n, TextureFormat.RGBA32, false) { wrapMode = TextureWrapMode.Clamp, filterMode = FilterMode.Bilinear };
-            for (var y = 0; y < n; y++)
-            {
-                for (var x = 0; x < n; x++)
-                {
-                    var dx = (x + 0.5f) / n * 2f - 1f;
-                    var dy = (y + 0.5f) / n * 2f - 1f;
-                    var r = Mathf.Sqrt(dx * dx + dy * dy);
-                    var rim = Mathf.Clamp01(1f - Mathf.Abs(r - 0.82f) / 0.16f);
-                    var fill = r < 0.82f ? 0.18f : 0f;
-                    var hx = dx + 0.35f;
-                    var hy = dy - 0.35f;
-                    var highlight = Mathf.Clamp01(1f - Mathf.Sqrt(hx * hx + hy * hy) / 0.22f);
-                    var alpha = r > 1f ? 0f : Mathf.Max(Mathf.Max(rim, fill), highlight);
-                    texture.SetPixel(x, y, new Color(1f, 1f, 1f, alpha));
-                }
-            }
-
-            texture.Apply();
-            _bubbleMaterial = new Material(Shader.Find("Sprites/Default")) { mainTexture = texture };
-            return _bubbleMaterial;
         }
 
         /// <summary>Routes and submarines of every team in view; the player's own come from their march list.</summary>

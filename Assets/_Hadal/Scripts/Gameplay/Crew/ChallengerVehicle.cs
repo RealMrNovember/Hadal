@@ -1,3 +1,4 @@
+using Hadal.Core.Art;
 using UnityEngine;
 
 namespace Hadal.Gameplay.Crew
@@ -64,6 +65,7 @@ namespace Hadal.Gameplay.Crew
         private float _heading;
         private float _pitch;
         private float _bank;
+        private ParticleSystem _bubbles;
         private float _stateSince;
         private Vector3 _anchor;
         private float _yaw;
@@ -74,6 +76,9 @@ namespace Hadal.Gameplay.Crew
         public bool ReadyToBoard => Current == State.Waiting && _rider != null;
         public bool HasPassenger => Current == State.Carrying;
         public Vector3 Home => _home;
+
+        /// <summary>True while the bubble trail behind the pilot sphere is emitting (cruising only).</summary>
+        public bool Bubbling => _bubbles != null && _bubbles.emission.enabled;
 
         /// <summary>0 upright, 90 lying along the direction of travel.</summary>
         public float Pitch => _pitch;
@@ -89,6 +94,8 @@ namespace Hadal.Gameplay.Crew
         public void Initialise(Vector3 home, float yaw)
         {
             _pilot = transform.Find("pilot");
+            if (_bubbles == null)
+                _bubbles = CreateBubbleTrail(transform);
             _home = home;
             _yaw = yaw;
             transform.SetPositionAndRotation(home, Quaternion.Euler(0f, yaw, 0f));
@@ -167,6 +174,15 @@ namespace Hadal.Gameplay.Crew
                     _pilot.gameObject.SetActive(true);
                 if (Current is State.ToPickup or State.Waiting or State.Carrying)
                     Fly(_home, State.Returning);
+            }
+
+            // Bubbles stream from behind the sphere only while it cruises lying down.
+            if (_bubbles != null)
+            {
+                var emission = _bubbles.emission;
+                var cruising = _pitch > 60f && Current is State.ToPickup or State.Carrying or State.Returning or State.ToSite;
+                if (emission.enabled != cruising)
+                    emission.enabled = cruising;
             }
 
             switch (Current)
@@ -320,6 +336,62 @@ namespace Hadal.Gameplay.Crew
             body.position = at;
             body.rotation = Quaternion.Euler(0f, _yaw, 0f);
             rider.OnArrived(at);
+        }
+
+        /// <summary>
+        /// A few dozen soft bubbles left in the water behind the pilot sphere (the trailing end while cruising),
+        /// rising and fading. Emission is off until the hull lies down; world space so they stay behind.
+        /// </summary>
+        private static ParticleSystem CreateBubbleTrail(Transform hull)
+        {
+            var go = new GameObject("Bubbles");
+            go.transform.SetParent(hull, false);
+            // Below the sphere (Unity local -Y is the trailing end when lying down), cone pointing back along -Y.
+            go.transform.localPosition = new Vector3(0f, 0.02f, 0.14f);
+            go.transform.localRotation = Quaternion.Euler(90f, 0f, 0f);
+
+            var ps = go.AddComponent<ParticleSystem>();
+            ps.Stop(true, ParticleSystemStopBehavior.StopEmittingAndClear);
+            var main = ps.main;
+            main.simulationSpace = ParticleSystemSimulationSpace.World;
+            main.startLifetime = new ParticleSystem.MinMaxCurve(1.2f, 2.2f);
+            main.startSpeed = new ParticleSystem.MinMaxCurve(0.15f, 0.5f);
+            main.startSize = new ParticleSystem.MinMaxCurve(0.06f, 0.18f);
+            main.startColor = new ParticleSystem.MinMaxGradient(new Color(0.75f, 0.95f, 1f, 0.8f), new Color(0.55f, 0.85f, 1f, 0.55f));
+            main.gravityModifier = -0.08f;   // they rise
+            main.maxParticles = 36;
+
+            var emission = ps.emission;
+            emission.rateOverTime = 6f;
+            emission.rateOverDistance = 2f;
+            emission.enabled = false;
+
+            var shape = ps.shape;
+            shape.shapeType = ParticleSystemShapeType.Cone;
+            shape.angle = 20f;
+            shape.radius = 0.12f;
+
+            var noise = ps.noise;
+            noise.enabled = true;
+            noise.strength = 0.25f;
+            noise.frequency = 0.9f;
+
+            var size = ps.sizeOverLifetime;
+            size.enabled = true;
+            size.size = new ParticleSystem.MinMaxCurve(1f, new AnimationCurve(new Keyframe(0f, 0.6f), new Keyframe(0.3f, 1f), new Keyframe(1f, 0.4f)));
+
+            var color = ps.colorOverLifetime;
+            color.enabled = true;
+            color.color = BubbleFx.Fade();
+
+            var renderer = go.GetComponent<ParticleSystemRenderer>();
+            renderer.material = BubbleFx.Material();
+            renderer.renderMode = ParticleSystemRenderMode.Billboard;
+            renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            renderer.receiveShadows = false;
+            renderer.sortingFudge = -10f;
+            ps.Play();
+            return ps;
         }
 
         private void Park()

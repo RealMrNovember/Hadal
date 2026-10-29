@@ -124,8 +124,11 @@ namespace Hadal.Tests.EditMode
                 {
                     vehicle.Step(t, 0.02f);
                     var top = vehicle.transform.up;
+                    if (vehicle.Pitch < 30f)
+                        Assert.IsFalse(vehicle.Bubbling, "bubbles while upright");
                     if (vehicle.Pitch > 80f)
                     {
+                        Assert.IsTrue(vehicle.Bubbling, "no bubble trail while cruising");
                         lyingSeen = true;
                         if (firstLying < 0f)
                             firstLying = t;
@@ -136,6 +139,11 @@ namespace Hadal.Tests.EditMode
                 }
 
                 Assert.IsTrue(lyingSeen, "never lay down to cruise");
+                Assert.IsFalse(vehicle.Bubbling, "bubbles left on after landing");
+                var trail = vehicle.GetComponentInChildren<ParticleSystem>();
+                Assert.IsNotNull(trail);
+                Assert.LessOrEqual(trail.main.maxParticles, 48, "the trail should stay cheap");
+                Assert.AreEqual(ParticleSystemSimulationSpace.World, trail.main.simulationSpace);
                 Assert.That(firstLying, Is.InRange(0.6f, 1.3f), "pitch-over should take about a second");
                 Assert.IsTrue(vehicle.ReadyToBoard);
                 Assert.Less(Vector3.Angle(vehicle.transform.up, Vector3.up), 1f, "must land upright");
