@@ -90,6 +90,8 @@ namespace Hadal.Game.Tests
         [InlineData("<script>", false)]
         [InlineData("     ", false)]
         [InlineData("waytoolongname_1234", false)]
+        [InlineData("Dr. Kaptan'ın", true)]
+        [InlineData("★Deniz★", true)]
         public async Task DisplayName_IsValidated(string name, bool accepted)
         {
             var login = await GuestAsync();
@@ -105,6 +107,17 @@ namespace Hadal.Game.Tests
                 Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
                 Assert.Equal(AccountErrors.NameInvalid, await ErrorOf(response));
             }
+        }
+
+        [Theory]
+        [InlineData("Or0spu Kaptan")]
+        [InlineData("S.i_k Deniz")]
+        public async Task DisplayName_RefusesProfanity(string name)
+        {
+            var login = await GuestAsync();
+            var response = await Client(login.accessToken).PutAsJsonAsync(AuthRoutes.Profile, new UpdateProfileRequest { displayName = name }, Json);
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
+            Assert.Equal(AccountErrors.NameProfane, await ErrorOf(response));
         }
 
         [Fact]

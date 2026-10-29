@@ -136,7 +136,7 @@ reason.UpgradeInProgress = Attendez la fin de l'amélioration.
 reason.MaxRingReached = Tous les anneaux sont déjà ouverts.
 reason.NotNextRing = Les anneaux s'ouvrent un par un, de l'intérieur vers l'extérieur.
 
-error.NameInvalid = Le nom doit faire 3 à 16 caractères : lettres, chiffres, espace, _ et -.
+error.NameInvalid = Le nom doit faire 3 à 16 caractères, sans espace au début, à la fin ou en double, sans caractère invisible, < > ni emoji.
 error.PasswordInvalid = Le mot de passe doit contenir au moins 8 caractères.
 error.PasswordMismatch = Les mots de passe ne correspondent pas.
 error.InvalidCredentials = Code ou mot de passe incorrect.
@@ -1395,3 +1395,4 @@ unlock.badge = Niv.{0}
 unlock.gather = Expéditions de collecte et contre les monstres
 unlock.pvp = Attaques de joueurs (fin de la protection débutant)
 unlock.ring = Anneau {0}
+error.NameProfane = Ce nom contient un mot offensant. Choisis-en un autre.

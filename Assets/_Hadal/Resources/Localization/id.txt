@@ -136,7 +136,7 @@ reason.UpgradeInProgress = Tunggu peningkatan selesai.
 reason.MaxRingReached = Semua cincin sudah terbuka.
 reason.NotNextRing = Cincin dibuka satu per satu, dari dalam ke luar.
 
-error.NameInvalid = Nama 3–16 karakter: huruf, angka, spasi, _ dan -.
+error.NameInvalid = Nama 3–16 karakter, tanpa spasi di awal, akhir, atau ganda, tanpa karakter tak terlihat, < > atau emoji.
 error.PasswordInvalid = Kata sandi minimal 8 karakter.
 error.PasswordMismatch = Kata sandi tidak cocok.
 error.InvalidCredentials = Kode atau kata sandi salah.
@@ -1395,3 +1395,4 @@ unlock.badge = Lv.{0}
 unlock.gather = Pasukan pengumpul dan pemburu monster
 unlock.pvp = Menyerang pemain (perlindungan pemula berakhir)
 unlock.ring = Cincin {0}
+error.NameProfane = Nama ini mengandung kata yang menyinggung. Pilih nama lain.

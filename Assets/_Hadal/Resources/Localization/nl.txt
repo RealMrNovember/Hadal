@@ -136,7 +136,7 @@ reason.UpgradeInProgress = Wacht tot de upgrade klaar is.
 reason.MaxRingReached = Alle ringen zijn al open.
 reason.NotNextRing = Ringen gaan één voor één open, van binnen naar buiten.
 
-error.NameInvalid = Namen zijn 3–16 tekens: letters, cijfers, spatie, _ en -.
+error.NameInvalid = Namen hebben 3–16 tekens, zonder spaties aan het begin, eind of dubbel, onzichtbare tekens, < > of emoji.
 error.PasswordInvalid = Het wachtwoord moet minstens 8 tekens hebben.
 error.PasswordMismatch = De wachtwoorden komen niet overeen.
 error.InvalidCredentials = Onjuiste code of wachtwoord.
@@ -1395,3 +1395,4 @@ unlock.badge = Nv.{0}
 unlock.gather = Verzameltochten en monstertochten
 unlock.pvp = Spelers aanvallen (beginnersbescherming eindigt)
 unlock.ring = Ring {0}
+error.NameProfane = Deze naam bevat een kwetsend woord. Kies een andere.

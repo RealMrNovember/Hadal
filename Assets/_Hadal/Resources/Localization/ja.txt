@@ -136,7 +136,7 @@ reason.UpgradeInProgress = レベルアップの完了を待ってください�
 reason.MaxRingReached = すべてのリングが解放済みです。
 reason.NotNextRing = リングは内側から順に1つずつ解放されます。
 
-error.NameInvalid = 名前は3～16文字で、文字・数字・スペース・_・- が使えます。
+error.NameInvalid = 名前は3～16文字です。先頭・末尾・連続の空白、見えない文字、< >、絵文字は使えません。
 error.PasswordInvalid = パスワードは8文字以上必要です。
 error.PasswordMismatch = パスワードが一致しません。
 error.InvalidCredentials = コードまたはパスワードが間違っています。
@@ -1395,3 +1395,4 @@ unlock.badge = Lv.{0}
 unlock.gather = 採集・魔物討伐の出撃
 unlock.pvp = プレイヤーへの攻撃（初心者保護終了）
 unlock.ring = リング{0}
+error.NameProfane = この名前には不適切な言葉が含まれています。別の名前を選んでください。

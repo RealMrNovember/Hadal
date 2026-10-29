@@ -136,7 +136,7 @@ reason.UpgradeInProgress = Warte, bis der Ausbau fertig ist.
 reason.MaxRingReached = Alle Ringe sind bereits offen.
 reason.NotNextRing = Ringe öffnen sich einzeln, von innen nach außen.
 
-error.NameInvalid = Namen haben 3–16 Zeichen: Buchstaben, Ziffern, Leerzeichen, _ und -.
+error.NameInvalid = Namen haben 3–16 Zeichen, ohne Leerzeichen am Anfang, Ende oder doppelt, ohne unsichtbare Zeichen, < > oder Emojis.
 error.PasswordInvalid = Das Passwort braucht mindestens 8 Zeichen.
 error.PasswordMismatch = Die Passwörter stimmen nicht überein.
 error.InvalidCredentials = Code oder Passwort falsch.
@@ -1395,3 +1395,4 @@ unlock.badge = St.{0}
 unlock.gather = Sammel- und Monsterzüge
 unlock.pvp = Angriffe auf Spieler (Anfängerschutz endet)
 unlock.ring = Ring {0}
+error.NameProfane = Dieser Name enthält ein anstößiges Wort. Bitte wähle einen anderen.

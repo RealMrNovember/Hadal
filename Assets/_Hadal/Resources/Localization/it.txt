@@ -136,7 +136,7 @@ reason.UpgradeInProgress = Attendi la fine del potenziamento.
 reason.MaxRingReached = Tutti gli anelli sono già aperti.
 reason.NotNextRing = Gli anelli si aprono uno alla volta, dall'interno verso l'esterno.
 
-error.NameInvalid = Nomi di 3–16 caratteri: lettere, cifre, spazio, _ e -.
+error.NameInvalid = Il nome deve avere 3–16 caratteri, senza spazi iniziali, finali o doppi, caratteri invisibili, < > o emoji.
 error.PasswordInvalid = La password deve avere almeno 8 caratteri.
 error.PasswordMismatch = Le password non corrispondono.
 error.InvalidCredentials = Codice o password errati.
@@ -1395,3 +1395,4 @@ unlock.badge = Liv.{0}
 unlock.gather = Spedizioni di raccolta e contro i mostri
 unlock.pvp = Attacchi ai giocatori (finisce la protezione principianti)
 unlock.ring = Anello {0}
+error.NameProfane = Questo nome contiene una parola offensiva. Scegline un altro.

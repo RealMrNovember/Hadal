@@ -136,7 +136,7 @@ reason.UpgradeInProgress = รอให้อัปเกรดเสร็จ�
 reason.MaxRingReached = เปิดวงแหวนครบทุกวงแล้ว
 reason.NotNextRing = วงแหวนเปิดทีละวง จากด้านในออกไป
 
-error.NameInvalid = ชื่อต้องมี 3–16 ตัว: ตัวอักษร ตัวเลข เว้นวรรค _ และ -
+error.NameInvalid = ชื่อต้องยาว 3–16 ตัวอักษร ห้ามมีช่องว่างที่ต้น ท้าย หรือซ้อนกัน ตัวอักษรที่มองไม่เห็น < > หรืออีโมจิ
 error.PasswordInvalid = รหัสผ่านต้องมีอย่างน้อย 8 ตัว
 error.PasswordMismatch = รหัสผ่านไม่ตรงกัน
 error.InvalidCredentials = รหัสหรือรหัสผ่านไม่ถูกต้อง
@@ -1395,3 +1395,4 @@ unlock.badge = Lv.{0}
 unlock.gather = การออกเก็บทรัพยากรและล่ามอนสเตอร์
 unlock.pvp = โจมตีผู้เล่น (การคุ้มครองมือใหม่สิ้นสุด)
 unlock.ring = วงแหวนที่ {0}
+error.NameProfane = ชื่อนี้มีคำที่ไม่เหมาะสม โปรดเลือกชื่ออื่น

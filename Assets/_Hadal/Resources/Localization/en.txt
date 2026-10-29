@@ -136,7 +136,7 @@ reason.UpgradeInProgress = Wait for the upgrade to finish.
 reason.MaxRingReached = Every ring is already open.
 reason.NotNextRing = Rings open one at a time, from the inside out.
 
-error.NameInvalid = Names are 3–16 characters: letters, digits, space, _ and -.
+error.NameInvalid = Names are 3–16 characters, with no leading, trailing or double spaces, invisible characters, < > or emoji.
 error.PasswordInvalid = The password needs at least 8 characters.
 error.PasswordMismatch = The passwords do not match.
 error.InvalidCredentials = Wrong code or password.
@@ -1396,3 +1396,4 @@ unlock.badge = Lv.{0}
 unlock.gather = Gathering and monster marches
 unlock.pvp = Attacking players (beginner protection ends)
 unlock.ring = Ring {0}
+error.NameProfane = This name contains an offensive word. Please choose another.

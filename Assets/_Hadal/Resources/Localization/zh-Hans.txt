@@ -136,7 +136,7 @@ reason.UpgradeInProgress = 请等待升级完成。
 reason.MaxRingReached = 所有环均已开放。
 reason.NotNextRing = 环需由内向外逐个开放。
 
-error.NameInvalid = 名称需为3–16个字符，可使用字母、数字、空格、_和-。
+error.NameInvalid = 名字需为3–16个字符，不能有首尾或连续空格、不可见字符、< > 或表情符号。
 error.PasswordInvalid = 密码至少需要8个字符。
 error.PasswordMismatch = 两次输入的密码不一致。
 error.InvalidCredentials = 迁移码或密码错误。
@@ -1395,3 +1395,4 @@ unlock.badge = {0}级
 unlock.gather = 采集与打怪出征
 unlock.pvp = 攻击玩家（新手保护结束）
 unlock.ring = 第{0}环
+error.NameProfane = 这个名字包含不当词语，请换一个。

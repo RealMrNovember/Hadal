@@ -136,7 +136,7 @@ reason.UpgradeInProgress = Önce yükseltmenin bitmesini bekle.
 reason.MaxRingReached = Bütün halkalar zaten açık.
 reason.NotNextRing = Halkalar içten dışa sırayla açılır.
 
-error.NameInvalid = Ad 3–16 karakter olmalı; harf, rakam, boşluk, _ ve - kullanılabilir.
+error.NameInvalid = Ad 3–16 karakter olmalı. Başta, sonda ya da art arda boşluk, görünmez karakter, < > ve emoji kullanılamaz.
 error.PasswordInvalid = Şifre en az 8 karakter olmalı.
 error.PasswordMismatch = Şifreler eşleşmiyor.
 error.InvalidCredentials = Kod ya da şifre hatalı.
@@ -1396,3 +1396,4 @@ unlock.badge = Sv.{0}
 unlock.gather = Toplama ve canavar seferleri
 unlock.pvp = Oyunculara saldırı (acemi koruması biter)
 unlock.ring = {0}. halka
+error.NameProfane = Bu isim uygunsuz bir ifade içeriyor. Lütfen başka bir isim seç.

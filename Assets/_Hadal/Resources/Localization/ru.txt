@@ -136,7 +136,7 @@ reason.UpgradeInProgress = Дождитесь окончания улучшен�
 reason.MaxRingReached = Все кольца уже открыты.
 reason.NotNextRing = Кольца открываются по одному, изнутри наружу.
 
-error.NameInvalid = Имя: 3–16 символов — буквы, цифры, пробел, _ и -.
+error.NameInvalid = Имя: 3–16 символов, без пробелов в начале, конце или подряд, невидимых символов, < > и эмодзи.
 error.PasswordInvalid = Пароль должен содержать не менее 8 символов.
 error.PasswordMismatch = Пароли не совпадают.
 error.InvalidCredentials = Неверный код или пароль.
@@ -1395,3 +1395,4 @@ unlock.badge = Ур.{0}
 unlock.gather = Походы за ресурсами и на монстров
 unlock.pvp = Атаки на игроков (защита новичка заканчивается)
 unlock.ring = Кольцо {0}
+error.NameProfane = Это имя содержит оскорбительное слово. Выберите другое.

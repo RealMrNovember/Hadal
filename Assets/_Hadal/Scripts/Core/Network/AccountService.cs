@@ -82,6 +82,8 @@ namespace Hadal.Core.Network
             var name = (displayName ?? string.Empty).Trim();
             if (!AccountRules.IsValidName(name))
                 return new AccountResult<ProfileResponse>(null, AccountErrors.NameInvalid);
+            if (NameFilter.IsProfane(name))
+                return new AccountResult<ProfileResponse>(null, AccountErrors.NameProfane);
 
             var result = await AuthorizedAsync<ProfileResponse>(UnityWebRequest.kHttpVerbPUT, AuthRoutes.Profile,
                 new UpdateProfileRequest { displayName = name });

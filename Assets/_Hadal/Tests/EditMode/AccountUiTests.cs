@@ -12,9 +12,26 @@ namespace Hadal.Tests.EditMode
         [TestCase("ab", false)]
         [TestCase("a<b>c", false)]
         [TestCase(" lead", false)]
+        [TestCase("Dr. Kaptan'ın", true)]
+        [TestCase("★Deniz★", true)]
+        [TestCase("Ali  Veli", false)]
+        [TestCase("Zero​Width", false)]
         public void Client_uses_the_server_name_rules(string name, bool valid)
         {
-            Assert.AreEqual(valid, AccountRules.IsValidName(name));
+            Assert.AreEqual(valid, AccountRules.IsValidName(System.Text.RegularExpressions.Regex.Unescape(name)));
+        }
+
+        [TestCase("S.i_k Deniz", true)]
+        [TestCase("Or0spu", true)]
+        [TestCase("FUCKer", true)]
+        [TestCase("Sikke Avcısı", false)]
+        [TestCase("Ambiyans", false)]
+        [TestCase("Aqua", false)]
+        [TestCase("Amina", false)]
+        [TestCase("Grapefruit", false)]
+        public void Profanity_is_caught_through_disguises_without_flagging_ordinary_names(string name, bool profane)
+        {
+            Assert.AreEqual(profane, NameFilter.IsProfane(name));
         }
 
         [Test]

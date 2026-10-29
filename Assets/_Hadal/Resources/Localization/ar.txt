@@ -136,7 +136,7 @@ reason.UpgradeInProgress = انتظر حتى تنتهي الترقية.
 reason.MaxRingReached = كل الحلقات مفتوحة بالفعل.
 reason.NotNextRing = تُفتح الحلقات واحدة تلو الأخرى، من الداخل إلى الخارج.
 
-error.NameInvalid = الاسم من 3–16 حرفًا: حروف وأرقام ومسافة و_ و-.
+error.NameInvalid = يجب أن يكون الاسم من 3 إلى 16 حرفًا، دون مسافات في البداية أو النهاية أو متتالية، ودون أحرف غير مرئية أو < > أو رموز تعبيرية.
 error.PasswordInvalid = يجب ألا تقل كلمة المرور عن 8 أحرف.
 error.PasswordMismatch = كلمتا المرور غير متطابقتين.
 error.InvalidCredentials = الرمز أو كلمة المرور غير صحيحة.
@@ -1395,3 +1395,4 @@ unlock.badge = مستوى {0}
 unlock.gather = رحلات الجمع ومهاجمة الوحوش
 unlock.pvp = مهاجمة اللاعبين (تنتهي حماية المبتدئين)
 unlock.ring = الحلقة {0}
+error.NameProfane = يحتوي هذا الاسم على كلمة مسيئة. يرجى اختيار اسم آخر.

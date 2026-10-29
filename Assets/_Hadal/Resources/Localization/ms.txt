@@ -136,7 +136,7 @@ reason.UpgradeInProgress = Tunggu naik taraf selesai.
 reason.MaxRingReached = Semua gelang sudah dibuka.
 reason.NotNextRing = Gelang dibuka satu demi satu, dari dalam ke luar.
 
-error.NameInvalid = Nama 3–16 aksara: huruf, nombor, ruang, _ dan -.
+error.NameInvalid = Nama 3–16 aksara, tanpa ruang di awal, akhir atau berganda, tanpa aksara tidak kelihatan, < > atau emoji.
 error.PasswordInvalid = Kata laluan perlu sekurang-kurangnya 8 aksara.
 error.PasswordMismatch = Kata laluan tidak sepadan.
 error.InvalidCredentials = Kod atau kata laluan salah.
@@ -1395,3 +1395,4 @@ unlock.badge = Thp.{0}
 unlock.gather = Kumpulan pengumpul dan pemburu raksasa
 unlock.pvp = Serang pemain (perlindungan pemula tamat)
 unlock.ring = Gelang {0}
+error.NameProfane = Nama ini mengandungi perkataan yang menyinggung. Sila pilih nama lain.

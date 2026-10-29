@@ -45,6 +45,7 @@ namespace HADAL.Shared.Auth
     public static class AccountErrors
     {
         public const string NameInvalid = "NameInvalid";
+        public const string NameProfane = "NameProfane";
         public const string NameTaken = "NameTaken";
         public const string RenameCooldown = "RenameCooldown";
         public const string NeedRenameCard = "NeedRenameCard";
@@ -73,16 +74,33 @@ namespace HADAL.Shared.Auth
         public const int PasswordMinLength = 8;
         public const int PasswordMaxLength = 64;
 
-        /// <summary>Letters (any script), digits, space, '_' and '-'; no leading/trailing space.</summary>
+        /// <summary>
+        /// Any letters, digits, marks, punctuation and symbols a player likes, 3–16 characters. Not allowed: leading,
+        /// trailing or double spaces, invisible or control characters, '&lt;' and '&gt;' (rich-text tags) and emoji or
+        /// other characters outside the basic plane, which the game's fonts cannot draw. Profanity is checked
+        /// separately (<see cref="NameFilter"/>).
+        /// </summary>
         public static bool IsValidName(string? name)
         {
-            if (name == null || name.Length < NameMinLength || name.Length > NameMaxLength || name.Trim() != name)
+            if (name == null || name.Length < NameMinLength || name.Length > NameMaxLength || name.Trim() != name || name.Contains("  "))
                 return false;
 
             foreach (var c in name)
             {
-                if (!char.IsLetterOrDigit(c) && c != ' ' && c != '_' && c != '-')
+                if (c == '<' || c == '>' || char.IsSurrogate(c))
                     return false;
+                switch (System.Globalization.CharUnicodeInfo.GetUnicodeCategory(c))
+                {
+                    case System.Globalization.UnicodeCategory.Control:
+                    case System.Globalization.UnicodeCategory.Format:
+                    case System.Globalization.UnicodeCategory.LineSeparator:
+                    case System.Globalization.UnicodeCategory.ParagraphSeparator:
+                    case System.Globalization.UnicodeCategory.PrivateUse:
+                    case System.Globalization.UnicodeCategory.OtherNotAssigned:
+                        return false;
+                    case System.Globalization.UnicodeCategory.SpaceSeparator when c != ' ':
+                        return false;
+                }
             }
 
             return true;

@@ -136,7 +136,7 @@ reason.UpgradeInProgress = Hãy chờ nâng cấp hoàn tất.
 reason.MaxRingReached = Mọi vòng đều đã mở.
 reason.NotNextRing = Các vòng mở lần lượt, từ trong ra ngoài.
 
-error.NameInvalid = Tên dài 3–16 ký tự: chữ, số, dấu cách, _ và -.
+error.NameInvalid = Tên dài 3–16 ký tự, không có khoảng trắng ở đầu, cuối hoặc liên tiếp, ký tự ẩn, < > hay emoji.
 error.PasswordInvalid = Mật khẩu cần ít nhất 8 ký tự.
 error.PasswordMismatch = Mật khẩu không khớp.
 error.InvalidCredentials = Sai mã hoặc mật khẩu.
@@ -1395,3 +1395,4 @@ unlock.badge = Cấp {0}
 unlock.gather = Hành quân thu thập và săn quái
 unlock.pvp = Tấn công người chơi (hết bảo vệ tân thủ)
 unlock.ring = Vòng {0}
+error.NameProfane = Tên này chứa từ ngữ xúc phạm. Hãy chọn tên khác.
