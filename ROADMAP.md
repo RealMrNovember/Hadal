@@ -1,7 +1,7 @@
 # HADAL — Proje Yol Haritası
 
 **Güncelleme:** 2026-10-29
-**Yayındaki sürüm:** istemci **0.9.0** (Android, `hadal.cicibyte.com/download/hadal.apk`); sunucu `main` @ `8c48786` (CT 160).
+**Yayındaki sürüm:** istemci **0.9.0** (Android, `hadal.cicibyte.com/download/hadal.apk`); sunucu `main` @ `52c1c8c` (CT 160).
 **Sürüm kuralı:** Oyun 1.0'a kadar **0.x** ile ilerler. Android sürüm kodu `1.000.000 + major·10000 + minor·100 + patch`.
 
 **Kaynaklar:**
@@ -36,7 +36,7 @@ Sıralama araştırmanın ana önerisine göre yapıldı (§16): önce **kaynak 
 |---|---|---|---|
 | **1** | Sağlamlık ve kalite kapıları | Canlıda oyuncu var. Ekonomi ve savaş hatası güveni bozar (§14). | ⬜ |
 | **2** | PvP adaleti ve savaş motoru sürümlemesi | PvP açıldı. Adaletsizlik terk ettirir (§5.4, §9). | 🟡 |
-| **3** | İttifak bölgesi B aşaması: ittifak binaları | Bölge A canlıda. Binalar ittifakın ortak hedefi (docs/32). | 🟡 |
+| **3** | İttifak bölgesi ve ittifak binaları | A ve B aşamaları canlıda; Şehir Listesi sayfası kaldı (docs/32). | 🟡 |
 | **4** | Yeni deniz yaratıkları ve etkinlik boss'ları | PvE ekonomiyi ve ittifak hedefini besler (§6). | 🟡 |
 | **5** | İlk oturum akışı ve öğretici | Oyuncu ilk 10 dakikada ne yapacağını anlamalı (§16). | ⬜ |
 | **6** | Hayatta kalma döngüsü (oksijen, enerji, acil durum) | Oyunun kendine has gerilimi; temayı ekonomiye bağlar. | ⬜ |
@@ -106,11 +106,12 @@ Ayrıntılar aşağıda, aynı sırayla.
   - Haritada alan ittifak renginde boyanıyor. Bayrak menüleri var. Etiketler artık ekranı kaplamıyor.
   - Çoklu dünya için temel: `world_id`.
 - 🟡 Şehir Listesi sayfası: ittifak ana sayfasında yeni bölüm.
-- ⬜ **B aşaması:** ittifak kazanım binaları:
-  - büyüklük ve güce göre açılır
-  - takımlarla inşa edilir ve yükseltilir
-  - garnizonla korunur, düşman saldırabilir
-  - ittifak bonusu verir
+- ✅ **B aşaması** (`3b5ba03`, `52c1c8c`): ittifak binaları
+  - Röle (+%3 savunma/seviye, 5 üye), Sondaj (+%5 toplama, 10 üye ve 1 M güç), Top (+%3 saldırı, 15 üye ve 3 M güç)
+  - R4/R5 alana yerleştirir; üyeler takım göndererek inşa eder, takımlar muhafız olarak kalır
+  - bağışla Sv.5'e kadar yükselir
+  - binalar ve şamandıralar saldırıya ve ralliye açık (merkez değil); dayanıklılığı biten bina hasarlı kalır ve saatte %10 onarılır, şamandıra düşer
+  - savaşlar iki ittifakın kaydına yazılır
 - ⬜ Toplanma noktası uyarısının alanın merkezine göre güncellenmesi (sunucu tarafı hazır).
 
 **Çıkış kriteri:** Bir ittifak sıfırdan alan kurar, büyütür, bir binayı birlikte inşa edip savunur. Rakip ittifak saldırabilir; sonuç iki tarafın kaydına düşer.
