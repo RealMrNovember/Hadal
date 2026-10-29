@@ -14,7 +14,7 @@ own; new kingdoms open as the game grows, and new players land in the newest one
 | `opened_at`  | when it opened                                                                 |
 | `status`     | `open` (takes new players), `full` (cap or age reached), `closed` (admin)      |
 | `player_cap` | new players stop when this many players belong to it (default 1,000)          |
-| `open_days`  | new players stop this many days after opening (default 30; 0 = no limit)       |
+| `open_days`  | new players stop this many days after opening (default 0 = no limit: a small game should not split by the calendar; set it per kingdom on the admin page) |
 
 Every player belongs to exactly one kingdom (`hadal.kingdom_members`: player, kingdom, joined_at).
 
@@ -79,6 +79,12 @@ restores the old keys and drops the two kingdom tables. Take a DB backup before 
 
 Kingdoms page: number, name, status, members / active, cap, window, opened; *Yeni krallık aç*, status
 (open / full / closed), cap and window. The player page shows the player's kingdom.
+
+### 3.2 Notes for other systems
+
+- Phone push (docs/36) hooks `WorldService.HostileLaunched` on Kingdom #1's map; every later kingdom's map needs
+  the same hook (`GameWorld.WireMap`) once push lands.
+- Admin chat views read channel `world` (#1); other kingdoms' world chat is `world:w{n}`.
 
 ## 6. Later (not built)
 

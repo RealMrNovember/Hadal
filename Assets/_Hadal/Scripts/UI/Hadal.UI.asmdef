@@ -6,8 +6,7 @@
         "Hadal.Data",
         "Hadal.Managers",
         "HADAL.Shared",
-        "VContainer",
-        "Unity.Notifications.Android"
+        "VContainer"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

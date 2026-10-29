@@ -173,7 +173,8 @@ namespace Hadal.UI
 
             var dot = known.Online ? $"<color=#5BE37A>● {Loc.T("world.online")}</color>" : $"<color=#5E7C88>● {Loc.T("world.offline")}</color>";
             var alliance = string.IsNullOrEmpty(known.AllianceName) ? Loc.T("profile.noalliance") : known.AllianceName;
-            UiKit.Label("Info", card, $"{Loc.F("world.level", known.Level)}   {Loc.F("hero.power", known.Power.ToString("N0"))}\n{alliance}\n" +
+            var kingdom = known.Kingdom > 0 ? $"   {Loc.F("kingdom.number", known.Kingdom)}" : string.Empty;
+            UiKit.Label("Info", card, $"{Loc.F("world.level", known.Level)}   {Loc.F("hero.power", known.Power.ToString("N0"))}\n{alliance}{kingdom}\n" +
                                       $"{Loc.F("world.coords", known.X, known.Y)}   {dot}", 28, UiKit.Muted, TextAnchor.UpperLeft)
                 .rectTransform.Place(0.36f, 0.4f, 0.97f, 0.76f);
 
@@ -210,7 +211,8 @@ namespace Hadal.UI
             Face(card, me.AvatarId, name, View.PlayerId, 0.04f, 0.76f, 0.24f, 0.98f);
             UiKit.Label("Name", card, Escape(name), 40, UiKit.Text, TextAnchor.MiddleLeft, FontStyle.Bold).rectTransform.Place(0.28f, 0.86f, 0.85f, 0.96f);
             var alliance = View.MyAlliance;
-            UiKit.Label("Alliance", card, alliance != null ? $"[{alliance.Tag}] {alliance.Name}" : Loc.T("profile.noalliance"), 28, UiKit.Muted, TextAnchor.MiddleLeft)
+            UiKit.Label("Alliance", card, (alliance != null ? $"[{alliance.Tag}] {alliance.Name}" : Loc.T("profile.noalliance")) + $"   {Loc.F("kingdom.number", View.MyKingdom)}",
+                    28, UiKit.Muted, TextAnchor.MiddleLeft)
                 .rectTransform.Place(0.28f, 0.78f, 0.97f, 0.86f);
 
             UiKit.Label("Pick", card, Loc.T("profile.avatar"), 30, UiKit.Amber, TextAnchor.MiddleLeft, FontStyle.Bold).rectTransform.Place(0.04f, 0.7f, 0.96f, 0.76f);

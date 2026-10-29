@@ -145,6 +145,7 @@ namespace Hadal.Gateway.Admin
                         constructionEndsAt = b.ConstructionEndsAt
                     }) ?? Enumerable.Empty<object>(),
                     serverTick = state?.ServerTick ?? 0,
+                    kingdom = state == null ? 0 : world.Kingdoms.NumberOf(world.Kingdoms.KingdomOf(state.PlayerId.ToString("N")) ?? "w1"),
                     vip = new { points = state?.VipPoints ?? 0, level = VipRules.Level(state?.VipPoints ?? 0) }
                 });
             }).RequireAdmin(AdminRoles.Viewer);
@@ -301,6 +302,7 @@ namespace Hadal.Gateway.Admin
             // --- Mail (docs/29 §2.1) ----------------------------------------------------------
 
             api.MapMailEndpoints();
+            api.MapKingdomEndpoints();
 
             // --- First-session guide funnel (docs/34) ------------------------------------------
 

@@ -34,6 +34,7 @@ if (string.IsNullOrWhiteSpace(connectionString))
     builder.Services.AddSingleton<IAdminStore, InMemoryAdminStore>();
     builder.Services.AddSingleton<ISocialStore, InMemorySocialStore>();
     builder.Services.AddSingleton<IWorldStore, InMemoryWorldStore>();
+    builder.Services.AddSingleton<Hadal.Game.Kingdoms.IKingdomStore, Hadal.Game.Kingdoms.InMemoryKingdomStore>();
     builder.Services.AddSingleton<IEventStore, InMemoryEventStore>();
     builder.Services.AddSingleton<IMailStore, InMemoryMailStore>();
     builder.Services.AddSingleton<IOnboardingStore, InMemoryOnboardingStore>();
@@ -46,6 +47,7 @@ else
     builder.Services.AddSingleton<IAdminStore, PostgresAdminStore>();
     builder.Services.AddSingleton<ISocialStore, PostgresSocialStore>();
     builder.Services.AddSingleton<IWorldStore, PostgresWorldStore>();
+    builder.Services.AddSingleton<Hadal.Game.Kingdoms.IKingdomStore, Hadal.Game.Kingdoms.PostgresKingdomStore>();
     builder.Services.AddSingleton<IEventStore, PostgresEventStore>();
     builder.Services.AddSingleton<IMailStore, PostgresMailStore>();
     builder.Services.AddSingleton<IOnboardingStore, PostgresOnboardingStore>();
@@ -57,25 +59,11 @@ builder.Services.AddHadalAdmin(builder.Configuration);
 builder.Services.AddSingleton(sp => new GameWorld(
     sp.GetRequiredService<CatalogRuntime>(), sp.GetRequiredService<IPlayerRepository>(), sp.GetRequiredService<ISocialStore>(), sp.GetRequiredService<IWorldStore>(), sp.GetRequiredService<IClock>(),
     sp.GetRequiredService<INetworkSerializer>(), sp.GetRequiredService<ILogger<GameWorld>>(), sp.GetRequiredService<IEventStore>(),
-    sp.GetRequiredService<IMailStore>(), sp.GetRequiredService<IOnboardingStore>()));
+    sp.GetRequiredService<IMailStore>(), sp.GetRequiredService<IOnboardingStore>(), sp.GetRequiredService<Hadal.Game.Kingdoms.IKingdomStore>()));
 builder.Services.AddHostedService<GameTickService>();
 builder.Services.AddSingleton<GatewaySessionHandler>();
 
 var app = builder.Build();
-
-// Phone push (docs/36): Firebase Cloud Messaging only when the service-account key file (on the CT, never in git) and
-// the Firebase project id are both configured; otherwise the no-op sender keeps push off.
-var fcmKey = builder.Configuration["HADAL_FCM_SERVICE_ACCOUNT_JSON_PATH"];
-var fcmProject = builder.Configuration["HADAL_FCM_PROJECT_ID"];
-if (!string.IsNullOrWhiteSpace(fcmKey) && !string.IsNullOrWhiteSpace(fcmProject))
-{
-    var pushLogger = app.Services.GetRequiredService<ILogger<Hadal.Game.PushNotifications.PushService>>();
-    if (Hadal.Game.PushNotifications.FcmPushSender.TryCreate(fcmKey, fcmProject, pushLogger) is { } fcm)
-    {
-        app.Services.GetRequiredService<GameWorld>().Push.Sender = fcm;
-        pushLogger.LogInformation("Push: Firebase Cloud Messaging on for project {Project}.", fcmProject);
-    }
-}
 
 app.UseWebSockets(new WebSocketOptions { KeepAliveInterval = TimeSpan.FromSeconds(20) });
 

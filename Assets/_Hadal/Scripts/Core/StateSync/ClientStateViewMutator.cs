@@ -61,8 +61,6 @@ namespace Hadal.Core.StateSync
                 view.ApplyArmy(snapshot.Army);
             if (snapshot.Vip != null)
                 view.ApplyVip(snapshot.Vip);
-            if (snapshot.Notifications != null)
-                view.ApplyNotificationPrefs(snapshot.Notifications);
             if (!string.IsNullOrEmpty(snapshot.PlayerId))
                 view.PlayerId = snapshot.PlayerId;
 
@@ -267,13 +265,6 @@ namespace Hadal.Core.StateSync
             {
                 if (TryDeserializePayload(change.Payload, serialization, out HelpReceivedDto helped))
                     view.AddHelpReceived(helped);
-                return true;
-            }
-
-            if (id == EntityIds.NotificationPrefs)
-            {
-                if (TryDeserializePayload(change.Payload, serialization, out NotificationPrefsDto notify))
-                    view.ApplyNotificationPrefs(notify);
                 return true;
             }
 

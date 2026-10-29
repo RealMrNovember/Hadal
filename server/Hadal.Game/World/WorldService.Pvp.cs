@@ -164,9 +164,6 @@ CREATE TABLE IF NOT EXISTS hadal.world_fairness (
         /// <summary>A loaded session by public player id (online or resident); set by the game world.</summary>
         public Func<string, PlayerSession?> SessionOf { get; set; } = _ => null;
 
-        /// <summary>Push (docs/36): (attacker id, target owner id, mode, new rally) when a hostile march sets out.</summary>
-        public Action<string, string, string, bool>? HostileLaunched { get; set; }
-
         /// <summary>Asks the game world to load a player's session without a connection.</summary>
         public Action<string> Summon { get; set; } = _ => { };
 
@@ -829,8 +826,6 @@ CREATE TABLE IF NOT EXISTS hadal.world_fairness (
                 }
 
                 _marchViews[me.PlayerId] = session.MarchViews();
-                if (launch.Mode != PvpRules.Reinforce)
-                    HostileLaunched?.Invoke(me.PlayerId, launch.TargetOwnerId, launch.Mode, rally == null);
                 if (launch.TargetOwnerId.Length > 0)
                 {
                     if (launch.Mode != PvpRules.Reinforce)

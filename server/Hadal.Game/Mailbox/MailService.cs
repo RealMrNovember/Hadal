@@ -42,9 +42,6 @@ namespace Hadal.Game.Mailbox
         public Func<string, string?>? NameLookup { get; set; }
         public Func<string, string>? AllianceIdOf { get; set; }
 
-        /// <summary>Push (docs/36): the mails just stored, one per recipient.</summary>
-        public Action<IReadOnlyList<Mail>>? Delivered { get; set; }
-
         /// <summary>A player's kingdom (docs/39): players write only within their own kingdom.</summary>
         public Func<string, string>? KingdomOf { get; set; }
 
@@ -145,7 +142,6 @@ namespace Hadal.Game.Mailbox
                 return 0;
 
             await _store.InsertAsync(mails, cancellationToken);
-            Delivered?.Invoke(mails);
 
             lock (_gate)
             {

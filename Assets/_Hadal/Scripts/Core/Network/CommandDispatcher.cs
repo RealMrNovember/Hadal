@@ -178,12 +178,11 @@ namespace Hadal.Core.Network
                 MarchAttackCommand => CommandType.MarchAttack,
                 MarchPvpCommand => CommandType.MarchPvp,
                 ViewWarCommand => CommandType.ViewWar,
+                ViewKingdomsCommand => CommandType.ViewKingdoms,
                 ViewTerritoryCommand => CommandType.ViewTerritory,
                 TerritoryCommand => CommandType.Territory,
                 UseShieldCommand => CommandType.UseShield,
                 RepairEmergencyCommand => CommandType.RepairEmergency,
-                SetNotificationPrefsCommand => CommandType.SetNotificationPrefs,
-                RegisterPushTokenCommand => CommandType.RegisterPushToken,
                 _ => CommandType.Unknown
             };
         }

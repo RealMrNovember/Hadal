@@ -123,7 +123,7 @@ async function start() {
 }
 
 // ---------------------------------------------------------------- Router
-const PAGES = { overview, players, coupons, events, mail, onboarding, liveops, balance, chat, audit, admins };
+const PAGES = { overview, players, kingdoms, coupons, events, mail, onboarding, liveops, balance, chat, audit, admins };
 
 function route() {
   if (!state.user) return;
@@ -369,6 +369,7 @@ async function playerDetail(root, id) {
     el("p", { class: "muted" },
       `Kayıt ${fmtDate(p.createdAt)} · Son giriş ${fmtDate(p.lastLoginAt)} · ${p.online ? "Çevrimiçi" : "Çevrimdışı"}`,
       d.vip ? el("span", { class: "pill on" }, ` VIP ${d.vip.level} · ${fmtNum(d.vip.points)} puan `) : "",
+      d.kingdom ? el("span", { class: "pill" }, ` Krallık #${d.kingdom} `) : "",
       banned ? el("span", { class: "bad" }, ` · Banlı: ${fmtDate(p.bannedUntil)} (${p.banReason})`) : ""),
     el("div", { class: "grid2" },
       el("div", {},
@@ -533,6 +534,41 @@ async function coupons(root, targetId) {
         el("td", {}, can("gm") ? el("button", {
           onclick: () => api(`coupons/${c.code}/active`, { method: "POST", body: { active: !c.active } }).then(() => route(), (e) => toast(e.message, true)),
         }, c.active ? "Kapat" : "Aç") : ""))))));
+}
+
+// Kingdoms (docs/39): every kingdom with members and active players; open the next, status, cap, age window.
+async function kingdoms(root) {
+  const rows = await api("kingdoms");
+  const STATUS_TR = { open: "Açık", full: "Dolu", closed: "Kapalı" };
+  const owner = can("owner");
+  const save = (k, body) => api(`kingdoms/${k.id}`, { method: "POST", body }).then(() => { toast(`Krallık #${k.number} güncellendi.`); route(); }, (e) => toast(e.message, true));
+  render(root,
+    el("h1", {}, "Krallıklar"),
+    el("p", { class: "muted" }, "Her krallık ayrı bir dünya: haritası, dünya sohbeti, ittifakları ve sıralamaları kendine. Yeni hesaplar en yeni açık krallığa girer; " +
+      "üye sınırına ya da açık kalma süresine ulaşınca krallık dolar ve sıradaki kendiliğinden açılır. Dolu ve kapalı krallıklara yeni oyuncu girmez, içindekiler oynamaya devam eder."),
+    owner ? el("button", { class: "primary", onclick: () => {
+      if (!confirm("Yeni krallık şimdi açılsın mı? Açık olan krallık dolu sayılır ve yeni oyuncular yeni krallığa girer.")) return;
+      api("kingdoms/open", { method: "POST" }).then((k) => { toast(`Krallık #${k.number} açıldı.`); route(); }, (e) => toast(e.message, true));
+    } }, "Yeni krallık aç") : null,
+    el("table", {},
+      el("thead", {}, el("tr", {}, ["#", "Ad", "Durum", "Üye", "Aktif (7 gün)", "Üye sınırı", "Açık kalma (gün, 0 = sınırsız)", "Açılış", ""].map((h) => el("th", {}, h)))),
+      el("tbody", {}, rows.map((k) => {
+        const status = el("select", { disabled: !owner }, ["open", "full", "closed"].map((s) => el("option", { value: s }, STATUS_TR[s])));
+        status.value = k.status;
+        const cap = el("input", { type: "number", min: "1", value: k.playerCap, disabled: !owner, style: "width:7em" });
+        const days = el("input", { type: "number", min: "0", value: k.openDays, disabled: !owner, style: "width:6em" });
+        const name = el("input", { value: k.name || "", placeholder: `Krallık #${k.number}`, disabled: !owner });
+        return el("tr", {},
+          el("td", { class: "mono" }, `#${k.number}`),
+          el("td", {}, name),
+          el("td", {}, status),
+          el("td", {}, fmtNum(k.members)),
+          el("td", {}, fmtNum(k.active)),
+          el("td", {}, cap),
+          el("td", {}, days),
+          el("td", {}, fmtDate(k.openedAt)),
+          el("td", {}, owner ? el("button", { onclick: () => save(k, { status: status.value, playerCap: Number(cap.value), openDays: Number(days.value), name: name.value }) }, "Kaydet") : ""));
+      }))));
 }
 
 async function liveops(root) {

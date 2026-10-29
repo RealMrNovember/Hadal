@@ -20,7 +20,22 @@ namespace Hadal.Core.StateSync
         public int WarListVersion { get; private set; }
 
         public TerritoryDto Territory { get; private set; }
+
         public int TerritoryVersion { get; private set; }
+
+        /// <summary>Every kingdom (docs/39), as last asked for.</summary>
+        public KingdomListDto KingdomList { get; private set; } = new KingdomListDto();
+        public int KingdomListVersion { get; private set; }
+
+        /// <summary>Our kingdom's number: from the profile, else the map we look at; 1 before either arrived.</summary>
+        public int MyKingdom => MyProfile?.Kingdom > 0 ? MyProfile.Kingdom
+            : WorldView != null ? HADAL.Shared.Simulation.KingdomNaming.NumberOf(WorldView.WorldId) : 1;
+
+        public void ApplyKingdoms(KingdomListDto list)
+        {
+            KingdomList = list ?? new KingdomListDto();
+            KingdomListVersion++;
+        }
 
         public void ApplyPvp(PvpStatusDto pvp)
         {
@@ -85,6 +100,12 @@ namespace Hadal.Core.StateSync
             if (id == EntityIds.AllianceWar)
             {
                 view.ApplyWarList(Read<WarListDto>(change, serialization) ?? new WarListDto());
+                return true;
+            }
+
+            if (id == EntityIds.Kingdoms)
+            {
+                view.ApplyKingdoms(Read<KingdomListDto>(change, serialization) ?? new KingdomListDto());
                 return true;
             }
 

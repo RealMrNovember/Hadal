@@ -6,7 +6,6 @@ using HADAL.Shared.Protocol;
 using Hadal.Game.Mailbox;
 using Hadal.Game.Onboarding;
 using Hadal.Game.Persistence;
-using Hadal.Game.PushNotifications;
 using Hadal.Game.Social;
 using Hadal.Game.World;
 using HADAL.Shared.Catalog;
@@ -102,50 +101,6 @@ namespace Hadal.Game
                 KingdomOf = id => Kingdoms.KingdomOf(id) ?? Map.WorldId
             };
             Onboarding = new OnboardingLog(onboardingStore ?? new InMemoryOnboardingStore(), logger);
-            Push = new PushService(clock, logger)
-            {
-                IsOnline = id => _byPublic.TryGetValue(id, out var s) && s.Connection != null,
-                SessionOf = id => _byPublic.TryGetValue(id, out var s) ? s : null,
-                LoadOffline = LoadPushProfileAsync
-            };
-            WirePush();
-        }
-
-        /// <summary>Phone push while the game is closed (docs/36 phase 2); off until Firebase is configured.</summary>
-        public PushService Push { get; }
-
-        /// <summary>Hooks the systems that push: incoming attacks and rallies, battle reports and mails, help, chat.</summary>
-        private void WirePush()
-        {
-            Map.HostileLaunched = (attackerId, targetId, mode, newRally) =>
-            {
-                if (!Push.Sender.Enabled)
-                    return;
-                var name = Map.NameOf(attackerId) ?? string.Empty;
-                if (targetId.Length > 0)
-                    Push.Notify(targetId, PushKind.AttackIncoming, name);
-                // The alliance hears of a new rally; looked up off the world lock.
-                if (mode == PvpRules.Rally && newRally)
-                    _ = Task.Run(() => Push.NotifyAll(Social.MatesOf(attackerId), PushKind.RallyStarted, name));
-            };
-            Mail.Delivered = mails =>
-            {
-                // An announcement to everyone is not pushed (it would be one push per player at once).
-                if (!Push.Sender.Enabled || mails.Count > 50)
-                    return;
-                foreach (var mail in mails)
-                    Push.Notify(mail.PlayerId, mail.Kind == MailKinds.Battle ? PushKind.AttackResult : PushKind.Mail, mail.Sender);
-            };
-            Social.PushTo = (ids, kind, name) => Push.NotifyAll(ids, kind, name);
-        }
-
-        private async Task<PushProfile?> LoadPushProfileAsync(string publicId, CancellationToken cancellationToken)
-        {
-            if (!Guid.TryParseExact(publicId, "N", out var playerId))
-                return null;
-            var identity = await _repository.IdentityOfAsync(playerId, cancellationToken);
-            var state = identity == null ? null : await _repository.LoadByIdentityAsync(identity, cancellationToken);
-            return state == null ? null : PushProfile.From(state);
         }
 
         /// <summary>The first-session guide's funnel log (docs/34).</summary>
@@ -600,9 +555,6 @@ namespace Hadal.Game
                 Mail.Handle(session, envelope, _clock.UtcNow);
             else
                 session.HandleCommand(envelope, _clock.UtcNow);
-
-            if (envelope.Type is CommandType.SetNotificationPrefs or CommandType.RegisterPushToken)
-                Push.Invalidate(session.PublicId);
         }
 
         /// <summary>Detaches, saves and unloads the session if this connection still owns it.</summary>

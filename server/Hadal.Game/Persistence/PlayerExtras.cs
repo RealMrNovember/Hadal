@@ -65,16 +65,6 @@ namespace Hadal.Game.Persistence
 
         private sealed record SurvivalDoc(EmergencyDoc? Emergency, DateTimeOffset? LastAt, long RollHour);
 
-        /// <summary>Phone notifications (docs/36): the player's choices and the phones that take push.</summary>
-        private sealed partial record Doc
-        {
-            public NotifyDoc? Notify { get; init; }
-        }
-
-        private sealed record NotifyDoc(HADAL.Shared.DTOs.NotificationPrefsDto? Prefs, List<DeviceDoc>? Devices);
-
-        private sealed record DeviceDoc(string DeviceId, string Token, string? Platform, DateTimeOffset UpdatedAt);
-
         private static string Serialize(PlayerState state, Doc doc) => JsonSerializer.Serialize(doc with
         {
             Mail = new MailDoc(state.MailDay, state.MailsSent, state.MailSent.ToDictionary(p => p.Key.ToString(), p => p.Value)),
@@ -86,10 +76,7 @@ namespace Hadal.Game.Persistence
                 : new SurvivalDoc(state.Emergency is { } e
                         ? new EmergencyDoc(e.Id, e.Kind, e.BuildingId, e.StartedAt, e.ExpiresAt, e.RepairEndsAt, e.RepairSeconds)
                         : null,
-                    state.LastEmergencyAt, state.EmergencyRollHour),
-            Notify = state.NotifyPrefs == null && state.PushDevices.Count == 0 ? null
-                : new NotifyDoc(state.NotifyPrefs?.Copy(),
-                    state.PushDevices.Select(d => new DeviceDoc(d.DeviceId, d.Token, d.Platform, d.UpdatedAt)).ToList())
+                    state.LastEmergencyAt, state.EmergencyRollHour)
         });
 
         private sealed record VipDoc(long Points, int Streak, long LoginDay, long ChestDay);
@@ -328,17 +315,6 @@ namespace Hadal.Game.Persistence
                         ExpiresAt = e.ExpiresAt, RepairEndsAt = e.RepairEndsAt, RepairSeconds = e.RepairSeconds
                     }
                     : null;
-            }
-
-            if (doc.Notify is { } notify)
-            {
-                state.NotifyPrefs = notify.Prefs == null ? null : HADAL.Shared.Simulation.NotificationRules.Sanitize(notify.Prefs);
-                state.PushDevices.Clear();
-                foreach (var d in notify.Devices ?? new List<DeviceDoc>())
-                {
-                    if (!string.IsNullOrEmpty(d.Token))
-                        state.PushDevices.Add(new PushDevice { DeviceId = d.DeviceId ?? string.Empty, Token = d.Token, Platform = d.Platform ?? string.Empty, UpdatedAt = d.UpdatedAt });
-                }
             }
 
             foreach (var b in state.Buildings)

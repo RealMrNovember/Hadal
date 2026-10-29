@@ -109,9 +109,6 @@ namespace HADAL.Shared.Protocol
         /// <summary>VIP points, level and today's claims (<c>VipStateDto</c>).</summary>
         public const string Vip = Base + "vip";
 
-        /// <summary>Phone notification choices (<c>NotificationPrefsDto</c>, docs/36).</summary>
-        public const string NotificationPrefs = Base + "notify";
-
         /// <summary>The player's mailbox, newest first, with the unread count (<c>MailListDto</c>).</summary>
         public const string Mail = Base + "mail";
 

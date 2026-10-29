@@ -380,6 +380,30 @@ namespace Hadal.Game.Tests
         }
 
         [Fact]
+        public async Task Kingdoms_AreListedAndOnlyTheOwnerOpensOrChangesThem()
+        {
+            var viewer = await LoginAsync(AdminRoles.Viewer);
+            var owner = await LoginAsync(AdminRoles.Owner);
+            var list = await Proxied(viewer).GetFromJsonAsync<System.Text.Json.JsonElement>("/admin/api/kingdoms");
+            Assert.Contains(list.EnumerateArray(), k => k.GetProperty("id").GetString() == "w1");
+
+            Assert.Equal(HttpStatusCode.Forbidden, (await Proxied(viewer).PostAsync("/admin/api/kingdoms/open", null)).StatusCode);
+            Assert.Equal(HttpStatusCode.Forbidden, (await Proxied(viewer).PostAsJsonAsync("/admin/api/kingdoms/w1", new { playerCap = 5 })).StatusCode);
+            Assert.Equal(HttpStatusCode.BadRequest, (await Proxied(owner).PostAsJsonAsync("/admin/api/kingdoms/w1", new { status = "nonsense" })).StatusCode);
+
+            var changed = await Proxied(owner).PostAsJsonAsync("/admin/api/kingdoms/w1", new { playerCap = 5000, openDays = 0 });
+            changed.EnsureSuccessStatusCode();
+            Assert.Equal(5000, (await changed.Content.ReadFromJsonAsync<System.Text.Json.JsonElement>()).GetProperty("playerCap").GetInt32());
+
+            var opened = await Proxied(owner).PostAsync("/admin/api/kingdoms/open", null);
+            opened.EnsureSuccessStatusCode();
+            var number = (await opened.Content.ReadFromJsonAsync<System.Text.Json.JsonElement>()).GetProperty("number").GetInt32();
+            Assert.True(number >= 2);
+            list = await Proxied(viewer).GetFromJsonAsync<System.Text.Json.JsonElement>("/admin/api/kingdoms");
+            Assert.Equal("open", list.EnumerateArray().Single(k => k.GetProperty("number").GetInt32() == number).GetProperty("status").GetString());
+        }
+
+        [Fact]
         public void Totp_MatchesTheRfc6238Reference()
         {
             // RFC 6238 appendix B, SHA-1 secret "12345678901234567890", T = 59 s -> 94287082 (8 digits) -> 287082.

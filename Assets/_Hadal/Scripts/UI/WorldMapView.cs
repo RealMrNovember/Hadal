@@ -207,9 +207,14 @@ namespace Hadal.UI
 
             var coordsBox = UiKit.Box("Coords", safe, new Color(0.02f, 0.05f, 0.08f, 0.85f));
             coordsBox.rectTransform.Place(0.2f, 0.105f, 0.52f, 0.145f);
-            coordsBox.raycastTarget = false;
+            // The kingdom badge (docs/39): "Krallık #n · X Y"; a tap opens the kingdom list.
+            coordsBox.gameObject.AddComponent<Button>().onClick.AddListener(() => KingdomList.Show(_stateSync, _commands));
             _coords = UiKit.Label("Text", coordsBox.transform, string.Empty, 26, UiKit.Accent, TextAnchor.MiddleCenter, FontStyle.Bold);
-            _coords.rectTransform.Place(0, 0, 1, 1);
+            _coords.rectTransform.Place(0.03f, 0, 0.97f, 1);
+            _coords.raycastTarget = false;
+            _coords.resizeTextForBestFit = true;
+            _coords.resizeTextMinSize = 16;
+            _coords.resizeTextMaxSize = 26;
 
             var home = UiKit.Button("Home", safe, Loc.T("world.myBase"), GoHome, UiKit.Field, 26);
             home.GetComponentInChildren<Text>().color = UiKit.Text;
@@ -465,7 +470,7 @@ namespace Hadal.UI
             UpdateTerritory();
 
             var tile = WorldToTile(_focus);
-            _coords.text = Loc.F("world.coords", tile.x, tile.y);
+            _coords.text = $"{Loc.F("kingdom.number", View.MyKingdom)} · {Loc.F("world.coords", tile.x, tile.y)}";
 
             // Ask for a new area once the camera has travelled far from the last one.
             var view = View.WorldView;

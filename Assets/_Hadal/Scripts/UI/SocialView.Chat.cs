@@ -47,7 +47,7 @@ namespace Hadal.UI
             // Channel tabs stay fixed under the title (the list below scrolls to the newest line).
             if (_chatTabs != null)
                 Destroy(_chatTabs.gameObject);
-            _chatTabs = UiKit.Choice("Channels", _sheet.transform, new[] { Loc.T("chat.world"), inAlliance ? $"[{View.MyAlliance.Tag}] {Loc.T("chat.alliance")}" : Loc.T("chat.alliance"), Loc.T("chat.private") },
+            _chatTabs = UiKit.Choice("Channels", _sheet.transform, new[] { $"{Loc.T("chat.world")} · {Loc.F("kingdom.short", View.MyKingdom)}", inAlliance ? $"[{View.MyAlliance.Tag}] {Loc.T("chat.alliance")}" : Loc.T("chat.alliance"), Loc.T("chat.private") },
                 () => (int)_chatChannel, i =>
                 {
                     if (i == (int)ChatChannel.Alliance && View.MyAlliance == null)

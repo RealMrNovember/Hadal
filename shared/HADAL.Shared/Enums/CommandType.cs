@@ -75,8 +75,6 @@ namespace HADAL.Shared.Enums
         [ProtoEnum] SetResearchFocus = 67,
         [ProtoEnum] ViewAllianceRanking = 68,
         [ProtoEnum] RepairEmergency = 69,
-        [ProtoEnum] SetNotificationPrefs = 70,
-        [ProtoEnum] RegisterPushToken = 71,
         [ProtoEnum] ViewKingdoms = 72,
     }
 }
