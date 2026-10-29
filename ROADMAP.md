@@ -39,7 +39,7 @@ Sıralama araştırmanın ana önerisine göre yapıldı (§16): önce **kaynak 
 | **3** | İttifak bölgesi ve ittifak binaları | A, B aşamaları ve Şehir Listesi canlıda (docs/32). | ✅ |
 | **4** | Yeni deniz yaratıkları ve etkinlik boss'ları | Tamamlandı; boss hasar tablosu ve katkı ödülü sonra. | ✅ |
 | **5** | İlk oturum akışı ve öğretici | 0.9.3 ile yayında; ödüller ilk huni verisiyle ayarlanacak (docs/34). | ✅ |
-| **6** | Hayatta kalma döngüsü (oksijen, enerji, acil durum) | Oyunun kendine has gerilimi; temayı ekonomiye bağlar. | ⬜ |
+| **6** | Hayatta kalma döngüsü (oksijen, enerji, acil durum) | Kod ve testler tamam (`7a5b926`, docs/35); istemci ve katalog v13 ile yayın bekliyor. | 🟡 |
 | **7** | Etkinlik takvimi ve ittifak etkinlikleri | Günlük geri dönüş ve ortak hedef (§6.2, docs/29 E2–E6). | ⬜ |
 | **8** | Asenkron arena ve düello | Kısa oturumlu, adil PvP (§5.1, §13.1). | ⬜ |
 | **9** | Gerçek ödeme ve mağaza | Play Billing ve makbuz doğrulama (§7). | ⬜ |
@@ -157,14 +157,16 @@ Ayrıntılar aşağıda, aynı sırayla.
 
 ---
 
-## 6. Hayatta kalma döngüsü ⬜
+## 6. Hayatta kalma döngüsü 🟡
 
-**Hedef:** "Oksijen biterse üs ölür" gerilimi (`docs/06`, `docs/19`). Temayı ekonomiye bağlar.
+**Hedef:** "Oksijen biterse üs ölür" gerilimi (`docs/06`, `docs/19`). Temayı ekonomiye bağlar. Ayrıntı: `docs/35_Survival_Loop.md`.
 
-- ⬜ Bağımlılık zinciri: enerji yetmezse üreticiler yavaşlar ya da durur.
-- ⬜ Mürettebatın oksijen tüketimi, kritik eşikler, alarmlar
-- ⬜ Acil durumlar (arıza, sızıntı) ve onarım komutları
-- ⬜ Cezanın toparlanabilir olması: üs ölmez, verimi düşer
+- ✅ Bağımlılık zinciri (`7a5b926`): enerji deposu boşken ve talep üretimden fazlayken enerji kullanan binalar arz/talep oranında çalışır, hiçbir zaman %50'nin altına inmez (durmaz). Depo yolda boşalırsa adım tam o tikte bölünür; çevrimdışı sonuç çevrimiçiyle aynı.
+- ✅ Oksijen (`7a5b926`): askerler ve mürettebat (saatte reaktör seviyesi × 10) solur. %20'nin altında ve düşerken uyarı; 0'da ve düşerken oksijen/enerji dışı üretim −%20, yeni inşaat, araştırma ve eğitim +%20. HUD: nabız atan Oksijen/Enerji hapı, alarm şeridi, "Ne yapmalıyım?" kartı ve Git düğmesi.
+- ✅ Acil durumlar (`7a5b926`): sızıntı (oksijen üretiminin %20'si) ve arıza (bir üretici durur). Yalnızca çevrimiçiyken, oyuncu ve saat başına tohumlu zar (%10), rehber sürerken ve reaktör 5 altında yok, en fazla bir tane ve 6 saat arayla, 4 saatte kendiliğinden biter. `RepairEmergency`: bir saatlik Titanyum gelirinin %10'u ve 10 dk; ittifak yardımı alır; aynı CommandId bir kez çalışır. Binada uyarı ışığı, sızıntıda kabarcık; başlayınca ve bitince bildirim.
+- ✅ Cezanın toparlanabilir olması: bina kaybı ve asker ölümü yok, sebep gidince anında normale döner. Katalog anahtarları `survival.enabled` ve `survival.emergencies.enabled` canlıda kapatır (katalog tasarımı v13; bölümsüz eski katalog döngüyü kapalı çalıştırır).
+- ✅ Testler: sunucu 367/367 (24 yeni `SurvivalTests`), Unity EditMode 169/169 (`SurvivalClientTests`, 18 dil)
+- ⬜ Yayın: istemci ile birlikte; `/opt/hadal/server/.env` içinde `HADAL_PUBLISH_CATALOG_UP_TO` 12 → 13
 
 **Çıkış kriteri:** Kaynak yönetimi hatası oyuncuyu gerçekten zorlar ama oyundan koparmaz.
 
