@@ -163,6 +163,7 @@ namespace Hadal.Core.Network
                 ViewEventRankingCommand => CommandType.ViewEventRanking,
                 ClaimVipLoginCommand => CommandType.ClaimVipLogin,
                 ClaimVipChestCommand => CommandType.ClaimVipChest,
+                TeleportCommand => CommandType.Teleport,
                 MarchAttackCommand => CommandType.MarchAttack,
                 _ => CommandType.Unknown
             };

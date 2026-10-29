@@ -46,7 +46,8 @@ namespace Hadal.UI
 
         private void OnCommandResolved(CommandResolvedEvent result)
         {
-            if (result.Type is not (CommandType.MarchGather or CommandType.RecallMarch or CommandType.InviteToAlliance or CommandType.MarchAttack))
+            if (result.Type is not (CommandType.MarchGather or CommandType.RecallMarch or CommandType.InviteToAlliance or CommandType.MarchAttack
+                or CommandType.Teleport))
                 return;
             if (result.Result == CommandResultCode.Rejected)
             {
@@ -59,9 +60,16 @@ namespace Hadal.UI
                 CommandType.MarchGather => "world.march.sent",
                 CommandType.MarchAttack => "world.attack.sent",
                 CommandType.RecallMarch => "world.march.recalled",
+                CommandType.Teleport => "world.teleport.done",
                 _ => "alliance.invited"
             }), UiKit.Accent);
             ClosePopup();
+            if (result.Type == CommandType.Teleport)
+            {
+                AfterTeleport();
+                return;
+            }
+
             if (IsOpen && _requested.x >= 0)
                 Request(_requested.x, _requested.y);
         }
@@ -436,77 +444,13 @@ namespace Hadal.UI
             return Vector3.Lerp(to, from, back <= 0 ? 1f : Mathf.Clamp01((now - m.GatheredAtMs) / (float)back));
         }
 
-        private readonly Dictionary<string, (RectTransform Sub, Text Label, List<RectTransform> Dots)> _subs = new();
-
-        /// <summary>Each march as a submarine marker moving on a dotted route, with the commander and crew on it.</summary>
+        /// <summary>Every team on the map: the player's own as a team with its plate, all of them on dashed routes.</summary>
         private void UpdateSubmarines()
         {
             var marches = View.Marches?.Marches ?? Array.Empty<MarchDto>();
             var now = View.ServerNowMs;
             UpdateTeams(marches, now);
-            var live = new HashSet<string>();
-            var catalog = ClientCatalog.Catalog;
-            foreach (var m in marches)
-            {
-                live.Add(m.Id);
-                if (!_subs.TryGetValue(m.Id, out var sub))
-                {
-                    var rect = UiKit.Rect("Sub", _labels);
-                    rect.sizeDelta = new Vector2(96f, 96f);
-                    var disc = rect.gameObject.AddComponent<Image>();
-                    disc.sprite = UiKit.Circle;
-                    disc.color = new Color(0.13f, 0.52f, 0.86f, 0.95f);
-                    disc.raycastTarget = false;
-                    Hud.HudIcons.Image(rect, "queue_drone", 0.12f, 0.12f, 0.88f, 0.88f).raycastTarget = false;
-                    var plate = UiKit.Box("Plate", rect, new Color(0.02f, 0.05f, 0.08f, 0.85f));
-                    plate.raycastTarget = false;
-                    plate.rectTransform.Place(-1.1f, -0.55f, 2.1f, -0.05f);
-                    var label = UiKit.Label("Text", plate.transform, string.Empty, 22, UiKit.Text, TextAnchor.MiddleCenter, FontStyle.Bold);
-                    label.rectTransform.Place(0, 0, 1, 1);
-                    sub = (rect, label, new List<RectTransform>());
-                    for (var d = 0; d < 14; d++)
-                    {
-                        var dot = UiKit.Rect("Dot", _labels);
-                        dot.sizeDelta = new Vector2(12f, 12f);
-                        var img = dot.gameObject.AddComponent<Image>();
-                        img.sprite = UiKit.Circle;
-                        img.color = new Color(0.55f, 0.85f, 1f, 0.75f);
-                        img.raycastTarget = false;
-                        sub.Dots.Add(dot);
-                    }
-
-                    rect.SetAsLastSibling();
-                    _subs[m.Id] = sub;
-                }
-
-                var hero = TeamName(m);
-                var phase = now < m.ArrivesAtMs ? "world.march.outbound" : now < m.GatheredAtMs ? "world.march.gathering" : "world.march.returning";
-                var until = now < m.ArrivesAtMs ? m.ArrivesAtMs : now < m.GatheredAtMs ? m.GatheredAtMs : m.HomeAtMs;
-                sub.Label.text = $"{hero} · {Loc.F("march.crew.short", m.Crew)}\n<size=18>{Loc.F(phase, Loc.Duration(Math.Max(0, (until - now) / 1000f)))}</size>";
-
-                var visible = _popup == null;
-                var position = Project(MarchPosition(m, now) + Vector3.up * 2f, out var onScreen);
-                sub.Sub.gameObject.SetActive(false);
-                sub.Sub.anchoredPosition = position;
-
-                // The route: dots between the base and the node.
-                var a = Project(TileToWorld(m.FromX, m.FromY) + Vector3.up * 0.5f, out var aOk);
-                var b = Project(TileToWorld(m.X, m.Y) + Vector3.up * 0.5f, out var bOk);
-                for (var d = 0; d < sub.Dots.Count; d++)
-                {
-                    var dot = sub.Dots[d];
-                    dot.gameObject.SetActive(visible && aOk && bOk);
-                    dot.anchoredPosition = Vector2.Lerp(a, b, (d + 0.5f) / sub.Dots.Count);
-                }
-            }
-
-            foreach (var id in _subs.Keys.Where(k => !live.Contains(k)).ToList())
-            {
-                Destroy(_subs[id].Sub.gameObject);
-                foreach (var dot in _subs[id].Dots)
-                    Destroy(dot.gameObject);
-                _subs.Remove(id);
-            }
+            UpdateRoutes(marches, now);
         }
 
         private Vector2 Project(Vector3 world, out bool onScreen)

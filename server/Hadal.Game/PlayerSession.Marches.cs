@@ -361,6 +361,20 @@ namespace Hadal.Game
         }
 
         /// <summary>The node ids this player's marches are working (for the map's "mine" flag).</summary>
+        /// <summary>This player's teams as the map shows them to everyone (relation and owner filled in by the world).</summary>
+        internal List<WorldMarchDto> MarchViews()
+        {
+            lock (_gate)
+            {
+                return _state.Marches.Select(m => new WorldMarchDto
+                {
+                    Id = m.Id, OwnerId = PublicId, OwnerName = _displayName, FromX = m.FromX, FromY = m.FromY, ToX = m.X, ToY = m.Y,
+                    StartedAtMs = m.StartedAt.ToUnixTimeMilliseconds(), ArrivesAtMs = m.ArrivesAt.ToUnixTimeMilliseconds(),
+                    GatheredAtMs = m.GatheredAt.ToUnixTimeMilliseconds(), HomeAtMs = m.HomeAt.ToUnixTimeMilliseconds(), Kind = m.Kind
+                }).ToList();
+            }
+        }
+
         internal HashSet<string> MarchNodes()
         {
             lock (_gate)

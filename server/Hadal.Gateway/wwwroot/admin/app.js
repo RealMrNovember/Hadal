@@ -392,6 +392,7 @@ const GRANT_ITEMS = [
   ["speed_research_60", "Araştırma hızlandırma 1 sa"], ["speed_march_p25", "Yürüyüş hızlandırma %25"], ["speed_march_p50", "Yürüyüş hızlandırma %50"],
   ["chest_bronze", "Bronz sandık"], ["chest_silver", "Gümüş sandık"], ["chest_gold", "Altın sandık"],
   ["vip_100", "VIP puanı 100"], ["vip_500", "VIP puanı 500"], ["vip_1000", "VIP puanı 1.000"], ["vip_5000", "VIP puanı 5.000"],
+  ["teleport_random", "Rastgele ışınlayıcı"], ["teleport_target", "Hedefli ışınlayıcı"], ["teleport_alliance", "İttifak ışınlayıcısı"],
 ];
 
 const HERO_TR = { mara: "Komutan Elias Rourke", lyra: "Dr. Lyra Moss", tess: "Tess Ruiz", kael: "Kael", orin: "Dr. Orin Hale", juno: "Juno Vega", sable: "Sable", aelis: "Aelis" };

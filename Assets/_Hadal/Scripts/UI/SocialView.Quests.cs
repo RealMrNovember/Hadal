@@ -55,7 +55,8 @@ namespace Hadal.UI
 
         /// <summary>Icon of a bag item: the resource for capsules, a card stack or a gift otherwise.</summary>
         public static string ItemIcon(string id, string kind) =>
-            VipRules.TryParseItem(id, out _) ? "vip"
+            TeleportRules.IsItem(id) ? "nav_world"
+            : VipRules.TryParseItem(id, out _) ? "vip"
             : GiftItems.TryParseHero(id, out _, out _, out _) ? "nav_heroes"
             : GiftItems.TryParseTroops(id, out _, out _, out _) ? "event_war"
             : Capsules.TryParse(id, out var resource, out _) ? Hud.HudIcons.Resource(resource)
@@ -386,6 +387,25 @@ namespace Hadal.UI
             if (Speedups.TryParse(id, out _, out _, out _))
             {
                 UiKit.Label("How", panel.transform, Loc.T("bag.speedup.how"), 24, dark, TextAnchor.MiddleCenter).rectTransform.Place(0.04f, 0.05f, 0.96f, 0.3f);
+                return;
+            }
+
+            // Targeted and alliance jumps are chosen on the map; the random one goes from here.
+            if (TeleportRules.IsItem(id) && id != TeleportRules.RandomItem)
+            {
+                UiKit.Label("How", panel.transform, Loc.T(id == TeleportRules.TargetItem ? "bag.teleport.target" : "bag.teleport.ally"), 24, dark,
+                    TextAnchor.MiddleCenter).rectTransform.Place(0.04f, 0.05f, 0.96f, 0.3f);
+                return;
+            }
+
+            if (id == TeleportRules.RandomItem)
+            {
+                var jump = UiKit.Button("Teleport", panel.transform, Loc.T("world.teleport.random"), () =>
+                {
+                    _commands.Dispatch(new TeleportCommand { CommandId = NewId(), ClientSequence = NextSequence(), Mode = TeleportRules.Random });
+                    _bagSelected = string.Empty;
+                }, UiKit.Primary, 32);
+                ((RectTransform)jump.transform).Place(0.2f, 0.05f, 0.8f, 0.27f);
                 return;
             }
 

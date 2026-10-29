@@ -123,7 +123,7 @@ namespace Hadal.Game
         /// </summary>
         /// <summary>Items the Overseer may send: catalog items (chests, cards), speed-ups, heroes and troop packs.</summary>
         public bool IsGrantableItem(string id) => _catalog.TryGetItem(id, out _) || Speedups.TryParse(id, out _, out _, out _) || GiftItems.IsValid(_catalog, id)
-            || VipRules.TryParseItem(id, out _);
+            || VipRules.TryParseItem(id, out _) || TeleportRules.IsItem(id);
 
         /// <summary>
         /// Credits a shop pack (a purchase, or the Overseer granting one): Hadalite plus as many VIP points, live or

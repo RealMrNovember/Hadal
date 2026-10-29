@@ -178,7 +178,7 @@ ON CONFLICT (player_id) DO UPDATE SET x = EXCLUDED.x, y = EXCLUDED.y, name = EXC
         }
 
         public static bool Handles(CommandType type) => type is CommandType.ViewWorld or CommandType.MarchGather or CommandType.RecallMarch
-            or CommandType.ViewProfile or CommandType.MarchAttack;
+            or CommandType.ViewProfile or CommandType.MarchAttack or CommandType.Teleport;
 
         public async Task InitializeAsync(CancellationToken cancellationToken)
         {
@@ -250,11 +250,62 @@ ON CONFLICT (player_id) DO UPDATE SET x = EXCLUDED.x, y = EXCLUDED.y, name = EXC
         {
             if (session.IsDeleted)
                 return;
+            var marches = session.MarchViews();
             lock (_gate)
             {
                 _online[session.PublicId] = session;
                 Upsert(session);
+                _marchViews[session.PublicId] = marches;
             }
+        }
+
+        // --- Teams on the map (docs/28): every player sees every team crossing their view ---------------
+
+        /// <summary>Last known teams of each player; online players' are re-read on every view.</summary>
+        private readonly Dictionary<string, List<WorldMarchDto>> _marchViews = new(StringComparer.Ordinal);
+
+        /// <summary>Refreshes one player's teams after a march starts, is recalled or the player leaves.</summary>
+        public void RefreshMarches(PlayerSession session)
+        {
+            var marches = session.MarchViews();
+            lock (_gate)
+                _marchViews[session.PublicId] = marches;
+        }
+
+        /// <summary>Teams whose route crosses the square around (cx, cy). Caller holds the world lock; reads sessions (world, then session).</summary>
+        private WorldMarchDto[] MarchesInView(string viewerId, int cx, int cy, int radius, DateTimeOffset now)
+        {
+            var nowMs = now.ToUnixTimeMilliseconds();
+            var viewerAlliance = _social.AllianceIdOf(viewerId);
+            var result = new List<WorldMarchDto>();
+            foreach (var ownerId in _marchViews.Keys.ToList())
+            {
+                if (_online.TryGetValue(ownerId, out var live))
+                    _marchViews[ownerId] = live.MarchViews();
+                var marches = _marchViews[ownerId];
+                marches.RemoveAll(m => m.HomeAtMs <= nowMs);
+                if (marches.Count == 0)
+                    continue;
+                var relation = ownerId == viewerId ? 0
+                    : viewerAlliance.Length > 0 && _social.AllianceIdOf(ownerId) == viewerAlliance ? 1 : 2;
+                var tag = _social.TagOf(ownerId);
+                var name = _baseNames.TryGetValue(ownerId, out var n) ? n : string.Empty;
+                foreach (var m in marches)
+                {
+                    // The route's bounding box against the view square.
+                    if (Math.Max(m.FromX, m.ToX) < cx - radius || Math.Min(m.FromX, m.ToX) > cx + radius
+                        || Math.Max(m.FromY, m.ToY) < cy - radius || Math.Min(m.FromY, m.ToY) > cy + radius)
+                        continue;
+                    result.Add(new WorldMarchDto
+                    {
+                        Id = m.Id, OwnerId = ownerId, OwnerName = name.Length > 0 ? name : m.OwnerName, AllianceTag = tag, Relation = relation,
+                        FromX = m.FromX, FromY = m.FromY, ToX = m.ToX, ToY = m.ToY, StartedAtMs = m.StartedAtMs, ArrivesAtMs = m.ArrivesAtMs,
+                        GatheredAtMs = m.GatheredAtMs, HomeAtMs = m.HomeAtMs, Kind = m.Kind
+                    });
+                }
+            }
+
+            return result.ToArray();
         }
 
         public void OnDisconnected(PlayerSession session)
@@ -266,6 +317,8 @@ ON CONFLICT (player_id) DO UPDATE SET x = EXCLUDED.x, y = EXCLUDED.y, name = EXC
                 if (_online.TryGetValue(session.PublicId, out var current) && ReferenceEquals(current, session))
                     _online.Remove(session.PublicId);
                 Upsert(session);
+                // Teams keep moving while the player is away; others still see them.
+                _marchViews[session.PublicId] = session.MarchViews();
             }
         }
 
@@ -278,6 +331,7 @@ ON CONFLICT (player_id) DO UPDATE SET x = EXCLUDED.x, y = EXCLUDED.y, name = EXC
                     _taken.Remove((b.X, b.Y));
                 _baseNames.TryRemove(playerId, out _);
                 _online.Remove(playerId);
+                _marchViews.Remove(playerId);
                 ForgetMarches(playerId, now);
             }
 
@@ -362,7 +416,10 @@ ON CONFLICT (player_id) DO UPDATE SET x = EXCLUDED.x, y = EXCLUDED.y, name = EXC
                 case CommandType.ViewProfile when _serializer.TryDeserialize(envelope.Payload, out ViewProfileCommand? profile) && profile != null:
                     HandleProfile(session, profile, now);
                     return;
-                case CommandType.MarchGather or CommandType.RecallMarch or CommandType.ViewProfile or CommandType.MarchAttack:
+                case CommandType.Teleport when _serializer.TryDeserialize(envelope.Payload, out TeleportCommand? teleport) && teleport != null:
+                    HandleTeleport(session, teleport, now);
+                    return;
+                case CommandType.MarchGather or CommandType.RecallMarch or CommandType.ViewProfile or CommandType.MarchAttack or CommandType.Teleport:
                     session.Acknowledge(envelope.CommandId, envelope.ClientSequence, "MalformedCommand", now);
                     return;
             }
@@ -411,7 +468,8 @@ ON CONFLICT (player_id) DO UPDATE SET x = EXCLUDED.x, y = EXCLUDED.y, name = EXC
                         };
                     }).ToArray(),
                     Nodes = NodesInView(cx, cy, radius, mine, now),
-                    Monsters = MonstersInView(cx, cy, radius, now)
+                    Monsters = MonstersInView(cx, cy, radius, now),
+                    Marches = MarchesInView(session.PublicId, cx, cy, radius, now)
                 };
             }
 

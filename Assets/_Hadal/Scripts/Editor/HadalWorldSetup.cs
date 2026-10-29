@@ -83,6 +83,14 @@ namespace Hadal.EditorTools
                     models.Add(new Hadal.Core.Catalog.CharacterLibrary.ModelEntry { id = "env_" + id, prefab = asset });
             }
 
+            // Teams travel the map in a submarine (docs/28).
+            foreach (var id in new[] { "sub_scout", "sub_hauler" })
+            {
+                var asset = AssetDatabase.LoadAssetAtPath<GameObject>(HadalArtImporter.PropsRoot + id + ".fbx");
+                if (asset != null)
+                    models.Add(new Hadal.Core.Catalog.CharacterLibrary.ModelEntry { id = "prop_" + id, prefab = asset });
+            }
+
             foreach (var id in new[] { "core_reactor", "mega_dome", "shield_generator", "oxygen_plant", "radar_center" })
             {
                 var asset = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/_Hadal/Art/Buildings/" + id + ".fbx");

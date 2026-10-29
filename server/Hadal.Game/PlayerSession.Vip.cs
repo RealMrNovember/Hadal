@@ -107,6 +107,33 @@ namespace Hadal.Game
             }
         }
 
+        /// <summary>
+        /// Pays a base teleport: its bag item, or its Hadalite price when the player has none. Returns a rejection
+        /// reason, or null when paid.
+        /// </summary>
+        internal string? PayTeleport(string mode, DateTimeOffset now)
+        {
+            lock (_gate)
+            {
+                var item = TeleportRules.ItemFor(mode);
+                if ((_state.Items.TryGetValue(item, out var held) ? held : 0) > 0)
+                {
+                    TakeItem(item, 1);
+                    SendDelta(now, new List<EntityChangeDto> { InventoryChange() });
+                    return null;
+                }
+
+                var price = TeleportRules.HadaliteFor(mode);
+                if ((_state.Wallet.TryGetValue(ResourceType.Hadalite, out var hadalite) ? hadalite : 0) < price)
+                    return "NotEnoughHadalite";
+                _state.Wallet[ResourceType.Hadalite] = hadalite - price;
+                _state.IsDirty = true;
+                Score(EventActions.HadaliteSpent, price);
+                SendDelta(now, new List<EntityChangeDto> { WalletChange() });
+                return null;
+            }
+        }
+
         /// <summary>Sets the VIP points outright (the Overseer); the level follows from them.</summary>
         internal void SetVipPoints(long points, DateTimeOffset now)
         {

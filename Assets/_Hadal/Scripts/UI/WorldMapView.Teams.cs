@@ -30,8 +30,6 @@ namespace Hadal.UI
         private readonly Dictionary<string, TeamView> _teams = new();
         private string _following = string.Empty;
 
-        private const float HeroScale = 5f;
-        private const float TroopScale = 3.5f;
 
         /// <summary>Draws every march as a moving team; called each frame with the march list.</summary>
         private void UpdateTeams(MarchDto[] marches, long now)
@@ -132,44 +130,14 @@ namespace Hadal.UI
             return new TeamView { Group = group, Ring = ring, Plate = plate.rectTransform, Name = name, Info = info, Bar = bar };
         }
 
-        /// <summary>Up to three heroes in front and a few troops behind, sized to read at map distance.</summary>
+        /// <summary>The whole team rides one submarine (heroes and troops aboard), however many heroes it has.</summary>
         private static void FillFigures(Transform group, MarchDto m)
         {
             for (var i = group.childCount - 1; i >= 0; i--)
                 Destroy(group.GetChild(i).gameObject);
-            var library = CharacterLibrary.Instance;
-            if (library == null)
-                return;
-            var catalog = ClientCatalog.Catalog;
-
-            var heroes = (m.HeroIds != null && m.HeroIds.Length > 0 ? m.HeroIds : new[] { m.HeroId }).Take(3).ToList();
-            for (var i = 0; i < heroes.Count; i++)
-            {
-                var model = catalog.TryGetHero(heroes[i], out var hero) ? library.Model(hero.Model) : null;
-                Place(model ?? library.Model("crew_engineer"), new Vector3((i - (heroes.Count - 1) / 2f) * 3.6f, 0f, 2.4f), HeroScale);
-            }
-
-            // Troops: one figure per stack type, a few rows deep; armored divers wear the heavy suit.
-            var troops = (m.Troops ?? Array.Empty<TroopStackDto>()).Where(t => t.Count > 0).ToList();
-            var figures = Mathf.Clamp(troops.Count == 0 ? 0 : (int)Math.Ceiling(Math.Log10(Math.Max(10, m.Crew)) * 2), 0, 8);
-            for (var i = 0; i < figures; i++)
-            {
-                var type = troops[i % troops.Count].Type;
-                var model = library.Model(type == "armored" ? "mech_guard" : type == "driller" ? "mech_worker" : "crew_scientist");
-                var row = i / 4;
-                var col = i % 4;
-                Place(model, new Vector3((col - 1.5f) * 2.8f, 0f, -2f - row * 2.8f), TroopScale);
-            }
-
-            void Place(GameObject prefab, Vector3 offset, float scale)
-            {
-                if (prefab == null)
-                    return;
-                var figure = Instantiate(prefab, group);
-                figure.transform.localPosition = offset;
-                figure.transform.localRotation = Quaternion.identity;
-                figure.transform.localScale = Vector3.one * scale;
-            }
+            var sub = MakeSubmarine(group);
+            sub.localPosition = Vector3.up * 1.2f;
+            sub.localRotation = Quaternion.identity;
         }
 
         /// <summary>The camera follows the team; its round menu: Speed up · Details · Recall.</summary>

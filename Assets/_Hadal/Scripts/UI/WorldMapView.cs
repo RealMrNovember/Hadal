@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using HADAL.Shared.Commands;
 using HADAL.Shared.DTOs;
+using HADAL.Shared.Simulation;
 using Hadal.Core.Catalog;
 using Hadal.Core.Network;
 using Hadal.Core.State;
@@ -47,6 +48,8 @@ namespace Hadal.UI
         private Vector3 _focus;
         private float _distance = 90f;
         private Vector2Int _requested = new(int.MinValue, int.MinValue);
+        private float _nextViewRefresh;
+        private const float ViewRefreshSeconds = 8f;
         private int _renderedVersion = -1;
         private Vector3 _lastPointer;
         private bool _dragging;
@@ -242,6 +245,7 @@ namespace Hadal.UI
             var view = View.WorldView;
             if (view == null || _renderedVersion == View.WorldVersion)
                 return;
+            RecentreIfTeleported(view);
 
             // The first answer to "around my base" moves the camera there.
             if (_requested.x < 0)
@@ -355,6 +359,7 @@ namespace Hadal.UI
                 items.Add(new TargetMenu.Item("left_home", Loc.T("world.enter"), CloseToBase));
                 items.Add(new TargetMenu.Item("avatar", Loc.T("profile.title"), () => ProfileCard.Instance?.ShowMine()));
                 items.Add(new TargetMenu.Item("chat", Loc.T("share.title"), () => ShareLocation?.Invoke(target.X, target.Y, "me", target.Name)));
+                items.Add(new TargetMenu.Item("nav_world", Loc.T("world.teleport.random"), () => Teleport(TeleportRules.Random, 0, 0, string.Empty)));
             }
             else
             {
@@ -368,6 +373,8 @@ namespace Hadal.UI
                 {
                     CommandId = Guid.NewGuid().ToString("N"), ClientSequence = ++_sequence, PlayerId = target.PlayerId
                 }), canInvite));
+                if (ally)
+                    items.Add(new TargetMenu.Item("nav_world", Loc.T("world.teleport.ally"), () => Teleport(TeleportRules.Alliance, 0, 0, target.PlayerId)));
             }
 
             GlideTo(b.X, b.Y);
@@ -398,6 +405,14 @@ namespace Hadal.UI
                 return;
 
             ApplyView();
+            HandleSeaTap();
+            // Other players' teams start and turn back all the time: ask for the area again every few seconds.
+            if (_requested.x >= 0 && Time.unscaledTime >= _nextViewRefresh)
+            {
+                _nextViewRefresh = Time.unscaledTime + ViewRefreshSeconds;
+                Request(_requested.x, _requested.y);
+            }
+
             HandleInput();
             if (_glide is { } glide)
             {
@@ -619,7 +634,7 @@ namespace Hadal.UI
             _homePointer.localRotation = Quaternion.Euler(0f, 0f, Mathf.Atan2(dir.y, dir.x) * Mathf.Rad2Deg - 90f);
 
             var tile = WorldToTile(_focus);
-            _homeDistance.text = Loc.F("world.tiles", Mathf.Max(Mathf.Abs(tile.x - view.MyX), Mathf.Abs(tile.y - view.MyY)));
+            _homeDistance.text = Loc.F("world.tiles", GatherRules.Km(tile.x, tile.y, view.MyX, view.MyY).ToString("0.#"));
         }
 
         private static Vector3 TileToWorld(int x, int y) => Origin + new Vector3(x * Tile, 0f, y * Tile);

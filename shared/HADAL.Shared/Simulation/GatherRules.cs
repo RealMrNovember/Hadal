@@ -38,8 +38,20 @@ namespace HADAL.Shared.Simulation
 
         private static double Scale(GatherCatalogData gather) => gather.yieldScale > 0 ? gather.yieldScale : 1;
 
+        /// <summary>One map tile is this many kilometres of seabed.</summary>
+        public const double KmPerTile = 1.0;
+
+        /// <summary>Straight-line distance in kilometres (marches cut across diagonally, docs/28).</summary>
+        public static double Km(int x1, int y1, int x2, int y2)
+        {
+            var dx = x1 - x2;
+            var dy = y1 - y2;
+            return Math.Sqrt((double)dx * dx + (double)dy * dy) * KmPerTile;
+        }
+
+        /// <summary>Travel time over the straight-line distance; the catalog's seconds per tile are seconds per kilometre.</summary>
         public static int TravelSeconds(WorldCatalogData world, int x1, int y1, int x2, int y2) =>
-            Math.Max(1, Tiles(x1, y1, x2, y2)) * Math.Max(1, world.marchSecondsPerTile);
+            (int)Math.Ceiling(Math.Max(1.0, Km(x1, y1, x2, y2)) * Math.Max(1, world.marchSecondsPerTile));
 
         public static double Weight(WorldCatalogData world, ResourceType resource)
         {

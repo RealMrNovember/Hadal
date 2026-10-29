@@ -125,6 +125,29 @@ namespace Hadal.Game.Tests
         }
 
         [Fact]
+        public async Task Every_player_sees_teams_crossing_their_view_live()
+        {
+            var (session, _) = await Connect("watch-a", 10);
+            var node = Nearest(session, "enkaz_alani");
+            Send(session, new MarchGatherCommand { CommandId = "w1", NodeId = node.Id }, CommandType.MarchGather);
+            var march = Assert.Single(session.MarchesForTests);
+
+            var (viewer, viewerConnection) = await Connect("watch-b", 10);
+            Send(viewer, new ViewWorldCommand { CommandId = "wv", X = node.X, Y = node.Y }, CommandType.ViewWorld);
+            var seen = Assert.Single(Latest<WorldViewDto>(viewerConnection, EntityIds.WorldView).Marches, m => m.Id == march.Id);
+            Assert.Equal(2, seen.Relation);
+            Assert.Equal(session.PublicId, seen.OwnerId);
+            Assert.Equal((march.FromX, march.FromY, node.X, node.Y), (seen.FromX, seen.FromY, seen.ToX, seen.ToY));
+            Assert.Equal(march.ArrivesAt.ToUnixTimeMilliseconds(), seen.ArrivesAtMs);
+
+            // Still on the map while its owner is away, gone once the team is home.
+            await _world.DisconnectAsync(session, (await Connect("watch-a", 10)).Connection, default);
+            _clock.UtcNow = march.HomeAt.AddSeconds(1);
+            Send(viewer, new ViewWorldCommand { CommandId = "wv2", X = node.X, Y = node.Y }, CommandType.ViewWorld);
+            Assert.DoesNotContain(Latest<WorldViewDto>(viewerConnection, EntityIds.WorldView).Marches, m => m.Id == march.Id);
+        }
+
+        [Fact]
         public async Task Each_hero_takes_their_command_of_troops_and_a_march_needs_troops()
         {
             var (session, connection) = await Connect("team-a", 10);

@@ -22,6 +22,33 @@ namespace HADAL.Shared.DTOs
 
         /// <summary>Monsters in view (docs/rehber 09 §5.2).</summary>
         [ProtoMember(9)] public WorldMonsterDto[] Monsters { get; set; } = System.Array.Empty<WorldMonsterDto>();
+
+        /// <summary>Every team crossing the view, the viewer's own included (docs/28): all players see them live.</summary>
+        [ProtoMember(10)] public WorldMarchDto[] Marches { get; set; } = System.Array.Empty<WorldMarchDto>();
+    }
+
+    /// <summary>A team on the map as others see it: whose, from where to where, and when.</summary>
+    [ProtoContract]
+    public sealed class WorldMarchDto
+    {
+        [ProtoMember(1)] public string Id { get; set; } = string.Empty;
+        [ProtoMember(2)] public string OwnerId { get; set; } = string.Empty;
+        [ProtoMember(3)] public string OwnerName { get; set; } = string.Empty;
+        [ProtoMember(4)] public string AllianceTag { get; set; } = string.Empty;
+
+        /// <summary>0 = the viewer's own, 1 = an alliance mate's, 2 = anyone else's.</summary>
+        [ProtoMember(5)] public int Relation { get; set; }
+        [ProtoMember(6)] public int FromX { get; set; }
+        [ProtoMember(7)] public int FromY { get; set; }
+        [ProtoMember(8)] public int ToX { get; set; }
+        [ProtoMember(9)] public int ToY { get; set; }
+        [ProtoMember(10)] public long StartedAtMs { get; set; }
+        [ProtoMember(11)] public long ArrivesAtMs { get; set; }
+        [ProtoMember(12)] public long GatheredAtMs { get; set; }
+        [ProtoMember(13)] public long HomeAtMs { get; set; }
+
+        /// <summary>"gather" or "attack".</summary>
+        [ProtoMember(14)] public string Kind { get; set; } = string.Empty;
     }
 
     [ProtoContract]
