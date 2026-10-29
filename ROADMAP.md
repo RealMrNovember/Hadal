@@ -1,325 +1,300 @@
 # HADAL — Proje Yol Haritası
 
-**Güncelleme:** 2026-10-24
-**Kapsam:** İlk satır koddan global lansmana kadar tüm aşamalar.
-**Kaynaklar:** Tasarım `docs/01–22`, mimari `docs/17`, `docs/18`, `docs/21`, altyapı `docs/HADAL_SERVER_INFRASTRUCTURE.md`.
-Ayrıntılı sprint geçmişi: [docs/HadalDevelopmentRoadmap.md](docs/HadalDevelopmentRoadmap.md).
+**Güncelleme:** 2026-10-29
+**Yayındaki sürüm:** istemci **0.9.0** (Android, `hadal.cicibyte.com/download/hadal.apk`); sunucu `main` @ `8c48786` (CT 160).
+**Sürüm kuralı:** Oyun 1.0'a kadar **0.x** ile ilerler. Android sürüm kodu `1.000.000 + major·10000 + minor·100 + patch`.
+
+**Kaynaklar:**
+- Tasarım: `docs/01–32`
+- Tür araştırması: [`docs/research/Mobil_Strateji_Oyunlari_Arastirma.md`](docs/research/Mobil_Strateji_Oyunlari_Arastirma.md)
+- Mimari: `docs/17`, `docs/18`, `docs/21`
+- Altyapı: `docs/HADAL_SERVER_INFRASTRUCTURE.md`
+- Ayrıntılı sprint geçmişi: [`docs/HadalDevelopmentRoadmap.md`](docs/HadalDevelopmentRoadmap.md)
 
 Durum işaretleri: ✅ tamam · 🟡 devam ediyor · ⬜ başlanmadı
 
 ---
 
-## Değişmez kurallar (her aşama için geçerli)
+## Değişmez kurallar
 
-1. **Sunucu otoritelidir.** Her oyun eylemi `Command → sunucu doğrular → StateDelta → istemci görünümü` akışından geçer. İstemci ekonomi, RNG veya offline kazanç hesaplamaz.
-2. **Tek kaynak: HADAL.Shared.** Komutlar, DTO'lar, enum'lar ve formüller yalnızca orada tanımlanır. Wire formatı Protobuf'tur.
-3. **Her aşama, çalışan testlerle kapanır.** Testler EditMode, PlayMode ve sunucu entegrasyon testleridir. "Kod yazıldı" bir aşamayı kapatmaz.
-4. **İzole altyapı.** Tüm backend DL380 üzerindeki CT 160 (`hadal`) içindedir. Diğer projelere dokunulmaz.
-
----
-
-## Genel bakış
-
-| # | Aşama | Kilometre taşı | Durum |
-|---|-------|----------------|-------|
-| 0 | Temel, mimari ve ilk dikey dilim | Shared protokol, grid inşa, kaynak tick (stub), test altyapısı | ✅ |
-| 1 | Otoriter oyun sunucusu çekirdeği | İstemci gerçek sunucuya karşı oynar; stub'lar kalkar (M3–M5) | ✅ |
-| 2 | **Dış erişim, kimlik ve dağıtım** | `hadal-api.cicibyte.com`, TLS, Auth API, patch, dağıtım (M1–M2) | 🟡 |
-| 3 | Üs inşasının tamamlanması | Kaldırma, yükseltme, halka açma, mega kubbe, tam katalog | ✅ |
-| 4 | Hayatta kalma döngüsü | Oksijen/enerji bağımlılıkları, acil durumlar, alarmlar | ⬜ |
-| 5 | Sunum katmanı | Ana menü, UI tasarım sistemi, sualtı görünümü, ses | ⬜ |
-| 6 | Denizaltılar | Filo, gövde/basınç istatistikleri, üretim | ⬜ |
-| 7 | Basınç, keşif seferleri ve sonar | Derinlik katmanları, sefer örnekleri, sonar bölgeleri | ⬜ |
-| 8 | Kahramanlar | Sınıflar, fraksiyonlar, seviye, yetenekler | ⬜ |
-| 9 | Düşmanlar ve savaş | Sunucu hakemli savaş, düşman türleri | ⬜ |
-| 10 | Dünya haritası | Paylaşılan dünya, derinlik halkaları, shard'lar | ⬜ |
-| 11 | Alliance | İttifak, ortak yapılar, Trade Station, alliance şehri | ⬜ |
-| 12 | PvP ve kuşatmalar | Saldırı/savunma, anti-cheat denetim kaydı (M6) | ⬜ |
-| 13 | Monetizasyon | Hadalite, Cryo-Pod ve Sonar Ping gacha, mağaza, makbuz doğrulama | ⬜ |
-| 14 | LiveOps — The Overseer | Admin API, GM paneli, audit, 2FA, gacha hot-swap (M7–M9) | ⬜ |
-| 15 | Leviathan'lar | Raid örnekleri, ittifak boss içeriği | ⬜ |
-| 16 | THE CORE | Son oyun, organik reveal, dünya olayı | ⬜ |
-| 17 | Soft launch hazırlığı | Performans, yük testi, analitik, yerelleştirme, mağaza uyumu | ⬜ |
-| 18 | Lansman ve canlı operasyon | Global yayın, etkinlik takvimi, sezonlar | ⬜ |
-
-**Paralel izler:**
-- **Phase 14 (Overseer):** Phase 2'deki kimlik sistemi bitince başlayabilir.
-- **Phase 5 (sunum):** Phase 3'ten itibaren oynanış işleriyle paralel yürür.
-
-**Kritik yol:** 1 → 2 → 3 → 4 → 7 → 13 → 14 → 17.
+1. **Sunucu otoritelidir.** Her eylem `Command → sunucu doğrular → StateDelta → istemci görünümü` akışından geçer. Ekonomiyi, savaşı, zamanı ve rastgeleliği istemci değil sunucu belirler. Bir komut tekrar gönderilirse ikinci kez ödül ya da kayıp doğmaz (idempotent).
+2. **Tek kaynak `HADAL.Shared`.** Komutlar, DTO'lar, kurallar ve formüller yalnızca burada tanımlanır. Wire formatı Protobuf'tur.
+3. **Bir iş ancak testlerle kapanır.** Sunucu xUnit, Unity EditMode/PlayMode ve telefonda uçtan uca deneme. "Kod yazıldı" bir aşamayı kapatmaz.
+4. **Özgün tema.** Referans oyunların görünüşü ya da içeriği kopyalanmaz; sistemlerin işlevi uyarlanır (araştırma §1.2). Lisansı temiz olmayan varlık oyuna girmez.
+5. **Dağıtım düzeni:**
+   - Sunucu dağıtımı yalnızca commit'lenmiş HEAD'den yapılır: temiz worktree, önce DB yedeği.
+   - APK yalnızca temiz kopyadan (`/opt/hadal-build`) derlenir.
+   - Yayın sırası: önce APK Kale2'ye yüklenir, sonra boyutu doğrulanır, en son duyurulan sürüm (`HADAL_LATEST_CLIENT_VERSION`) değiştirilir.
 
 ---
 
-## Phase 0 — Temel, mimari ve ilk dikey dilim ✅
+## Öncelik sırası (buradan devam ediyoruz)
 
-**Hedef:** Üretime uygun MMO iskeleti ve uçtan uca çalışan ilk oynanış dilimi.
+Sıralama araştırmanın ana önerisine göre yapıldı (§16): önce **kaynak → gelişim → takım → savaş → ödül** döngüsü adil, anlaşılır ve sağlam olacak; sonra içerik ve ölçek gelecek.
 
-- ✅ `HADAL.Shared` (komutlar, DTO'lar, enum'lar, Protobuf serileştirme, üretim formülleri)
-- ✅ VContainer ile DI; ServiceLocator ve statik yönetici yok
-- ✅ StateSync hattı: snapshot, delta, reconciliation, rollback animasyonu
-- ✅ `ServerMessage` zarfı, şema v2
-- ✅ Dairesel grid, hayalet önizleme, sunucu onaylı yerleştirme (stub ile)
-- ✅ Kaynak üretim tick'i, mutlak bakiye replikasyonu, kaynak HUD'ı (stub ile)
-- ✅ DL380 / CT 160: Docker, Gateway iskeleti, Postgres, Redis
-- ✅ Headless Unity 6000.0.32f1 (`server/unity/unity.sh`), batchmode sahne üretimi
-- ✅ Test altyapısı: 56 EditMode testi ve PlayMode ekonomi smoke testi
+| Sıra | İş | Neden şimdi | Durum |
+|---|---|---|---|
+| **1** | Sağlamlık ve kalite kapıları | Canlıda oyuncu var. Ekonomi ve savaş hatası güveni bozar (§14). | ⬜ |
+| **2** | PvP adaleti ve savaş motoru sürümlemesi | PvP açıldı. Adaletsizlik terk ettirir (§5.4, §9). | 🟡 |
+| **3** | İttifak bölgesi B aşaması: ittifak binaları | Bölge A canlıda. Binalar ittifakın ortak hedefi (docs/32). | 🟡 |
+| **4** | Yeni deniz yaratıkları ve etkinlik boss'ları | PvE ekonomiyi ve ittifak hedefini besler (§6). | 🟡 |
+| **5** | İlk oturum akışı ve öğretici | Oyuncu ilk 10 dakikada ne yapacağını anlamalı (§16). | ⬜ |
+| **6** | Hayatta kalma döngüsü (oksijen, enerji, acil durum) | Oyunun kendine has gerilimi; temayı ekonomiye bağlar. | ⬜ |
+| **7** | Etkinlik takvimi ve ittifak etkinlikleri | Günlük geri dönüş ve ortak hedef (§6.2, docs/29 E2–E6). | ⬜ |
+| **8** | Asenkron arena ve düello | Kısa oturumlu, adil PvP (§5.1, §13.1). | ⬜ |
+| **9** | Gerçek ödeme ve mağaza | Play Billing ve makbuz doğrulama (§7). | ⬜ |
+| **10** | Seferler, basınç ve sonar; denizaltı filosu | Derin keşif fantezisi (docs/07, 08). | ⬜ |
+| **11** | Kapalı test ve soft launch hazırlığı | Performans, analitik, mağaza uyumu, emeği geçenler ekranı. | ⬜ |
+| **12** | Lansman, sezonlar, Leviathan'lar, THE CORE | Uzun vadeli hedef ve son oyun. | ⬜ |
 
-**Çıkış kriteri:** Proje temiz derlenir, yüklenir, açılır ve bütün testler geçer. ✔
-
----
-
-## Phase 1 — Otoriter oyun sunucusu çekirdeği ✅
-
-**Hedef:** Unity istemcisi CT 160'taki gerçek sunucuya bağlanıp oynar. Yerleştirme doğrulaması, kaynak üretimi ve kalıcılık sunucuya taşınır. İstemci tarafındaki stub sunucular kaldırılır.
-
-### 1.1 Repo hijyeni
-- [x] Unity `.meta` dosyalarını git'e al. Proje ayarları, URP varsayılanları, üretilen sahne ve asset'ler de artık repoda.
-- [x] `.gitattributes`: `*.sh` dosyaları LF, Unity YAML dosyaları için merge kuralları.
-
-### 1.2 Tek oyun kataloğu
-- [x] Bina ve kaynak tanımlarını (maliyet, üretim, tüketim, kapasite, başlangıç miktarı, halka kuralları) tek bir veri dosyasına taşı: `shared/catalog/catalog.json`.
-- [x] Shared'da katalog modeli ve yükleyici (`GameCatalog`, `PlacementRules`). Sunucu bunu doğrudan okur; Unity setup aracı SO'ları aynı dosyadan üretir. Böylece iki taraf asla ayrışmaz.
-
-### 1.3 Sunucu oyun çekirdeği (`server/Hadal.Game`)
-- [x] Oyuncu oturumu: handshake'teki `DeviceId` ile oyuncu kaydı. Gerçek kimlik doğrulama Phase 2'de gelir.
-- [x] Bağlantı sonrası tam `StateSnapshot`: binalar, cüzdan ve üretim oranları.
-- [x] `PlaceBuildingCommand` doğrulaması: halka/slot tipi, doluluk ve maliyet. Sonuç ack ve delta olarak döner.
-- [x] Sunucu tick döngüsü: `ProductionSimulator` ile 1 sn simülasyon, 5 sn replikasyon.
-- [x] Offline kazanç sunucu saatine göre, 12 saat sınırıyla. Forbidden Pattern #8 böylece kapanır.
-
-### 1.4 Kalıcılık
-- [x] PostgreSQL şeması (`players`, `buildings`, `wallets`) ve açılışta çalışan migration'lar.
-- [x] Sunucu yeniden başlasa da oyuncu durumu korunur.
-
-### 1.5 İstemci geçişi
-- [x] Stub simülatörler yalnızca `HADAL_LOCAL_SIM=1` / `GameConfigSO.UseLocalSimulation` ile çalışır. Varsayılan artık gerçek sunucudur.
-- [x] Otomatik yeniden bağlanma (backoff); reconnect'te bekleyen paket kuyruğu boşaltılır, ardından snapshot beklenir.
-- [x] Geliştirme için gateway adresi ve cihaz kimliği yapılandırılabilir (`HADAL_GATEWAY_URL`, `HADAL_DEVICE_ID`).
-
-### 1.6 Doğrulama
-- [x] Sunucu testleri (33): katalog, yerleştirme kuralları, oturum, tick, offline, Postgres, uçtan uca Gateway.
-- [x] Entegrasyon testi: gerçek Unity istemci kodu ↔ gerçek gateway (`unity.sh acceptance`). Akış: el sıkışma → snapshot → yerleştirme → ack → üretim delta'sı → yeniden bağlanma.
-- [x] Gecikme harness'ı, 100 ms ve 200 ms (`unity.sh latency`).
-
-**Çıkış kriteri:** Headless Unity, PlayMode'da gerçek sunucuya bağlanır; bina yerleştirir, üretimi görür, bağlantıyı koparıp geri gelir ve aynı durumu bulur. Sunucu yeniden başlatıldığında da durum korunur. Stub'lar kapalıdır. ✔ (2026-10-24 — ayrıntılar: [docs/qa/Phase1-Results.md](docs/qa/Phase1-Results.md))
+Ayrıntılar aşağıda, aynı sırayla.
 
 ---
 
-## Phase 2 — Dış erişim, kimlik ve dağıtım 🟡
+## 1. Sağlamlık ve kalite kapıları ⬜
 
-**Hedef:** Oyun dışarıdan güvenli şekilde erişilebilir, sürümlenir ve otomatik dağıtılır. (M1, M2)
+**Hedef:** Araştırma §14'teki yayın kapıları. Canlı oyuncunun ilerlemesi hiçbir hata yüzünden kaybolmaz ya da çiftlenmez.
 
-> `hadal.cicibyte.com` yayındaki teaser sitesi olduğu için oyun sunucusu **`hadal-api.cicibyte.com`** üzerinde.
+- ⬜ Ekonomi denetimi:
+  - her harcama ve ödülün atomik ve idempotent olduğunu doğrulayan test seti
+  - negatif bakiye, iki kez ödül, eşzamanlı harcama ve taşma senaryoları
+- ⬜ Zamanlayıcılar: cihaz saati, saat dilimi ve uygulama kapalıyken biten işler için testler. Tek otorite sunucu saatidir.
+- ⬜ Ağ: kopan bağlantı, zaman aşımı ve tekrar gönderilen komut. Oyuncu hiçbir şeyi iki kez ödemez.
+- ⬜ Mobil: düşük bellek, eski cihaz, arka plan/ön plan geçişi. Kritik çökme ve UI taşması yok.
+- ⬜ Hata ve çökme izleme, temel analitik: oturum, ilerleme hunisi, ekonomi akışı.
+- ⬜ Operasyon:
+  - yedekten geri yükleme provası
+  - denge geri alma provası
+  - bakım mesajı akışı
+  - dağılan ittifak belgelerinin temizlenmesi (`hadal.alliance_docs`)
+- ⬜ Postgres mağaza testlerinin CT'de gerçekten çalışması (`HADAL_TEST_PG`).
 
-- [x] Auth API: misafir hesap → JWT (60 dk) + tek kullanımlık, dönen yenileme anahtarı (hash'li saklanır), IP başına hız sınırı.
-- [x] Gateway el sıkışması JWT doğrular (şema 3); oyuncu kimliği hesap ID'si, `DeviceId` yalnızca bilgi amaçlı.
-- [x] Sürüm manifesti (`/manifest/version.json`) ve istemcide `PatchService`: zorunlu güncelleme ve bakım modu.
-- [x] İstemci: `AuthService` (giriş, yenileme, tekil istek), JWT'li bağlantı akışı, reddedilen jetonda yenileme.
-- [x] Tek komutla dağıtım: `server/deploy/deploy.sh` (testler → build → yayın → sağlık kontrolü → otomatik geri dönüş).
-- [x] Cloudflare Tunnel `hadal` → `hadal-api.cicibyte.com` yayında (2026-10-25, `server/deploy/setup-tunnel.sh`). İnternetten HTTPS giriş + WSS el sıkışma + yerleştirme uçtan uca doğrulandı.
-- [ ] Android geliştirme APK'sı (`unity.sh android`) ve telefonda internet üzerinden oyun testi.
-- [ ] Hesap bağlama (Google Play / Apple / e-posta) — geliştirici hesapları gerekiyor; o zamana kadar misafir hesap cihazda saklanan anahtara bağlı.
-- [ ] Addressables uzak katalog / CDN — uzak içerik olduğunda (Phase 5).
-- [ ] CI: GitHub Actions (push, sırlar ve self-hosted runner kararı gerekiyor); `staging` ortamı.
-
-**Çıkış kriteri:** Telefondaki bir build, internet üzerinden giriş yapıp oynar. Yeni sunucu sürümü tek komutla dağıtılır.
-
----
-
-## Phase 3 — Üs inşasının tamamlanması ✅
-
-**Hedef:** `docs/05` tasarımındaki üs deneyiminin tamamı. Kurallar `docs/23_Base_Management.md`'de.
-
-**Yapılanlar:**
-
-- [x] Sunucu: inşaat ve yükseltme süreleri (sunucu saati, çevrimdışı tamamlama), 1 inşaatçı, reaktör kapısı, ücretsiz bitirme (≤ 5 dk), seviye ölçekli maliyet ve süre.
-- [x] Titanyum kaynağı: Drone Factory.
-- [x] Kaldırma ve iptal (`RemoveBuilding`): bitmiş bina %50, iptal edilen ilk inşaat %100 iade; reaktör kaldırılamaz.
-- [x] Halka açma (`UnlockRing`, halka 5–12): reaktör seviyesi + bedel; 7. halka ve ötesi Mega Kubbe ister. İstemcide "Üssü Genişlet" sayfası.
-- [x] Mega Kubbe ve Tarım Kubbesi; yeni bina Hidroponik Çiftlik (modelleriyle).
-- [x] Tam katalog ve ilk gerçek denge değerleri (`docs/23` denge tablosu): reaktör seviyesiyle açılan binalar, bina başına adet sınırı, üretim binaları dış halkalara da kurulabilir.
-- [x] Bina paneli ve inşa menüsü: kilitli binalar gereken reaktör seviyesini ve adet sınırını gösterir, kaldırma iki dokunuşla onaylanır.
-- [ ] Savaş ve Bilim kubbeleri (Phase 9 ve araştırma sistemiyle).
-- [ ] Hızlandırma kancası (monetizasyon Phase 13'te).
-
-**Çıkış kriteri:** Oyuncu tüm bina türlerini kurar, yükseltir, kaldırır ve halka açar; hepsi sunucu doğrulamalıdır.
+**Çıkış kriteri:** §14 tablosundaki her alan için otomatik test var ve yeşil. Yedekten geri yükleme bir kez denendi.
 
 ---
 
-## Phase 3.5 — The Overseer: oyun yönetim paneli 🟡 *(kullanıcı önceliği)*
+## 2. PvP adaleti ve savaş motoru sürümlemesi 🟡
 
-**Hedef:** `docs/22_LiveOps_Admin_Terminal.md`. Oyunun tamamı tek bir panelden yönetilir.
+**Hedef:** Araştırma §5.4 ve §9. Kaybeden toparlanabilir, güçlü oyuncu zayıfı ezemez, her savaş tekrar üretilebilir.
 
-**Yapılanlar (ilk dilim, `docs/22` §6.1):** `hadal.cicibyte.com/admin` (kale nginx → gateway, gizli
-anahtarlı tek kapı), şifre + TOTP girişi, sahip/GM/izleyici rolleri, denetim kaydı. Oyuncu arama, kaynak
-verme/alma, ban, oturum kapatma. Kişiye özel ve tarih aralıklı hediye kuponları; oyunda kupon ekranı ve her
-ret sebebi için ayrı mesaj. Bakım modu ve açılış duyurusu. Denge kataloğunu sürümleyip yeniden başlatmadan
-yayınlama ve geri alma; istemci yeni kataloğu indirir. Tanıtım sayfasında APK indirme bağlantısı.
+- ✅ Sunucu otoriteli PvP: üs ve takım saldırısı, ralli, keşif, kalkanlar, saldırı alarmı (`6907e25`, `a6bbc57`, `5453444`)
+- ✅ Savaşların iki ittifakın savaş kaydına yazılması (`651a1c6`)
+- ✅ Takviye: koruyucu listesi savaş penceresinde (`afa1349`, `8c48786`)
+- ⬜ Saldırı yorgunluğu ya da hedef koruması (aynı küçük oyuncuya art arda saldırı)
+- ⬜ Yeni oyuncu koruması, güç aralığı kuralı, sınırlı çevrimdışı koruma (tam dokunulmazlık değil)
+- ⬜ Korunan depo payı. Yaralı ve kalıcı kayıp ayrımının Med Bay kapasitesine bağlanması
+- ⬜ Savaş motoru:
+  - her savaşta sürümlü istatistik görüntüsü, sabit rastgelelik tohumu ve dar rastgelelik aralığı
+  - saklanan savaş raporu: raundlar, kayıp, yaralı, yağma, tohum, kural sürümü
+- ⬜ Karşı sistemler (meta): ön hat, kontrol, destek, alan hasarı
+- ⬜ Ralli kuralları: en az asker sayısı, toplanma süresi ve kapasite. Ödüller katkıya göre dağıtılır, yalnızca en güçlülere değil.
+- ⬜ Anlaşılır sonuç ekranı: kayıp, yaralı, hasar, katkı, ödül
 
-**Kalanlar:** ödül postaları, telemetri grafikleri, IP izin listesi, bina düzeltme, susturma.
-
-- **Ekonomi ve denge:** bina maliyetleri, süreleri, seviye ilerlemesi, üretim değerleri. Katalog veritabanında sürümlenir; sunucu yeniden başlamadan uygulanır, eski sürüme dönülebilir.
-- **Oyuncu yönetimi:** arama, profil, kaynak ve bina düzeltme, ban ve susturma, oturumu sonlandırma. Hepsi denetim kaydına yazılır.
-- **Hediye kuponları:** kod, ödül paketi, kullanım limiti, son tarih. Oyuncu tarafında kupon girme ekranı.
-- **Postalar ve duyurular:** toplu ve hedefli ödül postası, bakım mesajı (`Version:Maintenance`).
-- **Telemetri:** anlık oyuncu sayısı, sunucu sağlığı, ekonomi akışı.
-- **Güvenlik:** ayrı oturum ve ayrı alan adı (oyun istemcisiyle çerez paylaşmaz), TOTP 2FA, rol bazlı yetki, IP izin listesi, her işlem için denetim kaydı.
-
-**Çıkış kriteri:** Denge değerleri, oyuncular, kuponlar ve duyurular, sunucuya ve repoya dokunmadan panelden yönetilir.
+**Çıkış kriteri:** Aynı giriş aynı sürümde aynı sonucu verir. İstismar testleri (çoklu saldırı, yarış koşulu, çevrimdışı) yeşil.
 
 ---
 
-## Phase 4 — Hayatta kalma döngüsü ⬜
+## 3. İttifak bölgesi ve ittifak binaları 🟡
 
-**Hedef:** "Oksijen biterse üs ölür" gerilimi (`docs/06`, `docs/19`).
+**Hedef:** `docs/32`. Bayrakla doğan ve ittifak büyüdükçe genişleyen alan; liderlerin kurduğu, üyelerin koruyup geliştirdiği binalar.
 
-- Bağımlılık zinciri: enerji yetersizse üreticiler yavaşlar ya da durur (sunucu formülü).
-- Oksijen tüketimi (mürettebat), kritik eşik ve alarmlar (LocalEventBus).
-- Acil durum olayları: arıza, sızıntı. Onarım komutları.
-- Depolama ve kapasite yükseltmeleri.
+- ✅ **A aşaması** (`8e58f0a`, `afa1349`, `8c48786`):
+  - İttifak merkezi: R4 ve R5 diker, en az 3 üye gerekir. Yarıçap 5 + seviye; seviye 1–5 bağışla yükselir.
+  - Şamandıralar: her biri 3 kare alan açar. Hak = 2 × merkez seviyesi + üye/5, en fazla 30.
+  - Alan, toplanma noktasını, ittifak teleportunu ve +%25 toplama bonusunu belirler.
+  - Şehirler ayrı katmanda: alana 4 kare yakınlıkta saldırılabilir, en fazla 6 şehir.
+  - Haritada alan ittifak renginde boyanıyor. Bayrak menüleri var. Etiketler artık ekranı kaplamıyor.
+  - Çoklu dünya için temel: `world_id`.
+- 🟡 Şehir Listesi sayfası: ittifak ana sayfasında yeni bölüm.
+- ⬜ **B aşaması:** ittifak kazanım binaları:
+  - büyüklük ve güce göre açılır
+  - takımlarla inşa edilir ve yükseltilir
+  - garnizonla korunur, düşman saldırabilir
+  - ittifak bonusu verir
+- ⬜ Toplanma noktası uyarısının alanın merkezine göre güncellenmesi (sunucu tarafı hazır).
 
-**Çıkış kriteri:** Ekonomide bir denge döngüsü vardır. Kaynak yönetimi hatası oyuncuyu gerçekten zorlar.
-
----
-
-## Phase 5 — Sunum katmanı 🟡 *(Phase 3'ten itibaren paralel)*
-
-**Hedef:** `docs/13` ve `docs/14` görsel/işitsel kimliği.
-
-**Yapılanlar (GPU gerektirmeyen ilk dilim):**
-
-- [x] Prosedürel sanat hattı (`art/`): sunucuda headless Blender ile 13 bina ve 7 deniz tabanı objesi üretiliyor; FBX dosyaları ve önizlemeler bu hattan çıkıyor.
-- [x] Unity importer: `HAD_*` malzemeleri URP paletine eşleniyor, `ANIM_*` parçalarına ambiyans hareketi (dönme, nabız, salınım) ekleniyor.
-- [x] URP pipeline etkin. Abyss post-processing: bloom, ACES, vinyet.
-- [x] Bootstrap sahnesinde sis, deniz tabanı, dekor ve 3/4 kamera (sürükleyerek kaydırma, iki parmakla yakınlaştırma) kuruldu.
-- [x] Binalar sunucu durumundan prefab olarak çiziliyor. Yeni üsler çekirdek reaktörle başlıyor.
-- [x] IL2CPP uyumlu wire koleksiyonları (yalnızca dizi). Poco X7 Pro üzerinde uçtan uca doğrulandı.
-- [ ] Mürettebat ve kahraman karakterleri: CC0 paketler ya da bulut GPU ile AI destekli 3D üretim.
-- [ ] Bina yerleştirme arayüzü ve dokunmatik inşa akışı.
-- [ ] Kostik ışık, partiküller (kabarcık, plankton) ve ses.
-
-- Oyun durum makinesi: patch → login → handshake → loading → ana menü → üs.
-- "Quiet Luxury" UI tasarım sistemi, HUD, menüler, bildirimler.
-- URP sualtı görünümü: derinlik karanlığı, sis, kostik ışık, sonar estetiği.
-- Ses: açılış, üs ambiyansı, alarm ve UI sesleri.
-- Mobil performans profili (pil, ısı, FPS hedefleri).
-
-**Çıkış kriteri:** Dikey dilim "oyun gibi" görünür ve hissettirir; hedef cihazda 30/60 FPS.
+**Çıkış kriteri:** Bir ittifak sıfırdan alan kurar, büyütür, bir binayı birlikte inşa edip savunur. Rakip ittifak saldırabilir; sonuç iki tarafın kaydına düşer.
 
 ---
 
-## Phase 6 — Denizaltılar ⬜
+## 4. Yeni deniz yaratıkları ve etkinlik boss'ları 🟡
 
-- Denizaltı tersanesi (`submarine_dock`), üretim komutu, filo durumu sunucuda.
-- Gövde dayanımı, basınç kalkanı, kapasite istatistikleri.
-- Bakım ve onarım.
+**Hedef:** Araştırma §6. Canavarlar ekonomiyi besler, etkinlik boss'ları ittifakın ortak hedefi olur.
 
-**Çıkış kriteri:** Oyuncu denizaltı üretir ve donatır; istatistikler sunucudan gelir.
+- 🟡 Kendi hattımızda (SDXL ve TRELLIS, doku2 GPU) üretilen, lisansı temiz yaratıklar. İndirilen modeller yalnızca görsel referans; CC0 keşiş balığı doğrudan kullanılabilir.
+  - Canavarlar: abis fener balığı, dev fener balığı, zırhlı dev yengeç
+  - Ortam canlıları: ışıklı balık sürüleri, denizanaları (yalnızca görsel)
+  - Etkinlik boss'ları: "Uçurum Ağzı" (dev keşiş balığı), "Derinlik Kraken'i"
+- ⬜ Kod tarafında animasyon (kuyruk, gövde dalgası, parlayan yem, yürüyüş, dokunaç) ve saldırı efekti
+- ⬜ Sunucuda yeni canavar türleri: derinliğe göre seviye, güç, sonar maliyeti, ödül
+- ⬜ Etkinlik boss'unda ittifak çapında hasar katkısı ve katkıya göre ödül
 
----
-
-## Phase 7 — Basınç, keşif seferleri ve sonar ⬜
-
-**Hedef:** Oyunun en özgün sistemi (`docs/07`, `docs/08`).
-
-- Derinlik katmanları (Safe Zone → The Core) ve basınç sonuçları (gövde hasarı, kayıp).
-- Sunucu örnekli seferler: kadro (kahraman + denizaltı), süre, karşılaşmalar, ödül olarak StateDelta.
-- Sonar-only bölgeler, sonar ping ve karşılaşma tetikleri (NetworkEvent → Translator).
-- Sefer UI'ı ve ikonik sahne.
-
-**Çıkış kriteri:** Oyuncu farklı derinliklere sefer gönderir; risk ve ödül dengesi sunucuda belirlenir.
+**Çıkış kriteri:** Haritada yeni canavarlar dolaşıyor ve yenilebiliyor. Bir etkinlik boss'u ittifakça yenilip ödül dağıtılıyor.
 
 ---
 
-## Phase 8 — Kahramanlar ⬜
+## 5. İlk oturum akışı ve öğretici ⬜
 
-- Sınıflar, fraksiyonlar ve nadirlikler (`docs/10`); seviye ve deneyim.
-- Yetenek ve ultimate verileri (Shared), sunucuda hesaplanan savaş istatistikleri.
-- Kahraman yönetimi UI'ı. Kazanım şimdilik seferlerden; gacha Phase 13'te.
+**Hedef:** Araştırma §16'nın ilk sorusu: "Oyuncu ilk 10 dakikada ne yaptığını anlıyor mu?"
 
----
+- ⬜ İlk 15–20 dakikalık rehberli akış: reaktör, ilk üretim, ilk kahraman, ilk toplama seferi, ilk canavar, ilk ödül
+- ⬜ Görev zincirinin bu akışa bağlanması. Kilitli özelliklerin ne zaman açılacağının görünmesi.
+- ⬜ İlk gün hedefi: ittifaka katılma ve bir yardım alma
 
-## Phase 9 — Düşmanlar ve savaş ⬜
-
-- Düşman türleri (`docs/09`): Abyss Crawler, Siren Swarm, Iron Leviathan, The Forgotten, Titan.
-- Sunucu hakemli savaş çözümü (deterministik, Shared formüller), Protobuf savaş delta'ları.
-- İstemcide savaş görselleştirme (animasyon LocalEventBus ile).
+**Çıkış kriteri:** Yeni hesap yardımsız ilk kilometre taşına ulaşır. Huniden ilk 10 dakikada terk oranı ölçülür.
 
 ---
 
-## Phase 10 — Dünya haritası ⬜
+## 6. Hayatta kalma döngüsü ⬜
 
-- Paylaşılan dünya durumu, merkez ve derinlik halkaları (`docs/11`).
-- Bölge sahipliği, risk/ödül dağılımı.
-- Shard modeli ve oyuncu yerleşimi; Redis pub/sub replikasyonu.
+**Hedef:** "Oksijen biterse üs ölür" gerilimi (`docs/06`, `docs/19`). Temayı ekonomiye bağlar.
 
----
+- ⬜ Bağımlılık zinciri: enerji yetmezse üreticiler yavaşlar ya da durur.
+- ⬜ Mürettebatın oksijen tüketimi, kritik eşikler, alarmlar
+- ⬜ Acil durumlar (arıza, sızıntı) ve onarım komutları
+- ⬜ Cezanın toparlanabilir olması: üs ölmez, verimi düşer
 
-## Phase 11 — Alliance ⬜
-
-- İttifak kurma, üyelik, roller ve sohbet.
-- Ortak yapılar ve alliance şehri (`AllianceCityView`).
-- Trade Station: kaynak ve blueprint takası, sunucu doğrulamalı.
+**Çıkış kriteri:** Kaynak yönetimi hatası oyuncuyu gerçekten zorlar ama oyundan koparmaz.
 
 ---
 
-## Phase 12 — PvP ve kuşatmalar ⬜ *(M6)*
+## 7. Etkinlik takvimi ve ittifak etkinlikleri ⬜
 
-- Üs saldırı ve savunma, kuşatma zamanlaması, kalkan ve koruma kuralları.
-- Anti-cheat: komut denetim kaydı, hız ve anomali tespiti.
-- PvP shard'ları ve eşleştirme.
+**Hedef:** Araştırma §6.2 ve `docs/29` E2–E6.
 
----
+- ✅ Etkinlik motoru ve admin sayfası: bireysel ve ittifak yarışmaları, giriş ödülleri, aşamalar, sıralama (`docs/29` E1)
+- ⬜ Haftalık döngü takvimi ve hazır etkinlik şablonları
+- ⬜ Görev izinleri, oylama ve zaman dilimi seçimi (E2)
+- ⬜ Hendek Fethi, Derinlik Kuşatması, İttifak Düellosu, Seferberlik (E3–E6)
+- ⬜ Savaş raporlarının ve etkinlik ödüllerinin postayla gelmesi
 
-## Phase 13 — Monetizasyon ⬜
-
-**Hedef:** `docs/15` "Quiet Luxury" monetizasyonu; tamamen sunucu otoriteli.
-
-- Hadalite para birimi ve harcama noktaları.
-- Cryo-Pod Salvage (kahraman gacha) ve Deep Sea Sonar Ping (ekipman/blueprint gacha). RNG sunucuda, pity kuralları, olasılık şeffaflığı.
-- Mağaza: Google Play / App Store faturalandırma, sunucu tarafı makbuz doğrulama, iade işleme.
-- Yasal uyum: yaş, bölge, gacha olasılık açıklaması.
-
-**Çıkış kriteri:** Gerçek ödeme test ortamında satın alma → doğrulama → envanter akışı uçtan uca çalışır.
+**Çıkış kriteri:** Her gün yapılacak süreli bir etkinlik ve haftada bir ittifak hedefi var.
 
 ---
 
-## Phase 14 — LiveOps: The Overseer ⬜ *(M7–M9; Phase 2'den sonra paralel)*
+## 8. Asenkron arena ve düello ⬜
 
-- Admin API (ASP.NET Core, JWT + 2FA, IP izin listesi), `AdminActionAuditLog`.
-- Next.js GM paneli: oyuncu CRM, posta ve ödül dağıtımı, ekonomi ve gacha kontrol odası, telemetri.
-- Gacha hot-swap: staging'de yayın, simülasyon, iki kişi onayı.
-
-**Çıkış kriteri:** Soft launch destek işleri (tazminat, ban, etkinlik ödülü) panelden ve denetim kaydıyla yapılır.
+- ⬜ Kayıtlı savunma takımı, benzer güç aralığında eşleşme, günlük deneme sınırı
+- ⬜ Sıralama ve sezon ödülleri. Ödüller güç farkını büyütmez.
 
 ---
 
-## Phase 15 — Leviathan'lar ⬜
+## 9. Gerçek ödeme ve mağaza ⬜
 
-- Raid örnekleri, ittifak koordinasyonu, boss mekanikleri ve ödül tabloları.
-
----
-
-## Phase 16 — THE CORE ⬜
-
-- Son oyun bölgesi, organik hikâye reveal'ı (`docs/20`), dünya çapında olay koordinasyonu.
+- ✅ Hadalit mağazası ve paketler; VIP puanı satın alımdan geliyor. Ödeme şimdilik admin panelinden elle işleniyor.
+- ⬜ Google Play Billing, sunucuda makbuz doğrulama, iade ve hile koruması
+- ⬜ Pay-to-win sınırları: konfor ve kozmetik ağırlıklı teklifler (§15)
 
 ---
 
-## Phase 17 — Soft launch hazırlığı ⬜
+## 10. Seferler, basınç, sonar ve denizaltı filosu ⬜
 
-- Yük testi (eş zamanlı oyuncu hedefi), sunucu yatay ölçekleme planı (Gateway / Game Server ayrımı).
-- Analitik hattı, çökme raporlama, istemci performans bütçeleri.
-- Yerelleştirme (TR/EN), erişilebilirlik, mağaza listeleri ve gizlilik politikası.
-- Güvenlik denetimi ve yedekleme/geri dönüş tatbikatı.
-- **iOS build hattı** (karar 2026-10-25: o zamana kadar test Android'de): DL380 Xcode projesini üretir; derleme ve imza macOS + Xcode'da yapılır — bir Mac (ör. Mac mini) ya da bulutta Mac (GitHub Actions macOS / Codemagic / Unity Build Automation). Apple Developer Program üyeliği, sertifikalar ve TestFlight gerekir. Linux'ta IPA üretilemez; DL380'de macOS sanallaştırmak Apple lisansına aykırı.
-- **Google Play yayın build'i:** kendi imzalama anahtarı (sırlarda saklanır), AAB çıktısı, Play Console hesabı. Android Studio gerekmez; Unity'nin Android imajı SDK/NDK/JDK/Gradle'ı içerir.
-
-**Çıkış kriteri:** Seçili bölgelerde soft launch; KPI takibi (retention D1/D7, ARPDAU).
+- ✅ Sonar enerjisi ve canavar saldırıları; toplama seferleri; tek denizaltılı takım görünümü
+- ⬜ Derinlik katmanları ve basınç dayanımı (`docs/07`)
+- ⬜ Sefer örnekleri ve sonar bölgeleri (`docs/08`)
+- ⬜ Denizaltı filosu, gövde istatistikleri ve üretim
 
 ---
 
-## Phase 18 — Lansman ve canlı operasyon ⬜
+## 11. Kapalı test ve soft launch hazırlığı ⬜
 
-- Global yayın, sezon ve etkinlik takvimi (`docs/16`), içerik güncelleme hattı.
-- Canlı ekonomi ayarı, topluluk ve destek süreçleri.
+- ⬜ Performans: varlık bütçesi, LOD, gerçek cihaz testi. Yük testi.
+- ⬜ Analitik panoları, tutundurma ve ekonomi metrikleri
+- ⬜ Play Store uyumu: gizlilik, hesap silme, içerik derecelendirmesi
+- ⬜ **Emeği geçenler ekranı:** CC-BY varlıklar ve OFL yazı tipi (Fredoka)
+- ⬜ iOS derlemesi
+
+---
+
+## 12. Lansman ve sonrası ⬜
+
+- ⬜ Sezonlar ve kısmi sıfırlama, çoklu dünya ve göç (`world_id` temeli hazır)
+- ⬜ Leviathan raid'leri (`docs/15`)
+- ⬜ THE CORE son oyunu (`docs/20`)
+
+---
+
+## ✅ Tamamlananlar
+
+### Temel ve sunucu çekirdeği
+- ✅ `HADAL.Shared` protokolü (Protobuf, şema v3)
+- ✅ DI, StateSync hattı (snapshot, delta, reconciliation)
+- ✅ Otoriter oyun sunucusu (`server/Hadal.Game`), gateway, Postgres kalıcılığı, write-behind kuyruklar
+- ✅ Kimlik:
+  - misafir hesap, JWT ve dönen refresh token
+  - aktarım kodu, Google/Apple bağlama altyapısı
+  - profil ve isim değiştirme kuralları: ilki ücretsiz; sonrası İsim Kartı ya da 500 Hadalit; 24 saat bekleme; benzersiz isim
+- ✅ Dış erişim:
+  - `hadal-api.cicibyte.com` (Cloudflare Tunnel)
+  - tek komutla dağıtım (`server/deploy/deploy.sh`, hata olursa otomatik geri alma)
+  - headless Unity derlemesi (CT 160)
+- ✅ Uygulama içi güncelleme (OTA), indirme sayfası (Kale2), 18 dil desteği (İtalyanca dahil)
+
+### Üs ve ekonomi
+- ✅ Dairesel üs: inşa, yükseltme, kaldırma, sunucu saatiyle inşaat, ücretsiz bitirme
+- ✅ Halka açma ve bina kopya sınırları (v9). Fazla binalar kaldırılıp bedelleri iade edildi.
+- ✅ Araştırma, Boost, Overdrive, kurtarma seferleri, kesirli üretim
+- ✅ Katalog v10, canlı katalog yayınlama
+- ✅ Depo sınırını aşan bakiyeyi üretimin silmemesi (`9559e1d`)
+- ✅ Hızlandırma eşyaları, kapsüller
+- ✅ Last Asylum tarzı çanta: kullanım kartı, sınırsız toplu kullanım, çizilmiş simgeler (`d92b180`)
+
+### Kahramanlar ve ordu
+- ✅ Kahramanlar: portreler, 3D modeller, kartlar, yıldızlar, seviye
+- ✅ Last Asylum tarzı kahraman listesi ve tam boy çizimli kahraman kartı (`d92b180`)
+- ✅ Dört asker türü ve on kademe, talim alanları, Askeri Kubbe kapasitesi
+- ✅ Med Bay: yaralılar ve iyileştirme. Beş kahramanlı takımlar ve komuta kapasitesi.
+- ✅ Savaş çözümü: raundlar, sıralar, karşıtlıklar, bozgun. Canavarlar ve savaş raporları.
+
+### Dünya haritası
+- ✅ Paylaşılan dünya, kaynak düğümleri, toplama, Derinlik Haritası
+- ✅ Kilometre cinsinden mesafe (12 sn/km), herkesin canlı gördüğü kesikli rotalar, tek denizaltılı takım
+- ✅ Akıcı hareket, gidiş yönüne bakan denizaltı ve kabarcık izi
+- ✅ Toplama rozeti (yeşil/mavi/kırmızı) ve canlı sefer ayrıntı ekranı (`cc17603`, `c46a41d`)
+- ✅ Teleportlar: rastgele, hedefli, ittifak. Bilet ya da Hadalit ile.
+
+### Sosyal ve ittifak
+- ✅ Last Asylum tarzı sohbet: kanallar, avatarlar, konum paylaşımı
+- ✅ İttifak kurma, katılma, rütbeler R1–R5, görevler, yönetim
+- ✅ İttifak yardımı: inşaat, iyileştirme ve araştırma; yüzen yardım baloncukları (`bf1aac2`)
+- ✅ İttifak ekranı (`docs/31`):
+  - ana sayfa ve duyuru (`9f5d0be`)
+  - üyeler sayfası: lider kartı, unvanlar, açılır rütbeler, son görülme (`c0fd524`)
+  - ittifak ve savaş kayıtları (`1033952`)
+  - ittifak parası ve haftalık mağaza (`3ff139f`)
+  - ittifak hediyeleri (`73d1529`)
+  - ittifak araştırma ağacı ve bağışlar (`bd030a9`)
+  - sıralama: güç, yok etme, bağış (`e86a91e`)
+  - toplanma noktası kartı ve anında ittifak teleportu (`f3cd82f`)
+- ✅ Posta kutusu:
+  - sistem ve admin postaları, ekleri bir kez alınır (`befcbad`)
+  - oyuncudan oyuncuya posta; kaynak yalnızca ittifak arkadaşına, kaynak başına günlük limitle (`8b4a58d`)
+
+### Etkinlikler, VIP ve monetizasyon temeli
+- ✅ Etkinlik motoru ve etkinlik merkezi
+- ✅ VIP 1–15 (Last Asylum tablosu): giriş serisi, satın alma ve VIP puanı eşyaları; günlük sandık; yürüyüş hızı bonusu
+- ✅ Hadalit mağaza ekranı (ödeme bekliyor)
+
+### The Overseer (admin paneli)
+- ✅ Şifre ve TOTP girişi, roller, denetim kaydı
+- ✅ Oyuncu arama ve yönetimi, ban
+- ✅ Kaynak, eşya, kahraman, asker, kalkan ve VIP gönderme
+- ✅ Kuponlar, bakım modu ve duyuru, denge kataloğu yayınlama ve geri alma
+- ✅ Etkinlik sayfası, mağaza paketi kredilendirme
+- ✅ Posta gönderme: tek oyuncuya ya da herkese
+
+### Sunum
+- ✅ UI tasarım sistemi (çizilmiş kaplama, Fredoka yazı tipi), HUD, logo, açılış ekranı
+- ✅ URP derin deniz görünümü, prosedürel ve GPU ile üretilmiş sanat, yaşayan mürettebat ve ortam
+- ✅ Özgün müzik ve ses efektleri: üs, harita, savaş, zafer ve yenilgi (`45badf4`)
+- ✅ Tanıtım sitesi (EN/TR/IT)
+
+---
+
+## Notlar
+
+- **Sabit kalmış iki seçim:**
+  - İttifak araştırmasında "asker kapasitesi" yerine "takım yükü" kullanılıyor.
+  - Ralli yok etmelerinin hepsi ralliyi başlatan oyuncuya yazılıyor.
+  Gerekirse Sıra 2 ve 3'te ele alınır.
+- **İlk tahmin olan denge değerleri:** ittifak parası, mağaza fiyatları, hediye eşikleri ve araştırma maliyetleri. Kapalı testte (Sıra 11) ayarlanacak.
