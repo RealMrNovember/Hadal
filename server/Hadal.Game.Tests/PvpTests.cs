@@ -275,6 +275,24 @@ namespace Hadal.Game.Tests
         }
 
         [Fact]
+        public async Task Battles_go_into_both_alliances_battle_logs()
+        {
+            var (a, aConnection) = await Connect("log-a");
+            var (b, bConnection) = await Connect("log-b", troops: 50);
+            Ally(a, aConnection);
+            Ally(b, bConnection);
+            Attack(a, b.PublicId);
+            At(Pvp(a).ArrivesAt);
+
+            var (x, y) = _world.Map.PositionOf(b.PublicId)!.Value;
+            var mine = _world.Social.LogOf(_world.Social.AllianceIdOf(a.PublicId), AllianceLogKinds.Battle).Single();
+            Assert.Equal(AllianceLogKinds.AttackWon, mine.Type);
+            Assert.Equal(new[] { "log-a", "log-b", x.ToString(), y.ToString() }, mine.Args);
+            var theirs = _world.Social.LogOf(_world.Social.AllianceIdOf(b.PublicId), AllianceLogKinds.Battle).Single();
+            Assert.Equal(AllianceLogKinds.DefenceLost, theirs.Type);
+        }
+
+        [Fact]
         public async Task Battles_due_together_are_fought_in_arrival_order()
         {
             var (a, _) = await Connect("ord-a", troops: 3000);

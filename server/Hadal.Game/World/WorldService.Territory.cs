@@ -270,6 +270,7 @@ ON CONFLICT (region) DO UPDATE SET alliance_id = EXCLUDED.alliance_id, hub = EXC
 
             var start = garrison.Troops.ToDictionary(p => p.Key, p => (long)Math.Round(p.Value), StringComparer.Ordinal);
             var lostShare = start.Values.Sum() <= 0 ? 1 : (double)result.DefenderLost.Values.Sum() / start.Values.Sum();
+            var owner = region.AllianceId;
             var captured = result.AttackerWon && CaptureBlock(region, alliance) == null;
             if (captured)
             {
@@ -283,6 +284,14 @@ ON CONFLICT (region) DO UPDATE SET alliance_id = EXCLUDED.alliance_id, hub = EXC
 
             region.ShareAt = at;
             SaveRegion(region);
+
+            // The stronghold's owner (an alliance, no player) logs the defence as well.
+            var rally = r.Mode == PvpRules.Rally;
+            var args = new[] { NameOf(r.AttackerId) ?? string.Empty, region.Id, r.ToX.ToString(), r.ToY.ToString() };
+            _social.LogBattle(alliance, rally ? (result.AttackerWon ? AllianceLogKinds.RallyWon : AllianceLogKinds.RallyLost)
+                : result.AttackerWon ? AllianceLogKinds.AttackWon : AllianceLogKinds.AttackLost, now, args);
+            if (owner.Length > 0 && owner != alliance)
+                _social.LogBattle(owner, result.AttackerWon ? AllianceLogKinds.DefenceLost : AllianceLogKinds.DefenceWon, now, args);
 
             var attStart = Sum(teams.Select(t => t.Troops));
             for (var i = 0; i < teams.Count; i++)

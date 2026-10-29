@@ -309,6 +309,7 @@ CREATE TABLE IF NOT EXISTS hadal.world_pvp (
                 };
                 Tell(sessions[scout.OwnerId], seen, r.TargetOwnerId, now);
                 Tell(defender, new PvpReportDto { Id = r.Id, AtMs = seen.AtMs, Kind = "scouted", Outcome = "scouted", X = r.ToX, Y = r.ToY }, scout.OwnerId, now);
+                LogAlliances(r, AllianceLogKinds.Scout, AllianceLogKinds.Scout, now);
                 return true;
             }
 
@@ -337,6 +338,7 @@ CREATE TABLE IF NOT EXISTS hadal.world_pvp (
                 AttackerPower = TroopRules.Power(troops, attStart), DefenderPower = TroopRules.Power(troops, defStart), Rounds = result.Rounds
             };
 
+            LogBattle(r, result.AttackerWon, now);
             var defenceReport = Base("defence", !result.AttackerWon);
             defenceReport.Dead = homeDead;
             defenceReport.Wounded = homeWounded;
@@ -414,6 +416,7 @@ CREATE TABLE IF NOT EXISTS hadal.world_pvp (
                 AttackerPower = TroopRules.Power(troops, attStart), DefenderPower = TroopRules.Power(troops, target.Troops), Rounds = result.Rounds
             };
 
+            LogBattle(r, result.AttackerWon, now);
             var hit = Report("team", !result.AttackerWon);
             (hit.Dead, hit.Wounded) = (dead, wounded);
             hit.Plunder = ResourceAmountEntry.FromMap(taken);
@@ -448,6 +451,26 @@ CREATE TABLE IF NOT EXISTS hadal.world_pvp (
             if (defender != null && outcome == "shielded" && r.Mode != PvpRules.Scout)
                 Tell(defender, new PvpReportDto { Id = r.Id, AtMs = at.ToUnixTimeMilliseconds(), Kind = "defence", Outcome = "shielded", X = r.ToX, Y = r.ToY },
                     r.AttackerId, now);
+        }
+
+        /// <summary>A battle in both alliances' battle logs (docs/31 §2): attacker, target, x, y.</summary>
+        private void LogBattle(PvpRecord r, bool attackerWon, DateTimeOffset now)
+        {
+            var rally = r.Mode == PvpRules.Rally;
+            LogAlliances(r,
+                rally ? (attackerWon ? AllianceLogKinds.RallyWon : AllianceLogKinds.RallyLost) : attackerWon ? AllianceLogKinds.AttackWon : AllianceLogKinds.AttackLost,
+                attackerWon ? AllianceLogKinds.DefenceLost : AllianceLogKinds.DefenceWon, now);
+        }
+
+        private void LogAlliances(PvpRecord r, string attackerType, string defenderType, DateTimeOffset now)
+        {
+            var target = r.TargetKind == PvpRules.TargetStronghold ? r.TargetId : NameOf(r.TargetOwnerId) ?? string.Empty;
+            var args = new[] { NameOf(r.AttackerId) ?? string.Empty, target, r.ToX.ToString(), r.ToY.ToString() };
+            var attackerAlliance = _social.AllianceIdOf(r.AttackerId);
+            _social.LogBattle(attackerAlliance, attackerType, now, args);
+            var defenderAlliance = r.TargetOwnerId.Length > 0 ? _social.AllianceIdOf(r.TargetOwnerId) : string.Empty;
+            if (defenderAlliance != attackerAlliance)
+                _social.LogBattle(defenderAlliance, defenderType, now, args);
         }
 
         private void Tell(PlayerSession session, PvpReportDto report, string opponentId, DateTimeOffset now)
