@@ -43,6 +43,9 @@ services:
     environment:
       ConnectionStrings__Hadal: "Host=hadal-postgres;Port=5432;Database=hadal;Username=hadal_app;Password=${HADAL_DB_PASSWORD}"
       Auth__JwtSecret: "${HADAL_JWT_SECRET:?set HADAL_JWT_SECRET in .env}"
+      # Sign in with Google: comma-separated OAuth client ids accepted as ID-token audience (the WEB
+      # client id the Android app passes as serverClientId). Empty = Google linking/sign-in disabled.
+      Auth__GoogleClientIds: "${HADAL_GOOGLE_CLIENT_IDS:-}"
       Version__MinClientVersion: "${HADAL_MIN_CLIENT_VERSION:-0.0.0}"
       Version__LatestClientVersion: "${HADAL_LATEST_CLIENT_VERSION:-0.0.0}"
       Version__Maintenance: "${HADAL_MAINTENANCE:-false}"

@@ -92,6 +92,11 @@ namespace Hadal.Tests.EditMode
             public Task<AccountResult<ProfileResponse>> SetDisplayNameAsync(string displayName) => throw new NotSupportedException();
             public Task<AccountResult<TransferCodeResponse>> CreateTransferCodeAsync(string password) => throw new NotSupportedException();
             public Task<AccountResult<AuthResponse>> SignInWithTransferAsync(string transferCode, string password) => throw new NotSupportedException();
+            public bool CanUseGoogle => false;
+            public bool IsGoogleLinked => false;
+            public string GoogleEmail => string.Empty;
+            public Task<AccountResult<ProfileResponse>> LinkGoogleAsync() => throw new NotSupportedException();
+            public Task<AccountResult<AuthResponse>> SignInWithGoogleAsync() => throw new NotSupportedException();
         }
     }
 }

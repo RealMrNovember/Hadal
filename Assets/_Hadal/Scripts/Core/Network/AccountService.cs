@@ -24,7 +24,7 @@ namespace Hadal.Core.Network
         public bool IsSuccess => Value != null && Error.Length == 0;
     }
 
-    /// <summary>Profile and account protection (transfer code). Google / Apple linking comes with their sign-in SDKs.</summary>
+    /// <summary>Profile and account protection: transfer code and Sign in with Google (Apple comes with its SDK).</summary>
     public interface IAccountService
     {
         /// <summary>Last known profile; null until the first successful <see cref="RefreshProfileAsync"/>.</summary>
@@ -49,6 +49,24 @@ namespace Hadal.Core.Network
 
         /// <summary>Redeems a gift code; the rewards reach the wallet through the next state update.</summary>
         Task<AccountResult<CouponRedeemResponse>> RedeemCouponAsync(string code);
+
+        /// <summary>True when the platform can show the Google account picker and a web client id is configured.</summary>
+        bool CanUseGoogle { get; }
+
+        /// <summary>True when the last known profile has a Google identity linked.</summary>
+        bool IsGoogleLinked { get; }
+
+        /// <summary>Address of the Google account linked from this device (display only); empty when unknown.</summary>
+        string GoogleEmail { get; }
+
+        /// <summary>Google account picker, then links that identity to this account (protects it).</summary>
+        Task<AccountResult<ProfileResponse>> LinkGoogleAsync();
+
+        /// <summary>
+        /// Google account picker, then signs in to the account that identity is linked to. On success the
+        /// new session is stored; the caller restarts the game like after a transfer-code sign-in.
+        /// </summary>
+        Task<AccountResult<AuthResponse>> SignInWithGoogleAsync();
     }
 
     public sealed class AccountService : IAccountService
@@ -56,12 +74,14 @@ namespace Hadal.Core.Network
         private readonly GameConfigSO _config;
         private readonly IAuthService _auth;
         private readonly IRefreshTokenStore _store;
+        private readonly IGoogleSignIn _google;
 
-        public AccountService(GameConfigSO config, IAuthService auth, IRefreshTokenStore store)
+        public AccountService(GameConfigSO config, IAuthService auth, IRefreshTokenStore store, IGoogleSignIn google)
         {
             _config = config;
             _auth = auth;
             _store = store;
+            _google = google;
         }
 
         public ProfileResponse Profile { get; private set; }
@@ -129,6 +149,66 @@ namespace Hadal.Core.Network
 
             return AuthorizedAsync<CouponRedeemResponse>(UnityWebRequest.kHttpVerbPOST, AuthRoutes.CouponRedeem,
                 new CouponRedeemRequest { code = normalised });
+        }
+
+        public bool CanUseGoogle => _google != null && _google.IsSupported && _config.GoogleWebClientId.Length > 0;
+
+        public bool IsGoogleLinked => Profile?.linkedProviders != null && Array.IndexOf(Profile.linkedProviders, AccountProviders.Google) >= 0;
+
+        public string GoogleEmail => Profile == null ? string.Empty : PlayerPrefs.GetString(GoogleEmailKey(Profile.accountId), string.Empty);
+
+        public async Task<AccountResult<ProfileResponse>> LinkGoogleAsync()
+        {
+            var google = await PickGoogleAsync();
+            if (!google.IsSuccess)
+                return new AccountResult<ProfileResponse>(null, google.Error);
+
+            var result = await AuthorizedAsync<ProfileResponse>(UnityWebRequest.kHttpVerbPOST, AuthRoutes.ProviderLink,
+                new ProviderRequest { provider = AccountProviders.Google, idToken = google.IdToken });
+            if (result.IsSuccess)
+                RememberGoogleEmail(result.Value.accountId, google.Email);
+            Remember(result);
+            return result;
+        }
+
+        public async Task<AccountResult<AuthResponse>> SignInWithGoogleAsync()
+        {
+            var google = await PickGoogleAsync();
+            if (!google.IsSuccess)
+                return new AccountResult<AuthResponse>(null, google.Error);
+
+            try
+            {
+                var response = await HttpJson.SendAsync<AuthResponse>(UnityWebRequest.kHttpVerbPOST, _config.ApiBaseUrl + AuthRoutes.ProviderLogin,
+                    new ProviderRequest { provider = AccountProviders.Google, idToken = google.IdToken }, null);
+                if (!response.IsSuccess || response.Body == null)
+                    return new AccountResult<AuthResponse>(null, ErrorOf(response.Status, response.Error));
+
+                _store.Save(response.Body.refreshToken);
+                RememberGoogleEmail(response.Body.accountId, google.Email);
+                return new AccountResult<AuthResponse>(response.Body, null);
+            }
+            catch (ServerUnreachableException)
+            {
+                return new AccountResult<AuthResponse>(null, AccountResult<AuthResponse>.NetworkError);
+            }
+        }
+
+        private Task<GoogleSignInResult> PickGoogleAsync()
+        {
+            if (_google == null || !_google.IsSupported)
+                return Task.FromResult(new GoogleSignInResult(null, null, GoogleSignIn.Unsupported));
+            return _google.SignInAsync(_config.GoogleWebClientId);
+        }
+
+        private static string GoogleEmailKey(string accountId) => "hadal.google.email." + accountId;
+
+        private static void RememberGoogleEmail(string accountId, string email)
+        {
+            if (string.IsNullOrEmpty(accountId) || string.IsNullOrEmpty(email))
+                return;
+            PlayerPrefs.SetString(GoogleEmailKey(accountId), email);
+            PlayerPrefs.Save();
         }
 
         private async Task<AccountResult<T>> AuthorizedAsync<T>(string method, string route, object body) where T : class

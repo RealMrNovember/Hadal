@@ -30,6 +30,12 @@ namespace Hadal.Data.Config
         [Tooltip("Editor/development builds only: run the in-process stub server instead of connecting to the gateway.")]
         [SerializeField] private bool _useLocalSimulation;
 
+        [Header("Accounts")]
+        [Tooltip("Sign in with Google: the WEB OAuth client id of Google Cloud project hadal-513122 (public, not a secret). " +
+                 "Passed to Credential Manager as serverClientId; the gateway accepts it as audience (HADAL_GOOGLE_CLIENT_IDS). " +
+                 "Empty disables the Google buttons. See docs/HADAL_SERVER_INFRASTRUCTURE.md §11.1.")]
+        [SerializeField] private string _googleWebClientId = "1052662691515-2fl1638hjksll51nanstc0opn46b68rf.apps.googleusercontent.com";
+
         [Header("Addressables")]
         [SerializeField] private AssetCatalogSO _assetCatalog;
 
@@ -95,6 +101,9 @@ namespace Hadal.Data.Config
 
         /// <summary>Editor/development: forget the stored login and start a brand-new guest account.</summary>
         public bool FreshAccount => DevOverride("HADAL_FRESH_ACCOUNT") == "1";
+
+        /// <summary>Web OAuth client id for Sign in with Google; empty when Google sign-in is off.</summary>
+        public string GoogleWebClientId => (_googleWebClientId ?? string.Empty).Trim();
 
         public float NetworkHeartbeatInterval => _networkHeartbeatInterval;
         public AssetCatalogSO AssetCatalog => _assetCatalog;

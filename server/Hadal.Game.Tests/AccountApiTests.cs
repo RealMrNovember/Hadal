@@ -7,6 +7,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 namespace Hadal.Game.Tests
 {
@@ -215,6 +216,42 @@ namespace Hadal.Game.Tests
 
             Assert.Equal(HttpStatusCode.Conflict, conflict.StatusCode);
             Assert.Equal(AccountErrors.ProviderLinkedElsewhere, await ErrorOf(conflict));
+        }
+
+        [Fact]
+        public async Task GoogleLink_SameIdentityAgain_IsIdempotent()
+        {
+            var account = await GuestAsync();
+            var request = new ProviderRequest { provider = AccountProviders.Google, idToken = "good:google-user-" + Guid.NewGuid().ToString("N") };
+
+            (await Client(account.accessToken).PostAsJsonAsync(AuthRoutes.ProviderLink, request, Json)).EnsureSuccessStatusCode();
+            var again = await Client(account.accessToken).PostAsJsonAsync(AuthRoutes.ProviderLink, request, Json);
+
+            again.EnsureSuccessStatusCode();
+            Assert.Contains(AccountProviders.Google, (await again.Content.ReadFromJsonAsync<ProfileResponse>(Json))!.linkedProviders);
+        }
+
+        [Fact]
+        public void GoogleClientIds_AreReadFromAuthConfiguration()
+        {
+            // docker-compose passes HADAL_GOOGLE_CLIENT_IDS as Auth__GoogleClientIds, i.e. Auth:GoogleClientIds.
+            const string web = "1052662691515-web.apps.googleusercontent.com";
+            using var configured = _factory.WithWebHostBuilder(b => b.UseSetting("Auth:GoogleClientIds", web));
+            Assert.Equal(web, configured.Services.GetRequiredService<IOptions<AuthOptions>>().Value.GoogleClientIds);
+        }
+
+        [Fact]
+        public async Task GoogleValidator_IsEnabledOnlyByConfiguredClientIds()
+        {
+            var off = new OidcIdentityTokenValidator(Options.Create(new AuthOptions()));
+            Assert.Equal(IdentityStatus.NotConfigured, (await off.ValidateAsync(AccountProviders.Google, "token", default)).Status);
+
+            // Configured: the provider is live, so a token is judged on its own (empty / oversized fail before any key fetch).
+            var on = new OidcIdentityTokenValidator(Options.Create(new AuthOptions { GoogleClientIds = " web.apps.googleusercontent.com , android.apps.googleusercontent.com " }));
+            Assert.Equal(IdentityStatus.Invalid, (await on.ValidateAsync(AccountProviders.Google, string.Empty, default)).Status);
+            Assert.Equal(IdentityStatus.Invalid, (await on.ValidateAsync(AccountProviders.Google, new string('x', 9000), default)).Status);
+            Assert.Equal(IdentityStatus.NotConfigured, (await on.ValidateAsync(AccountProviders.Apple, "token", default)).Status);
+            Assert.Equal(IdentityStatus.UnknownProvider, (await on.ValidateAsync("facebook", "token", default)).Status);
         }
 
         [Theory]

@@ -10,7 +10,8 @@ namespace Hadal.UI
 {
     /// <summary>
     /// Gear button (top right) and the Settings panel. Its home page links to Account (player name,
-    /// protection status, transfer code, sign in elsewhere, Google / Apple placeholders), Language,
+    /// protection status, transfer code, Link with Google, sign in elsewhere by transfer code or Google,
+    /// Apple placeholder), Language,
     /// Sound, Graphics, Notifications, Gift Code, Support and About (SettingsPages.cs).
     /// A badge on the gear nudges unprotected players without blocking play.
     /// </summary>
@@ -125,9 +126,8 @@ namespace Hadal.UI
             UiKit.Button("Switch", column, Loc.T("account.switch"), () => Show(_switch), UiKit.Field).Row(110)
                 .GetComponentInChildren<Text>().color = UiKit.Text;
 
-            var google = UiKit.Button("Google", column, Loc.T("account.google"), null, UiKit.Field).Row(100);
-            google.interactable = false;
-            google.GetComponentInChildren<Text>().color = UiKit.Muted;
+            UiKit.Button("Google", column, Loc.T("account.google"), () => _ = LinkGoogle(), UiKit.Field).Row(100)
+                .GetComponentInChildren<Text>().color = UiKit.Text;
             var apple = UiKit.Button("Apple", column, Loc.T("account.apple"), null, UiKit.Field).Row(100);
             apple.interactable = false;
             apple.GetComponentInChildren<Text>().color = UiKit.Muted;
@@ -161,6 +161,8 @@ namespace Hadal.UI
             _transferCode.characterValidation = InputField.CharacterValidation.None;
             _transferPassword = UiKit.Input("Password", column, Loc.T("account.password"), true, AccountRules.PasswordMaxLength).Row(110);
             UiKit.Button("SignIn", column, Loc.T("account.signin"), () => _ = SignIn()).Row(110);
+            UiKit.Button("GoogleSignIn", column, Loc.T("account.google.signin"), () => _ = SignInWithGoogle(), UiKit.Field).Row(110)
+                .GetComponentInChildren<Text>().color = UiKit.Text;
             _switchMessage = UiKit.Label("Message", column, string.Empty, 32, UiKit.Danger).Row(110);
             UiKit.Button("Back", column, Loc.T("account.back"), () => Show(_main), UiKit.Field).Row(100)
                 .GetComponentInChildren<Text>().color = UiKit.Text;
@@ -190,6 +192,8 @@ namespace Hadal.UI
                 _name.text = profile.displayName;
             _accountId.text = $"{Loc.T("account.id")}: {profile.accountId.Substring(0, Math.Min(8, profile.accountId.Length)).ToUpperInvariant()}";
             _protection.text = isProtected ? Loc.T("account.protected") : Loc.T("account.unprotected");
+            if (_account.IsGoogleLinked)
+                _protection.text += "\n" + GoogleStatus();
             _protection.color = isProtected ? UiKit.Accent : UiKit.Amber;
         }
 
@@ -315,6 +319,46 @@ namespace Hadal.UI
                 return;
             }
 
+            _switchMessage.color = UiKit.Danger;
+            _switchMessage.text = Loc.Error(result.Error);
+            _busy = false;
+        }
+
+        private string GoogleStatus()
+        {
+            var email = _account.GoogleEmail;
+            return string.IsNullOrEmpty(email) ? Loc.T("account.google.linked") : Loc.F("account.google.linked.email", email);
+        }
+
+        private async Task LinkGoogle()
+        {
+            if (!Begin())
+                return;
+
+            _mainMessage.color = UiKit.Muted;
+            _mainMessage.text = Loc.T("account.google.working");
+            var result = await _account.LinkGoogleAsync();
+            _mainMessage.color = result.IsSuccess ? UiKit.Accent : UiKit.Danger;
+            _mainMessage.text = result.IsSuccess ? GoogleStatus() : Loc.Error(result.Error);
+            _busy = false;
+        }
+
+        private async Task SignInWithGoogle()
+        {
+            if (!Begin())
+                return;
+
+            _switchMessage.color = UiKit.Muted;
+            _switchMessage.text = Loc.T("account.google.working");
+            var result = await _account.SignInWithGoogleAsync();
+            if (result.IsSuccess)
+            {
+                // Same as a transfer-code sign-in: every system restarts from the other account.
+                SessionRestart.Restart();
+                return;
+            }
+
+            _switchMessage.color = UiKit.Danger;
             _switchMessage.text = Loc.Error(result.Error);
             _busy = false;
         }

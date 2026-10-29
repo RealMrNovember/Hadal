@@ -400,7 +400,33 @@ HADAL_API_PORT=19002
 HADAL_ADMIN_API_PORT=19006
 HADAL_OVERSEER_UI_PORT=19007
 ASPNETCORE_ENVIRONMENT=Production
+HADAL_GOOGLE_CLIENT_IDS=<web OAuth client id>
 ```
+
+### 11.1 Sign in with Google (account link and sign-in on a new phone)
+
+The gateway validates Google ID tokens itself (Google's published signing keys, issuer
+`accounts.google.com`, expiry, audience); no client secret is used anywhere.
+
+- **Audience = the WEB OAuth client id.** The Android app asks Credential Manager for an ID token
+  with `serverClientId` = the web client id, so Google issues the token *to* that id (`aud`); the
+  Android OAuth client (package + SHA-1) only authorises the app to ask. Google Cloud project
+  `hadal-513122`:
+  - Web client: `1052662691515-2fl1638hjksll51nanstc0opn46b68rf.apps.googleusercontent.com`
+  - Android client (`com.cicibyte.hadal`, debug-keystore SHA-1 `AF:F1:68:52:…:1A:EF`):
+    `1052662691515-qvn4dlkhleg6afalrb45e2bes0rg0k3a.apps.googleusercontent.com`
+- **Server:** in `/opt/hadal/server/.env` set
+  `HADAL_GOOGLE_CLIENT_IDS=1052662691515-2fl1638hjksll51nanstc0opn46b68rf.apps.googleusercontent.com`
+  (comma-separated if an iOS/other client is added later). `docker-compose.hadal.yml` passes it to the
+  gateway as `Auth__GoogleClientIds`; recreate the gateway (`up -d hadal-gateway`). While it is empty
+  the endpoints answer `501 ProviderNotConfigured` and the app shows "not configured yet".
+- **Client:** `GameConfigSO._googleWebClientId` (Inspector: Game Config → Accounts) holds the same web
+  client id; it defaults to the value above, so the existing GameConfig asset needs no edit.
+- **Release builds:** an APK signed with another key (release keystore, Play App Signing) needs its
+  SHA-1 added to an Android OAuth client in the same project, otherwise the account picker fails
+  with "developer error" (shown in game as a sign-in failure).
+- While the OAuth consent screen is in *Testing*, only listed test users can sign in; publish it
+  (basic scopes `openid email profile` need no verification) before players use it.
 
 ---
 
