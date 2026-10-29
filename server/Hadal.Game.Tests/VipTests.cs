@@ -109,6 +109,20 @@ namespace Hadal.Game.Tests
         }
 
         [Fact]
+        public async Task The_overseer_sets_vip_points_live_and_offline()
+        {
+            var (session, connection) = await Connect("vip-set");
+            Assert.True(await _world.SetVipPointsAsync("vip-set", VipRules.Thresholds[7], default));
+            Assert.Equal(7, Vip(connection).Level);
+            Assert.True(await _world.SetVipPointsAsync("vip-set", 0, default));
+            Assert.Equal(0, Vip(connection).Level);
+
+            await _world.DisconnectAsync(session, connection, default);
+            Assert.True(await _world.SetVipPointsAsync("vip-set", 1234, default));
+            Assert.Equal(1234, (await _repository.LoadByIdentityAsync("vip-set", default))!.VipPoints);
+        }
+
+        [Fact]
         public void Vip_bonuses_speed_up_building_and_add_a_builder_at_six()
         {
             var modifiers = new PlayerModifiers();

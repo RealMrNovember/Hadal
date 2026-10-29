@@ -107,6 +107,18 @@ namespace Hadal.Game
             }
         }
 
+        /// <summary>Sets the VIP points outright (the Overseer); the level follows from them.</summary>
+        internal void SetVipPoints(long points, DateTimeOffset now)
+        {
+            lock (_gate)
+            {
+                _state.VipPoints = Math.Max(0, points);
+                _state.IsDirty = true;
+                RefreshModifiers();
+                SendDelta(now, new List<EntityChangeDto> { VipChange(now), ProductionChange(now) });
+            }
+        }
+
         /// <summary>The state change of a purchase, for live and offline players alike.</summary>
         internal static void ApplyPurchase(PlayerState state, StorePacks.Pack pack)
         {

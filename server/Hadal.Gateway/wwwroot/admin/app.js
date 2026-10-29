@@ -78,6 +78,7 @@ const ERRORS = {
   InvalidUrl: "İndirme adresi https:// ile başlamalı.",
   ConfirmationRequired: "Silme onaylanmadı.",
   UnknownPack: "Mağaza paketi bulunamadı.",
+  InvalidVip: "VIP seviyesi 0–10, puan 0–100.000.000 olmalı.",
 };
 const explain = (code) => ERRORS[code] || code || "İşlem başarısız.";
 
@@ -255,6 +256,9 @@ async function playerDetail(root, id) {
   const pack = el("select", {}, packs.map((k) => el("option", { value: k.id },
     `${fmtNum(k.hadalite)}${k.bonus ? " + " + fmtNum(k.bonus) : ""} Hadalit · $${(k.priceCents / 100).toFixed(2)} · ${fmtNum(k.vipPoints)} VIP puanı`)));
   const packNote = el("input", { placeholder: "Not (ör. test satın alması, destek)" });
+  const vipLevel = el("select", {}, el("option", { value: "" }, "— puanla ayarla —"),
+    Array.from({ length: 11 }, (_, i) => el("option", { value: i }, `VIP ${i}`)));
+  const vipPoints = el("input", { type: "number", min: "0", value: d.vip ? d.vip.points : 0 });
 
   // Heroes and troop packs (GiftItems): chosen here, they land in the bag and the player uses them.
   const meta = can("gm") ? await api("events/meta") : null;
@@ -324,6 +328,12 @@ async function playerDetail(root, id) {
     el("h2", {}, "Eşya gönder (çantaya)"),
     el("div", { class: "row" }, GRANT_ITEMS.map(([id, name]) => el("label", {}, name, itemInputs[id])),
       el("button", { class: "primary", onclick: () => grant().catch((e) => toast(e.message, true)) }, "Uygula")),
+    el("h2", {}, "VIP ayarla"),
+    el("p", { class: "muted" }, "Bir seviye seçersen puan o seviyenin eşiğine ayarlanır; seçmezsen yazdığın puan aynen uygulanır (artırma ya da azaltma)."),
+    el("div", { class: "row" }, el("label", {}, "VIP seviyesi", vipLevel), el("label", {}, "VIP puanı", vipPoints),
+      el("button", { class: "primary", onclick: () => api(`players/${id}/vip`, { method: "POST",
+        body: vipLevel.value !== "" ? { level: Number(vipLevel.value), note: "" } : { points: Number(vipPoints.value), note: "" } })
+        .then((r) => { toast(`VIP ${r.level} · ${fmtNum(r.points)} puan`); route(); }, (e) => toast(e.message, true)) }, "VIP'i uygula")),
     el("h2", {}, "Mağaza paketi ver (satın alma gibi)"),
     el("p", { class: "muted" }, "Paketin Hadalit'i doğrudan cüzdana, aynı miktarda VIP puanı da hesaba eklenir. Ödeme sistemi gelene kadar test ve destek için."),
     el("div", { class: "row" }, el("label", {}, "Paket", pack), el("label", {}, "Not", packNote),

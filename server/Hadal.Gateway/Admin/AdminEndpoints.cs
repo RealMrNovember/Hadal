@@ -15,6 +15,8 @@ namespace Hadal.Gateway.Admin
     public sealed record GrantRequest(Dictionary<string, long> Amounts, string Note, bool Packages = false, Dictionary<string, int>? Items = null);
     public sealed record BanRequest(int Hours, string Reason);
     public sealed record PurchaseRequest(string PackId, string Note);
+    /// <param name="Level">When set, the points become that level's threshold; otherwise <paramref name="Points"/> are used.</param>
+    public sealed record VipRequest(long? Points, int? Level, string Note);
     public sealed record CouponRequest(string Code, Dictionary<string, long> Rewards, int MaxRedemptions, DateTimeOffset? ExpiresAt, string Note,
         DateTimeOffset? StartsAt = null, string? TargetAccountId = null);
     public sealed record ActiveRequest(bool Active);
@@ -179,6 +181,32 @@ namespace Hadal.Gateway.Admin
                     return Results.NotFound(new { error = "PlayerNotStarted" });
                 await store.AuditAsync(me.Username, "player.purchase", id.ToString("N"), $"{request.PackId} {request.Note}".Trim(), AdminAuth.ClientIp(http), ct);
                 return Results.Ok(new { ok = true });
+            }).RequireAdmin(AdminRoles.GameMaster);
+
+            api.MapPost("/players/{id:guid}/vip", async (AdminPrincipal me, Guid id, VipRequest request,
+                HttpContext http, GameWorld world, IAdminStore store, CancellationToken ct) =>
+            {
+                long points;
+                if (request.Level is { } level)
+                {
+                    if (level < 0 || level > VipRules.MaxLevel)
+                        return Results.BadRequest(new { error = "InvalidVip" });
+                    points = VipRules.Thresholds[level];
+                }
+                else if (request.Points is { } p && p >= 0 && p <= 100_000_000)
+                {
+                    points = p;
+                }
+                else
+                {
+                    return Results.BadRequest(new { error = "InvalidVip" });
+                }
+
+                if (!await world.SetVipPointsAsync(id.ToString("N"), points, ct))
+                    return Results.NotFound(new { error = "PlayerNotStarted" });
+                await store.AuditAsync(me.Username, "player.vip", id.ToString("N"), $"{points} (VIP {VipRules.Level(points)}) {request.Note}".Trim(),
+                    AdminAuth.ClientIp(http), ct);
+                return Results.Ok(new { points, level = VipRules.Level(points) });
             }).RequireAdmin(AdminRoles.GameMaster);
 
             api.MapPost("/players/{id:guid}/ban", async (AdminPrincipal me, Guid id, BanRequest request,
