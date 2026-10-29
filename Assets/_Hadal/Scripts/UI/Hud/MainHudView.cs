@@ -65,6 +65,10 @@ namespace Hadal.UI.Hud
             /// <summary>The Depth Map campaign (docs/rehber 08 §5).</summary>
             public Action Expedition;
             public Func<bool> InWorld;
+
+            /// <summary>The survival loop (docs/35): repair the running emergency, ask the alliance to help the repair.</summary>
+            public Action<string> RepairEmergency;
+            public Action<string> AskRepairHelp;
         }
 
         private const float TicksPerMinute = 60f / SimulationTick.IntervalSeconds;
@@ -142,6 +146,7 @@ namespace Hadal.UI.Hud
             BuildLowerRight();
             BuildHelpBubbles();
             BuildTask();
+            BuildSurvivalAlarm();
             BuildBottomBar();
             RegisterGuideTargets();
         }
@@ -201,6 +206,7 @@ namespace Hadal.UI.Hud
             var value = Outlined(UiKit.Label("Value", chip, string.Empty, 30, UiKit.Text, TextAnchor.MiddleCenter, FontStyle.Bold));
             value.rectTransform.Place(0.3f, 0, 1, 1);
             _chips[type] = value;
+            TrackChip(type, chip);
         }
 
         private void BuildRightColumn()
@@ -415,6 +421,8 @@ namespace Hadal.UI.Hud
                     go.SetActive(!inWorld);
             }
 
+            PulseSurvival();
+
             // Rows are rebuilt on refresh; never under a finger, or the tap is lost.
             if (Input.touchCount > 0 || Input.GetMouseButton(0))
                 _lastPointerTime = Time.unscaledTime;
@@ -447,6 +455,7 @@ namespace Hadal.UI.Hud
             RefreshSocial();
             RefreshHelpBubbles();
             RefreshLocks();
+            RefreshSurvival();
         }
 
         private void RefreshPod()
@@ -608,6 +617,9 @@ namespace Hadal.UI.Hud
 
         private void ShowResource(ResourceType type)
         {
+            if (ShowSurvivalFor(type))
+                return;
+
             var wallet = Wallet();
             var caps = Capacities();
             wallet.TryGetValue(type, out var amount);

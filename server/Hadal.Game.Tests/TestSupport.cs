@@ -48,6 +48,10 @@ namespace Hadal.Game.Tests
         {
             var root = System.Text.Json.Nodes.JsonNode.Parse(File.ReadAllText(CatalogPath))!.AsObject();
             root.Remove("reactorRequirements");
+
+            // The survival loop (docs/35) is off for the mechanics tests, as on a catalog from before it: they check exact
+            // balances and must not meet a random emergency. SurvivalTests switch it on.
+            root.Remove("survival");
             foreach (var building in root["buildings"]!.AsArray())
             {
                 building!.AsObject().Remove("levels");
@@ -84,6 +88,14 @@ namespace Hadal.Game.Tests
 
             root["ringUnlocks"] = rings;
             return root.ToJsonString();
+        }
+
+        /// <summary>The mechanics catalog with an edit applied (e.g. a survival section, SurvivalTests).</summary>
+        public static GameCatalog CatalogWith(Action<System.Text.Json.Nodes.JsonObject> edit)
+        {
+            var root = System.Text.Json.Nodes.JsonNode.Parse(FormulaCatalogJson())!.AsObject();
+            edit(root);
+            return CatalogLoader.Parse(root.ToJsonString());
         }
 
         public static GameWorld World(FakeClock clock, IPlayerRepository? repository = null) =>

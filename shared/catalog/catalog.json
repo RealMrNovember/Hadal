@@ -1,5 +1,5 @@
 {
-  "version": 12,
+  "version": 13,
   "_note": "Single source of truth for buildings, resources and base layout. Read by the server (validation, economy) and by Hadal > Setup in Unity (ScriptableObjects). Rules and the balance table: docs/23_Base_Management.md. Rates are per simulation tick (SimulationTick.IntervalSeconds) at level 1. buildCost/buildSeconds are for level 1; higher levels scale by progression.costGrowth/timeGrowth. requiredReactorLevel gates a building, maxCount caps how many a base may own.",
   "resources": [
     {
@@ -11999,6 +11999,27 @@
         "diveAlloy": 4
       }
     ]
+  },
+  "survival": {
+    "_note": "Survival loop (docs/35_Survival_Loop.md). enabled=false switches off the energy chain, the oxygen penalties and emergencies at once; emergencies.enabled=false only emergencies. Conservative launch values: producers never under 50 % on an empty energy store, -20 % output and +20 % new timers only while oxygen is at 0 and still falling.",
+    "enabled": true,
+    "energyFloorPercent": 50,
+    "warnPercent": 20,
+    "outputPenaltyPercent": 20,
+    "timePenaltyPercent": 20,
+    "crewOxygenPerReactorLevel": 10,
+    "emergencies": {
+      "enabled": true,
+      "minReactorLevel": 5,
+      "cooldownHours": 6,
+      "chancePercent": 10,
+      "autoResolveHours": 4,
+      "repairSeconds": 600,
+      "repairCostIncomePercent": 10,
+      "repairCostMin": 20,
+      "leakPercent": 20,
+      "leakMinPerHour": 60
+    }
   },
   "troops": {
     "types": [

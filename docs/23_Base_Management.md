@@ -76,7 +76,7 @@ Halka bedelleri: 5. halka reaktör 3 + 400 Ti, 100 Biyokütle; 6. halka reaktör
 
 Başlangıç: 600 Oksijen, 400 Enerji, 400 Gıda, 200 Biyokütle, 500 Titanyum. Depo sınırları: Oksijen 6.000, Enerji 10.000, Gıda 5.000, Biyokütle 6.000, Titanyum 25.000, Hadalit 1.000; her binanın 50. seviye bedeli bu sınırların içinde kalır (depo yükseltmeleri Phase 4'te).
 
-Enerji açığı bu sürümde yalnızca stoğu eritir. Enerji yetmezse binaların yavaşlaması Phase 4'ün konusudur.
+Enerji açığı önce stoğu eritir; stok bittiğinde enerji kullanan binalar arz/talep oranında (en az %50) yavaşlar. Oksijen ve acil durumlar dahil hayatta kalma döngüsü: [35_Survival_Loop.md](./35_Survival_Loop.md).
 
 ## Otorite (v3)
 

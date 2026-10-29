@@ -220,6 +220,9 @@ namespace HADAL.Shared.Catalog
 
         public TroopCatalogData Troops => Data.troops ?? new TroopCatalogData();
 
+        /// <summary>The survival loop (docs/35); off when the catalog has no section.</summary>
+        public SurvivalCatalogData Survival => Data.survival ?? new SurvivalCatalogData();
+
         public bool TryGetItem(string id, out ItemData item)
         {
             item = Array.Find(Data.items ?? Array.Empty<ItemData>(), i => i != null && i.id == id)!;
@@ -244,6 +247,32 @@ namespace HADAL.Shared.Catalog
             index = Array.FindIndex(steps, q => q != null && q.id == id);
             quest = index >= 0 ? steps[index] : null!;
             return index >= 0;
+        }
+
+        private static void ValidateSurvival(SurvivalCatalogData? survival, List<string> errors)
+        {
+            if (survival == null)
+                return;
+            void Percent(string name, int value, int min, int max)
+            {
+                if (value < min || value > max)
+                    errors.Add($"survival: {name} {value} outside {min}..{max}");
+            }
+
+            Percent("energyFloorPercent", survival.energyFloorPercent, 1, 100);
+            Percent("warnPercent", survival.warnPercent, 0, 100);
+            Percent("outputPenaltyPercent", survival.outputPenaltyPercent, 0, 90);
+            Percent("timePenaltyPercent", survival.timePenaltyPercent, 0, 200);
+            if (survival.crewOxygenPerReactorLevel < 0)
+                errors.Add("survival: crewOxygenPerReactorLevel must not be negative");
+            var e = survival.emergencies;
+            if (e == null)
+                return;
+            Percent("emergencies.chancePercent", e.chancePercent, 0, 100);
+            Percent("emergencies.leakPercent", e.leakPercent, 0, 100);
+            Percent("emergencies.repairCostIncomePercent", e.repairCostIncomePercent, 0, 1000);
+            if (e.cooldownHours < 1 || e.autoResolveHours < 1 || e.repairSeconds < 0 || e.leakMinPerHour < 0 || e.repairCostMin < 0)
+                errors.Add("survival.emergencies: cooldownHours and autoResolveHours must be at least 1, the rest not negative");
         }
 
         /// <summary>Parses and validates. Throws <see cref="FormatException"/> listing every problem.</summary>
@@ -431,6 +460,7 @@ namespace HADAL.Shared.Catalog
             }
 
             ValidateQuests(catalog, data, errors);
+            ValidateSurvival(data.survival, errors);
             catalog.AllianceCreateCost = ParseAmounts("alliance", "createCost", (data.alliance ?? new AllianceCatalogData()).createCost, errors);
 
             foreach (var unlock in data.ringUnlocks ?? Array.Empty<RingUnlockData>())

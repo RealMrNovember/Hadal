@@ -181,6 +181,7 @@ namespace Hadal.Core.Network
                 ViewTerritoryCommand => CommandType.ViewTerritory,
                 TerritoryCommand => CommandType.Territory,
                 UseShieldCommand => CommandType.UseShield,
+                RepairEmergencyCommand => CommandType.RepairEmergency,
                 _ => CommandType.Unknown
             };
         }

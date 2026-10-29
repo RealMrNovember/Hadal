@@ -57,7 +57,7 @@ namespace Hadal.Game
             var tier = TroopRules.Tier(troops, command.Tier)!;
             var cost = TroopRules.Cost(tier, command.Count);
             BuildingProgression.Charge(cost, _state.Wallet);
-            var seconds = TroopRules.Seconds(troops, tier, command.Count, building!.Level);
+            var seconds = Slowed(TroopRules.Seconds(troops, tier, command.Count, building!.Level), now);
             _state.Training.Add(new TrainingState
             {
                 BuildingId = building.BuildingId, Type = command.TroopType, Tier = command.Tier, Count = command.Count,

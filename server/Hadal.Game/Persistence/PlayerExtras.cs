@@ -54,13 +54,29 @@ namespace Hadal.Game.Persistence
 
         private sealed record OnboardingDoc(int Status, int Index, DateTimeOffset? StartedAt);
 
+        /// <summary>The survival loop (docs/35): the running emergency and the roll schedule.</summary>
+        private sealed partial record Doc
+        {
+            public SurvivalDoc? Survival { get; init; }
+        }
+
+        private sealed record EmergencyDoc(string Id, string Kind, string BuildingId, DateTimeOffset StartedAt, DateTimeOffset ExpiresAt,
+            DateTimeOffset? RepairEndsAt, int RepairSeconds);
+
+        private sealed record SurvivalDoc(EmergencyDoc? Emergency, DateTimeOffset? LastAt, long RollHour);
+
         private static string Serialize(PlayerState state, Doc doc) => JsonSerializer.Serialize(doc with
         {
             Mail = new MailDoc(state.MailDay, state.MailsSent, state.MailSent.ToDictionary(p => p.Key.ToString(), p => p.Value)),
             Commands = state.RecentCommands.Count == 0 ? null
                 : state.RecentCommands.Select(c => new CommandDoc(c.Id, c.Result is { } r ? (int)r : null, c.Reason)).ToList(),
             Onboarding = state.OnboardingStatus == HADAL.Shared.Simulation.OnboardingStatus.Unknown ? null
-                : new OnboardingDoc((int)state.OnboardingStatus, state.OnboardingIndex, state.OnboardingStartedAt)
+                : new OnboardingDoc((int)state.OnboardingStatus, state.OnboardingIndex, state.OnboardingStartedAt),
+            Survival = state.Emergency == null && state.LastEmergencyAt == null && state.EmergencyRollHour == 0 ? null
+                : new SurvivalDoc(state.Emergency is { } e
+                        ? new EmergencyDoc(e.Id, e.Kind, e.BuildingId, e.StartedAt, e.ExpiresAt, e.RepairEndsAt, e.RepairSeconds)
+                        : null,
+                    state.LastEmergencyAt, state.EmergencyRollHour)
         });
 
         private sealed record VipDoc(long Points, int Streak, long LoginDay, long ChestDay);
@@ -286,6 +302,19 @@ namespace Hadal.Game.Persistence
                 state.OnboardingStatus = (HADAL.Shared.Simulation.OnboardingStatus)onboarding.Status;
                 state.OnboardingIndex = Math.Max(0, onboarding.Index);
                 state.OnboardingStartedAt = onboarding.StartedAt;
+            }
+
+            if (doc.Survival is { } survival)
+            {
+                state.LastEmergencyAt = survival.LastAt;
+                state.EmergencyRollHour = survival.RollHour;
+                state.Emergency = survival.Emergency is { } e && !string.IsNullOrEmpty(e.Id)
+                    ? new EmergencyState
+                    {
+                        Id = e.Id, Kind = e.Kind ?? string.Empty, BuildingId = e.BuildingId ?? string.Empty, StartedAt = e.StartedAt,
+                        ExpiresAt = e.ExpiresAt, RepairEndsAt = e.RepairEndsAt, RepairSeconds = e.RepairSeconds
+                    }
+                    : null;
             }
 
             foreach (var b in state.Buildings)

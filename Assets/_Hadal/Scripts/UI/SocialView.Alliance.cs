@@ -580,6 +580,7 @@ namespace Hadal.UI
         {
             HelpKinds.Heal => Loc.F("help.kind.heal", request.TargetLevel.ToString("N0")),
             HelpKinds.Research => Loc.F("help.kind.research", Loc.T("research.node." + request.BuildingDefinitionId), request.TargetLevel),
+            HelpKinds.Repair => Loc.F("help.kind.repair", Loc.Building(request.BuildingDefinitionId)),
             _ => $"{Loc.Building(request.BuildingDefinitionId)} → {Loc.F("base.level", request.TargetLevel)}"
         };
 

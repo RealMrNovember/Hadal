@@ -101,7 +101,7 @@ namespace HADAL.Shared.Simulation
 
     /// <summary>Chat and alliance rules shared by server and client (docs/25_Heroes_Alliance_Chat.md).</summary>
     /// <summary>
-    /// What alliance mates can help (docs/25 §4): a construction, the Med Bay's healing, a research. Each help cuts the
+    /// What alliance mates can help (docs/25 §4): a construction, the Med Bay's healing, a research, an emergency repair. Each help cuts the
     /// same share of the job's total time (SocialRules.HelpSeconds), at most the catalog's maxHelps times.
     /// </summary>
     public static class HelpKinds
@@ -110,13 +110,16 @@ namespace HADAL.Shared.Simulation
         public const string Heal = "heal";
         public const string Research = "research";
 
+        /// <summary>The repair of an emergency (docs/35); target = the emergency id.</summary>
+        public const string Repair = "repair";
+
         /// <summary>HelpAll filter for construction and research together (the clasped-hands bubble).</summary>
         public const string General = "general";
 
         /// <summary>Empty (older clients) means build.</summary>
         public static string Normalize(string? kind) => string.IsNullOrEmpty(kind) ? Build : kind!;
 
-        public static bool IsValid(string kind) => kind == Build || kind == Heal || kind == Research;
+        public static bool IsValid(string kind) => kind == Build || kind == Heal || kind == Research || kind == Repair;
 
         /// <summary>Whether a request of <paramref name="kind"/> is in the HelpAll group <paramref name="filter"/>.</summary>
         public static bool Matches(string? filter, string kind) =>

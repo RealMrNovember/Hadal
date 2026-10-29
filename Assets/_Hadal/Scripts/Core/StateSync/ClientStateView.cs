@@ -87,6 +87,7 @@ namespace Hadal.Core.StateSync
             _activeResearch.Clear();
             _salvageReports.Clear();
             ResetSocial();
+            ResetSurvival();
             ProductionTickIntervalSeconds = SimulationTick.IntervalSeconds;
             LastResourceTick = 0UL;
             HasPersistedData = false;
@@ -120,6 +121,7 @@ namespace Hadal.Core.StateSync
 
             if (production.TickIntervalSeconds > 0)
                 ProductionTickIntervalSeconds = production.TickIntervalSeconds;
+            ApplySurvival(production.Survival);
         }
 
         /// <summary>

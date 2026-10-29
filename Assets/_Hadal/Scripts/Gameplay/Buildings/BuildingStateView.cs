@@ -159,6 +159,7 @@ namespace Hadal.Gameplay.Buildings
 
         private void Update()
         {
+            UpdateEmergencyFx();
             foreach (var instance in _instances.Values)
             {
                 if (!instance.Hologram || instance.Go == null)
@@ -171,6 +172,114 @@ namespace Hadal.Gameplay.Buildings
                 var scale = instance.Go.transform.localScale;
                 instance.Go.transform.localScale = new Vector3(scale.x, Mathf.Lerp(0.15f, 1f, progress), scale.z);
             }
+        }
+
+        // --- Emergency effect (docs/35) ------------------------------------------------------------------------------
+
+        private GameObject _emergencyFx;
+        private string _emergencyFxKey;
+        private Light _emergencyLight;
+        private Transform _beacon;
+        private readonly List<Transform> _bubbles = new();
+        private Vector3 _fxTop;
+        private float _fxSize = 1f;
+
+        /// <summary>
+        /// The building hit by an emergency flashes a red warning light with a beacon over it; a leak also streams
+        /// bubbles. Driven by the survival state the server sends; it goes away when the emergency ends.
+        /// </summary>
+        private void UpdateEmergencyFx()
+        {
+            var survival = _stateSync?.View.Survival;
+            var key = survival != null && !string.IsNullOrEmpty(survival.EmergencyId) ? survival.EmergencyBuildingId : null;
+            var leak = survival != null && survival.EmergencyKind == HADAL.Shared.Simulation.EmergencyKinds.Leak;
+            if (key != _emergencyFxKey || (key != null && _emergencyFx == null))
+            {
+                if (_emergencyFx != null)
+                    Destroy(_emergencyFx);
+                _emergencyFx = null;
+                _bubbles.Clear();
+                _emergencyFxKey = key;
+                if (key != null && _instances.TryGetValue(key, out var instance) && instance.Go != null)
+                    CreateEmergencyFx(instance.Go, leak);
+            }
+
+            if (_emergencyFx == null)
+                return;
+
+            var t = Time.time;
+            var pulse = 0.5f + 0.5f * Mathf.Sin(t * 6f);
+            if (_emergencyLight != null)
+                _emergencyLight.intensity = Mathf.Lerp(0.6f, 4f, pulse);
+            if (_beacon != null)
+            {
+                _beacon.position = _fxTop + Vector3.up * (_fxSize * (0.35f + 0.08f * Mathf.Sin(t * 2.5f)));
+                _beacon.localScale = Vector3.one * (_fxSize * (0.14f + 0.04f * pulse));
+            }
+
+            for (var i = 0; i < _bubbles.Count; i++)
+            {
+                // Bubbles rise from the building, drift and start again at the bottom.
+                var phase = Mathf.Repeat(t * 0.6f + i / (float)_bubbles.Count, 1f);
+                var angle = i * 2.4f;
+                _bubbles[i].position = _fxTop + new Vector3(Mathf.Cos(angle) * _fxSize * 0.25f, phase * _fxSize * 1.6f - _fxSize * 0.3f,
+                    Mathf.Sin(angle) * _fxSize * 0.25f);
+                _bubbles[i].localScale = Vector3.one * (_fxSize * (0.05f + 0.05f * phase));
+            }
+        }
+
+        private void CreateEmergencyFx(GameObject building, bool leak)
+        {
+            var bounds = new Bounds(building.transform.position, Vector3.zero);
+            var found = false;
+            foreach (var r in building.GetComponentsInChildren<Renderer>())
+            {
+                if (!found)
+                {
+                    bounds = r.bounds;
+                    found = true;
+                }
+                else
+                {
+                    bounds.Encapsulate(r.bounds);
+                }
+            }
+
+            _fxSize = Mathf.Max(0.5f, Mathf.Max(bounds.size.x, bounds.size.z));
+            _fxTop = new Vector3(bounds.center.x, found ? bounds.max.y : building.transform.position.y + 1f, bounds.center.z);
+
+            _emergencyFx = new GameObject("EmergencyFx");
+            _emergencyFx.transform.SetParent(building.transform.parent, true);
+            var lightGo = new GameObject("WarningLight");
+            lightGo.transform.SetParent(_emergencyFx.transform, false);
+            lightGo.transform.position = _fxTop + Vector3.up * (_fxSize * 0.3f);
+            _emergencyLight = lightGo.AddComponent<Light>();
+            _emergencyLight.type = LightType.Point;
+            _emergencyLight.color = new Color(1f, 0.15f, 0.1f);
+            _emergencyLight.range = _fxSize * 3f;
+
+            _propertyBlock ??= new MaterialPropertyBlock();
+            _beacon = Ball("Beacon", new Color(1f, 0.2f, 0.12f, 1f));
+            if (!leak)
+                return;
+            for (var i = 0; i < 6; i++)
+                _bubbles.Add(Ball("Bubble", new Color(0.7f, 0.95f, 1f, 1f)));
+        }
+
+        private Transform Ball(string name, Color color)
+        {
+            var ball = GameObject.CreatePrimitive(PrimitiveType.Sphere);
+            ball.name = name;
+            Destroy(ball.GetComponent<Collider>());
+            ball.transform.SetParent(_emergencyFx.transform, false);
+            var renderer = ball.GetComponent<Renderer>();
+            renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
+            renderer.GetPropertyBlock(_propertyBlock);
+            _propertyBlock.SetColor("_BaseColor", color);
+            _propertyBlock.SetColor("_Color", color);
+            _propertyBlock.SetColor("_EmissionColor", color * 2f);
+            renderer.SetPropertyBlock(_propertyBlock);
+            return ball.transform;
         }
 
         private void MakeHologram(GameObject go)

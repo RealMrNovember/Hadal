@@ -31,6 +31,26 @@ namespace Hadal.Game
         public DateTimeOffset? OverdriveReadyAt { get; set; }
     }
 
+    /// <summary>A running emergency (docs/35 §4): a leak or a broken producer, until repaired or it fixes itself.</summary>
+    public sealed class EmergencyState
+    {
+        public string Id { get; init; } = string.Empty;
+
+        /// <summary>EmergencyKinds: leak or breakdown.</summary>
+        public string Kind { get; init; } = string.Empty;
+
+        /// <summary>The affected building (a breakdown stops it; a leak shows on it).</summary>
+        public string BuildingId { get; init; } = string.Empty;
+        public DateTimeOffset StartedAt { get; init; }
+
+        /// <summary>When an ignored emergency fixes itself.</summary>
+        public DateTimeOffset ExpiresAt { get; init; }
+
+        /// <summary>When the repair crew finishes; null until a repair was started.</summary>
+        public DateTimeOffset? RepairEndsAt { get; set; }
+        public int RepairSeconds { get; set; }
+    }
+
     /// <summary>A research level being worked on (docs/24).</summary>
     /// <summary>A training batch in a training yard (docs/rehber 07 §2.4).</summary>
     public sealed class TrainingState
@@ -184,6 +204,11 @@ namespace Hadal.Game
 
         /// <summary>Set on a brand-new account until its guide start is logged; not persisted.</summary>
         public bool OnboardingNew { get; set; }
+
+        /// <summary>The survival loop (docs/35): the running emergency, when the last one started and the last hour rolled.</summary>
+        public EmergencyState? Emergency { get; set; }
+        public DateTimeOffset? LastEmergencyAt { get; set; }
+        public long EmergencyRollHour { get; set; }
 
         /// <summary>The command ledger: recent command ids with their answers, oldest first (PlayerSession.Commands).</summary>
         public List<CommandRecord> RecentCommands { get; } = new();

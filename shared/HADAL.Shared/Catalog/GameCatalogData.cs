@@ -42,6 +42,9 @@ namespace HADAL.Shared.Catalog
         // Troops and training (docs/rehber 07, 19 §2).
         public TroopCatalogData troops = new TroopCatalogData();
 
+        // The survival loop: energy chain, oxygen, emergencies (docs/35). Missing = off.
+        public SurvivalCatalogData survival = new SurvivalCatalogData();
+
         // Balance infrastructure (docs/rehber, Paket A).
         public ReactorRequirementData[] reactorRequirements = Array.Empty<ReactorRequirementData>();
 

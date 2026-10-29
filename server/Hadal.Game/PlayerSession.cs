@@ -100,6 +100,7 @@ namespace Hadal.Game
             {
                 RollDailyIfNeeded(now);
                 var changes = AdvanceTo(now);
+                TickSurvival(now, changes);
                 if (changes.Count > 0)
                 {
                     SendDelta(now, changes);
@@ -247,6 +248,10 @@ namespace Hadal.Game
                         DiveStage(dive!, now);
                         break;
 
+                    case CommandType.RepairEmergency when TryDeserialize(envelope.Payload, out RepairEmergencyCommand? repair):
+                        RepairEmergency(repair!, now);
+                        break;
+
                     default:
                         var known = envelope.Type is CommandType.PlaceBuilding or CommandType.UpgradeBuilding or CommandType.FinishConstruction
                             or CommandType.RemoveBuilding or CommandType.UnlockRing or CommandType.StartResearch or CommandType.FinishResearch
@@ -255,7 +260,7 @@ namespace Hadal.Game
                             or CommandType.ClaimQuest or CommandType.ClaimDailyChest or CommandType.OpenItem or CommandType.RecruitHero
                             or CommandType.DiveStage or CommandType.SetProfile or CommandType.TrainTroops or CommandType.CancelTraining
                             or CommandType.HealTroops or CommandType.CancelHeal or CommandType.UseSpeedup
-                            or CommandType.ClaimVipLogin or CommandType.ClaimVipChest;
+                            or CommandType.ClaimVipLogin or CommandType.ClaimVipChest or CommandType.RepairEmergency;
                         Reject(envelope.CommandId, envelope.ClientSequence, known ? "MalformedCommand" : "NotSupported", now);
                         break;
                 }
@@ -445,7 +450,7 @@ namespace Hadal.Game
 
             _catalog.TryGetBuilding(command.BuildingDefinitionId, out var definition);
             BuildingProgression.Charge(BuildingProgression.Cost(definition, 1, _catalog.Progression), _state.Wallet);
-            var seconds = _modifiers.BuildSeconds(BuildingProgression.Seconds(definition, 1, _catalog.Progression));
+            var seconds = Slowed(_modifiers.BuildSeconds(BuildingProgression.Seconds(definition, 1, _catalog.Progression)), now);
 
             // A new building works only once its first construction completes (level 0 until then).
             var building = new PlacedBuilding
@@ -498,7 +503,7 @@ namespace Hadal.Game
             _catalog.TryGetBuilding(building.DefinitionId, out var definition);
             var target = building.Level + 1;
             BuildingProgression.Charge(BuildingProgression.Cost(definition, target, _catalog.Progression), _state.Wallet);
-            var seconds = _modifiers.BuildSeconds(BuildingProgression.Seconds(definition, target, _catalog.Progression));
+            var seconds = Slowed(_modifiers.BuildSeconds(BuildingProgression.Seconds(definition, target, _catalog.Progression)), now);
 
             Record("upgrade");
 
@@ -622,7 +627,7 @@ namespace Hadal.Game
             _catalog.TryGetResearch(command.NodeId, out var node);
             var target = (_state.ResearchLevels.TryGetValue(node.Id, out var level) ? level : 0) + 1;
             BuildingProgression.Charge(ResearchRules.Cost(node, target, _catalog.Research), _state.Wallet);
-            var seconds = _modifiers.ResearchSeconds(ResearchRules.BaseSeconds(node, target, _catalog.Research));
+            var seconds = Slowed(_modifiers.ResearchSeconds(ResearchRules.BaseSeconds(node, target, _catalog.Research)), now);
 
             Record("research");
             if (seconds > 0)
@@ -744,6 +749,10 @@ namespace Hadal.Game
             var reports = new List<EntityChangeDto>();
             var researchChanged = false;
 
+            // Emergencies switched off in the catalog end at once (their effects already stopped counting).
+            if (_state.Emergency != null && !SurvivalRules.EmergenciesOn(_catalog.Survival))
+                ResolveEmergency();
+
             var elapsed = (now - _state.LastSimulatedAt).TotalSeconds;
             if (elapsed < 0)
             {
@@ -806,6 +815,10 @@ namespace Hadal.Game
                 if (_state.Healing is { } healing && healing.EndsAt <= at)
                     CompleteHeal(healing);
 
+                // An emergency ends when its repair is done or when it fixes itself (docs/35 section 4).
+                if (_state.Emergency is { } emergency && (emergency.RepairEndsAt <= at || emergency.ExpiresAt <= at))
+                    ResolveEmergency();
+
                 foreach (var research in _state.ActiveResearch.Where(a => a.EndsAt <= at).ToList())
                 {
                     _state.ActiveResearch.Remove(research);
@@ -825,6 +838,12 @@ namespace Hadal.Game
             {
                 changes.Add(ArmyChange(now));
                 changes.Add(ProductionChange(now));
+            }
+            if (_survivalDirty)
+            {
+                _survivalDirty = false;
+                if (!changes.Any(c => c.EntityId == EntityIds.ProductionSummary))
+                    changes.Add(ProductionChange(now));
             }
             if (changedBuildings.Count == 0 && !researchChanged && changes.Count == 0)
                 return changes;
@@ -868,6 +887,8 @@ namespace Hadal.Game
             foreach (var training in _state.Training)
                 Consider(training.EndsAt);
             Consider(_state.Healing?.EndsAt);
+            Consider(_state.Emergency?.RepairEndsAt);
+            Consider(_state.Emergency?.ExpiresAt);
             return next;
         }
 
@@ -934,48 +955,21 @@ namespace Hadal.Game
             if (ticks == 0UL)
                 return;
 
-            // Rates as they were during this interval: events split the interval at every change.
-            var net = NetMilliPerTick(_state.LastSimulatedAt);
+            // Rates as they were during this interval: events split the interval at every change, and a store that
+            // runs dry splits it again (AdvanceStores).
+            var from = _state.LastSimulatedAt;
             var granted = SimulationTick.ClampOfflineTicks(ticks);
             _state.LastSimulatedAt = granted < ticks
                 ? until
                 : _state.LastSimulatedAt.AddSeconds(SimulationTick.SecondsFromTicks(granted));
 
-            var result = ProductionSimulator.AdvanceMilli(_state.Wallet, net, Capacities(), granted, _state.CarryMilli);
+            AdvanceStores(from, granted);
             _state.ServerTick += granted;
             _state.IsDirty = true;
-
-            if (!result.HasChanges)
-                return;
-
-            _state.Wallet.Clear();
-            foreach (var pair in result.Totals)
-                _state.Wallet[pair.Key] = pair.Value;
-
-            _walletDirty = true;
-        }
-
-        private Dictionary<ResourceType, long> NetMilliPerTick(DateTimeOffset at)
-        {
-            var net = ProductionSimulator.ComputeNetMilliPerTick(Inputs(at), _production, _modifiers.ProductionPercent);
-
-            // The army eats (docs/rehber 07 §2.5): troops at home and out on marches; the wounded do not.
-            var (food, oxygen) = TroopRules.Upkeep(_catalog.Troops, FedTroops());
-            var perTick = SimulationTick.SecondsFromTicks(1) / 3600.0 * 1000.0;
-            void Eat(ResourceType type, double perHour)
-            {
-                var milli = (long)Math.Round(perHour * perTick);
-                if (milli > 0)
-                    net[type] = (net.TryGetValue(type, out var have) ? have : 0) - milli;
-            }
-
-            Eat(ResourceType.Food, food);
-            Eat(ResourceType.Oxygen, oxygen);
-            return net;
         }
 
         private List<BuildingProductionInput> Inputs(DateTimeOffset at) =>
-            _state.Buildings.Where(b => b.Level > 0).Select(b => new BuildingProductionInput(b.DefinitionId, b.Level, BonusPercent(b, at))).ToList();
+            _state.Buildings.Where(b => b.Level > 0).Select(b => new BuildingProductionInput(b.DefinitionId, b.Level, BonusPercent(b, at), IsBroken(b))).ToList();
 
         /// <summary>Boost and Overdrive add to one building's output while they run.</summary>
         private int BonusPercent(PlacedBuilding building, DateTimeOffset at)
@@ -1162,7 +1156,8 @@ namespace Hadal.Game
                 ServerTick = _state.ServerTick,
                 TickIntervalSeconds = SimulationTick.IntervalSeconds
             };
-            foreach (var pair in NetMilliPerTick(now))
+            var view = Survival(now);
+            foreach (var pair in view.Net)
             {
                 dto.NetMilliPerTick[pair.Key] = pair.Value;
                 dto.NetPerTick[pair.Key] = pair.Value / ProductionFormulas.Milli;
@@ -1170,6 +1165,7 @@ namespace Hadal.Game
 
             foreach (var pair in Capacities())
                 dto.Capacities[pair.Key] = pair.Value;
+            dto.Survival = SurvivalDto(view, now);
             return dto;
         }
 

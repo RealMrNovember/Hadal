@@ -1,4 +1,5 @@
 using HADAL.Shared.DTOs;
+using HADAL.Shared.Protocol;
 using HADAL.Shared.Simulation;
 
 namespace Hadal.Game
@@ -118,6 +119,8 @@ namespace Hadal.Game
                         return research != null && research.EndsAt > now
                             ? new HelpJobInfo(research.NodeId, research.TargetLevel, research.Seconds, research.EndsAt)
                             : null;
+                    case HelpKinds.Repair:
+                        return RepairJob(target, now);
                     default:
                         return null;
                 }
@@ -137,7 +140,8 @@ namespace Hadal.Game
 
                 // A help that finishes the job settles it at once; the queue is pushed either way.
                 var changes = AdvanceTo(now);
-                changes.Add(kind == HelpKinds.Heal ? ArmyChange(now) : ResearchChange(now));
+                if (kind != HelpKinds.Repair || !changes.Any(c => c.EntityId == EntityIds.ProductionSummary))
+                    changes.Add(kind == HelpKinds.Heal ? ArmyChange(now) : kind == HelpKinds.Repair ? ProductionChange(now) : ResearchChange(now));
                 SendDelta(now, changes);
                 return true;
             }
@@ -158,6 +162,8 @@ namespace Hadal.Game
                 case HelpKinds.Research when _state.ActiveResearch.FirstOrDefault(r => r.NodeId == target) is { } research && research.EndsAt > floor:
                     research.EndsAt = Cut(research.EndsAt);
                     break;
+                case HelpKinds.Repair:
+                    return ShortenRepair(target, seconds, floor);
                 default:
                     return false;
             }

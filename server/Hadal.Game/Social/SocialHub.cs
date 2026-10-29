@@ -671,7 +671,7 @@ namespace Hadal.Game.Social
             if (!HelpKinds.IsValid(kind))
                 return SocialRejectReason.NothingToHelp;
             var target = kind == HelpKinds.Build ? command.BuildingEntityId ?? string.Empty
-                : kind == HelpKinds.Research ? command.Target ?? string.Empty
+                : kind == HelpKinds.Research || kind == HelpKinds.Repair ? command.Target ?? string.Empty
                 : string.Empty;
             var alliance = AllianceOf(session.PublicId);
             if (alliance == null)

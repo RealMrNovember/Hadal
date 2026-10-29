@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using HADAL.Shared.Enums;
 
@@ -12,11 +13,15 @@ namespace HADAL.Shared.Simulation
         /// <summary>Extra output of this one building in percent (Boost, Overdrive); consumption is unaffected.</summary>
         public readonly int BonusPercent;
 
-        public BuildingProductionInput(string definitionId, int level, int bonusPercent = 0)
+        /// <summary>Broken down (an emergency, docs/35): it neither produces nor consumes until repaired.</summary>
+        public readonly bool Stopped;
+
+        public BuildingProductionInput(string definitionId, int level, int bonusPercent = 0, bool stopped = false)
         {
             DefinitionId = definitionId;
             Level = level;
             BonusPercent = bonusPercent;
+            Stopped = stopped;
         }
     }
 
@@ -67,38 +72,97 @@ namespace HADAL.Shared.Simulation
         public static Dictionary<ResourceType, long> ComputeNetMilliPerTick(
             IReadOnlyList<BuildingProductionInput> buildings,
             ProductionCatalog catalog,
-            IReadOnlyDictionary<ResourceType, int>? resourceBonusPercent = null)
+            IReadOnlyDictionary<ResourceType, int>? resourceBonusPercent = null) =>
+            ComputeNetMilliPerTick(buildings, catalog, resourceBonusPercent, SurvivalEffects.None);
+
+        /// <summary>
+        /// The net rates under the survival loop (docs/35): energy users run at <see cref="SurvivalEffects.EnergyPermille"/>
+        /// (their own energy use rounded up, so a starved store stays at 0), and every production but oxygen and energy
+        /// loses <see cref="SurvivalEffects.OutputPenaltyPercent"/>. Stopped buildings neither produce nor consume.
+        /// </summary>
+        public static Dictionary<ResourceType, long> ComputeNetMilliPerTick(
+            IReadOnlyList<BuildingProductionInput> buildings,
+            ProductionCatalog catalog,
+            IReadOnlyDictionary<ResourceType, int>? resourceBonusPercent,
+            SurvivalEffects effects)
         {
             var net = new Dictionary<ResourceType, long>();
+            Walk(buildings, catalog, resourceBonusPercent, effects, (resource, produced, consumed) =>
+            {
+                var delta = produced - consumed;
+                if (delta == 0L)
+                    return;
+                net.TryGetValue(resource, out var current);
+                net[resource] = current + delta;
+            });
+            return net;
+        }
+
+        /// <summary>Gross production and consumption of one resource in thousandths per tick (the energy chain's supply and demand).</summary>
+        public static (long Produced, long Consumed) FlowMilli(
+            IReadOnlyList<BuildingProductionInput> buildings,
+            ProductionCatalog catalog,
+            IReadOnlyDictionary<ResourceType, int>? resourceBonusPercent,
+            SurvivalEffects effects,
+            ResourceType resource)
+        {
+            long produced = 0L, consumed = 0L;
+            Walk(buildings, catalog, resourceBonusPercent, effects, (type, p, c) =>
+            {
+                if (type != resource)
+                    return;
+                produced += p;
+                consumed += c;
+            });
+            return (produced, consumed);
+        }
+
+        /// <summary>Every building's production and consumption per resource, with bonuses and survival effects applied.</summary>
+        private static void Walk(
+            IReadOnlyList<BuildingProductionInput> buildings,
+            ProductionCatalog catalog,
+            IReadOnlyDictionary<ResourceType, int>? resourceBonusPercent,
+            SurvivalEffects effects,
+            Action<ResourceType, long, long> visit)
+        {
             if (buildings == null || catalog == null)
-                return net;
+                return;
 
             for (var i = 0; i < buildings.Count; i++)
             {
                 var building = buildings[i];
+                if (building.Stopped)
+                    continue;
 
                 // Balance-table buildings: hourly rates per level, bonuses on production only.
                 if (catalog.TryGetLevel(building.DefinitionId, building.Level, out var produce, out var consume))
                 {
+                    var energyUser = effects.EnergyPermille < 1000 && consume.TryGetValue(ResourceType.Energy, out var energy) && energy > 0;
                     foreach (var pair in produce)
                     {
                         var bonus = building.BonusPercent;
                         if (resourceBonusPercent != null && resourceBonusPercent.TryGetValue(pair.Key, out var researched))
                             bonus += researched;
-                        net.TryGetValue(pair.Key, out var current);
-                        net[pair.Key] = current + pair.Value * (100L + bonus) / 100L;
+                        visit(pair.Key, Produced(pair.Key, pair.Value * (100L + bonus) / 100L, energyUser, effects), 0L);
                     }
 
                     foreach (var pair in consume)
-                    {
-                        net.TryGetValue(pair.Key, out var current);
-                        net[pair.Key] = current - pair.Value;
-                    }
+                        visit(pair.Key, 0L, Consumed(pair.Key, pair.Value, energyUser, effects));
 
                     continue;
                 }
 
                 var rules = catalog.GetRules(building.DefinitionId);
+                var formulaEnergyUser = false;
+                if (effects.EnergyPermille < 1000)
+                {
+                    for (var r = 0; r < rules.Count; r++)
+                    {
+                        if (rules[r] != null && rules[r].Resource == ResourceType.Energy && rules[r].ConsumptionPerTick > 0)
+                            formulaEnergyUser = true;
+                    }
+                }
+
                 for (var r = 0; r < rules.Count; r++)
                 {
                     var rule = rules[r];
@@ -109,17 +173,32 @@ namespace HADAL.Shared.Simulation
                     if (resourceBonusPercent != null && resourceBonusPercent.TryGetValue(rule.Resource, out var researched))
                         bonus += researched;
 
-                    var delta = ProductionFormulas.ScaleByLevelMilli(rule.ProductionPerTick, building.Level, bonus)
-                                - ProductionFormulas.ScaleByLevelMilli(rule.ConsumptionPerTick, building.Level);
-                    if (delta == 0L)
-                        continue;
-
-                    net.TryGetValue(rule.Resource, out var current);
-                    net[rule.Resource] = current + delta;
+                    var produced = Produced(rule.Resource, ProductionFormulas.ScaleByLevelMilli(rule.ProductionPerTick, building.Level, bonus), formulaEnergyUser, effects);
+                    var consumed = Consumed(rule.Resource, ProductionFormulas.ScaleByLevelMilli(rule.ConsumptionPerTick, building.Level), formulaEnergyUser, effects);
+                    if (produced != 0L || consumed != 0L)
+                        visit(rule.Resource, produced, consumed);
                 }
             }
+        }
 
-            return net;
+        private static long Produced(ResourceType resource, long milli, bool energyUser, SurvivalEffects effects)
+        {
+            if (milli <= 0L)
+                return milli;
+            if (energyUser)
+                milli = milli * effects.EnergyPermille / 1000L;
+            if (effects.OutputPenaltyPercent > 0 && resource != ResourceType.Oxygen && resource != ResourceType.Energy)
+                milli = milli * (100L - effects.OutputPenaltyPercent) / 100L;
+            return milli;
+        }
+
+        // A slowed energy user's own energy use rounds up: supply never quite covers it, so the empty store stays empty.
+        private static long Consumed(ResourceType resource, long milli, bool energyUser, SurvivalEffects effects)
+        {
+            if (!energyUser || milli <= 0L)
+                return milli;
+            var scaled = milli * effects.EnergyPermille;
+            return resource == ResourceType.Energy ? (scaled + 999L) / 1000L : scaled / 1000L;
         }
 
         /// <summary>

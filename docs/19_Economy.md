@@ -9,11 +9,17 @@
 
 | Kaynak | Rol | Kaynak doc |
 |--------|-----|------------|
-| **Oxygen** | Hayatta kalma — biterse üs ölür | [06_Resources.md](./06_Resources.md) |
-| **Energy** | Reaktör üretimi | [06_Resources.md](./06_Resources.md) |
+| **Oxygen** | Hayatta kalma — biterse üs verimini kaybeder (ölmez) | [06_Resources.md](./06_Resources.md), [35_Survival_Loop.md](./35_Survival_Loop.md) |
+| **Energy** | Reaktör üretimi; üreticileri besler | [06_Resources.md](./06_Resources.md), [35_Survival_Loop.md](./35_Survival_Loop.md) |
 | **Biomass** | Canlı organizma türevi | [06_Resources.md](./06_Resources.md) |
 | **Titanium** | İnşaat | [06_Resources.md](./06_Resources.md) |
 | **Hadalite** | Premium late-game; en derin bölgeler | [06_Resources.md](./06_Resources.md) |
+
+---
+
+## Hayatta Kalma Döngüsü
+
+Enerji üreticileri besler, mürettebat ve askerler oksijen solur, ara sıra bir sızıntı ya da arıza çıkar. Ceza her zaman toparlanabilir: enerji deposu boşken üreticiler arz/talep oranında (en az %50) çalışır; oksijen 0'da ve düşerken üretim −%20, yeni zamanlayıcılar +%20; hiçbir bina ya da asker kaybolmaz. Ayrıntı ve katalog anahtarları: [35_Survival_Loop.md](./35_Survival_Loop.md).
 
 ---
 

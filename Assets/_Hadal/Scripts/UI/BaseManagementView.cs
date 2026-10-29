@@ -268,7 +268,15 @@ namespace Hadal.UI
                     else
                         _map.Open();
                 },
-                InWorld = () => _map.IsOpen
+                InWorld = () => _map.IsOpen,
+                RepairEmergency = id => _commands.Dispatch(new RepairEmergencyCommand
+                {
+                    CommandId = Guid.NewGuid().ToString("N"), ClientSequence = ++_sequence, EmergencyId = id ?? string.Empty
+                }),
+                AskRepairHelp = id => _commands.Dispatch(new RequestHelpCommand
+                {
+                    CommandId = Guid.NewGuid().ToString("N"), ClientSequence = ++_sequence, Kind = HelpKinds.Repair, Target = id ?? string.Empty
+                })
             });
 
             // The first-session guide over the HUD (docs/34).
@@ -399,7 +407,8 @@ namespace Hadal.UI
             if (result.Type is not (CommandType.PlaceBuilding or CommandType.UpgradeBuilding or CommandType.FinishConstruction
                 or CommandType.RemoveBuilding or CommandType.UnlockRing or CommandType.StartResearch or CommandType.FinishResearch
                 or CommandType.BoostBuilding or CommandType.Overdrive or CommandType.StartSalvage
-                or CommandType.TrainTroops or CommandType.CancelTraining or CommandType.HealTroops or CommandType.CancelHeal))
+                or CommandType.TrainTroops or CommandType.CancelTraining or CommandType.HealTroops or CommandType.CancelHeal
+                or CommandType.RepairEmergency))
                 return;
 
             if (result.Result == CommandResultCode.Rejected)
@@ -417,6 +426,7 @@ namespace Hadal.UI
                 CommandType.CancelTraining => Loc.T("train.cancelled"),
                 CommandType.HealTroops => Loc.T("heal.started"),
                 CommandType.CancelHeal => Loc.T("train.cancelled"),
+                CommandType.RepairEmergency => Loc.T("survival.toast.repairing"),
                 CommandType.StartResearch or CommandType.FinishResearch or CommandType.BoostBuilding
                     or CommandType.Overdrive or CommandType.StartSalvage => FunctionToast(result.Type),
                 _ => Loc.T("base.started")
