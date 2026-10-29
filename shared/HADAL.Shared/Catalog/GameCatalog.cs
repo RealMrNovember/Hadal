@@ -237,6 +237,15 @@ namespace HADAL.Shared.Catalog
             return quest != null;
         }
 
+        /// <summary>A first-session guide step (docs/34) and its 0-based place in <see cref="QuestCatalogData.onboarding"/>.</summary>
+        public bool TryGetOnboarding(string id, out QuestData quest, out int index)
+        {
+            var steps = Quests.onboarding ?? Array.Empty<QuestData>();
+            index = Array.FindIndex(steps, q => q != null && q.id == id);
+            quest = index >= 0 ? steps[index] : null!;
+            return index >= 0;
+        }
+
         /// <summary>Parses and validates. Throws <see cref="FormatException"/> listing every problem.</summary>
         public static GameCatalog Create(GameCatalogData data)
         {
@@ -534,12 +543,15 @@ namespace HADAL.Shared.Catalog
                     errors.Add($"items: missing or duplicate id '{item?.id}'");
             }
 
-            void Reward(string where, RewardData? r)
+            void Reward(string where, RewardData? r, bool troops = false)
             {
                 if (r == null)
                     return;
                 var ok = r.type switch
                 {
+                    // Troops straight into the army: only the first-session guide gives them (docs/34).
+                    "troops" => troops && Simulation.TroopRules.TryParseKey(r.id, out var troopType, out var troopTier)
+                                && Simulation.TroopRules.Type(catalog.Troops, troopType) != null && troopTier >= 1 && troopTier <= catalog.Troops.tiers.Length,
                     "resource" => TryParseResource(r.id, out _),
                     "item" => itemIds.Contains(r.id) || Simulation.Speedups.TryParse(r.id, out _, out _, out _),
                     "shards" => string.IsNullOrEmpty(r.id) ? catalog.TryGetRarity(r.rarity, out _) : catalog._heroesById.ContainsKey(r.id),
@@ -559,7 +571,9 @@ namespace HADAL.Shared.Catalog
 
             var quests = data.quests ?? new QuestCatalogData();
             var questIds = new HashSet<string>(StringComparer.Ordinal);
-            foreach (var q in (quests.chapter ?? Array.Empty<QuestData>()).Concat(quests.daily ?? Array.Empty<QuestData>()))
+            var guide = new HashSet<QuestData>(quests.onboarding ?? Array.Empty<QuestData>());
+            foreach (var q in (quests.chapter ?? Array.Empty<QuestData>()).Concat(quests.daily ?? Array.Empty<QuestData>())
+                         .Concat(quests.onboarding ?? Array.Empty<QuestData>()))
             {
                 if (q == null || string.IsNullOrEmpty(q.id) || !questIds.Add(q.id))
                 {
@@ -572,7 +586,7 @@ namespace HADAL.Shared.Catalog
                 if (q.type is "level" or "count" && !catalog._buildings.ContainsKey(q.target))
                     errors.Add($"quest '{q.id}': unknown building '{q.target}'");
                 foreach (var r in q.rewards ?? Array.Empty<RewardData>())
-                    Reward("quest " + q.id, r);
+                    Reward("quest " + q.id, r, guide.Contains(q));
             }
 
             foreach (var chest in quests.dailyChests ?? Array.Empty<DailyChestData>())

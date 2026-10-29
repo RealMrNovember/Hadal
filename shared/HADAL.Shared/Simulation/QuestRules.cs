@@ -29,6 +29,9 @@ namespace HADAL.Shared.Simulation
         public int MaxHeroLevel { get; set; }
         public int HeroCount { get; set; }
         public bool InAlliance { get; set; }
+
+        /// <summary>Rings open around the reactor (BaseLayout.UnlockedRings).</summary>
+        public int UnlockedRings { get; set; }
     }
 
     /// <summary>A reward resolved to something concrete (a random hero card becomes a hero id).</summary>
@@ -49,9 +52,14 @@ namespace HADAL.Shared.Simulation
     /// <summary>Quests, daily activity, gift chests and hero cards (docs/27_Quests_And_Items.md).</summary>
     public static class QuestRules
     {
-        public static readonly string[] Counters = { "upgrade", "research", "salvage", "boost", "pod", "heroTrain", "help", "chat" };
+        public static readonly string[] Counters =
+        {
+            "upgrade", "research", "salvage", "boost", "pod", "heroTrain", "help", "chat",
+            // Counted since the first-session guide (docs/34): marches, monster wins, bag items opened, alliance help asked and received.
+            "gather", "attack", "monster", "open", "helpAsk", "helped"
+        };
 
-        public static bool IsKnownType(string? type) => type is "level" or "count" or "counter" or "heroLevel" or "heroes" or "alliance";
+        public static bool IsKnownType(string? type) => type is "level" or "count" or "counter" or "heroLevel" or "heroes" or "alliance" or "rings";
 
         /// <summary>Progress towards <see cref="QuestData.count"/> (capped there).</summary>
         public static long Progress(QuestData quest, QuestContext context)
@@ -64,6 +72,7 @@ namespace HADAL.Shared.Simulation
                 "heroLevel" => context.MaxHeroLevel,
                 "heroes" => context.HeroCount,
                 "alliance" => context.InAlliance ? 1 : 0,
+                "rings" => context.UnlockedRings,
                 _ => 0
             };
             return Math.Min(value, Math.Max(1, quest.count));

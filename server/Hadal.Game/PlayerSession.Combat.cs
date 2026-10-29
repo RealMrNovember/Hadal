@@ -136,7 +136,10 @@ namespace Hadal.Game
             if (battle.Won)
             {
                 if (!boss)
+                {
                     _state.MonsterWins.Add(march.NodeLevel);
+                    Record("monster");
+                }
                 Score(EventActions.MonsterKill, 1);
                 Score(EventActions.MonsterLevels, march.NodeLevel);
             }

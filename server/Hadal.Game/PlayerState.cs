@@ -177,6 +177,14 @@ namespace Hadal.Game
         /// <summary>Depth Map stages cleared in order (docs/rehber 08 §5).</summary>
         public int ExpeditionCleared { get; set; }
 
+        /// <summary>The first-session guide (docs/34): where the player stands, the next step and when it started.</summary>
+        public OnboardingStatus OnboardingStatus { get; set; }
+        public int OnboardingIndex { get; set; }
+        public DateTimeOffset? OnboardingStartedAt { get; set; }
+
+        /// <summary>Set on a brand-new account until its guide start is logged; not persisted.</summary>
+        public bool OnboardingNew { get; set; }
+
         /// <summary>The command ledger: recent command ids with their answers, oldest first (PlayerSession.Commands).</summary>
         public List<CommandRecord> RecentCommands { get; } = new();
 

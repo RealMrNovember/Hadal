@@ -1,5 +1,5 @@
 {
-  "version": 10,
+  "version": 11,
   "_note": "Single source of truth for buildings, resources and base layout. Read by the server (validation, economy) and by Hadal > Setup in Unity (ScriptableObjects). Rules and the balance table: docs/23_Base_Management.md. Rates are per simulation tick (SimulationTick.IntervalSeconds) at level 1. buildCost/buildSeconds are for level 1; higher levels scale by progression.costGrowth/timeGrowth. requiredReactorLevel gates a building, maxCount caps how many a base may own.",
   "resources": [
     {
@@ -11231,6 +11231,23 @@
           {"type": "resource", "id": "Hadalite", "amount": 20}
         ]
       }
+    ],
+    "onboarding": [
+      {"id": "ob_reactor2", "type": "level", "target": "core_reactor", "count": 2, "rewards": [{"type": "resource", "id": "Titanium", "amount": 200}]},
+      {"id": "ob_oxygen", "type": "count", "target": "oxygen_plant", "count": 1, "rewards": [{"type": "shards", "id": "lyra", "amount": 10}, {"type": "resource", "id": "Food", "amount": 100}]},
+      {"id": "ob_hero", "type": "heroes", "target": "", "count": 2, "rewards": [{"type": "resource", "id": "Titanium", "amount": 200}]},
+      {"id": "ob_oxygen2", "type": "level", "target": "oxygen_plant", "count": 2, "rewards": [{"type": "resource", "id": "Titanium", "amount": 150}, {"type": "resource", "id": "Biomass", "amount": 50}]},
+      {"id": "ob_reactor3", "type": "level", "target": "core_reactor", "count": 3, "rewards": [{"type": "resource", "id": "Titanium", "amount": 200}]},
+      {"id": "ob_ring2", "type": "rings", "target": "", "count": 2, "rewards": [{"type": "resource", "id": "Titanium", "amount": 150}, {"type": "resource", "id": "Biomass", "amount": 50}]},
+      {"id": "ob_drones", "type": "count", "target": "drone_factory", "count": 1, "rewards": [{"type": "resource", "id": "Titanium", "amount": 100}]},
+      {"id": "ob_drones3", "type": "level", "target": "drone_factory", "count": 3, "rewards": [{"type": "resource", "id": "Titanium", "amount": 300}, {"type": "resource", "id": "Biomass", "amount": 150}]},
+      {"id": "ob_reactor4", "type": "level", "target": "core_reactor", "count": 4, "rewards": [{"type": "troops", "id": "armored:1", "amount": 300}, {"type": "resource", "id": "Food", "amount": 500}]},
+      {"id": "ob_monster", "type": "counter", "target": "monster", "count": 1, "rewards": [{"type": "item", "id": "chest_bronze", "amount": 1}, {"type": "resource", "id": "Hadalite", "amount": 20}]},
+      {"id": "ob_open", "type": "counter", "target": "open", "count": 1, "rewards": [{"type": "resource", "id": "Titanium", "amount": 500}, {"type": "resource", "id": "Food", "amount": 300}]},
+      {"id": "ob_gather", "type": "counter", "target": "gather", "count": 1, "rewards": [{"type": "item", "id": "chest_silver", "amount": 1}, {"type": "resource", "id": "Hadalite", "amount": 30}]},
+      {"id": "ob_alliance", "type": "alliance", "target": "", "count": 1, "rewards": [{"type": "resource", "id": "Titanium", "amount": 1000}, {"type": "resource", "id": "Hadalite", "amount": 50}]},
+      {"id": "ob_help_ask", "type": "counter", "target": "helpAsk", "count": 1, "rewards": [{"type": "item", "id": "speed_any_5", "amount": 3}]},
+      {"id": "ob_helped", "type": "counter", "target": "helped", "count": 1, "rewards": [{"type": "item", "id": "chest_silver", "amount": 1}, {"type": "item", "id": "card_rare", "amount": 1}, {"type": "resource", "id": "Hadalite", "amount": 50}]}
     ]
   },
   "items": [

@@ -46,11 +46,21 @@ namespace Hadal.Game.Persistence
 
         private sealed record CommandDoc(string Id, int? Result, string? Reason);
 
+        /// <summary>The first-session guide (docs/34). A document without it is an account from before the guide.</summary>
+        private sealed partial record Doc
+        {
+            public OnboardingDoc? Onboarding { get; init; }
+        }
+
+        private sealed record OnboardingDoc(int Status, int Index, DateTimeOffset? StartedAt);
+
         private static string Serialize(PlayerState state, Doc doc) => JsonSerializer.Serialize(doc with
         {
             Mail = new MailDoc(state.MailDay, state.MailsSent, state.MailSent.ToDictionary(p => p.Key.ToString(), p => p.Value)),
             Commands = state.RecentCommands.Count == 0 ? null
-                : state.RecentCommands.Select(c => new CommandDoc(c.Id, c.Result is { } r ? (int)r : null, c.Reason)).ToList()
+                : state.RecentCommands.Select(c => new CommandDoc(c.Id, c.Result is { } r ? (int)r : null, c.Reason)).ToList(),
+            Onboarding = state.OnboardingStatus == HADAL.Shared.Simulation.OnboardingStatus.Unknown ? null
+                : new OnboardingDoc((int)state.OnboardingStatus, state.OnboardingIndex, state.OnboardingStartedAt)
         });
 
         private sealed record VipDoc(long Points, int Streak, long LoginDay, long ChestDay);
@@ -269,6 +279,13 @@ namespace Hadal.Game.Persistence
                         .Where(p => Enum.TryParse<ResourceType>(p.Key, out _))
                         .ToDictionary(p => Enum.Parse<ResourceType>(p.Key), p => p.Value)
                 });
+            }
+
+            if (doc.Onboarding is { } onboarding && Enum.IsDefined(typeof(HADAL.Shared.Simulation.OnboardingStatus), onboarding.Status))
+            {
+                state.OnboardingStatus = (HADAL.Shared.Simulation.OnboardingStatus)onboarding.Status;
+                state.OnboardingIndex = Math.Max(0, onboarding.Index);
+                state.OnboardingStartedAt = onboarding.StartedAt;
             }
 
             foreach (var b in state.Buildings)

@@ -70,11 +70,18 @@ namespace Hadal.Game
             Counters = daily ? _state.DailyCounters : _state.QuestCounters,
             MaxHeroLevel = _state.Heroes.Select(h => h.Level).DefaultIfEmpty(0).Max(),
             HeroCount = _state.Heroes.Count,
-            InAlliance = _inAlliance
+            InAlliance = _inAlliance,
+            UnlockedRings = _state.UnlockedRings
         };
 
         private void ClaimQuest(ClaimQuestCommand command, DateTimeOffset now)
         {
+            if (_catalog.TryGetOnboarding(command.QuestId, out var step, out var stepIndex))
+            {
+                ClaimGuideStep(command, step, stepIndex, now);
+                return;
+            }
+
             RollDailyIfNeeded(now);
             if (!_catalog.TryGetQuest(command.QuestId, out var quest, out var daily))
             {
@@ -154,6 +161,7 @@ namespace Hadal.Game
                 }
 
                 TakeItem(command.ItemId, count);
+                Record("open", count);
                 var total = WalletOps.Product(capsuleAmount, count);
                 WalletOps.Credit(_state.Wallet, capsuleResource, total);
                 _walletDirty = true;
@@ -191,6 +199,7 @@ namespace Hadal.Game
             }
 
             TakeItem(item.id, count);
+            Record("open", count);
             var rewards = new List<ResolvedReward>();
             for (var i = 0; i < count; i++)
                 rewards.AddRange(QuestRules.Open(_catalog, item, Random.Shared.Next));
@@ -220,6 +229,7 @@ namespace Hadal.Game
                 }
 
                 TakeItem(command.ItemId, 1);
+                Record("open");
                 var owned = _state.Heroes.FirstOrDefault(h => h.HeroId == heroId);
                 if (owned == null)
                 {
@@ -245,6 +255,7 @@ namespace Hadal.Game
             }
 
             TakeItem(command.ItemId, count);
+            Record("open", count);
             var key = TroopRules.Key(type, tier);
             _state.Troops[key] = (_state.Troops.TryGetValue(key, out var home) ? home : 0) + perPack * count;
             _armyDirty = true;
@@ -284,13 +295,16 @@ namespace Hadal.Game
             _state.IsDirty = true;
         }
 
-        /// <summary>Pays rewards (resources capped at storage) and sends one report with everything that changed.</summary>
-        private void GrantAndReport(string commandId, ulong sequence, List<ResolvedReward> rewards, DateTimeOffset now, bool grant = true)
+        /// <summary>
+        /// Pays rewards (resources capped at storage) and sends one report with everything that changed.
+        /// <paramref name="capsules"/> false pays resources into the wallet at once (guide steps, docs/34).
+        /// </summary>
+        private void GrantAndReport(string commandId, ulong sequence, List<ResolvedReward> rewards, DateTimeOffset now, bool grant = true, bool capsules = true)
         {
             if (grant)
             {
                 // Quest and chest resources arrive as capsules in the bag: nothing is lost at the cap.
-                rewards = rewards.Select(r => r.Type == "resource" && GameCatalog.TryParseResource(r.Id, out var res) && Capsules.Holds(res)
+                rewards = rewards.Select(r => capsules && r.Type == "resource" && GameCatalog.TryParseResource(r.Id, out var res) && Capsules.Holds(res)
                     ? new ResolvedReward("item", Capsules.Id(res, r.Amount), 1)
                     : r).ToList();
                 foreach (var r in rewards)
@@ -300,7 +314,7 @@ namespace Hadal.Game
             _state.IsDirty = true;
             _questsDirty = true;
             RefreshModifiers();
-            SendDelta(now, new List<EntityChangeDto>
+            var changes = new List<EntityChangeDto>
             {
                 new()
                 {
@@ -316,7 +330,10 @@ namespace Hadal.Game
                 InventoryChange(),
                 ProductionChange(now),
                 Accepted(commandId, sequence)
-            });
+            };
+            if (grant && rewards.Any(r => r.Type == "troops"))
+                changes.Insert(changes.Count - 1, ArmyChange(now));
+            SendDelta(now, changes);
         }
 
         private void Grant(ResolvedReward reward)
@@ -329,6 +346,10 @@ namespace Hadal.Game
                     break;
                 case "item":
                     _state.Items[reward.Id] = (_state.Items.TryGetValue(reward.Id, out var n) ? n : 0) + (int)reward.Amount;
+                    break;
+                case "troops" when TroopRules.TryParseKey(reward.Id, out _, out _) && reward.Amount > 0:
+                    _state.Troops[reward.Id] = (_state.Troops.TryGetValue(reward.Id, out var home) ? home : 0) + reward.Amount;
+                    _armyDirty = true;
                     break;
                 case "shards":
                     var owned = _state.Heroes.FirstOrDefault(h => h.HeroId == reward.Id);
@@ -359,7 +380,7 @@ namespace Hadal.Game
                 current = new QuestProgressDto { Id = q.id, Progress = QuestRules.Progress(q, Context(false)), Target = Math.Max(1, q.count) };
             }
 
-            return new QuestStateDto
+            var dto = new QuestStateDto
             {
                 Chapter = current,
                 ChapterNumber = Math.Min(_state.ChapterIndex + 1, chapter.Length),
@@ -375,6 +396,8 @@ namespace Hadal.Game
                 ClaimedChests = _state.ClaimedChests.OrderBy(p => p).ToArray(),
                 DailyResetMs = QuestRules.MillisecondsToReset(now)
             };
+            FillGuide(dto);
+            return dto;
         }
 
         private EntityChangeDto InventoryChange() => new()

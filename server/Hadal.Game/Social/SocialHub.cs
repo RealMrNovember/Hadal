@@ -694,6 +694,7 @@ namespace Hadal.Game.Social
                 EndsAt = job.Value.EndsAt
             };
             _help[request.Id] = request;
+            session.RecordEvent("helpAsk", 1, now);
             PushHelp(alliance, now);
             return SocialRejectReason.None;
         }

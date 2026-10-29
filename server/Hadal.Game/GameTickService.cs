@@ -32,6 +32,7 @@ namespace Hadal.Game
             await _world.Map.InitializeAsync(cancellationToken);
             await _world.Events.InitializeAsync(DateTimeOffset.UtcNow, cancellationToken);
             await _world.Mail.InitializeAsync(DateTimeOffset.UtcNow, cancellationToken);
+            await _world.Onboarding.InitializeAsync(cancellationToken);
             await base.StartAsync(cancellationToken);
         }
 

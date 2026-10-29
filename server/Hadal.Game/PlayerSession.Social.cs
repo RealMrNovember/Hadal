@@ -133,6 +133,7 @@ namespace Hadal.Game
             {
                 if (!ShortenJob(kind, target, seconds, now))
                     return false;
+                Record("helped");
 
                 // A help that finishes the job settles it at once; the queue is pushed either way.
                 var changes = AdvanceTo(now);
@@ -172,6 +173,7 @@ namespace Hadal.Game
             {
                 if (!ShortenConstruction(buildingId, seconds, now))
                     return false;
+                Record("helped");
 
                 var changes = AdvanceTo(now);
                 var building = FindBuilding(buildingId);
@@ -189,10 +191,8 @@ namespace Hadal.Game
             {
                 foreach (var (kind, target, seconds) in helps)
                 {
-                    if (kind == HelpKinds.Build)
-                        ShortenConstruction(target, seconds, now);
-                    else
-                        ShortenJob(kind, target, seconds, now);
+                    if (kind == HelpKinds.Build ? ShortenConstruction(target, seconds, now) : ShortenJob(kind, target, seconds, now))
+                        Record("helped");
                 }
             }
         }

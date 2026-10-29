@@ -65,6 +65,7 @@ namespace Hadal.Game
                 _connection = connection;
 
                 AdvanceTo(now);
+                EnsureOnboarding(now);
                 // A base built before the copy limits applied is brought within them first.
                 var refunds = EnforceBuildingLimits();
                 _lastReplicatedAt = now;

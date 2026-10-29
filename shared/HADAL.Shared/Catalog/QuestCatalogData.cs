@@ -3,8 +3,9 @@ using System;
 namespace HADAL.Shared.Catalog
 {
     /// <summary>
-    /// One reward. type: "resource" (id = ResourceType name), "item" (id = an items[] id) or "shards"
-    /// (id = a hero id, or empty with <see cref="rarity"/> for a random hero of that rarity). docs/27.
+    /// One reward. type: "resource" (id = ResourceType name), "item" (id = an items[] id), "shards"
+    /// (id = a hero id, or empty with <see cref="rarity"/> for a random hero of that rarity) or "troops"
+    /// (id = "type:tier", straight into the army at home; guide steps only). docs/27.
     /// </summary>
     [Serializable]
     public sealed class RewardData
@@ -40,7 +41,8 @@ namespace HADAL.Shared.Catalog
     /// <summary>
     /// A task. type: "level" (target building reaches count), "count" (own count of target building),
     /// "counter" (event counter target reaches count: upgrade, research, salvage, boost, pod, heroTrain,
-    /// help, chat), "heroLevel" (any hero at level count), "heroes" (own count heroes), "alliance" (be in one).
+    /// help, chat, gather, attack, monster, open, helpAsk, helped), "heroLevel" (any hero at level count),
+    /// "heroes" (own count heroes), "alliance" (be in one), "rings" (count base rings open).
     /// </summary>
     [Serializable]
     public sealed class QuestData
@@ -72,5 +74,11 @@ namespace HADAL.Shared.Catalog
         public QuestData[] daily = Array.Empty<QuestData>();
 
         public DailyChestData[] dailyChests = Array.Empty<DailyChestData>();
+
+        /// <summary>
+        /// The first-session guide (docs/34): short steps done in order before the chapter matters. Their rewards
+        /// go straight to the wallet (not as capsules) so each one unblocks the next step.
+        /// </summary>
+        public QuestData[] onboarding = Array.Empty<QuestData>();
     }
 }

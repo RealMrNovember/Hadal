@@ -1,6 +1,7 @@
 using System.Collections.Concurrent;
 using Hadal.Game.Events;
 using Hadal.Game.Mailbox;
+using Hadal.Game.Onboarding;
 using Hadal.Game.Persistence;
 using Hadal.Game.Social;
 using Hadal.Game.World;
@@ -62,7 +63,8 @@ namespace Hadal.Game
             INetworkSerializer serializer,
             ILogger<GameWorld> logger,
             IEventStore? eventStore = null,
-            IMailStore? mailStore = null)
+            IMailStore? mailStore = null,
+            IOnboardingStore? onboardingStore = null)
         {
             _runtime = runtime;
             _repository = repository;
@@ -91,7 +93,11 @@ namespace Hadal.Game
                 NameLookup = Map.NameOf,
                 AllianceIdOf = Social.AllianceIdOf
             };
+            Onboarding = new OnboardingLog(onboardingStore ?? new InMemoryOnboardingStore(), logger);
         }
+
+        /// <summary>The first-session guide's funnel log (docs/34).</summary>
+        public OnboardingLog Onboarding { get; }
 
         /// <summary>The mailbox: system, Overseer, event and alliance mails with attachments (docs/29 §2.1).</summary>
         public MailService Mail { get; }
@@ -371,7 +377,7 @@ namespace Hadal.Game
                     var state = await _repository.LoadByIdentityAsync(identityKey, cancellationToken)
                                 ?? await CreatePlayerAsync(identityKey, cancellationToken);
 
-                    session = new PlayerSession(state, _runtime, _serializer);
+                    session = new PlayerSession(state, _runtime, _serializer) { OnboardingLog = Onboarding.Record };
                     _sessions[identityKey] = session;
                     _byPublic[session.PublicId] = session;
                 }
@@ -539,7 +545,7 @@ namespace Hadal.Game
                     var state = await _repository.LoadByIdentityAsync(identity, cancellationToken);
                     if (state == null)
                         return;
-                    var session = new PlayerSession(state, _runtime, _serializer);
+                    var session = new PlayerSession(state, _runtime, _serializer) { OnboardingLog = Onboarding.Record };
                     _sessions[identity] = session;
                     _byPublic[session.PublicId] = session;
                     _logger.LogInformation("Player {PlayerId} loaded for a battle.", publicId);
@@ -607,7 +613,11 @@ namespace Hadal.Game
                 PlayerId = Guid.NewGuid(),
                 IdentityKey = identityKey,
                 LastSimulatedAt = _clock.UtcNow,
-                UnlockedRings = _catalog.Grid.startingUnlockedRings
+                UnlockedRings = _catalog.Grid.startingUnlockedRings,
+                // A fresh account takes the first-session guide (docs/34); its start is logged on the first login.
+                OnboardingStatus = OnboardingStatus.Active,
+                OnboardingStartedAt = _clock.UtcNow,
+                OnboardingNew = true
             };
 
             foreach (var pair in _catalog.StartingWallet())

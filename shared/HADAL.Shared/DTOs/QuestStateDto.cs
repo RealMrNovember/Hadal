@@ -19,6 +19,14 @@ namespace HADAL.Shared.DTOs
 
         /// <summary>Time until the daily reset (00:00 UTC).</summary>
         [ProtoMember(7)] public long DailyResetMs { get; set; }
+
+        /// <summary>The current first-session guide step (docs/34); null when the guide is done or was skipped.</summary>
+        [ProtoMember(8)] public QuestProgressDto? Guide { get; set; }
+
+        /// <summary>1-based number of <see cref="Guide"/> and the number of guide steps.</summary>
+        [ProtoMember(9)] public int GuideNumber { get; set; }
+
+        [ProtoMember(10)] public int GuideTotal { get; set; }
     }
 
     [ProtoContract]

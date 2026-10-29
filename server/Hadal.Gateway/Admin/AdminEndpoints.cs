@@ -302,6 +302,10 @@ namespace Hadal.Gateway.Admin
 
             api.MapMailEndpoints();
 
+            // --- First-session guide funnel (docs/34) ------------------------------------------
+
+            api.MapOnboardingEndpoints();
+
             // --- Coupons --------------------------------------------------------------------
 
             api.MapGet("/coupons", async (AdminPrincipal _, IAdminStore store, CancellationToken ct) =>

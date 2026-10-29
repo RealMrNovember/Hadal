@@ -1,6 +1,7 @@
 using Hadal.Game;
 using Hadal.Game.Events;
 using Hadal.Game.Mailbox;
+using Hadal.Game.Onboarding;
 using Hadal.Game.Persistence;
 using Hadal.Game.Social;
 using Hadal.Game.World;
@@ -35,6 +36,7 @@ if (string.IsNullOrWhiteSpace(connectionString))
     builder.Services.AddSingleton<IWorldStore, InMemoryWorldStore>();
     builder.Services.AddSingleton<IEventStore, InMemoryEventStore>();
     builder.Services.AddSingleton<IMailStore, InMemoryMailStore>();
+    builder.Services.AddSingleton<IOnboardingStore, InMemoryOnboardingStore>();
 }
 else
 {
@@ -46,6 +48,7 @@ else
     builder.Services.AddSingleton<IWorldStore, PostgresWorldStore>();
     builder.Services.AddSingleton<IEventStore, PostgresEventStore>();
     builder.Services.AddSingleton<IMailStore, PostgresMailStore>();
+    builder.Services.AddSingleton<IOnboardingStore, PostgresOnboardingStore>();
 }
 
 builder.Services.AddHadalAuth(builder.Configuration);
@@ -54,7 +57,7 @@ builder.Services.AddHadalAdmin(builder.Configuration);
 builder.Services.AddSingleton(sp => new GameWorld(
     sp.GetRequiredService<CatalogRuntime>(), sp.GetRequiredService<IPlayerRepository>(), sp.GetRequiredService<ISocialStore>(), sp.GetRequiredService<IWorldStore>(), sp.GetRequiredService<IClock>(),
     sp.GetRequiredService<INetworkSerializer>(), sp.GetRequiredService<ILogger<GameWorld>>(), sp.GetRequiredService<IEventStore>(),
-    sp.GetRequiredService<IMailStore>()));
+    sp.GetRequiredService<IMailStore>(), sp.GetRequiredService<IOnboardingStore>()));
 builder.Services.AddHostedService<GameTickService>();
 builder.Services.AddSingleton<GatewaySessionHandler>();
 

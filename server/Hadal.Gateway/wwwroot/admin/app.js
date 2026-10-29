@@ -123,7 +123,7 @@ async function start() {
 }
 
 // ---------------------------------------------------------------- Router
-const PAGES = { overview, players, coupons, events, mail, liveops, balance, chat, audit, admins };
+const PAGES = { overview, players, coupons, events, mail, onboarding, liveops, balance, chat, audit, admins };
 
 function route() {
   if (!state.user) return;
