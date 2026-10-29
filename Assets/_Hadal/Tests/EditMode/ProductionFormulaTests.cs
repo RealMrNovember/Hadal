@@ -31,6 +31,14 @@ namespace Hadal.Tests.EditMode
         }
 
         [Test]
+        public void Cap_NeverTakesAwayWhatIsAlreadyAbove()
+        {
+            // A granted or opened capsule may pass the cap: production adds nothing, spending still works.
+            Assert.AreEqual(5_000, ProductionFormulas.ApplyToBalance(5_000, 50, 100));
+            Assert.AreEqual(4_900, ProductionFormulas.ApplyToBalance(5_000, -100, 100));
+        }
+
+        [Test]
         public void NegativeNet_ClampsAtZero()
         {
             // S4: consumption outruns the balance.

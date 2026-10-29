@@ -1,3 +1,5 @@
+using System;
+
 namespace HADAL.Shared.Simulation
 {
     /// <summary>
@@ -81,8 +83,10 @@ namespace HADAL.Shared.Simulation
             if (next < 0L)
                 next = 0L;
 
+            // Production stops at the cap but never takes away what is already above it (capsules, grants and
+            // rewards may pass the cap); spending from an over-cap balance still works.
             if (capacity > 0L && next > capacity)
-                next = capacity;
+                next = Math.Max(capacity, Math.Min(current, next));
 
             return next;
         }

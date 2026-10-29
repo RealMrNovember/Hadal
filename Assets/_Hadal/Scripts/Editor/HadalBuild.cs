@@ -60,15 +60,16 @@ namespace Hadal.EditorTools
             PlayerSettings.Android.targetArchitectures = AndroidArchitecture.ARM64;
             EditorUserBuildSettings.buildAppBundle = false;
 
-            // HADAL_VERSION=1.2.0 stamps the build; the in-app updater compares it with the manifest,
-            // and Android only installs over an older versionCode.
+            // HADAL_VERSION=0.8.9 stamps the build; the in-app updater compares it with the manifest,
+            // and Android only installs over an older versionCode. Builds before the move back to 0.x
+            // (pre-release) were 1.8.x with codes up to 10808, so codes start at 1,000,000.
             var version = Environment.GetEnvironmentVariable("HADAL_VERSION");
             if (!string.IsNullOrWhiteSpace(version))
             {
                 if (!Version.TryParse(version, out var parsed))
                     throw new InvalidOperationException($"HADAL_VERSION '{version}' is not a version like 1.2.0");
                 PlayerSettings.bundleVersion = version;
-                PlayerSettings.Android.bundleVersionCode = parsed.Major * 10000 + parsed.Minor * 100 + Math.Max(0, parsed.Build);
+                PlayerSettings.Android.bundleVersionCode = 1_000_000 + parsed.Major * 10000 + parsed.Minor * 100 + Math.Max(0, parsed.Build);
             }
 
             ApplyIcons();

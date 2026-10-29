@@ -480,6 +480,8 @@ namespace Hadal.Gateway.Admin
             targetAccountId = c.TargetAccountId?.ToString("N")
         };
 
+        private const long MaxGrant = 1_000_000_000_000;
+
         private static Dictionary<ResourceType, long>? ParseAmounts(Dictionary<string, long>? raw)
         {
             if (raw == null)
@@ -490,9 +492,8 @@ namespace Hadal.Gateway.Admin
             {
                 if (!Enum.TryParse<ResourceType>(pair.Key, true, out var type) || type == ResourceType.Unknown || pair.Value == 0)
                     continue;
-                if (Math.Abs(pair.Value) > 1_000_000_000)
-                    return null;
-                amounts[type] = pair.Value;
+                // Very large amounts are trimmed to the limit instead of failing the whole grant.
+                amounts[type] = Math.Clamp(pair.Value, -MaxGrant, MaxGrant);
             }
 
             return amounts;
