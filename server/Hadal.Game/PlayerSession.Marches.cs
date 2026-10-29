@@ -323,7 +323,7 @@ namespace Hadal.Game
 
             // Gathered resources are not held back by the storage cap (docs/rehber 09 §4.7, rule 5).
             foreach (var pair in cargo.Where(p => p.Value > 0))
-                _state.Wallet[pair.Key] = (_state.Wallet.TryGetValue(pair.Key, out var have) ? have : 0) + pair.Value;
+                WalletOps.Credit(_state.Wallet, pair.Key, pair.Value);
             Score(EventActions.Gather, cargo.Values.Where(v => v > 0).Sum());
             _walletDirty = true;
             _marchesDirty = true;

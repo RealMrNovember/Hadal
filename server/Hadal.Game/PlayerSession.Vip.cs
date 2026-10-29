@@ -149,7 +149,7 @@ namespace Hadal.Game
         /// <summary>The state change of a purchase, for live and offline players alike.</summary>
         internal static void ApplyPurchase(PlayerState state, StorePacks.Pack pack)
         {
-            state.Wallet[ResourceType.Hadalite] = (state.Wallet.TryGetValue(ResourceType.Hadalite, out var h) ? h : 0) + pack.Hadalite + pack.Bonus;
+            WalletOps.Credit(state.Wallet, ResourceType.Hadalite, WalletOps.Sum(pack.Hadalite, pack.Bonus));
             state.VipPoints += pack.VipPoints;
             state.IsDirty = true;
         }

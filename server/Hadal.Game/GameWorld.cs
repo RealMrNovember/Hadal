@@ -391,6 +391,10 @@ namespace Hadal.Game
 
         public void HandleCommand(PlayerSession session, CommandEnvelope envelope)
         {
+            // A command id runs once: a re-send or a duplicate envelope gets the first answer again (PlayerSession.Commands).
+            if (!session.BeginCommand(envelope, _clock.UtcNow))
+                return;
+
             // Every battle that arrived before this command is settled before the command can change anything.
             Map.Settle(_clock.UtcNow);
             if (SocialHub.Handles(envelope.Type))

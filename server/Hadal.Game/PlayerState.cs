@@ -177,6 +177,9 @@ namespace Hadal.Game
         /// <summary>Depth Map stages cleared in order (docs/rehber 08 §5).</summary>
         public int ExpeditionCleared { get; set; }
 
+        /// <summary>The command ledger: recent command ids with their answers, oldest first (PlayerSession.Commands).</summary>
+        public List<CommandRecord> RecentCommands { get; } = new();
+
         /// <summary>Fractions of a unit (thousandths) carried between economy steps; not persisted.</summary>
         public Dictionary<ResourceType, long> CarryMilli { get; } = new();
 

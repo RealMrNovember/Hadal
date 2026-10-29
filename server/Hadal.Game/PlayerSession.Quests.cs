@@ -154,10 +154,11 @@ namespace Hadal.Game
                 }
 
                 TakeItem(command.ItemId, count);
-                _state.Wallet[capsuleResource] = (_state.Wallet.TryGetValue(capsuleResource, out var w) ? w : 0) + capsuleAmount * count;
+                var total = WalletOps.Product(capsuleAmount, count);
+                WalletOps.Credit(_state.Wallet, capsuleResource, total);
                 _walletDirty = true;
                 GrantAndReport(command.CommandId, command.ClientSequence,
-                    new List<ResolvedReward> { new("resource", capsuleResource.ToString(), capsuleAmount * count) }, now, grant: false);
+                    new List<ResolvedReward> { new("resource", capsuleResource.ToString(), total) }, now, grant: false);
                 return;
             }
 

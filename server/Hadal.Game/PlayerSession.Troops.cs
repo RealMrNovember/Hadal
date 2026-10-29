@@ -78,7 +78,7 @@ namespace Hadal.Game
 
             _state.Training.Remove(training);
             foreach (var pair in training.Cost)
-                _state.Wallet[pair.Key] = (_state.Wallet.TryGetValue(pair.Key, out var have) ? have : 0) + pair.Value;
+                WalletOps.Credit(_state.Wallet, pair.Key, pair.Value);
             _state.IsDirty = true;
             SendDelta(now, new List<EntityChangeDto> { WalletChange(), ArmyChange(now), Accepted(command.CommandId, command.ClientSequence) });
         }
@@ -140,7 +140,7 @@ namespace Hadal.Game
             foreach (var pair in healing.Troops)
                 _state.Wounded[pair.Key] = (_state.Wounded.TryGetValue(pair.Key, out var n) ? n : 0) + pair.Value;
             foreach (var pair in healing.Cost)
-                _state.Wallet[pair.Key] = (_state.Wallet.TryGetValue(pair.Key, out var have) ? have : 0) + pair.Value;
+                WalletOps.Credit(_state.Wallet, pair.Key, pair.Value);
             _state.IsDirty = true;
             SendDelta(now, new List<EntityChangeDto> { WalletChange(), ArmyChange(now), Accepted(command.CommandId, command.ClientSequence) });
         }

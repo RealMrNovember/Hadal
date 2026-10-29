@@ -38,9 +38,19 @@ namespace Hadal.Game.Persistence
 
         private sealed record MailDoc(long Day, int Count, Dictionary<string, long>? Sent);
 
+        /// <summary>The command ledger (PlayerSession.Commands): saved with the state it protects.</summary>
+        private sealed partial record Doc
+        {
+            public List<CommandDoc>? Commands { get; init; }
+        }
+
+        private sealed record CommandDoc(string Id, int? Result, string? Reason);
+
         private static string Serialize(PlayerState state, Doc doc) => JsonSerializer.Serialize(doc with
         {
-            Mail = new MailDoc(state.MailDay, state.MailsSent, state.MailSent.ToDictionary(p => p.Key.ToString(), p => p.Value))
+            Mail = new MailDoc(state.MailDay, state.MailsSent, state.MailSent.ToDictionary(p => p.Key.ToString(), p => p.Value)),
+            Commands = state.RecentCommands.Count == 0 ? null
+                : state.RecentCommands.Select(c => new CommandDoc(c.Id, c.Result is { } r ? (int)r : null, c.Reason)).ToList()
         });
 
         private sealed record VipDoc(long Points, int Streak, long LoginDay, long ChestDay);
@@ -220,6 +230,16 @@ namespace Hadal.Game.Persistence
                     if (Enum.TryParse<ResourceType>(pair.Key, out var type))
                         state.MailSent[type] = pair.Value;
                 }
+            }
+
+            state.RecentCommands.Clear();
+            foreach (var c in doc.Commands ?? new List<CommandDoc>())
+            {
+                if (!string.IsNullOrEmpty(c.Id))
+                    state.RecentCommands.Add(new CommandRecord
+                    {
+                        Id = c.Id, Result = c.Result is { } r ? (HADAL.Shared.Enums.CommandResultCode)r : null, Reason = c.Reason ?? string.Empty
+                    });
             }
 
             if (doc.Rename is { } rename)

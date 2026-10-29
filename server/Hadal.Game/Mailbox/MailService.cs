@@ -329,7 +329,8 @@ namespace Hadal.Game.Mailbox
                     break;
                 }
 
-                amounts[entry.Key] = (amounts.TryGetValue(entry.Key, out var a) ? a : 0) + entry.Value;
+                // Saturating: two huge entries of one resource must not wrap round into a negative payment.
+                amounts[entry.Key] = WalletOps.Sum(amounts.TryGetValue(entry.Key, out var a) ? a : 0, entry.Value);
             }
 
             reason ??= title.Length == 0 || title.Length > MailRules.MaxTitle ? "InvalidMailTitle"

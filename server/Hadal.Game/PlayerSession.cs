@@ -349,7 +349,7 @@ namespace Hadal.Game
             IReadOnlyDictionary<string, int>? items = null)
         {
             foreach (var pair in items ?? new Dictionary<string, int>())
-                state.Items[pair.Key] = (state.Items.TryGetValue(pair.Key, out var have) ? have : 0) + pair.Value;
+                state.Items[pair.Key] = (int)Math.Clamp((state.Items.TryGetValue(pair.Key, out var have) ? have : 0) + (long)pair.Value, 0, int.MaxValue);
 
             foreach (var pair in amounts)
             {
@@ -358,12 +358,11 @@ namespace Hadal.Game
                 if (asPackages && pair.Value > 0 && Capsules.Holds(pair.Key))
                 {
                     var id = Capsules.Id(pair.Key, pair.Value);
-                    state.Items[id] = (state.Items.TryGetValue(id, out var held) ? held : 0) + 1;
+                    state.Items[id] = (int)Math.Min(int.MaxValue, (state.Items.TryGetValue(id, out var held) ? held : 0) + 1L);
                     continue;
                 }
 
-                var have = state.Wallet.TryGetValue(pair.Key, out var w) ? w : 0;
-                state.Wallet[pair.Key] = Math.Max(0, have + pair.Value);
+                WalletOps.Credit(state.Wallet, pair.Key, pair.Value);
             }
         }
 
@@ -1130,18 +1129,22 @@ namespace Hadal.Game
             Payload = _serializer.Serialize(ProductionDto(now))
         };
 
-        private EntityChangeDto AckChange(string commandId, ulong sequence, CommandResultCode result, string reason) => new()
+        private EntityChangeDto AckChange(string commandId, ulong sequence, CommandResultCode result, string reason)
         {
-            EntityId = EntityIds.Command + commandId,
-            Kind = EntityChangeKind.Update,
-            Payload = _serializer.Serialize(new CommandAckDto
+            RecordAnswer(commandId, result, reason);
+            return new EntityChangeDto
             {
-                CommandId = commandId,
-                ClientSequence = sequence,
-                Result = result,
-                Reason = reason
-            })
-        };
+                EntityId = EntityIds.Command + commandId,
+                Kind = EntityChangeKind.Update,
+                Payload = _serializer.Serialize(new CommandAckDto
+                {
+                    CommandId = commandId,
+                    ClientSequence = sequence,
+                    Result = result,
+                    Reason = reason
+                })
+            };
+        }
 
         private ResourceStateDto WalletDto()
         {

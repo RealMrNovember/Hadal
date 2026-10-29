@@ -71,7 +71,8 @@ namespace Hadal.Game
             lock (_gate)
             {
                 AdvanceTo(now);
-                if (!BuildingProgression.CanAfford(cost, _state.Wallet))
+                // A cost below zero would pay the player: never accepted, whoever asks.
+                if (cost.Any(p => p.Value < 0) || !BuildingProgression.CanAfford(cost, _state.Wallet))
                     return false;
 
                 BuildingProgression.Charge(cost, _state.Wallet);

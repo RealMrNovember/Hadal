@@ -47,7 +47,10 @@ namespace Hadal.Game
                 var reactor = ReactorLevel();
                 foreach (var pair in amounts)
                 {
-                    if (MailSentToday(pair.Key) + pair.Value > MailRules.DailyAllowance(pair.Key, reactor))
+                    // A mail never pays the sender: only positive amounts, and no sum may wrap round.
+                    if (pair.Value <= 0)
+                        return "MalformedCommand";
+                    if (WalletOps.Sum(MailSentToday(pair.Key), pair.Value) > MailRules.DailyAllowance(pair.Key, reactor))
                         return "MailResourceLimit";
                     if ((_state.Wallet.TryGetValue(pair.Key, out var have) ? have : 0) < pair.Value)
                         return "InsufficientResources";
@@ -76,7 +79,7 @@ namespace Hadal.Game
             {
                 foreach (var pair in amounts)
                 {
-                    _state.Wallet[pair.Key] = (_state.Wallet.TryGetValue(pair.Key, out var have) ? have : 0) + pair.Value;
+                    WalletOps.Credit(_state.Wallet, pair.Key, pair.Value);
                     if (_state.MailDay == MailRules.Day(now))
                         _state.MailSent[pair.Key] = Math.Max(0, MailSentToday(pair.Key) - pair.Value);
                 }
