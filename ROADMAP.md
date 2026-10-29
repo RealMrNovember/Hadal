@@ -1,7 +1,7 @@
 # HADAL — Proje Yol Haritası
 
 **Güncelleme:** 2026-10-29
-**Yayındaki sürüm:** istemci **0.9.3** (Android, `hadal.cicibyte.com/download/hadal.apk`); sunucu `main` @ `e919bd5` (CT 160), katalog v12 (canlı v59).
+**Yayındaki sürüm:** istemci **0.9.4** (Android, `hadal.cicibyte.com/download/hadal.apk`); sunucu `main` @ `87191e0` (CT 160), katalog v13 (canlı v60).
 **Sürüm kuralı:** Oyun 1.0'a kadar **0.x** ile ilerler. Android sürüm kodu `1.000.000 + major·10000 + minor·100 + patch`.
 
 **Kaynaklar:**
@@ -39,7 +39,7 @@ Sıralama araştırmanın ana önerisine göre yapıldı (§16): önce **kaynak 
 | **3** | İttifak bölgesi ve ittifak binaları | A, B aşamaları ve Şehir Listesi canlıda (docs/32). | ✅ |
 | **4** | Yeni deniz yaratıkları ve etkinlik boss'ları | Tamamlandı; boss hasar tablosu ve katkı ödülü sonra. | ✅ |
 | **5** | İlk oturum akışı ve öğretici | 0.9.3 ile yayında; ödüller ilk huni verisiyle ayarlanacak (docs/34). | ✅ |
-| **6** | Hayatta kalma döngüsü (oksijen, enerji, acil durum) | Kod ve testler tamam (`7a5b926`, docs/35); istemci ve katalog v13 ile yayın bekliyor. | 🟡 |
+| **6** | Hayatta kalma döngüsü (oksijen, enerji, acil durum) | Yayında: 0.9.4 ve katalog v13 (`7a5b926`, docs/35). | ✅ |
 | **7** | Etkinlik takvimi ve ittifak etkinlikleri | Günlük geri dönüş ve ortak hedef (§6.2, docs/29 E2–E6). | ⬜ |
 | **8** | Asenkron arena ve düello | Kısa oturumlu, adil PvP (§5.1, §13.1). | ⬜ |
 | **9** | Gerçek ödeme ve mağaza | Play Billing ve makbuz doğrulama (§7). | ⬜ |
@@ -157,7 +157,7 @@ Ayrıntılar aşağıda, aynı sırayla.
 
 ---
 
-## 6. Hayatta kalma döngüsü 🟡
+## 6. Hayatta kalma döngüsü ✅
 
 **Hedef:** "Oksijen biterse üs ölür" gerilimi (`docs/06`, `docs/19`). Temayı ekonomiye bağlar. Ayrıntı: `docs/35_Survival_Loop.md`.
 
