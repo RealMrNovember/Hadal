@@ -58,6 +58,12 @@ services:
       Admin__JwtSecret: "${HADAL_ADMIN_JWT_SECRET:?set HADAL_ADMIN_JWT_SECRET in .env}"
       # Test-only (unity.sh latency). Must stay 0 outside latency runs.
       Gateway__SimulatedLatencyMs: "${HADAL_SIM_LATENCY_MS:-0}"
+      # Phone push (docs/36): the Firebase service-account key stays on the CT (path in .env) and is mounted
+      # read-only; push is on only when the key and the project id are both set.
+      HADAL_FCM_SERVICE_ACCOUNT_JSON_PATH: "${HADAL_FCM_SERVICE_ACCOUNT_JSON_PATH:+/run/secrets/hadal-fcm.json}"
+      HADAL_FCM_PROJECT_ID: "${HADAL_FCM_PROJECT_ID:-}"
+    volumes:
+      - "${HADAL_FCM_SERVICE_ACCOUNT_JSON_PATH:-/dev/null}:/run/secrets/hadal-fcm.json:ro"
     depends_on:
       hadal-postgres:
         condition: service_healthy

@@ -183,6 +183,8 @@ namespace Hadal.Core.Network
                 TerritoryCommand => CommandType.Territory,
                 UseShieldCommand => CommandType.UseShield,
                 RepairEmergencyCommand => CommandType.RepairEmergency,
+                SetNotificationPrefsCommand => CommandType.SetNotificationPrefs,
+                RegisterPushTokenCommand => CommandType.RegisterPushToken,
                 _ => CommandType.Unknown
             };
         }

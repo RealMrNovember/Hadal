@@ -49,6 +49,9 @@ namespace HADAL.Shared.DTOs
         /// <summary>VIP standing (VipRules).</summary>
         [ProtoMember(15)] public VipStateDto? Vip { get; set; }
 
+        /// <summary>Phone notification choices as the server keeps them (docs/36); null from older servers.</summary>
+        [ProtoMember(16)] public NotificationPrefsDto? Notifications { get; set; }
+
         [ProtoBeforeSerialization]
         private void BeforeSerialize() => BuildingsWire = Buildings?.ToArray() ?? System.Array.Empty<BuildingStateDto>();
 

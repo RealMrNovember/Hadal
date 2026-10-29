@@ -252,6 +252,14 @@ namespace Hadal.Game
                         RepairEmergency(repair!, now);
                         break;
 
+                    case CommandType.SetNotificationPrefs when TryDeserialize(envelope.Payload, out SetNotificationPrefsCommand? notify):
+                        SetNotificationPrefs(notify!, now);
+                        break;
+
+                    case CommandType.RegisterPushToken when TryDeserialize(envelope.Payload, out RegisterPushTokenCommand? token):
+                        RegisterPushToken(token!, now);
+                        break;
+
                     default:
                         var known = envelope.Type is CommandType.PlaceBuilding or CommandType.UpgradeBuilding or CommandType.FinishConstruction
                             or CommandType.RemoveBuilding or CommandType.UnlockRing or CommandType.StartResearch or CommandType.FinishResearch
@@ -260,7 +268,8 @@ namespace Hadal.Game
                             or CommandType.ClaimQuest or CommandType.ClaimDailyChest or CommandType.OpenItem or CommandType.RecruitHero
                             or CommandType.DiveStage or CommandType.SetProfile or CommandType.TrainTroops or CommandType.CancelTraining
                             or CommandType.HealTroops or CommandType.CancelHeal or CommandType.UseSpeedup
-                            or CommandType.ClaimVipLogin or CommandType.ClaimVipChest or CommandType.RepairEmergency;
+                            or CommandType.ClaimVipLogin or CommandType.ClaimVipChest or CommandType.RepairEmergency
+                            or CommandType.SetNotificationPrefs or CommandType.RegisterPushToken;
                         Reject(envelope.CommandId, envelope.ClientSequence, known ? "MalformedCommand" : "NotSupported", now);
                         break;
                 }
@@ -1082,7 +1091,8 @@ namespace Hadal.Game
                 Expedition = ExpeditionDto(),
                 Profile = new PlayerProfileDto { PlayerId = PublicId, Name = _displayName, AvatarId = _state.AvatarId, Kingdom = KingdomNaming.NumberOf(KingdomId) },
                 Army = ArmyDto(),
-                Vip = VipDto(now)
+                Vip = VipDto(now),
+                Notifications = NotifyPrefsDto()
             };
             _questsDirty = false;
 
