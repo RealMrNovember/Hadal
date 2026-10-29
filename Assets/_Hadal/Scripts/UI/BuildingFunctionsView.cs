@@ -21,14 +21,11 @@ namespace Hadal.UI
         private bool _researchOpen;
         private string _researchTree = "development";
 
-        /// <summary>Research plus the command crew's skills, as the server computes them.</summary>
-        private PlayerModifiers Modifiers()
-        {
-            var modifiers = ResearchRules.Modifiers(_catalog, _stateSync.View.ResearchLevels);
-            HeroRules.AddCrew(_catalog, modifiers, _stateSync.View.Heroes.Select(h => new OwnedHero(h.HeroId, h.Level, h.Stars, h.Shards, h.Slot)));
-            VipRules.Apply(modifiers, _stateSync.View.Vip.Level);
-            return modifiers;
-        }
+        /// <summary>Research, the command crew, VIP and alliance research, as the server computes them.</summary>
+        private PlayerModifiers Modifiers() => PlayerBonuses.Of(_stateSync.View, _catalog);
+
+        /// <summary>A sample trip for the propulsion tree's summary: 20 minutes at base speed.</summary>
+        private const int SampleTripSeconds = 20 * 60;
 
         private static float Left(float endsAt) => endsAt > 0f ? Mathf.Max(0f, endsAt - Time.realtimeSinceStartup) : 0f;
 
@@ -186,6 +183,16 @@ namespace Hadal.UI
                 }
             }
 
+            // The propulsion tree opens with what every bonus adds up to (research, VIP, alliance) and what it means
+            // for a trip, so each level is felt: "March speed +28% · a 20 min trip takes 15m 38s".
+            if (_researchTree == "propulsion")
+            {
+                var total = Loc.F("research.march.total", modifiers.MarchSpeedPercent, Loc.Duration(modifiers.MarchSeconds(SampleTripSeconds)));
+                if (modifiers.ReturnSpeedPercent > 0)
+                    total += "\n" + Loc.F("research.march.return", modifiers.ReturnSpeedPercent);
+                UiKit.Label("MarchTotal", _list, total, 30, UiKit.Accent, TextAnchor.MiddleLeft, FontStyle.Bold).Row(modifiers.ReturnSpeedPercent > 0 ? 110 : 70);
+            }
+
             var wallet = Wallet();
             var inProgress = new HashSet<string>(active.Select(a => a.NodeId));
             foreach (var node in _catalog.ResearchNodes.Where(n => n.Tree == _researchTree))
@@ -232,7 +239,7 @@ namespace Hadal.UI
             var colon = node.Effect.IndexOf(':');
             var kind = colon < 0 ? node.Effect : node.Effect.Substring(0, colon);
             var subject = colon < 0 ? string.Empty : node.Effect.Substring(colon + 1);
-            var percent = kind is "buildTime" or "researchTime" or "production" or "capacity";
+            var percent = kind is "buildTime" or "researchTime" or "production" or "capacity" or "marchSpeed" or "returnSpeed";
 
             string Value(int level)
             {

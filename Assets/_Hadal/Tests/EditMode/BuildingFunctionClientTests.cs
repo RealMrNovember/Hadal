@@ -96,6 +96,28 @@ namespace Hadal.Tests.EditMode
         }
 
         [Test]
+        public void The_propulsion_research_cuts_a_20_minute_trip_to_about_12_minutes()
+        {
+            var catalog = ClientCatalog.Catalog;
+            Assert.IsTrue(catalog.TryGetResearch("thruster_efficiency", out var thruster));
+            Assert.AreEqual("propulsion", thruster.Tree);
+            Assert.AreEqual(1, thruster.RequiredCenterLevel);
+
+            var full = ResearchRules.Modifiers(catalog, new Dictionary<string, int>
+            {
+                ["thruster_efficiency"] = 10, ["hydrodynamic_hull"] = 5, ["quick_return"] = 5
+            });
+            Assert.AreEqual(65, full.MarchSpeedPercent);
+            Assert.AreEqual(25, full.ReturnSpeedPercent);
+            Assert.AreEqual(727, full.MarchSeconds(1200)); // 20:00 → 12:07
+            Assert.AreEqual(582, full.ReturnSeconds(727));
+
+            // VIP stacks on top.
+            VipRules.Apply(full, 4);
+            Assert.AreEqual(70, full.MarchSpeedPercent);
+        }
+
+        [Test]
         public void Small_producers_show_every_level()
         {
             // 2 per tick: level 1 = 120/min, level 2 = 150/min (was 120 when rates were whole numbers).

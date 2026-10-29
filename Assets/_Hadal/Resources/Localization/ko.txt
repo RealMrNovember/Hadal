@@ -1468,3 +1468,14 @@ pvp.result.mail = 자세한 내용은 우편함에 있습니다.
 pvp.result.win = 승리!
 pvp.result.loss = 패배
 pvp.result.ok = 확인
+# Propulsion research (march speed)
+research.tree.propulsion = 추진
+research.node.thruster_efficiency = 추진기 효율
+research.node.quick_return = 신속 귀환
+research.node.hydrodynamic_hull = 유체역학 선체
+effect.marchSpeed = 행군 속도 {0}
+effect.returnSpeed = 채집 부대 귀환 속도 {0}
+research.march.total = 총 행군 속도 +{0}% · 20분 거리 → {1}
+research.march.return = 귀환 속도 +{0}%
+march.speedbonus = 속도 +{0}%
+profile.marchspeed = 행군 속도 +{0}%

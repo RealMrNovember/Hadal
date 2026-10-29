@@ -10833,6 +10833,39 @@
         "baseSeconds": 900,
         "baseCost": [{"resource": "Titanium", "amount": 1000}, {"resource": "Biomass", "amount": 300}],
         "requires": [{"id": "titanium_recovery", "level": 3}]
+      },
+      {
+        "id": "thruster_efficiency",
+        "tree": "propulsion",
+        "maxLevel": 10,
+        "effect": "marchSpeed",
+        "valuePerLevel": 4,
+        "requiredCenterLevel": 1,
+        "baseSeconds": 90,
+        "baseCost": [{"resource": "Titanium", "amount": 120}, {"resource": "Biomass", "amount": 40}],
+        "requires": []
+      },
+      {
+        "id": "quick_return",
+        "tree": "propulsion",
+        "maxLevel": 5,
+        "effect": "returnSpeed",
+        "valuePerLevel": 5,
+        "requiredCenterLevel": 3,
+        "baseSeconds": 300,
+        "baseCost": [{"resource": "Titanium", "amount": 400}, {"resource": "Biomass", "amount": 120}],
+        "requires": [{"id": "thruster_efficiency", "level": 2}]
+      },
+      {
+        "id": "hydrodynamic_hull",
+        "tree": "propulsion",
+        "maxLevel": 5,
+        "effect": "marchSpeed",
+        "valuePerLevel": 5,
+        "requiredCenterLevel": 8,
+        "baseSeconds": 1200,
+        "baseCost": [{"resource": "Titanium", "amount": 2000}, {"resource": "Biomass", "amount": 600}],
+        "requires": [{"id": "thruster_efficiency", "level": 5}]
       }
     ]
   },

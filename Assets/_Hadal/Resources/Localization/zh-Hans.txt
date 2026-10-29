@@ -1468,3 +1468,14 @@ pvp.result.mail = 详情见你的邮件。
 pvp.result.win = 胜利！
 pvp.result.loss = 失败
 pvp.result.ok = 确定
+# Propulsion research (march speed)
+research.tree.propulsion = 推进
+research.node.thruster_efficiency = 推进器效率
+research.node.quick_return = 快速返航
+research.node.hydrodynamic_hull = 流体力学船体
+effect.marchSpeed = 行军速度 {0}
+effect.returnSpeed = 采集队伍返航速度 {0}
+research.march.total = 总行军速度 +{0}% · 20分钟路程 → {1}
+research.march.return = 返航速度 +{0}%
+march.speedbonus = 速度 +{0}%
+profile.marchspeed = 行军速度 +{0}%

@@ -1468,3 +1468,14 @@ pvp.result.mail = De details staan in je post.
 pvp.result.win = Overwinning!
 pvp.result.loss = Nederlaag
 pvp.result.ok = OK
+# Propulsion research (march speed)
+research.tree.propulsion = Voortstuwing
+research.node.thruster_efficiency = Stuwerefficiëntie
+research.node.quick_return = Snelle terugkeer
+research.node.hydrodynamic_hull = Hydrodynamische romp
+effect.marchSpeed = Marssnelheid {0}
+effect.returnSpeed = Terugkeersnelheid van verzamelteams {0}
+research.march.total = Totale marssnelheid +{0}% · tocht van 20 min → {1}
+research.march.return = Terugkeersnelheid +{0}%
+march.speedbonus = +{0}% snelheid
+profile.marchspeed = Marssnelheid +{0}%

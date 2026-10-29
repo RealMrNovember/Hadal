@@ -1468,3 +1468,14 @@ pvp.result.mail = Butiran ada dalam mel anda.
 pvp.result.win = Menang!
 pvp.result.loss = Kalah
 pvp.result.ok = OK
+# Propulsion research (march speed)
+research.tree.propulsion = Pendorongan
+research.node.thruster_efficiency = Kecekapan Pendorong
+research.node.quick_return = Pulang Pantas
+research.node.hydrodynamic_hull = Badan Kapal Hidrodinamik
+effect.marchSpeed = Kelajuan kawad {0}
+effect.returnSpeed = Kelajuan pulang pasukan pengumpul {0}
+research.march.total = Jumlah kelajuan kawad +{0}% · perjalanan 20 min → {1}
+research.march.return = Kelajuan pulang +{0}%
+march.speedbonus = +{0}% kelajuan
+profile.marchspeed = Kelajuan kawad +{0}%

@@ -1468,3 +1468,14 @@ pvp.result.mail = Les détails sont dans ton courrier.
 pvp.result.win = Victoire !
 pvp.result.loss = Défaite
 pvp.result.ok = OK
+# Propulsion research (march speed)
+research.tree.propulsion = Propulsion
+research.node.thruster_efficiency = Efficacité des propulseurs
+research.node.quick_return = Retour rapide
+research.node.hydrodynamic_hull = Coque hydrodynamique
+effect.marchSpeed = Vitesse de marche {0}
+effect.returnSpeed = Vitesse de retour des équipes de collecte {0}
+research.march.total = Vitesse de marche totale +{0}% · trajet de 20 min → {1}
+research.march.return = Vitesse de retour +{0}%
+march.speedbonus = +{0}% vitesse
+profile.marchspeed = Vitesse de marche +{0}%

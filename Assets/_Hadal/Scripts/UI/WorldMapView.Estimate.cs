@@ -21,7 +21,7 @@ namespace Hadal.UI
             sonarShort = SonarNow() < cost;
             var mine = TroopRules.Power(troops, aboard);
             var text = $"{Loc.F("march.vs", mine.ToString("N0"), monster.Power.ToString("N0"))}\n" +
-                       $"<color={(sonarShort ? "#FF8A80" : "#8CD9FF")}>{Loc.T("world.sonar")} {cost} ({SonarNow()})</color>   {Loc.F("world.monster.trip", Loc.Duration(trip))}";
+                       $"<color={(sonarShort ? "#FF8A80" : "#8CD9FF")}>{Loc.T("world.sonar")} {cost} ({SonarNow()})</color>   {Loc.F("world.monster.trip", TripText(trip))}";
             if (kind == null)
                 return text;
 

@@ -43,8 +43,14 @@ namespace HADAL.Shared.Simulation
         /// <summary>Extra copies allowed per building definition.</summary>
         public Dictionary<string, int> ExtraLimits { get; } = new Dictionary<string, int>(StringComparer.Ordinal);
 
-        /// <summary>Percent added to march speed (VIP); trips take raw / (1 + speed% / 100).</summary>
+        /// <summary>Percent added to march speed (research, VIP, alliance research); trips take raw / (1 + speed% / 100).</summary>
         public int MarchSpeedPercent { get; internal set; }
+
+        /// <summary>
+        /// Percent added to a gathering team's speed on the way home ("Hızlı Dönüş" research), on top of
+        /// <see cref="MarchSpeedPercent"/>: the leg home takes outbound / (1 + return% / 100).
+        /// </summary>
+        public int ReturnSpeedPercent { get; internal set; }
 
         /// <summary>Percent added to gathering rates on the map (alliance research).</summary>
         public int GatherPercent { get; internal set; }
@@ -72,6 +78,9 @@ namespace HADAL.Shared.Simulation
         public int ResearchSeconds(int seconds) => ApplyPercent(seconds, ResearchTimePercent);
 
         public int MarchSeconds(int seconds) => ApplyPercent(seconds, -MarchSpeedPercent);
+
+        /// <summary>A gathering team's leg home from its (already sped-up) outbound seconds.</summary>
+        public int ReturnSeconds(int outboundSeconds) => ApplyPercent(outboundSeconds, -ReturnSpeedPercent);
 
         /// <summary>0 = unlimited, as in the catalog.</summary>
         public int MaxCount(BuildingDefinition building) =>
@@ -171,6 +180,8 @@ namespace HADAL.Shared.Simulation
                     case "capacity": modifiers.CapacityPercent += value; break;
                     case "builderSlots": modifiers.ExtraBuilders += value; break;
                     case "researchSlots": modifiers.ExtraResearchSlots += value; break;
+                    case "marchSpeed": modifiers.MarchSpeedPercent += value; break;
+                    case "returnSpeed": modifiers.ReturnSpeedPercent += value; break;
                     case "production":
                         if (GameCatalog.TryParseResource(target, out var resource))
                             modifiers.ProductionPercent[resource] = (modifiers.ProductionPercent.TryGetValue(resource, out var p) ? p : 0) + value;
@@ -194,7 +205,7 @@ namespace HADAL.Shared.Simulation
             var target = colon < 0 ? string.Empty : effect.Substring(colon + 1);
             return kind switch
             {
-                "buildTime" or "researchTime" or "builderSlots" or "researchSlots" => colon < 0,
+                "buildTime" or "researchTime" or "builderSlots" or "researchSlots" or "marchSpeed" or "returnSpeed" => colon < 0,
                 "capacity" => target == "All",
                 "production" => GameCatalog.TryParseResource(target, out _),
                 "limit" => buildingExists(target),

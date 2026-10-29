@@ -162,7 +162,7 @@ namespace Hadal.Game
                     StartedAt = now,
                     ArrivesAt = arrives,
                     GatheredAt = arrives.AddSeconds(gather),
-                    HomeAt = arrives.AddSeconds(gather + travel),
+                    HomeAt = arrives.AddSeconds(gather + _modifiers.ReturnSeconds(travel)),
                     Reserved = Math.Min(node.Remaining, GatherRules.LoadOf(world, cargo)),
                     Rates = rates,
                     Cargo = cargo
@@ -275,12 +275,12 @@ namespace Hadal.Game
                 if (march!.PhaseAt(now) == MarchPhase.Outbound)
                 {
                     march.Cargo = new Dictionary<ResourceType, long>();
-                    march.HomeAt = now + (now - march.StartedAt);
+                    march.HomeAt = now + HomeLeg(march, now - march.StartedAt);
                 }
                 else
                 {
                     march.Cargo = GatherRules.Gathered(march.Rates, (now - march.ArrivesAt).TotalSeconds);
-                    march.HomeAt = now + (march.ArrivesAt - march.StartedAt);
+                    march.HomeAt = now + HomeLeg(march, march.ArrivesAt - march.StartedAt);
                 }
 
                 march.ArrivesAt = now < march.ArrivesAt ? now : march.ArrivesAt;
@@ -291,6 +291,18 @@ namespace Hadal.Game
                 SendDelta(now, new List<EntityChangeDto> { MarchesChange(now), Accepted(commandId, sequence) });
                 return (march.NodeId, giveBack, MarchRejectReason.None);
             }
+        }
+
+        /// <summary>
+        /// The way home of a team that sailed <paramref name="outbound"/> out: a gathering team comes back faster with the
+        /// "Hızlı Dönüş" research (<see cref="PlayerModifiers.ReturnSpeedPercent"/>); every other team takes as long as it
+        /// took out. Caller holds the lock.
+        /// </summary>
+        private TimeSpan HomeLeg(MarchState march, TimeSpan outbound)
+        {
+            if (march.Pvp != null || march.Kind != "gather" || _modifiers.ReturnSpeedPercent <= 0 || outbound <= TimeSpan.Zero)
+                return outbound;
+            return TimeSpan.FromSeconds(outbound.TotalSeconds / (1.0 + _modifiers.ReturnSpeedPercent / 100.0));
         }
 
         /// <summary>A PvP team whose battle the world has not settled yet does not unload at home (docs/30 §2).</summary>

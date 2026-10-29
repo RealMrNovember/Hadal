@@ -25,6 +25,13 @@ namespace Hadal.Game
             }
         }
 
+        /// <summary>Re-sums the modifiers after a test set research levels directly.</summary>
+        internal void RefreshModifiersForTests()
+        {
+            lock (_gate)
+                RefreshModifiers();
+        }
+
         internal PlayerModifiers ModifiersForTests
         {
             get { lock (_gate) return _modifiers; }

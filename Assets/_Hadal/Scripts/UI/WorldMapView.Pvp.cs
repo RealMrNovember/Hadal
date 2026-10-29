@@ -58,7 +58,7 @@ namespace Hadal.UI
                     text += $"  <color=#FFB347>{Loc.T("pvp.weakTarget")}</color>";
             }
 
-            return text + $"\n{Loc.F("world.monster.trip", Loc.Duration(trip))}";
+            return text + $"\n{Loc.F("world.monster.trip", TripText(trip))}";
         }
 
         /// <summary>A base's army from a scout report of the last 30 minutes; null when we have none.</summary>

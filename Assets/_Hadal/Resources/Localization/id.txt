@@ -1468,3 +1468,14 @@ pvp.result.mail = Detailnya ada di suratmu.
 pvp.result.win = Menang!
 pvp.result.loss = Kalah
 pvp.result.ok = OK
+# Propulsion research (march speed)
+research.tree.propulsion = Propulsi
+research.node.thruster_efficiency = Efisiensi Pendorong
+research.node.quick_return = Kembali Cepat
+research.node.hydrodynamic_hull = Lambung Hidrodinamis
+effect.marchSpeed = Kecepatan pasukan {0}
+effect.returnSpeed = Kecepatan pulang tim pengumpul {0}
+research.march.total = Total kecepatan pasukan +{0}% · perjalanan 20 mnt → {1}
+research.march.return = Kecepatan pulang +{0}%
+march.speedbonus = +{0}% kecepatan
+profile.marchspeed = Kecepatan pasukan +{0}%

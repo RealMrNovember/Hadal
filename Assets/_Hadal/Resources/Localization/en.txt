@@ -1469,3 +1469,14 @@ pvp.result.mail = Details are in your mail.
 pvp.result.win = Victory!
 pvp.result.loss = Defeat
 pvp.result.ok = OK
+# Propulsion research (march speed)
+research.tree.propulsion = Propulsion
+research.node.thruster_efficiency = Thruster Efficiency
+research.node.quick_return = Quick Return
+research.node.hydrodynamic_hull = Hydrodynamic Hull
+effect.marchSpeed = March speed {0}
+effect.returnSpeed = Gathering teams' return speed {0}
+research.march.total = Total march speed +{0}% · a 20 min trip → {1}
+research.march.return = Return speed +{0}%
+march.speedbonus = +{0}% speed
+profile.marchspeed = March speed +{0}%

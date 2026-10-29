@@ -71,6 +71,12 @@ Henüz fazı gelmemiş işlevler panelde **kilitli kart** olarak görünür ("De
 - Ek Oksijen Hattı: Oksijen Tesisi sınırı +1 (2) — Last Asylum'daki "ekstra Herb Garden" düğümü gibi
 - Ek Dron Hattı: Dron Fabrikası sınırı +1 (2)
 
+*İtki* (yürüyüş hızı; katalog tasarımı v13)
+- İtici Verimliliği: yürüyüş hızı +%4 (10) — Merkez 1'den açılır, her seviye Merkez +2 ister (2. seviye Merkez 3)
+- Hızlı Dönüş: toplama ekiplerinin eve dönüş hızı +%5 (5) — ön koşul: İtici Verimliliği 2, Merkez 3. Yürüyüş hızının üstüne biner; canavar ve PvP takımlarına uygulanmaz
+- Hidrodinamik Gövde: yürüyüş hızı +%5 (5) — ön koşul: İtici Verimliliği 5, Merkez 8
+- Toplam araştırma +%65: 20 dakikalık yol 14:17 (İtici 10) ve 12:07 (ikisi tam) olur; VIP ve ittifak araştırmasıyla toplanır. Süre her zaman `ham / (1 + hız% / 100)`; sunucu her yolculukta (toplama, canavar, boss, PvP, ralli) `PlayerModifiers.MarchSeconds` kullanır. Araştırma ekranı ağacın başında toplam hızı ve 20 dk'lık örnek yolu, yürüyüş kurulumu yol süresinin yanında "+%X hız" etiketini, oyuncunun kendi profil kartı toplam yürüyüş hızını gösterir.
+
 *Hayatta Kalma* (Phase 4 ile anlam kazanır)
 - Hava Geri Dönüşümü: oksijen tüketimi −%3 (10)
 - Basınç Gövdesi: basınç olay hasarı −%5 (10)
@@ -86,4 +92,4 @@ Henüz fazı gelmemiş işlevler panelde **kilitli kart** olarak görünür ("De
 - Araştırma ve bina işlevleri durumu `hadal.players.extras` JSON belgesinde saklanır.
 - Komutlar: `StartResearch`, `FinishResearch`, `BoostBuilding`, `Overdrive`, `StartSalvage`; replikasyon: `base:research` (`ResearchStateDto`), bina başına kalan süreler (`BuildingStateDto` 9–14), `base:salvage:<bina>` raporları.
 - Katalog: `research` bölümü (ağaç, düğüm, seviye bedeli/süresi, etki türü ve değeri, ön koşul). Overseer "Denge" sayfasında düzenlenebilir.
-- Etki türleri (`effect`): `buildTime`, `researchTime`, `production:<Kaynak>`, `capacity:<Kaynak|All>`, `limit:<binaId>`, `builderSlots`, `researchSlots`.
+- Etki türleri (`effect`): `buildTime`, `researchTime`, `production:<Kaynak>`, `capacity:<Kaynak|All>`, `limit:<binaId>`, `builderSlots`, `researchSlots`, `marchSpeed`, `returnSpeed`.

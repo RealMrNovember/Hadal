@@ -1468,3 +1468,14 @@ pvp.result.mail = Chi tiết có trong thư của bạn.
 pvp.result.win = Chiến thắng!
 pvp.result.loss = Thất bại
 pvp.result.ok = OK
+# Propulsion research (march speed)
+research.tree.propulsion = Động lực
+research.node.thruster_efficiency = Hiệu suất động cơ đẩy
+research.node.quick_return = Trở về nhanh
+research.node.hydrodynamic_hull = Thân tàu thủy động
+effect.marchSpeed = Tốc độ hành quân {0}
+effect.returnSpeed = Tốc độ trở về của đội thu thập {0}
+research.march.total = Tổng tốc độ hành quân +{0}% · chuyến 20 phút → {1}
+research.march.return = Tốc độ trở về +{0}%
+march.speedbonus = +{0}% tốc độ
+profile.marchspeed = Tốc độ hành quân +{0}%

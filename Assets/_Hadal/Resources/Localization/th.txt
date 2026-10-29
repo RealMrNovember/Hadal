@@ -1468,3 +1468,14 @@ pvp.result.mail = รายละเอียดอยู่ในจดหม�
 pvp.result.win = ชนะ!
 pvp.result.loss = แพ้
 pvp.result.ok = ตกลง
+# Propulsion research (march speed)
+research.tree.propulsion = ระบบขับเคลื่อน
+research.node.thruster_efficiency = ประสิทธิภาพเครื่องขับดัน
+research.node.quick_return = กลับเร็ว
+research.node.hydrodynamic_hull = ตัวเรือไฮโดรไดนามิก
+effect.marchSpeed = ความเร็วการเดินทัพ {0}
+effect.returnSpeed = ความเร็วกลับของทีมเก็บทรัพยากร {0}
+research.march.total = ความเร็วการเดินทัพรวม +{0}% · ทาง 20 นาที → {1}
+research.march.return = ความเร็วกลับ +{0}%
+march.speedbonus = ความเร็ว +{0}%
+profile.marchspeed = ความเร็วการเดินทัพ +{0}%

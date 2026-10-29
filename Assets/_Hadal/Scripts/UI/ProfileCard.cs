@@ -250,6 +250,12 @@ namespace Hadal.UI
                 cell.gameObject.AddComponent<PressFeedback>();
             }
 
+            // The player's total march speed from every source the server adds up (research, VIP, alliance research).
+            var bonuses = PlayerBonuses.Of(View, ClientCatalog.Catalog);
+            var speed = Loc.F("profile.marchspeed", bonuses.MarchSpeedPercent);
+            if (bonuses.ReturnSpeedPercent > 0)
+                speed += "   " + Loc.F("research.march.return", bonuses.ReturnSpeedPercent);
+            UiKit.Label("MarchSpeed", card, speed, 26, UiKit.Accent, TextAnchor.MiddleCenter, FontStyle.Bold).rectTransform.Place(0.04f, 0.175f, 0.96f, 0.235f);
             Note(card, Loc.T("profile.upload.soon"), 0.12f, 0.17f);
             var settings = UiKit.Button("Settings", card, Loc.T("profile.settings"), () => { Close(); _actions.Settings?.Invoke(); }, UiKit.Field, 32);
             settings.GetComponentInChildren<Text>().color = UiKit.Text;

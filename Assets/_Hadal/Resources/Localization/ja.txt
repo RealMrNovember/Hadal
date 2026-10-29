@@ -1468,3 +1468,14 @@ pvp.result.mail = 詳細はメールにあります。
 pvp.result.win = 勝利！
 pvp.result.loss = 敗北
 pvp.result.ok = OK
+# Propulsion research (march speed)
+research.tree.propulsion = 推進
+research.node.thruster_efficiency = スラスター効率
+research.node.quick_return = 迅速帰還
+research.node.hydrodynamic_hull = 流体力学船体
+effect.marchSpeed = 行軍速度 {0}
+effect.returnSpeed = 採集部隊の帰還速度 {0}
+research.march.total = 行軍速度合計 +{0}% · 20分の道のり → {1}
+research.march.return = 帰還速度 +{0}%
+march.speedbonus = 速度 +{0}%
+profile.marchspeed = 行軍速度 +{0}%

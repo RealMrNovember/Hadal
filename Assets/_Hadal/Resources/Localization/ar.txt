@@ -1468,3 +1468,14 @@ pvp.result.mail = التفاصيل في بريدك.
 pvp.result.win = نصر!
 pvp.result.loss = هزيمة
 pvp.result.ok = حسنًا
+# Propulsion research (march speed)
+research.tree.propulsion = الدفع
+research.node.thruster_efficiency = كفاءة الدافعات
+research.node.quick_return = عودة سريعة
+research.node.hydrodynamic_hull = هيكل انسيابي
+effect.marchSpeed = سرعة المسير {0}
+effect.returnSpeed = سرعة عودة فرق الجمع {0}
+research.march.total = سرعة المسير الكلية +{0}% · رحلة 20 دقيقة ← {1}
+research.march.return = سرعة العودة +{0}%
+march.speedbonus = +{0}% سرعة
+profile.marchspeed = سرعة المسير +{0}%

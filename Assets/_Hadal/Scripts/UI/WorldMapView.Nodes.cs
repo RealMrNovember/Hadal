@@ -264,6 +264,12 @@ namespace Hadal.UI
         /// <summary>The same setup in attack mode: the swarm's power against the team's, the Sonar it costs.</summary>
         private void OpenAttackSetup(WorldMonsterDto monster) => OpenMarchSetup(null, null, monster);
 
+        /// <summary>The "+X% speed" tag the open march setup shows after its trip time (empty without a bonus).</summary>
+        private string _tripTag = string.Empty;
+
+        /// <summary>A trip time in the march setup with the team's speed bonus beside it.</summary>
+        private string TripText(int trip) => Loc.Duration(trip) + _tripTag;
+
         private void OpenMarchSetup(WorldNodeDto n, List<string> team = null, WorldMonsterDto monster = null)
         {
             var fresh = team == null;
@@ -369,9 +375,10 @@ namespace Hadal.UI
             var speed = TroopRules.MarchSpeed(troops, aboard.Keys);
             var tx = pvp?.X ?? monster?.X ?? n.X;
             var ty = pvp?.Y ?? monster?.Y ?? n.Y;
-            var vip = new PlayerModifiers();
-            VipRules.Apply(vip, View.Vip?.Level ?? 0);
-            var trip = view == null ? 0 : vip.MarchSeconds((int)Math.Ceiling(GatherRules.TravelSeconds(world, view.MyX, view.MyY, tx, ty) * 100.0 / speed));
+            // Every march-speed bonus the server applies (research, VIP, alliance research), shown as a "+X% speed" tag.
+            var bonuses = PlayerBonuses.Of(View, catalog);
+            var trip = view == null ? 0 : bonuses.MarchSeconds((int)Math.Ceiling(GatherRules.TravelSeconds(world, view.MyX, view.MyY, tx, ty) * 100.0 / speed));
+            _tripTag = bonuses.MarchSpeedPercent > 0 ? $"  <color=#5BE37A>{Loc.F("march.speedbonus", bonuses.MarchSpeedPercent)}</color>" : string.Empty;
             var info = UiKit.Box("Info", card.transform, new Color(0.04f, 0.11f, 0.15f, 1f));
             info.rectTransform.Place(0.04f, 0.53f, 0.96f, 0.645f);
             string text;
@@ -386,7 +393,7 @@ namespace Hadal.UI
             {
                 var rates = GatherRules.Rates(world, catalog.Gather, n.Type, n.Level, reactor);
                 var load = Math.Min(TroopRules.MarchLoad(troops, aboard), n.Remaining);
-                text = $"{Loc.F("march.load", CostChips.Compact(load))}\n{Loc.F("march.trip", Loc.Duration(trip), Loc.Duration(GatherRules.GatherSeconds(world, rates, load)))}";
+                text = $"{Loc.F("march.load", CostChips.Compact(load))}\n{Loc.F("march.trip", TripText(trip), Loc.Duration(GatherRules.GatherSeconds(world, rates, load)))}";
             }
             UiKit.Label("Text", info.transform, text, 28, UiKit.Text, TextAnchor.MiddleLeft).rectTransform.Place(0.04f, 0.05f, 0.96f, 0.95f);
 

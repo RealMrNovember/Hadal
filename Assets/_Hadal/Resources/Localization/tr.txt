@@ -1469,3 +1469,14 @@ pvp.result.mail = Ayrıntılar postanda.
 pvp.result.win = Zafer!
 pvp.result.loss = Yenilgi
 pvp.result.ok = Tamam
+# Propulsion research (march speed)
+research.tree.propulsion = İtki
+research.node.thruster_efficiency = İtici Verimliliği
+research.node.quick_return = Hızlı Dönüş
+research.node.hydrodynamic_hull = Hidrodinamik Gövde
+effect.marchSpeed = Yürüyüş hızı {0}
+effect.returnSpeed = Toplama ekiplerinin dönüş hızı {0}
+research.march.total = Toplam yürüyüş hızı +%{0} · 20 dk'lık yol → {1}
+research.march.return = Dönüş hızı +%{0}
+march.speedbonus = +%{0} hız
+profile.marchspeed = Yürüyüş hızı +%{0}

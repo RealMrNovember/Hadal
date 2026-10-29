@@ -427,7 +427,7 @@ namespace Hadal.Game
                         cargo[pair.Key] = Math.Max(0, cargo[pair.Key] - pair.Value);
                 march.Cargo = cargo;
                 march.GatheredAt = at;
-                march.HomeAt = at + (march.ArrivesAt - march.StartedAt);
+                march.HomeAt = at + HomeLeg(march, march.ArrivesAt - march.StartedAt);
                 var giveBack = Math.Max(0, march.Reserved - GatherRules.LoadOf(_catalog.World, march.Cargo));
                 march.Reserved -= giveBack;
                 _marchesDirty = true;
@@ -452,7 +452,7 @@ namespace Hadal.Game
                 if (at < march.ArrivesAt)
                     march.ArrivesAt = at;
                 march.GatheredAt = at;
-                march.HomeAt = at.AddSeconds(TravelLocked(x, y, march.FromX, march.FromY, speed));
+                march.HomeAt = at + HomeLeg(march, TimeSpan.FromSeconds(TravelLocked(x, y, march.FromX, march.FromY, speed)));
                 if (march.Pvp != null)
                 {
                     march.Pvp.Settled = true;
