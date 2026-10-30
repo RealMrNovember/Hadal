@@ -481,6 +481,8 @@ namespace Hadal.Game.Events
             var nowMs = now.ToUnixTimeMilliseconds();
             var allianceId = string.Empty;
             var events = new List<EventDto>();
+            // Texts in the player's language only once it is known (every language, as before, until then).
+            var lang = session.Language;
             foreach (var live in _events.Values.OrderBy(e => e.Def.StartsAt))
             {
                 var phase = PhaseOf(live.Def, now);
@@ -490,7 +492,7 @@ namespace Hadal.Game.Events
                 if (phase == EventPhase.Upcoming && live.Def.StartsAt - now > TimeSpan.FromDays(7))
                     continue;
                 Sort(live, now, force: false);
-                var dto = Copy(live.Shape);
+                var dto = lang.Length > 0 ? InLanguage(live.Shape, lang) : Copy(live.Shape);
                 var score = ScoreOf(live, session.PublicId, create: false);
                 dto.Participants = live.Scores.Count;
                 if (score != null)

@@ -63,6 +63,15 @@ namespace Hadal.Game
             SendDelta(now, new List<EntityChangeDto> { Accepted(command.CommandId, command.ClientSequence) });
         }
 
+        /// <summary>
+        /// The game language the client last sent with its notification choices ("" = not known yet). Events send their
+        /// texts in it only, which keeps the often-pushed event list small.
+        /// </summary>
+        public string Language
+        {
+            get { lock (_gate) return _state.NotifyPrefs?.Language ?? string.Empty; }
+        }
+
         /// <summary>What push delivery needs: the choices and the phones (a copy taken under the session lock).</summary>
         internal PushProfile TakePushProfile()
         {

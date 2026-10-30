@@ -142,7 +142,7 @@ namespace Hadal.Game.Events
         /// </summary>
         internal EventCalendarDto CalendarFor(PlayerSession session, string? lang, DateTimeOffset now)
         {
-            lang = string.IsNullOrWhiteSpace(lang) ? "en" : lang.Trim();
+            lang = !string.IsNullOrWhiteSpace(lang) ? lang.Trim() : session.Language is { Length: > 0 } known ? known : "en";
             var from = new DateTimeOffset(now.UtcDateTime.Date, TimeSpan.Zero).AddDays(-1);
             var to = from.AddDays(EventCalendar.Days + 2);
             var entries = new List<EventDto>();

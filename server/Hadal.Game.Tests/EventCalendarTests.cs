@@ -332,6 +332,29 @@ namespace Hadal.Game.Tests
         }
 
         [Fact]
+        public async Task The_event_list_comes_in_the_players_language_once_it_is_known()
+        {
+            var world = await StartedWorld();
+            world.Events.RunCalendarNow(_clock.UtcNow);
+            var connection = new RecordingConnection();
+            var session = await world.ConnectAsync("cal-lang", connection, default, "cal-lang");
+            var race = world.Events.ListFor(session, _clock.UtcNow).Events.First(e => e.ScheduleId == DefaultSchedules.DepthRace);
+            Assert.Equal(18, race.Title.Length); // not known yet: every language
+
+            var prefs = new SetNotificationPrefsCommand { CommandId = Guid.NewGuid().ToString("N"), Prefs = new NotificationPrefsDto { Language = "de" } };
+            world.HandleCommand(session, EnvelopeBuilder.WrapCommand(prefs, CommandType.SetNotificationPrefs, TestSupport.Serializer.Serialize(prefs)));
+            Assert.Equal("de", session.Language);
+            var list = world.Events.ListFor(session, _clock.UtcNow);
+            race = list.Events.First(e => e.ScheduleId == DefaultSchedules.DepthRace);
+            Assert.Equal("Tiefenrennen", Assert.Single(race.Title).Text);
+            Assert.All(list.Events, e => Assert.Single(e.Title));
+            Assert.All(race.Phases, p => Assert.Single(p.Title));
+
+            // The calendar falls back to it when the request names no language.
+            Assert.Equal("Tiefenrennen", Calendar(world, session, connection, string.Empty).Entries.First(e => e.ScheduleId == DefaultSchedules.DepthRace).Title[0].Text);
+        }
+
+        [Fact]
         public void Calendar_days_split_entries_by_local_day()
         {
             var now = Utc(2026, 10, 28, 22, 30).ToUnixTimeMilliseconds();
