@@ -6,6 +6,7 @@ using HADAL.Shared.DTOs;
 using HADAL.Shared.Simulation;
 using Hadal.Core.Art;
 using Hadal.Core.Catalog;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -24,7 +25,7 @@ namespace Hadal.UI
         private readonly Dictionary<string, List<CreatureMotion>> _monsterBodies = new();
         private readonly HashSet<string> _arrivalsShown = new();
         private MapWildlife _wildlife;
-        private Text _sonar;
+        private TMP_Text _sonar;
         private int _searchLevel = 1;
 
         private static readonly Color BossPlate = new(0.62f, 0.3f, 0.95f, 1f);
@@ -47,9 +48,9 @@ namespace Hadal.UI
                 var plate = entry.Plate;
                 var boss = m.HpMax > 0;
                 plate.Find("Level").GetComponent<Image>().color = boss ? BossPlate : new Color(0.86f, 0.27f, 0.27f, 1f);
-                plate.Find("Level/Text").GetComponent<Text>().text = m.Level.ToString();
-                plate.Find("Level/Text").GetComponent<Text>().color = Color.white;
-                plate.Find("Name").GetComponent<Text>().text = MonsterName(m.Type)
+                plate.Find("Level/Text").GetComponent<TMP_Text>().text = m.Level.ToString();
+                plate.Find("Level/Text").GetComponent<TMP_Text>().color = Color.white;
+                plate.Find("Name").GetComponent<TMP_Text>().text = MonsterName(m.Type)
                     + (boss ? $" <color=#C9A6FF>{BossPercent(m)}%</color>" : m.Busy ? " <color=#FFB347>⚔</color>" : string.Empty);
                 if (boss)
                     BossBar(plate, m);

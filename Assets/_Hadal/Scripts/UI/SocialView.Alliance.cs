@@ -279,7 +279,7 @@ namespace Hadal.UI
                 var label = CardText(slot.transform, holder?.Name ?? Loc.T("alliance.duty.empty"), 20, holder != null ? UiKit.Text : UiKit.Muted,
                     0.02f, 0.01f, 0.98f, 0.18f, TextAnchor.MiddleCenter);
                 label.raycastTarget = false;
-                label.supportRichText = false;
+                label.richText = false;
             }
 
             // Rank groups R4 → R1; a tap folds or opens one.
@@ -343,7 +343,7 @@ namespace Hadal.UI
 
             var name = CardText(card.transform, member.Name, 32, member.PlayerId == me ? UiKit.Accent : UiKit.Text, 0.17f, 0.52f, 0.62f, 0.95f,
                 TextAnchor.MiddleLeft, FontStyle.Bold);
-            name.supportRichText = false;
+            name.richText = false;
             var role = string.IsNullOrEmpty(member.Role) ? string.Empty : " · " + Loc.T("alliance.duty." + member.Role);
             var level = member.Level > 0 ? Loc.F("world.level", member.Level) + "   " : string.Empty;
             CardText(card.transform, $"<color=#FFB74D>R{rank} {RankName(rank)}{role}</color>\n{level}{Loc.F("hero.power", member.Power.ToString("N0"))}", 22,

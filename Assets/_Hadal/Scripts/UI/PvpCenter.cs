@@ -7,6 +7,7 @@ using HADAL.Shared.Simulation;
 using Hadal.Core.Network;
 using Hadal.Core.Services;
 using Hadal.Core.StateSync;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -57,7 +58,7 @@ namespace Hadal.UI
         private int _renderedPvp = -1;
         private int _renderedInventory = -1;
         private RectTransform _body;
-        private readonly List<(Text Label, long AtMs, string Format)> _clocks = new();
+        private readonly List<(TMP_Text Label, long AtMs, string Format)> _clocks = new();
 
         private ClientStateView View => _stateSync.View;
 
@@ -481,7 +482,7 @@ namespace Hadal.UI
             header.rectTransform.Place(0, 0.92f, 1, 1);
             UiKit.Label("Title", header.transform, Loc.T("pvp.title"), 42, UiKit.Text, TextAnchor.MiddleLeft, FontStyle.Bold).rectTransform.Place(0.05f, 0, 0.8f, 1);
             var close = UiKit.Button("Close", header.transform, "X", Close, UiKit.Field, 40);
-            close.GetComponentInChildren<Text>().color = UiKit.Text;
+            close.GetComponentInChildren<TMP_Text>().color = UiKit.Text;
             ((RectTransform)close.transform).Place(0.84f, 0.15f, 0.96f, 0.85f);
 
             var tabs = new[] { Loc.T("pvp.tab.shield"), Loc.T("pvp.tab.log"), Loc.T("pvp.tab.alliance") };
@@ -490,7 +491,7 @@ namespace Hadal.UI
                 var index = i;
                 var x0 = 0.03f + i * 0.32f;
                 var button = UiKit.Button("Tab" + i, card.transform, tabs[i], () => Open(index), i == _tab ? UiKit.TabOn : UiKit.TabOff, 28);
-                button.GetComponentInChildren<Text>().color = i == _tab ? new Color(0.05f, 0.1f, 0.15f) : UiKit.Text;
+                button.GetComponentInChildren<TMP_Text>().color = i == _tab ? new Color(0.05f, 0.1f, 0.15f) : UiKit.Text;
                 ((RectTransform)button.transform).Place(x0, 0.85f, x0 + 0.3f, 0.905f);
             }
 

@@ -60,7 +60,7 @@ namespace Hadal.UI
             {
                 var card = Card(110);
                 var text = CardText(card.transform, LogText(kind, e), 26, UiKit.Text, 0.03f, 0.08f, 0.78f, 0.92f, TextAnchor.MiddleLeft);
-                text.supportRichText = false;
+                text.richText = false;
                 var at = DateTimeOffset.FromUnixTimeMilliseconds(e.AtMs).ToLocalTime();
                 CardText(card.transform, at.ToString("dd.MM HH:mm"), 22, UiKit.Muted, 0.78f, 0.08f, 0.97f, 0.92f, TextAnchor.MiddleRight);
             }

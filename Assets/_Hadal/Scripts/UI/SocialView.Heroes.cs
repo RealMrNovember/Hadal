@@ -7,6 +7,7 @@ using HADAL.Shared.Commands;
 using HADAL.Shared.DTOs;
 using HADAL.Shared.Simulation;
 using Hadal.Core.StateSync;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -99,15 +100,9 @@ namespace Hadal.UI
         }
 
         /// <summary>Text over painted art: keeps its colour, gains a dark outline (and is left alone by InkSurface).</summary>
-        private static Text Outline(Text label)
-        {
-            var stroke = label.gameObject.AddComponent<UnityEngine.UI.Outline>();
-            stroke.effectColor = new Color(0.03f, 0.05f, 0.09f, 0.95f);
-            stroke.effectDistance = new Vector2(2f, -2f);
-            return label;
-        }
+        private static TMP_Text Outline(TMP_Text label) => UiText.Outline(label, new Color(0.03f, 0.05f, 0.09f, 0.95f));
 
-        private static Text ArtText(Transform parent, string text, int size, Color color, float x0, float y0, float x1, float y1,
+        private static TMP_Text ArtText(Transform parent, string text, int size, Color color, float x0, float y0, float x1, float y1,
             TextAnchor anchor = TextAnchor.MiddleCenter, FontStyle style = FontStyle.Bold)
         {
             var label = Outline(UiKit.Label("Text", parent, text, size, color, anchor, style));

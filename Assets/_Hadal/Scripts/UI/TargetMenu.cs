@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -212,7 +213,7 @@ namespace Hadal.UI
             var right = 0.97f - tabs.Count * 0.115f;
             var name = UiKit.Label("Title", head.transform, title, UiKit.TypeScale.Subtitle, Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
             name.rectTransform.Place(left, 0, right, 1);
-            name.horizontalOverflow = HorizontalWrapMode.Overflow;
+            name.textWrappingMode = TextWrappingModes.NoWrap;
 
             for (var i = 0; i < tabs.Count; i++)
             {
@@ -354,9 +355,7 @@ namespace Hadal.UI
             var rect = Disc(_root, item, ButtonSize);
             var label = UiKit.Label("Label", rect, item.Label, UiKit.TypeScale.Body - 2, Color.white, TextAnchor.UpperCenter, FontStyle.Bold);
             label.rectTransform.Place(-0.5f, -0.36f, 1.5f, 0.02f);
-            var outline = label.gameObject.AddComponent<Outline>();
-            outline.effectColor = new Color(0.02f, 0.05f, 0.1f, 0.9f);
-            outline.effectDistance = new Vector2(2, -2);
+            UiText.Outline(label, new Color(0.02f, 0.05f, 0.1f, 0.9f));
             return rect;
         }
 

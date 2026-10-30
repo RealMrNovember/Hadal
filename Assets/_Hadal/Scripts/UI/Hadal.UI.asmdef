@@ -7,7 +7,8 @@
         "Hadal.Managers",
         "HADAL.Shared",
         "VContainer",
-        "Unity.Notifications.Android"
+        "Unity.Notifications.Android",
+        "Unity.TextMeshPro"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

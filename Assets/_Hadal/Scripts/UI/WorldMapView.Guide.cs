@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using HADAL.Shared.DTOs;
 using HADAL.Shared.Simulation;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -18,7 +19,7 @@ namespace Hadal.UI
 
         private RectTransform _guideArrow;
         private RectTransform _guidePointer;
-        private Text _guideLabel;
+        private TMP_Text _guideLabel;
         private Action _guideTap;
 
         private void BuildGuideArrow()
@@ -32,7 +33,7 @@ namespace Hadal.UI
             _guideArrow.gameObject.AddComponent<PressFeedback>();
             _guideLabel = UiKit.Label("Label", _guideArrow, string.Empty, 24, Color.white, TextAnchor.MiddleCenter, FontStyle.Bold);
             _guideLabel.rectTransform.Place(0.08f, 0.1f, 0.92f, 0.9f);
-            _guideLabel.gameObject.AddComponent<Outline>().effectColor = new Color(0, 0, 0, 0.8f);
+            UiText.Outline(_guideLabel, new Color(0, 0, 0, 0.8f));
 
             _guidePointer = UiKit.Rect("Pointer", _guideArrow);
             _guidePointer.sizeDelta = new Vector2(52f, 52f);

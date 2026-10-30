@@ -8,6 +8,7 @@ using Hadal.Core.Catalog;
 using Hadal.Core.Network;
 using Hadal.Core.State;
 using Hadal.Core.StateSync;
+using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -36,7 +37,7 @@ namespace Hadal.UI
         private Camera _baseCamera;
         private Canvas _canvas;
         private RectTransform _labels;
-        private Text _coords;
+        private TMP_Text _coords;
         private GameObject _overlay;
         private GameObject _popup;
         private Canvas _popupCanvas;
@@ -212,12 +213,13 @@ namespace Hadal.UI
             _coords = UiKit.Label("Text", coordsBox.transform, string.Empty, 26, UiKit.Accent, TextAnchor.MiddleCenter, FontStyle.Bold);
             _coords.rectTransform.Place(0.03f, 0, 0.97f, 1);
             _coords.raycastTarget = false;
-            _coords.resizeTextForBestFit = true;
-            _coords.resizeTextMinSize = 16;
-            _coords.resizeTextMaxSize = 26;
+            _coords.enableAutoSizing = true;
+            _coords.fontSizeMin = 16;
+            _coords.fontSizeMax = 26;
+            _coords.textWrappingMode = TextWrappingModes.NoWrap; // one line: shrink rather than wrap
 
             var home = UiKit.Button("Home", safe, Loc.T("world.myBase"), GoHome, UiKit.Field, 26);
-            home.GetComponentInChildren<Text>().color = UiKit.Text;
+            home.GetComponentInChildren<TMP_Text>().color = UiKit.Text;
             ((RectTransform)home.transform).Place(0.54f, 0.105f, 0.8f, 0.145f);
 
             BuildMarches(safe);
@@ -332,7 +334,7 @@ namespace Hadal.UI
             levelText.rectTransform.Place(0, 0, 1, 1);
             var name = UiKit.Label("Name", plate.transform, string.Empty, 26, Color.white, TextAnchor.MiddleLeft, FontStyle.Bold);
             name.rectTransform.Place(0.23f, 0f, 0.98f, 1f);
-            name.horizontalOverflow = HorizontalWrapMode.Overflow;
+            name.textWrappingMode = TextWrappingModes.NoWrap;
             return plate.rectTransform;
         }
 
@@ -343,8 +345,8 @@ namespace Hadal.UI
             var ally = !me && myTag.Length > 0 && b.AllianceTag == myTag;
             var tag = string.IsNullOrEmpty(b.AllianceTag) ? string.Empty : $"[{b.AllianceTag}] ";
             var color = me ? "#38D6F2" : ally ? "#7FB2FF" : "#FFFFFF";
-            plate.Find("Name").GetComponent<Text>().text = $"<color={color}>{tag}{Escape(b.Name)}</color>{(b.Online ? " <color=#5BE37A>●</color>" : string.Empty)}";
-            plate.Find("Level/Text").GetComponent<Text>().text = b.Level.ToString();
+            plate.Find("Name").GetComponent<TMP_Text>().text = $"<color={color}>{tag}{Escape(b.Name)}</color>{(b.Online ? " <color=#5BE37A>●</color>" : string.Empty)}";
+            plate.Find("Level/Text").GetComponent<TMP_Text>().text = b.Level.ToString();
             plate.GetComponent<Image>().color = me ? new Color(0.02f, 0.2f, 0.26f, 0.9f) : new Color(0.02f, 0.05f, 0.08f, 0.8f);
 
             var button = plate.GetComponent<Button>();
@@ -613,7 +615,7 @@ namespace Hadal.UI
 
         private RectTransform _homeArrow;
         private RectTransform _homePointer;
-        private Text _homeDistance;
+        private TMP_Text _homeDistance;
 
         private void BuildHomeArrow()
         {

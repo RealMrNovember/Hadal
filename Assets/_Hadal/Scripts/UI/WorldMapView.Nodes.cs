@@ -8,6 +8,7 @@ using HADAL.Shared.Simulation;
 using Hadal.Core.Catalog;
 using Hadal.Core.Events;
 using Hadal.Data.Models;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -136,7 +137,7 @@ namespace Hadal.UI
             UiKit.Label("Text", level.transform, string.Empty, 24, UiKit.Abyss, TextAnchor.MiddleCenter, FontStyle.Bold).rectTransform.Place(0, 0, 1, 1);
             var name = UiKit.Label("Name", plate.transform, string.Empty, 22, Color.white, TextAnchor.MiddleLeft);
             name.rectTransform.Place(0.26f, 0f, 0.98f, 1f);
-            name.horizontalOverflow = HorizontalWrapMode.Overflow;
+            name.textWrappingMode = TextWrappingModes.NoWrap;
             return plate.rectTransform;
         }
 
@@ -144,9 +145,9 @@ namespace Hadal.UI
         {
             var color = NodeLook.TryGetValue(n.Type, out var look) ? look.Color : Color.white;
             plate.Find("Level").GetComponent<Image>().color = color;
-            plate.Find("Level/Text").GetComponent<Text>().text = n.Level.ToString();
+            plate.Find("Level/Text").GetComponent<TMP_Text>().text = n.Level.ToString();
             var state = n.Mine ? " <color=#38D6F2>◆</color>" : n.Busy ? " <color=#FFB347>●</color>" : string.Empty;
-            plate.Find("Name").GetComponent<Text>().text = NodeName(n.Type) + state;
+            plate.Find("Name").GetComponent<TMP_Text>().text = NodeName(n.Type) + state;
             var button = plate.GetComponent<Button>();
             button.onClick.RemoveAllListeners();
             var info = n;
@@ -333,7 +334,7 @@ namespace Hadal.UI
             UiKit.Label("Target", header.transform, pvp != null ? pvp.Title : monster != null ? $"{Loc.F("base.level", monster.Level)}  {MonsterName(monster.Type)}" : $"{Loc.F("base.level", n.Level)}  {NodeName(n.Type)}", 28, UiKit.Accent, TextAnchor.MiddleLeft, FontStyle.Bold)
                 .rectTransform.Place(0.05f, 0.02f, 0.8f, 0.5f);
             var close = UiKit.Button("Close", header.transform, "X", ClosePopup, UiKit.Field, 40);
-            close.GetComponentInChildren<Text>().color = UiKit.Text;
+            close.GetComponentInChildren<TMP_Text>().color = UiKit.Text;
             ((RectTransform)close.transform).Place(0.84f, 0.18f, 0.96f, 0.82f);
 
             // The team: five seats, each with the troops that hero leads (Last Asylum's 320 · 320 · 293 …).
@@ -521,7 +522,7 @@ namespace Hadal.UI
                 {
                     var id = m.Id;
                     var recall = UiKit.Button("Recall", row.transform, Loc.T("world.recall"), () => Recall(id), UiKit.Field, 20);
-                    recall.GetComponentInChildren<Text>().color = UiKit.Text;
+                    recall.GetComponentInChildren<TMP_Text>().color = UiKit.Text;
                     ((RectTransform)recall.transform).Place(0.73f, 0.08f, 0.98f, 0.5f);
                 }
             }

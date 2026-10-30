@@ -9,6 +9,7 @@ using Hadal.Core.Catalog;
 using Hadal.Core.Events;
 using Hadal.Core.Network;
 using Hadal.Core.StateSync;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -147,7 +148,7 @@ namespace Hadal.UI
             }
 
             var close = UiKit.Button("Close", card.transform, "X", Close, UiKit.Field, 40);
-            close.GetComponentInChildren<Text>().color = UiKit.Text;
+            close.GetComponentInChildren<TMP_Text>().color = UiKit.Text;
             ((RectTransform)close.transform).Place(0.86f, _mine ? 0.92f : 0.86f, 0.97f, 0.985f);
 
             if (_mine)
@@ -200,7 +201,7 @@ namespace Hadal.UI
                 ((RectTransform)button.transform).Place(0.03f + i * 0.24f, 0.06f, 0.255f + i * 0.24f, 0.28f);
                 button.interactable = b.Enabled;
                 if (i > 0)
-                    button.GetComponentInChildren<Text>().color = UiKit.Text;
+                    button.GetComponentInChildren<TMP_Text>().color = UiKit.Text;
             }
         }
 
@@ -260,7 +261,7 @@ namespace Hadal.UI
             UiKit.Label("MarchSpeed", card, speed, 26, UiKit.Accent, TextAnchor.MiddleCenter, FontStyle.Bold).rectTransform.Place(0.04f, 0.175f, 0.96f, 0.235f);
             Note(card, Loc.T("profile.upload.soon"), 0.12f, 0.17f);
             var settings = UiKit.Button("Settings", card, Loc.T("profile.settings"), () => { Close(); _actions.Settings?.Invoke(); }, UiKit.Field, 32);
-            settings.GetComponentInChildren<Text>().color = UiKit.Text;
+            settings.GetComponentInChildren<TMP_Text>().color = UiKit.Text;
             ((RectTransform)settings.transform).Place(0.04f, 0.02f, 0.96f, 0.11f);
         }
 

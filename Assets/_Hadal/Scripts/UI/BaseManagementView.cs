@@ -12,6 +12,7 @@ using Hadal.Core.Events;
 using Hadal.Core.Network;
 using Hadal.Core.StateSync;
 using Hadal.Data.Models;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using VContainer;
@@ -40,10 +41,10 @@ namespace Hadal.UI
         private Canvas _canvas;
         private RectTransform _overlay;
         private CanvasGroup _sheet;
-        private Text _title;
-        private Text _subtitle;
+        private TMP_Text _title;
+        private TMP_Text _subtitle;
         private RectTransform _list;
-        private Text _toast;
+        private TMP_Text _toast;
         private float _toastUntil;
         private Button _expand;
         private SocialView _social;
@@ -57,7 +58,7 @@ namespace Hadal.UI
         private string _buildingKey = string.Empty;
         private float _nextRefresh;
         private float _lastPointerTime = -1f;
-        private readonly Dictionary<string, (RectTransform Root, Image Fill, Text Label)> _timers = new();
+        private readonly Dictionary<string, (RectTransform Root, Image Fill, TMP_Text Label)> _timers = new();
 
         public bool IsOpen => _sheet != null && _sheet.gameObject.activeSelf;
         public string OpenBuildingKey => IsOpen ? _buildingKey : string.Empty;
@@ -125,21 +126,19 @@ namespace Hadal.UI
             _subtitle.rectTransform.Place(0.05f, 0.8f, 0.95f, 0.865f);
 
             var close = UiKit.Button("Close", sheetImage.transform, "X", Close, UiKit.Field, 40);
-            close.GetComponentInChildren<Text>().color = UiKit.Text;
+            close.GetComponentInChildren<TMP_Text>().color = UiKit.Text;
             ((RectTransform)close.transform).Place(0.84f, 0.88f, 0.96f, 0.98f);
 
             _list = UiKit.ScrollList("List", sheetImage.transform);
             ((RectTransform)_list.parent).Place(0.04f, 0.03f, 0.96f, 0.8f);
 
             _expand = UiKit.Button("Expand", _canvas.transform, Loc.T("base.expand"), OpenExpand, new Color(0.03f, 0.10f, 0.14f, 0.85f), 36);
-            _expand.GetComponentInChildren<Text>().color = UiKit.Accent;
+            _expand.GetComponentInChildren<TMP_Text>().color = UiKit.Accent;
             ((RectTransform)_expand.transform).Place(0.03f, 0.02f, 0.4f, 0.07f);
 
             _toast = UiKit.Label("Toast", _canvas.transform, string.Empty, 38, UiKit.Text, TextAnchor.MiddleCenter, FontStyle.Bold);
             _toast.rectTransform.Place(0.05f, 0.55f, 0.95f, 0.6f);
-            var outline = _toast.gameObject.AddComponent<Outline>();
-            outline.effectColor = new Color(0, 0, 0, 0.8f);
-            outline.effectDistance = new Vector2(2, -2);
+            UiText.Outline(_toast, new Color(0, 0, 0, 0.8f));
 
             _sheet.gameObject.SetActive(false);
 
@@ -717,7 +716,7 @@ namespace Hadal.UI
             var button = UiKit.Button("Action", row.transform, confirming ? Loc.T("base.confirm.yes") : Loc.T(cancel ? "base.cancel" : "base.remove"),
                 () => Remove(key), confirming ? UiKit.Danger : UiKit.Field, 30);
             if (!confirming)
-                button.GetComponentInChildren<Text>().color = UiKit.Danger;
+                button.GetComponentInChildren<TMP_Text>().color = UiKit.Danger;
             ((RectTransform)button.transform).Place(0.71f, 0.18f, 0.97f, 0.82f);
         }
 
@@ -749,7 +748,7 @@ namespace Hadal.UI
             var button = UiKit.Button("Action", card.transform, action, () => onClick(), enabled ? fill ?? UiKit.Accent : UiKit.Panel, 36);
             button.interactable = enabled;
             if (!enabled)
-                button.GetComponentInChildren<Text>().color = UiKit.Muted; // a dark label on a dark button would vanish
+                button.GetComponentInChildren<TMP_Text>().color = UiKit.Muted; // a dark label on a dark button would vanish
             var mid = 0.5f;
             var half = Mathf.Min(0.3f, 50f / height);
             ((RectTransform)button.transform).Place(0.71f, mid - half, 0.97f, mid + half);
@@ -783,7 +782,7 @@ namespace Hadal.UI
                     var fill = UiKit.Box("Fill", root, UiKit.Accent);
                     var label = UiKit.Label("Time", root, string.Empty, 32, UiKit.Text, TextAnchor.MiddleCenter, FontStyle.Bold);
                     label.rectTransform.Place(0, 0.35f, 1, 1);
-                    label.gameObject.AddComponent<Outline>().effectColor = new Color(0, 0, 0, 0.8f);
+                    UiText.Outline(label, new Color(0, 0, 0, 0.8f));
                     timer = (root, fill, label);
                     _timers[building.instanceKey] = timer;
                 }
@@ -823,7 +822,7 @@ namespace Hadal.UI
             UpdateLevelBadges(camera);
         }
 
-        private readonly Dictionary<string, (RectTransform Root, Text Label)> _badges = new();
+        private readonly Dictionary<string, (RectTransform Root, TMP_Text Label)> _badges = new();
 
         /// <summary>A small level plate at the foot of every building (Last Asylum shows one on each).</summary>
         private void UpdateLevelBadges(Camera camera)

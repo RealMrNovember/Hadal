@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -89,9 +90,9 @@ namespace Hadal.UI
         public static readonly Color InkMuted = new(0.34f, 0.41f, 0.51f, 1f);
 
         private static readonly Regex Tag = new("<color=#([0-9A-Fa-f]{6})([0-9A-Fa-f]{2})?>", RegexOptions.Compiled);
-        private static readonly List<Text> Texts = new();
+        private static readonly List<TMP_Text> Texts = new();
 
-        private readonly Dictionary<Text, string> _done = new();
+        private readonly Dictionary<TMP_Text, string> _done = new();
         private Image _image;
         private float _next;
 
@@ -117,12 +118,13 @@ namespace Hadal.UI
             GetComponentsInChildren(true, Texts);
             foreach (var text in Texts)
             {
-                if (text.GetComponent<Shadow>() != null || !OnLight(text.transform))
+                // Outlined text was styled for dark art (HUD, titles on navy bars): leave it as it is.
+                if (UiText.HasOutline(text) || !OnLight(text.transform))
                     continue;
                 var c = text.color;
                 if (Luma(c) > 0.5f)
                     text.color = ToInk(c);
-                if (text.supportRichText && text.text.IndexOf("<color=#", System.StringComparison.Ordinal) >= 0
+                if (text.richText && text.text.IndexOf("<color=#", System.StringComparison.Ordinal) >= 0
                     && (!_done.TryGetValue(text, out var was) || was != text.text))
                 {
                     text.text = Tag.Replace(text.text, m =>

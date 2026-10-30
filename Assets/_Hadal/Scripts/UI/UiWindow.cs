@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using Hadal.Core.Services;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -36,9 +37,9 @@ namespace Hadal.UI
         private LayoutElement _viewport;
         private RectTransform _footer;
         private RectTransform _buttons;
-        private Text _note;
-        private Text _title;
-        private Text _subtitle;
+        private TMP_Text _note;
+        private TMP_Text _title;
+        private TMP_Text _subtitle;
         private Action _onClosed;
         private float _t;
         private bool _shown;

@@ -6,6 +6,7 @@ using HADAL.Shared.DTOs;
 using HADAL.Shared.Enums;
 using HADAL.Shared.Simulation;
 using Hadal.Core.Catalog;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -225,7 +226,7 @@ namespace Hadal.UI
             var bar = UiKit.Rect("TabsRow", _list).Row(96);
             UiKit.Choice("Tabs", bar, tabs, () => _bagTab, i => { _bagTab = i; _bagSelected = string.Empty; Render(force: true); }).Place(0, 0, 0.86f, 1);
             var stats = UiKit.Button("Stats", bar, "Σ", OpenBagStats, UiKit.Field, 40);
-            stats.GetComponentInChildren<Text>().color = UiKit.Accent;
+            stats.GetComponentInChildren<TMP_Text>().color = UiKit.Accent;
             ((RectTransform)stats.transform).Place(0.88f, 0.08f, 1f, 0.92f);
 
             var entries = View.Items.Where(p => p.Value > 0)
@@ -475,7 +476,7 @@ namespace Hadal.UI
                 else
                     OpenItems(id, n);
             }, new Color(0.25f, 0.5f, 0.85f, 1f), 38);
-            use.GetComponentInChildren<Text>().color = Color.white;
+            use.GetComponentInChildren<TMP_Text>().color = Color.white;
             ((RectTransform)use.transform).Place(0.3f, Y(height - 16), 0.7f, Y(height - 108));
         }
 
@@ -522,11 +523,9 @@ namespace Hadal.UI
             }
         }
 
-        private static Text Outlined(Text text)
+        private static TMP_Text Outlined(TMP_Text text)
         {
-            var outline = text.gameObject.AddComponent<Outline>();
-            outline.effectColor = new Color(0, 0, 0, 0.85f);
-            outline.effectDistance = new Vector2(2, -2);
+            UiText.Outline(text, new Color(0, 0, 0, 0.85f));
             text.raycastTarget = false;
             return text;
         }

@@ -6,6 +6,7 @@ using HADAL.Shared.Commands;
 using HADAL.Shared.DTOs;
 using HADAL.Shared.Simulation;
 using Hadal.Data.Models;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -109,7 +110,7 @@ namespace Hadal.UI
             UiKit.Label("Level", header.transform, Loc.F("base.level", building.level), 28, UiKit.Accent, TextAnchor.MiddleLeft, FontStyle.Bold)
                 .rectTransform.Place(0.05f, 0.02f, 0.8f, 0.45f);
             var close = UiKit.Button("Close", header.transform, "X", CloseTraining, UiKit.Field, 40);
-            close.GetComponentInChildren<Text>().color = UiKit.Text;
+            close.GetComponentInChildren<TMP_Text>().color = UiKit.Text;
             ((RectTransform)close.transform).Place(0.84f, 0.18f, 0.96f, 0.82f);
 
             if (_armyOpen)
@@ -233,11 +234,11 @@ namespace Hadal.UI
             }, verdict == TroopRejectReason.None ? UiKit.Ok : UiKit.Panel, 40);
             go.interactable = verdict == TroopRejectReason.None;
             if (!go.interactable)
-                go.GetComponentInChildren<Text>().color = UiKit.Muted;
+                go.GetComponentInChildren<TMP_Text>().color = UiKit.Muted;
             ((RectTransform)go.transform).Place(0.2f, 0.03f, 0.8f, 0.14f);
         }
 
-        private Text _countLabel;
+        private TMP_Text _countLabel;
 
         /// <summary>The batch in progress: what, how many, the bar and the time left; Cancel refunds it all.</summary>
         private void RenderRunning(Transform card, TrainingDto running)

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using HADAL.Shared.DTOs;
 using Hadal.Core.Catalog;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -20,7 +21,7 @@ namespace Hadal.UI
             public LineRenderer Line;
             public Transform Sub;
             public RectTransform Plate;
-            public Text Name;
+            public TMP_Text Name;
         }
 
         private readonly Dictionary<string, RouteView> _routes = new();
@@ -273,7 +274,7 @@ namespace Hadal.UI
                 plate.gameObject.AddComponent<Outline>().effectColor = new Color(color.r, color.g, color.b, 0.7f);
                 route.Name = UiKit.Label("Name", plate.transform, ownerLabel ?? string.Empty, 22, color, TextAnchor.MiddleCenter, FontStyle.Bold);
                 route.Name.rectTransform.Place(0.03f, 0, 0.97f, 1);
-                route.Name.supportRichText = false;
+                route.Name.richText = false;
                 route.Plate = plate.rectTransform;
                 route.Plate.SetAsFirstSibling();
             }

@@ -70,7 +70,7 @@ namespace Hadal.UI
             AvatarDisc.Draw(face, e.AvatarId, e.Name, e.PlayerId);
             var name = CardText(card.transform, e.Name, 30, e.PlayerId == View.PlayerId ? UiKit.Accent : UiKit.Text, 0.26f, 0.1f, 0.66f, 0.9f,
                 TextAnchor.MiddleLeft, FontStyle.Bold);
-            name.supportRichText = false;
+            name.richText = false;
             var value = kind == AllianceRankingKinds.Power ? Loc.F("hero.power", e.Value.ToString("N0"))
                 : kind == AllianceRankingKinds.Kills ? Loc.F("alliance.rank.kills", e.Value.ToString("N0"))
                 : Loc.F("alliance.rank.donated", e.Value.ToString("N0"));

@@ -6,6 +6,7 @@ using HADAL.Shared.DTOs;
 using HADAL.Shared.Simulation;
 using Hadal.Core.Network;
 using Hadal.Core.StateSync;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -78,7 +79,7 @@ namespace Hadal.UI
             header.rectTransform.Place(0, 0.93f, 1, 1);
             UiKit.Label("Title", header.transform, Loc.T("city.list"), 40, UiKit.Text, TextAnchor.MiddleLeft, FontStyle.Bold).rectTransform.Place(0.05f, 0, 0.8f, 1);
             var close = UiKit.Button("Close", header.transform, "X", Close, UiKit.Field, 38);
-            close.GetComponentInChildren<Text>().color = UiKit.Text;
+            close.GetComponentInChildren<TMP_Text>().color = UiKit.Text;
             ((RectTransform)close.transform).Place(0.85f, 0.15f, 0.96f, 0.85f);
 
             // Tabs: ours / open to take; then the level filter.
@@ -87,7 +88,7 @@ namespace Hadal.UI
             {
                 var index = i;
                 var b = UiKit.Button("Tab" + i, card.transform, tabs[i], () => { _tab = index; Render(); }, i == _tab ? UiKit.TabOn : UiKit.TabOff, 28);
-                b.GetComponentInChildren<Text>().color = i == _tab ? new Color(0.05f, 0.1f, 0.15f) : UiKit.Text;
+                b.GetComponentInChildren<TMP_Text>().color = i == _tab ? new Color(0.05f, 0.1f, 0.15f) : UiKit.Text;
                 ((RectTransform)b.transform).Place(0.03f + i * 0.475f, 0.865f, 0.495f + i * 0.475f, 0.92f);
             }
 
@@ -127,8 +128,8 @@ namespace Hadal.UI
                 var x = c.X;
                 var y = c.Y;
                 var coords = UiKit.Button("Coords", row.transform, Loc.F("world.coords", x, y), () => { Close(); _showOnMap?.Invoke(x, y); }, new Color(0, 0, 0, 0), 22);
-                coords.GetComponentInChildren<Text>().color = UiKit.Ok;
-                coords.GetComponentInChildren<Text>().alignment = TextAnchor.MiddleLeft;
+                coords.GetComponentInChildren<TMP_Text>().color = UiKit.Ok;
+                coords.GetComponentInChildren<TMP_Text>().alignment = TextAlignmentOptions.Left;
                 ((RectTransform)coords.transform).Place(0.19f, 0.36f, 0.6f, 0.66f);
                 UiKit.Label("Km", row.transform, Loc.F("city.distance", GatherRules.Km(t.MyX, t.MyY, x, y).ToString("N0")), 22, UiKit.Muted, TextAnchor.MiddleLeft)
                     .rectTransform.Place(0.19f, 0.06f, 0.6f, 0.36f);

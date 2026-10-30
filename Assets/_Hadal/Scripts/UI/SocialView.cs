@@ -9,6 +9,7 @@ using Hadal.Core.Network;
 using Hadal.Core.Events;
 using Hadal.Core.StateSync;
 using Hadal.Data.Models;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -66,11 +67,11 @@ namespace Hadal.UI
 
         private Canvas _canvas;
         private GameObject _sheet;
-        private Text _title;
-        private Text _subtitle;
+        private TMP_Text _title;
+        private TMP_Text _subtitle;
         private RectTransform _list;
         private RectTransform _footer;
-        private Text _toast;
+        private TMP_Text _toast;
         private float _toastUntil;
         private bool _keyboardUp;
 
@@ -125,7 +126,7 @@ namespace Hadal.UI
             _subtitle.rectTransform.Place(0.05f, 0.882f, 0.95f, 0.925f);
 
             var close = UiKit.Button("Close", sheetImage.transform, "X", Close, UiKit.Field, 40);
-            close.GetComponentInChildren<Text>().color = UiKit.Text;
+            close.GetComponentInChildren<TMP_Text>().color = UiKit.Text;
             ((RectTransform)close.transform).Place(0.84f, 0.93f, 0.96f, 0.99f);
 
             _list = UiKit.ScrollList("List", sheetImage.transform);
@@ -137,9 +138,7 @@ namespace Hadal.UI
 
             _toast = UiKit.Label("Toast", _canvas.transform, string.Empty, 38, UiKit.Text, TextAnchor.MiddleCenter, FontStyle.Bold);
             _toast.rectTransform.Place(0.05f, 0.46f, 0.95f, 0.52f);
-            var outline = _toast.gameObject.AddComponent<Outline>();
-            outline.effectColor = new Color(0, 0, 0, 0.8f);
-            outline.effectDistance = new Vector2(2, -2);
+            UiText.Outline(_toast, new Color(0, 0, 0, 0.8f));
             _toast.raycastTarget = false;
 
             _sheet.SetActive(false);
@@ -431,11 +430,11 @@ namespace Hadal.UI
             button.interactable = enabled;
             ((RectTransform)button.transform).Place(x0, y0, x1, y1);
             if (fill == UiKit.Field || !enabled)
-                button.GetComponentInChildren<Text>().color = enabled ? UiKit.Text : UiKit.Muted; // light text on dark buttons
+                button.GetComponentInChildren<TMP_Text>().color = enabled ? UiKit.Text : UiKit.Muted; // light text on dark buttons
             return button;
         }
 
-        private static Text CardText(Transform card, string text, int size, Color color, float x0, float y0, float x1, float y1,
+        private static TMP_Text CardText(Transform card, string text, int size, Color color, float x0, float y0, float x1, float y1,
             TextAnchor anchor = TextAnchor.UpperLeft, FontStyle style = FontStyle.Normal)
         {
             var label = UiKit.Label("Text", card, text, size, color, anchor, style);

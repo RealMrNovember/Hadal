@@ -1,5 +1,6 @@
 using System;
 using Hadal.Core.Services;
+using TMPro;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.UI;
@@ -178,40 +179,26 @@ namespace Hadal.UI
         /// <summary>Met / go (requirements met, the main build button).</summary>
         public static readonly Color Ok = new(0.36f, 0.86f, 0.46f, 1f);
 
-        private static Font _builtin;
-        private static Font _world;
-        private static Font _roundFont;
+        /// <summary>The TextMeshPro font for the current language (with its fallback chain; see <see cref="UiText"/>).</summary>
+        public static TMP_FontAsset Font => UiText.Font;
 
-        /// <summary>The font for the current language (switching language restarts the scene).</summary>
-        public static Font Font => FontFor(Loc.Current);
+        public static TMP_FontAsset FontFor(string language) => UiText.FontFor(language);
+
+        private static Font _legacy;
 
         /// <summary>
-        /// The built-in font draws Latin, Cyrillic and CJK through the phone's fonts but not Arabic
-        /// or Thai on Android, so those two use a bundled Noto merge (Latin + Arabic + Thai).
+        /// For the few legacy UI Text components still authored in the Bootstrap scene (the old, hidden resource list):
+        /// the rounded face for Latin-script languages, the Noto merge for everything it covers.
         /// </summary>
-        public static Font FontFor(string language)
+        public static Font LegacyFont
         {
-            if (language is "ar" or "th")
+            get
             {
-                _world = _world != null ? _world : Resources.Load<Font>("Fonts/HadalSansWorld-Regular");
-                if (_world != null)
-                    return _world;
+                if (_legacy == null)
+                    _legacy = Resources.Load<Font>(Loc.Current is "ar" or "th" or "ru" or "vi" ? "Fonts/HadalSansWorld-Regular" : "Fonts/Fredoka-SemiBold");
+                return _legacy;
             }
-
-            // Latin-script languages get the game's rounded face (art/ui/make_font.py); Cyrillic, CJK and Vietnamese
-            // are outside it and stay on the built-in font.
-            if (language is not ("ru" or "ja" or "ko" or "zh-Hans" or "zh-Hant" or "vi"))
-            {
-                _roundFont = _roundFont != null ? _roundFont : Resources.Load<Font>("Fonts/Fredoka-SemiBold");
-                if (_roundFont != null)
-                    return _roundFont;
-            }
-
-            return BuiltinFont;
         }
-
-        /// <summary>Unity's built-in font: draws through the phone's fonts and takes no bundled fallback (no emoji).</summary>
-        public static Font BuiltinFont => _builtin = _builtin != null ? _builtin : Resources.GetBuiltinResource<Font>("LegacyRuntime.ttf");
 
         public static Canvas Canvas(string name, int sortingOrder)
         {
@@ -282,13 +269,37 @@ namespace Hadal.UI
             return bar;
         }
 
+        /// <summary>The skin's dark navy stroke around white titles and button captions.</summary>
+        public static readonly Color StrokeColor = new(0.06f, 0.1f, 0.17f, 0.9f);
+
         /// <summary>White bold text with the skin's dark navy stroke (titles on bars, buttons).</summary>
-        public static Text Stroked(Text label)
+        public static TMP_Text Stroked(TMP_Text label)
         {
             label.color = Color.white;
-            var stroke = label.GetComponent<Outline>() ?? label.gameObject.AddComponent<Outline>();
-            stroke.effectColor = new Color(0.06f, 0.1f, 0.17f, 0.9f);
-            stroke.effectDistance = new Vector2(2f, -2f);
+            UiText.Outline(label, StrokeColor);
+            return label;
+        }
+
+        /// <summary>The TextMeshPro alignment for a legacy <see cref="TextAnchor"/> (screens are written with anchors).</summary>
+        public static TextAlignmentOptions Align(TextAnchor anchor) => anchor switch
+        {
+            TextAnchor.UpperLeft => TextAlignmentOptions.TopLeft,
+            TextAnchor.UpperCenter => TextAlignmentOptions.Top,
+            TextAnchor.UpperRight => TextAlignmentOptions.TopRight,
+            TextAnchor.MiddleLeft => TextAlignmentOptions.Left,
+            TextAnchor.MiddleCenter => TextAlignmentOptions.Center,
+            TextAnchor.MiddleRight => TextAlignmentOptions.Right,
+            TextAnchor.LowerLeft => TextAlignmentOptions.BottomLeft,
+            TextAnchor.LowerCenter => TextAlignmentOptions.Bottom,
+            _ => TextAlignmentOptions.BottomRight
+        };
+
+        /// <summary>Shrinks the text between <paramref name="min"/> and <paramref name="max"/> to fit its rect (legacy best fit).</summary>
+        public static TMP_Text Fit(this TMP_Text label, float min, float max)
+        {
+            label.enableAutoSizing = true;
+            label.fontSizeMin = min;
+            label.fontSizeMax = max;
             return label;
         }
 
@@ -317,29 +328,39 @@ namespace Hadal.UI
             return "btn_blue";
         }
 
-        public static Text Label(string name, Transform parent, string text, int size, Color color, TextAnchor anchor = TextAnchor.MiddleLeft,
-            FontStyle style = FontStyle.Normal) => Label<Text>(name, parent, text, size, color, anchor, style);
-
-        /// <summary>A label that draws emoji (chat bubbles, the HUD chat preview, chat input).</summary>
-        public static Text EmojiLabel(string name, Transform parent, string text, int size, Color color, TextAnchor anchor = TextAnchor.MiddleLeft,
-            FontStyle style = FontStyle.Normal) => Label<EmojiText>(name, parent, text, size, color, anchor, style);
-
-        private static Text Label<T>(string name, Transform parent, string text, int size, Color color, TextAnchor anchor, FontStyle style)
-            where T : Text
+        /// <summary>
+        /// A TextMeshPro label (crisp SDF text). <paramref name="size"/> is in reference pixels before <see cref="Scale"/>;
+        /// it wraps inside its rect and may overflow it vertically. Emoji in it draw too (🛡 on map plates, 💎 prices):
+        /// every label is an <see cref="EmojiText"/>, which costs nothing for text without them.
+        /// </summary>
+        public static TMP_Text Label(string name, Transform parent, string text, int size, Color color, TextAnchor anchor = TextAnchor.MiddleLeft,
+            FontStyle style = FontStyle.Normal)
         {
+            var font = Font; // first: it is also the default a new TextMeshProUGUI takes in Awake
             var rect = Rect(name, parent);
-            var label = rect.gameObject.AddComponent<T>();
-            label.font = Font;
-            label.text = text;
+            var label = rect.gameObject.AddComponent<EmojiText>();
+            if (font != null)
+                label.font = font;
             label.fontSize = Mathf.RoundToInt(size * Scale);
-            label.fontStyle = style;
+            label.fontStyle = style switch
+            {
+                FontStyle.Bold => FontStyles.Bold,
+                FontStyle.Italic => FontStyles.Italic,
+                FontStyle.BoldAndItalic => FontStyles.Bold | FontStyles.Italic,
+                _ => FontStyles.Normal
+            };
             label.color = color;
-            label.alignment = anchor;
-            label.horizontalOverflow = HorizontalWrapMode.Wrap;
-            label.verticalOverflow = VerticalWrapMode.Overflow;
+            label.alignment = Align(anchor);
+            label.textWrappingMode = TextWrappingModes.Normal;
+            label.overflowMode = TextOverflowModes.Overflow;
             label.raycastTarget = false;
+            label.text = text;
             return label;
         }
+
+        /// <summary>A label for player-written text with emoji (chat bubbles, the HUD chat preview, chat input).</summary>
+        public static TMP_Text EmojiLabel(string name, Transform parent, string text, int size, Color color, TextAnchor anchor = TextAnchor.MiddleLeft,
+            FontStyle style = FontStyle.Normal) => Label(name, parent, text, size, color, anchor, style);
 
         public static Button Button(string name, Transform parent, string text, UnityAction onClick, Color? fill = null, int fontSize = 38)
         {
@@ -385,9 +406,7 @@ namespace Hadal.UI
             if (skin != null && !close)
                 label.rectTransform.offsetMin = new Vector2(8, 14);
             // Long translations shrink to fit instead of spilling out of the button.
-            label.resizeTextForBestFit = true;
-            label.resizeTextMinSize = Mathf.Min(16, label.fontSize);
-            label.resizeTextMaxSize = label.fontSize;
+            label.Fit(Mathf.Min(16, label.fontSize), label.fontSize);
             if (skin == null)
             {
                 // The lip: a darker copy of the face just below it reads as a pressable slab.
@@ -399,7 +418,7 @@ namespace Hadal.UI
             var shadow = image.gameObject.AddComponent<Shadow>();
             shadow.effectColor = new Color(0, 0, 0, 0.3f);
             shadow.effectDistance = new Vector2(0, -6);
-            label.verticalOverflow = VerticalWrapMode.Truncate;
+            label.overflowMode = TextOverflowModes.Truncate;
             return button;
         }
 
@@ -407,24 +426,29 @@ namespace Hadal.UI
         /// A text field. The text is typed inside the field with its own blinking caret (Android's edit box over the
         /// keyboard stays hidden); pages with inputs low on the screen lift above the keyboard (SocialView.KeyboardLift).
         /// </summary>
-        public static InputField Input(string name, Transform parent, string placeholder, bool password = false, int characterLimit = 64)
+        public static TMP_InputField Input(string name, Transform parent, string placeholder, bool password = false, int characterLimit = 64)
         {
             var image = Box(name, parent, Field);
-            var field = image.gameObject.AddComponent<InputField>();
+            // TMP_InputField scrolls its text inside a masked viewport.
+            var area = Rect("Text Area", image.transform).Place(0, 0, 1, 1, 20);
+            area.gameObject.AddComponent<RectMask2D>();
 
-            var text = EmojiLabel("Text", image.transform, string.Empty, 40, Text);
-            text.rectTransform.Place(0, 0, 1, 1, 20);
-            text.supportRichText = false;
+            var text = EmojiLabel("Text", area, string.Empty, 40, Text);
+            text.rectTransform.Place(0, 0, 1, 1);
+            text.richText = false;
             text.raycastTarget = true;
 
-            var hint = Label("Placeholder", image.transform, placeholder, 36, Muted, TextAnchor.MiddleLeft, FontStyle.Italic);
-            hint.rectTransform.Place(0, 0, 1, 1, 20);
+            var hint = Label("Placeholder", area, placeholder, 36, Muted, TextAnchor.MiddleLeft, FontStyle.Italic);
+            hint.rectTransform.Place(0, 0, 1, 1);
 
+            var field = image.gameObject.AddComponent<TMP_InputField>();
+            field.textViewport = area;
             field.textComponent = text;
             field.placeholder = hint;
+            field.richText = false;
             field.characterLimit = characterLimit;
-            field.contentType = password ? InputField.ContentType.Password : InputField.ContentType.Standard;
-            field.lineType = InputField.LineType.SingleLine;
+            field.contentType = password ? TMP_InputField.ContentType.Password : TMP_InputField.ContentType.Standard;
+            field.lineType = TMP_InputField.LineType.SingleLine;
             field.shouldHideMobileInput = true;
             // Fields are light insets with dark ink (InkSurface): a dark, thick caret that blinks like the phone's.
             field.customCaretColor = true;
@@ -532,11 +556,13 @@ namespace Hadal.UI
                         buttons[i].image.sprite = tab;
                     else
                         buttons[i].image.color = i == selected ? TabOn : TabOff;
-                    var caption = buttons[i].GetComponentInChildren<UnityEngine.UI.Text>();
+                    var caption = buttons[i].GetComponentInChildren<TMP_Text>();
                     caption.color = i == selected ? new Color(0.08f, 0.13f, 0.2f) : Text;
-                    var stroke = caption.GetComponent<Outline>();
-                    if (stroke != null)
-                        stroke.enabled = i != selected;
+                    // Dark ink on the pale selected tab needs no stroke; the others keep theirs.
+                    if (i == selected)
+                        UiText.Plain(caption);
+                    else
+                        UiText.Outline(caption, StrokeColor);
                 }
             }
 

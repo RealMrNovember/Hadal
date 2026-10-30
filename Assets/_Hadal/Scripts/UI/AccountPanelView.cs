@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using HADAL.Shared.Auth;
 using HADAL.Shared.Simulation;
 using Hadal.Core.Network;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -21,31 +22,31 @@ namespace Hadal.UI
 
         private GameObject _badge;
         private CanvasGroup _panel;
-        private Text _header;
+        private TMP_Text _header;
         private readonly System.Collections.Generic.List<(RectTransform Page, string TitleKey)> _pages = new();
         private RectTransform _main;
         private RectTransform _protect;
         private RectTransform _switch;
         private RectTransform _gift;
 
-        private InputField _name;
-        private Text _accountId;
-        private Text _protection;
-        private Text _mainMessage;
+        private TMP_InputField _name;
+        private TMP_Text _accountId;
+        private TMP_Text _protection;
+        private TMP_Text _mainMessage;
 
-        private InputField _password;
-        private InputField _password2;
-        private Text _codeLabel;
-        private Text _code;
+        private TMP_InputField _password;
+        private TMP_InputField _password2;
+        private TMP_Text _codeLabel;
+        private TMP_Text _code;
         private Button _copy;
-        private Text _protectMessage;
+        private TMP_Text _protectMessage;
 
-        private InputField _transferCode;
-        private InputField _transferPassword;
-        private Text _switchMessage;
+        private TMP_InputField _transferCode;
+        private TMP_InputField _transferPassword;
+        private TMP_Text _switchMessage;
 
-        private InputField _giftCode;
-        private Text _giftMessage;
+        private TMP_InputField _giftCode;
+        private TMP_Text _giftMessage;
 
         private bool _busy;
         private GameObject _gear;
@@ -74,7 +75,7 @@ namespace Hadal.UI
         {
             // Gear button.
             var gear = UiKit.Button("Gear", root, "≡", Open, new Color(0.03f, 0.10f, 0.14f, 0.85f), 64);
-            gear.GetComponentInChildren<Text>().color = UiKit.Accent;
+            gear.GetComponentInChildren<TMP_Text>().color = UiKit.Accent;
             _gear = gear.gameObject;
             ((RectTransform)gear.transform).Place(0.86f, 0.935f, 0.985f, 0.995f);
             _badge = UiKit.Box("Badge", gear.transform, UiKit.Amber).gameObject;
@@ -124,17 +125,17 @@ namespace Hadal.UI
 
             UiKit.Button("Protect", column, Loc.T("account.protect"), () => Show(_protect)).Row(110);
             UiKit.Button("Switch", column, Loc.T("account.switch"), () => Show(_switch), UiKit.Field).Row(110)
-                .GetComponentInChildren<Text>().color = UiKit.Text;
+                .GetComponentInChildren<TMP_Text>().color = UiKit.Text;
 
             UiKit.Button("Google", column, Loc.T("account.google"), () => _ = LinkGoogle(), UiKit.Field).Row(100)
-                .GetComponentInChildren<Text>().color = UiKit.Text;
+                .GetComponentInChildren<TMP_Text>().color = UiKit.Text;
             var apple = UiKit.Button("Apple", column, Loc.T("account.apple"), null, UiKit.Field).Row(100);
             apple.interactable = false;
-            apple.GetComponentInChildren<Text>().color = UiKit.Muted;
+            apple.GetComponentInChildren<TMP_Text>().color = UiKit.Muted;
 
             _mainMessage = UiKit.Label("Message", column, string.Empty, 32, UiKit.Danger).Row(80);
             UiKit.Button("Back", column, Loc.T("account.back"), () => Show(_home), UiKit.Field).Row(100)
-                .GetComponentInChildren<Text>().color = UiKit.Text;
+                .GetComponentInChildren<TMP_Text>().color = UiKit.Text;
         }
 
         private void BuildProtect(Transform column)
@@ -147,36 +148,36 @@ namespace Hadal.UI
             _codeLabel = UiKit.Label("CodeLabel", column, Loc.T("account.code"), 34, UiKit.Muted).Row(44);
             _code = UiKit.Label("Code", column, string.Empty, 64, UiKit.Amber, TextAnchor.MiddleCenter, FontStyle.Bold).Row(100);
             _copy = UiKit.Button("Copy", column, Loc.T("account.copy"), CopyCode, UiKit.Field).Row(90);
-            _copy.GetComponentInChildren<Text>().color = UiKit.Text;
+            _copy.GetComponentInChildren<TMP_Text>().color = UiKit.Text;
 
             _protectMessage = UiKit.Label("Message", column, string.Empty, 32, UiKit.Danger).Row(110);
             UiKit.Button("Back", column, Loc.T("account.back"), () => Show(_main), UiKit.Field).Row(100)
-                .GetComponentInChildren<Text>().color = UiKit.Text;
+                .GetComponentInChildren<TMP_Text>().color = UiKit.Text;
         }
 
         private void BuildSwitch(Transform column)
         {
             UiKit.Label("Hint", column, Loc.T("account.switch.hint"), 34, UiKit.Muted).Row(130);
             _transferCode = UiKit.Input("Code", column, Loc.T("account.transfercode"), characterLimit: 16).Row(110);
-            _transferCode.characterValidation = InputField.CharacterValidation.None;
+            _transferCode.characterValidation = TMP_InputField.CharacterValidation.None;
             _transferPassword = UiKit.Input("Password", column, Loc.T("account.password"), true, AccountRules.PasswordMaxLength).Row(110);
             UiKit.Button("SignIn", column, Loc.T("account.signin"), () => _ = SignIn()).Row(110);
             UiKit.Button("GoogleSignIn", column, Loc.T("account.google.signin"), () => _ = SignInWithGoogle(), UiKit.Field).Row(110)
-                .GetComponentInChildren<Text>().color = UiKit.Text;
+                .GetComponentInChildren<TMP_Text>().color = UiKit.Text;
             _switchMessage = UiKit.Label("Message", column, string.Empty, 32, UiKit.Danger).Row(110);
             UiKit.Button("Back", column, Loc.T("account.back"), () => Show(_main), UiKit.Field).Row(100)
-                .GetComponentInChildren<Text>().color = UiKit.Text;
+                .GetComponentInChildren<TMP_Text>().color = UiKit.Text;
         }
 
         private void BuildGift(Transform column)
         {
             UiKit.Label("Hint", column, Loc.T("gift.hint"), 34, UiKit.Muted).Row(130);
             _giftCode = UiKit.Input("Code", column, Loc.T("gift.code"), characterLimit: 24).Row(110);
-            _giftCode.characterValidation = InputField.CharacterValidation.None;
+            _giftCode.characterValidation = TMP_InputField.CharacterValidation.None;
             UiKit.Button("Redeem", column, Loc.T("gift.redeem"), () => _ = Redeem()).Row(110);
             _giftMessage = UiKit.Label("Message", column, string.Empty, 36, UiKit.Danger, TextAnchor.MiddleCenter).Row(160);
             UiKit.Button("Back", column, Loc.T("account.back"), () => Show(_home), UiKit.Field).Row(100)
-                .GetComponentInChildren<Text>().color = UiKit.Text;
+                .GetComponentInChildren<TMP_Text>().color = UiKit.Text;
         }
 
         private void Render(ProfileResponse profile)
@@ -303,7 +304,7 @@ namespace Hadal.UI
         private void CopyCode()
         {
             GUIUtility.systemCopyBuffer = _code.text;
-            _copy.GetComponentInChildren<Text>().text = Loc.T("account.copied");
+            _copy.GetComponentInChildren<TMP_Text>().text = Loc.T("account.copied");
         }
 
         private async Task SignIn()

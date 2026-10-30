@@ -4,6 +4,7 @@ using HADAL.Shared.Commands;
 using HADAL.Shared.DTOs;
 using Hadal.Core.Network;
 using Hadal.Core.StateSync;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -80,7 +81,7 @@ namespace Hadal.UI
             header.rectTransform.Place(0, 0.9f, 1, 1);
             UiKit.Label("Title", header.transform, Loc.T("kingdom.list"), 40, UiKit.Text, TextAnchor.MiddleLeft, FontStyle.Bold).rectTransform.Place(0.05f, 0, 0.8f, 1);
             var close = UiKit.Button("Close", header.transform, "X", Close, UiKit.Field, 38);
-            close.GetComponentInChildren<Text>().color = UiKit.Text;
+            close.GetComponentInChildren<TMP_Text>().color = UiKit.Text;
             ((RectTransform)close.transform).Place(0.85f, 0.15f, 0.96f, 0.85f);
             UiKit.Label("Hint", card.transform, Loc.T("kingdom.hint"), 22, UiKit.Muted, TextAnchor.MiddleLeft).rectTransform.Place(0.04f, 0.82f, 0.96f, 0.89f);
 

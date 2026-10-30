@@ -4,6 +4,7 @@ using HADAL.Shared.Simulation;
 using Hadal.Core.Catalog;
 using Hadal.Core.StateSync;
 using Hadal.UI.Hud;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -55,9 +56,9 @@ namespace Hadal.UI
         private Canvas _canvas;
         private RectTransform _root;
         private RectTransform _bubble;
-        private Text _name;
-        private Text _text;
-        private Text _goLabel;
+        private TMP_Text _name;
+        private TMP_Text _text;
+        private TMP_Text _goLabel;
         private RectTransform _ring;
         private RectTransform _pointer;
         private string _stepId = string.Empty;
@@ -121,7 +122,7 @@ namespace Hadal.UI
             var tip = UiKit.Label("Tip", _pointer, "▼", 56, UiKit.Amber, TextAnchor.MiddleCenter, FontStyle.Bold);
             tip.rectTransform.Place(0, 0, 1, 1);
             tip.raycastTarget = false;
-            tip.gameObject.AddComponent<Outline>().effectColor = new Color(0, 0, 0, 0.8f);
+            UiText.Outline(tip, new Color(0, 0, 0, 0.8f));
 
             var bubble = UiKit.Box("Bubble", _root, new Color(0.02f, 0.08f, 0.12f, 0.95f));
             _bubble = bubble.rectTransform.Place(0.02f, 0.19f, 0.98f, 0.295f);
@@ -136,23 +137,23 @@ namespace Hadal.UI
             _name.rectTransform.Place(0.19f, 0.7f, 0.78f, 0.96f);
             _text = UiKit.Label("Text", _bubble, string.Empty, 27, UiKit.Text, TextAnchor.UpperLeft);
             _text.rectTransform.Place(0.19f, 0.05f, 0.78f, 0.7f);
-            _text.horizontalOverflow = HorizontalWrapMode.Wrap;
-            _text.verticalOverflow = VerticalWrapMode.Truncate;
-            _text.resizeTextForBestFit = true;
-            _text.resizeTextMinSize = 18;
-            _text.resizeTextMaxSize = 27;
+            _text.textWrappingMode = TextWrappingModes.Normal;
+            _text.overflowMode = TextOverflowModes.Truncate;
+            _text.enableAutoSizing = true;
+            _text.fontSizeMin = 18;
+            _text.fontSizeMax = 27;
 
             var go = UiKit.Button("Go", _bubble, Loc.T("guide.go"), Go, UiKit.Primary, 32);
             ((RectTransform)go.transform).Place(0.8f, 0.36f, 0.985f, 0.9f);
-            _goLabel = go.GetComponentInChildren<Text>();
+            _goLabel = go.GetComponentInChildren<TMP_Text>();
             GuideTargets.Register("GuideGo", (RectTransform)go.transform);
 
             var off = UiKit.Button("Off", _bubble, Loc.T("guide.off"), () => Off = true, new Color(0, 0, 0, 0.001f), 20);
-            off.GetComponentInChildren<Text>().color = UiKit.Muted;
+            off.GetComponentInChildren<TMP_Text>().color = UiKit.Muted;
             ((RectTransform)off.transform).Place(0.8f, 0.02f, 0.985f, 0.34f);
 
             var close = UiKit.Button("Close", _bubble, "×", () => HideFor(_stepId), UiKit.Field, 34);
-            close.GetComponentInChildren<Text>().color = UiKit.Text;
+            close.GetComponentInChildren<TMP_Text>().color = UiKit.Text;
             ((RectTransform)close.transform).Place(0.935f, 0.86f, 1.01f, 1.16f);
 
             _bubble.gameObject.SetActive(false);

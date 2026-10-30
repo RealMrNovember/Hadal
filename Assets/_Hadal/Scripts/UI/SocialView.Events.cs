@@ -5,6 +5,7 @@ using HADAL.Shared.Catalog;
 using HADAL.Shared.Commands;
 using HADAL.Shared.DTOs;
 using HADAL.Shared.Simulation;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -18,7 +19,7 @@ namespace Hadal.UI
     public sealed partial class SocialView
     {
         private string _eventId = string.Empty;
-        private Text _eventClock;
+        private TMP_Text _eventClock;
         private EventDto _eventClockFor;
         private Page _afterReward = Page.None;
 
@@ -294,7 +295,7 @@ namespace Hadal.UI
                 var button = CardButton(card.transform, done ? Loc.T("event.claimed") : Loc.T("quest.claim"), open && reached && !done,
                     () => ClaimStage(e.Id, index), UiKit.Gold, 0.76f, 0.24f, 0.97f, 0.76f);
                 if (!reached && !done)
-                    button.GetComponentInChildren<Text>().text = Loc.F("event.pointsLeft", (stage.Points - e.MyPoints).ToString("N0"));
+                    button.GetComponentInChildren<TMP_Text>().text = Loc.F("event.pointsLeft", (stage.Points - e.MyPoints).ToString("N0"));
             }
         }
 
@@ -517,7 +518,7 @@ namespace Hadal.UI
 
             var name = alliance ? $"[{entry.Tag}] {entry.Name}" : string.IsNullOrEmpty(entry.Tag) ? entry.Name : $"[{entry.Tag}] {entry.Name}";
             var label = CardText(card.transform, name, 30, UiKit.Text, 0.28f, 0.1f, 0.72f, 0.9f, TextAnchor.MiddleLeft, FontStyle.Bold);
-            label.supportRichText = false;
+            label.richText = false;
             CardText(card.transform, entry.Points.ToString("N0"), 30, UiKit.Ok, 0.7f, 0.1f, 0.97f, 0.9f, TextAnchor.MiddleRight, FontStyle.Bold);
         }
     }

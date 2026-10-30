@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using Hadal.Core.Network;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -14,8 +15,8 @@ namespace Hadal.UI
     public sealed class UpdatePromptView : MonoBehaviour
     {
         private GameObject _root;
-        private Text _message;
-        private Text _status;
+        private TMP_Text _message;
+        private TMP_Text _status;
         private Button _update;
         private Button _later;
         private string _url = string.Empty;
@@ -54,7 +55,7 @@ namespace Hadal.UI
             _status = UiKit.Label("Status", column, string.Empty, 32, UiKit.Muted, TextAnchor.MiddleCenter).Row(60);
             _update = UiKit.Button("Update", column, Loc.T("update.button"), () => _ = RunUpdate()).Row(110);
             _later = UiKit.Button("Later", column, Loc.T("update.later"), Hide, UiKit.Field).Row(100);
-            _later.GetComponentInChildren<Text>().color = UiKit.Text;
+            _later.GetComponentInChildren<TMP_Text>().color = UiKit.Text;
 
             _root.SetActive(false);
         }

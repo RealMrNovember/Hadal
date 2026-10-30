@@ -4,6 +4,7 @@ using System.Linq;
 using HADAL.Shared.DTOs;
 using HADAL.Shared.Simulation;
 using Hadal.Core.Catalog;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -21,8 +22,8 @@ namespace Hadal.UI
             public Transform Group;
             public RectTransform Ring;
             public RectTransform Plate;
-            public Text Name;
-            public Text Info;
+            public TMP_Text Name;
+            public TMP_Text Info;
             public Image Bar;
             public string Look = string.Empty;
         }
@@ -269,7 +270,7 @@ namespace Hadal.UI
                 .rectTransform.Place(0.04f, 0.76f, 0.96f, 0.96f);
             var cargo = UiKit.Label("Lines", cargoBox.transform, string.Empty, 25, UiKit.Text, TextAnchor.UpperLeft);
             cargo.rectTransform.Place(0.04f, 0.04f, 0.96f, 0.76f);
-            cargo.supportRichText = true;
+            cargo.richText = true;
 
             // The team: heroes with the troops they lead, then troops by type.
             var heroes = m.HeroIds != null && m.HeroIds.Length > 0 ? m.HeroIds : new[] { m.HeroId };

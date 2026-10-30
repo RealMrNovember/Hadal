@@ -8,6 +8,7 @@ using HADAL.Shared.Simulation;
 using Hadal.Core.Catalog;
 using Hadal.Core.StateSync;
 using Hadal.Data.Models;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -84,13 +85,13 @@ namespace Hadal.UI.Hud
         private Canvas _canvas;
         private RectTransform _safe;
         private GameObject _lower; // everything below the header; hidden while a panel covers it
-        private Text _level;
+        private TMP_Text _level;
         private RectTransform _avatarSlot;
         private int _avatarVersion = -1;
-        private Text _power;
-        private Text _hadalite;
-        private readonly Dictionary<ResourceType, Text> _chips = new();
-        private Text _podLabel;
+        private TMP_Text _power;
+        private TMP_Text _hadalite;
+        private readonly Dictionary<ResourceType, TMP_Text> _chips = new();
+        private TMP_Text _podLabel;
         private GameObject _podDot;
         private GameObject _heroDot;
         private GameObject _allianceDot;
@@ -98,25 +99,25 @@ namespace Hadal.UI.Hud
         private GameObject _helpDot;
         private GameObject _questDot;
         private Image _territoryIcon;
-        private Text _territoryLabel;
+        private TMP_Text _territoryLabel;
         private bool _shownInWorld;
         private GameObject _bagDot;
         private GameObject _mailDot;
         private GameObject _eventsDot;
-        private Text _vipLabel;
+        private TMP_Text _vipLabel;
         private GameObject _vipDot;
         private string _taskQuest = string.Empty;
         private bool _taskDone;
-        private Text _chatPreview;
+        private TMP_Text _chatPreview;
         private GameObject _chatDot;
         private RectTransform _queue;
         private GameObject _queueDiscs;
-        private Text _buildersCount;
-        private Text _researchCount;
-        private Text _marchCount;
+        private TMP_Text _buildersCount;
+        private TMP_Text _researchCount;
+        private TMP_Text _marchCount;
         private GameObject _buildersIdle;
         private bool _queueOpen = true;
-        private Text _task;
+        private TMP_Text _task;
         private string _taskBuilding = string.Empty;
         private GameObject _popup;
         private float _nextRefresh;
@@ -281,7 +282,7 @@ namespace Hadal.UI.Hud
             HudIcons.Image(strip, "quest", -0.01f, -0.08f, 0.15f, 1.08f);
             _task = Outlined(UiKit.Label("Text", strip, string.Empty, 27, Color.white, TextAnchor.MiddleLeft, FontStyle.Bold));
             _task.rectTransform.Place(0.165f, 0, 0.99f, 1);
-            _task.lineSpacing = 0.9f;
+            _task.lineSpacing = -12f; // in em/100: the old 0.9x line height
         }
 
         private void BuildBottomBar()
@@ -310,8 +311,8 @@ namespace Hadal.UI.Hud
             Skinned(chat.GetComponent<Image>(), "pill");
             _chatPreview = UiKit.EmojiLabel("Lines", chat, string.Empty, 24, UiKit.Text, TextAnchor.MiddleLeft);
             _chatPreview.rectTransform.Place(0.03f, 0.03f, 0.97f, 0.97f);
-            _chatPreview.horizontalOverflow = HorizontalWrapMode.Overflow;
-            _chatPreview.verticalOverflow = VerticalWrapMode.Truncate;
+            _chatPreview.textWrappingMode = TextWrappingModes.NoWrap;
+            _chatPreview.overflowMode = TextOverflowModes.Truncate;
             _chatDot = Dot(chat);
 
             // Territory goes out to the world map; on the map the same button brings you home.
@@ -352,13 +353,13 @@ namespace Hadal.UI.Hud
 
         private readonly struct Side
         {
-            public Side(Text label, GameObject dot)
+            public Side(TMP_Text label, GameObject dot)
             {
                 Label = label;
                 Dot = dot;
             }
 
-            public Text Label { get; }
+            public TMP_Text Label { get; }
             public GameObject Dot { get; }
         }
 
@@ -412,7 +413,7 @@ namespace Hadal.UI.Hud
             if (count <= 0)
                 return;
             var text = count > 99 ? "99+" : count.ToString();
-            dot.GetComponentInChildren<Text>().text = text;
+            dot.GetComponentInChildren<TMP_Text>().text = text;
             ((RectTransform)dot.transform).sizeDelta = new Vector2(text.Length == 1 ? 42 : 30 + 16 * text.Length, 42);
         }
 
@@ -435,13 +436,7 @@ namespace Hadal.UI.Hud
             outline.effectDistance = new Vector2(3, -3);
         }
 
-        private static Text Outlined(Text text)
-        {
-            var outline = text.gameObject.AddComponent<Outline>();
-            outline.effectColor = new Color(0, 0, 0, 0.9f);
-            outline.effectDistance = new Vector2(2, -2);
-            return text;
-        }
+        private static TMP_Text Outlined(TMP_Text text) => UiText.Outline(text, new Color(0, 0, 0, 0.9f));
 
         // --- Refresh -------------------------------------------------------------------------
 
