@@ -100,7 +100,7 @@ namespace Hadal.UI
             var label = (string.IsNullOrEmpty(b.AllianceTag) ? string.Empty : $"[{b.AllianceTag}] ") + b.Name;
             if (ally)
             {
-                items.Insert(0, new TargetMenu.Item("nav_heroes", Loc.T("pvp.reinforce"), () => OpenPvpSetup(new PvpPlan
+                items.Insert(0, new TargetMenu.Item("g_reinforce", Loc.T("pvp.reinforce"), () => OpenPvpSetup(new PvpPlan
                 {
                     Title = label, X = target.X, Y = target.Y, Info = Loc.T("pvp.reinforce.info"), GoLabel = Loc.T("pvp.reinforce"), GoColor = AllyBlue, Friendly = true,
                     Send = heroes => SendPvp(PvpRules.Reinforce, PvpRules.TargetBase, target.PlayerId, heroes)
@@ -109,14 +109,14 @@ namespace Hadal.UI
             }
 
             var open = PvpBlock(b) == null;
-            items.Insert(0, new TargetMenu.Item("left_search", Loc.T("pvp.scout"), () =>
+            items.Insert(0, new TargetMenu.Item("g_scout", Loc.T("pvp.scout"), () =>
             {
                 SendPvp(PvpRules.Scout, PvpRules.TargetBase, target.PlayerId, null);
                 TargetMenu.Hide();
             }, open));
-            items.Insert(0, new TargetMenu.Item("side_alliance", Loc.T("pvp.rally"),
+            items.Insert(0, new TargetMenu.Item("g_rally", Loc.T("pvp.rally"),
                 () => OpenMuster(label, target.X, target.Y, PvpRules.TargetBase, target.PlayerId, ScoutedArmy(target.PlayerId)), open && View.MyAlliance != null));
-            items.Insert(0, new TargetMenu.Item("event_war", Loc.T("world.attack"), () => OpenPvpSetup(new PvpPlan
+            items.Insert(0, new TargetMenu.Item("g_attack", Loc.T("world.attack"), () => OpenPvpSetup(new PvpPlan
             {
                 Title = label, X = target.X, Y = target.Y, Info = Loc.F("pvp.enemyPower", ScoutedPower(target.PlayerId)), GoLabel = Loc.T("world.attack"),
                 Enemy = ScoutedArmy(target.PlayerId), WeakTarget = PvpRules.OutOfBand(MyPower(), target.Power),

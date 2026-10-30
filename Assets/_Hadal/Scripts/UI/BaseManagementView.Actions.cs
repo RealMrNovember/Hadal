@@ -40,14 +40,14 @@ namespace Hadal.UI
 
             var items = new List<TargetMenu.Item>
             {
-                new("left_search", Loc.T("base.details"), () => OpenBuilding(key))
+                new("g_details", Loc.T("base.details"), () => OpenBuilding(key))
             };
 
             if (building.IsUnderConstruction)
             {
                 var remaining = building.constructionEndsAt - Time.realtimeSinceStartup;
                 var free = remaining <= _catalog.Progression.freeFinishSeconds;
-                items.Add(new TargetMenu.Item("queue_build", free ? Loc.T("base.finish") : Loc.T("base.speedup"), () =>
+                items.Add(new TargetMenu.Item("g_speed", free ? Loc.T("base.finish") : Loc.T("base.speedup"), () =>
                 {
                     if (free)
                         Finish(key);
@@ -57,7 +57,7 @@ namespace Hadal.UI
             }
             else if (building.level < definition.MaxLevel)
             {
-                items.Add(new TargetMenu.Item("queue_build", Loc.T("base.upgrade"), () => OpenUpgrade(key)));
+                items.Add(new TargetMenu.Item("g_up", Loc.T("base.upgrade"), () => OpenUpgrade(key)));
             }
 
             AddMilitaryActions(definition, building, items);

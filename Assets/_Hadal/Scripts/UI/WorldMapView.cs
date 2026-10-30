@@ -353,52 +353,61 @@ namespace Hadal.UI
             button.onClick.AddListener(() => ShowBase(info, me));
         }
 
-        /// <summary>A base on the map: the round menu with name, level and power; message or invite others (Last Asylum pattern).</summary>
+        /// <summary>
+        /// A base on the map (Last Asylum's): the card above it (name, portrait, power, alliance, where and whether online;
+        /// share and profile in its header, message and invite under it) and the actions on the crescent below: your own
+        /// base enters, shields and moves; an ally's is reinforced or joined; an enemy's is attacked, rallied or scouted.
+        /// </summary>
         private void ShowBase(WorldBaseDto b, bool me)
         {
             var tag = string.IsNullOrEmpty(b.AllianceTag) ? string.Empty : $"[{b.AllianceTag}] ";
-            var info = $"{Loc.F("world.level", b.Level)}   {Loc.F("hero.power", b.Power.ToString("N0"))}\n" +
-                       $"{Loc.F("world.coords", b.X, b.Y)}   {(b.Online ? Loc.T("world.online") : Loc.T("world.offline"))}";
-            var items = new List<TargetMenu.Item>();
             var target = b;
+            var ally = !me && !string.IsNullOrEmpty(b.AllianceTag) && b.AllianceTag == View.MyAlliance?.Tag;
+            var online = b.Online ? $"<color=#2E9E4A>● {Loc.T("world.online")}</color>" : Loc.T("world.offline");
+
+            var card = new TargetMenu.Card
+            {
+                Title = tag + Escape(b.Name),
+                AvatarId = b.AvatarId,
+                AvatarName = b.Name,
+                AvatarSeed = b.PlayerId,
+                Profile = me ? () => ProfileCard.Instance?.ShowMine() : () => ProfileCard.Instance?.Show(target.PlayerId, target.Name, target.AvatarId)
+            };
+            card.Stats.Add((Loc.T("hud.power"), b.Power.ToString("N0")));
+            card.Stats.Add((Loc.T("social.alliance"), string.IsNullOrEmpty(b.AllianceTag) ? "—" : $"[{b.AllianceTag}]"));
+            card.Stats.Add((online, $"{Loc.F("world.level", b.Level)}   {Loc.F("world.coords", b.X, b.Y)}"));
+            card.Tabs.Add(("g_share", () => ShareLocation?.Invoke(target.X, target.Y, me ? "me" : ally ? "base" : "enemy", tag + target.Name)));
+
+            var items = new List<TargetMenu.Item>();
             if (me)
             {
-                items.Add(new TargetMenu.Item("left_home", Loc.T("world.enter"), CloseToBase));
-                items.Add(new TargetMenu.Item("avatar", Loc.T("profile.title"), () => ProfileCard.Instance?.ShowMine()));
-                items.Add(new TargetMenu.Item("chat", Loc.T("share.title"), () => ShareLocation?.Invoke(target.X, target.Y, "me", target.Name)));
-                items.Add(new TargetMenu.Item("nav_world", Loc.T("world.teleport.random"), () => Teleport(TeleportRules.Random, 0, 0, string.Empty)));
+                items.Add(new TargetMenu.Item("g_home", Loc.T("world.enter"), CloseToBase));
+                items.Add(new TargetMenu.Item("g_shield", Loc.T("pvp.tab.shield"), () => PvpCenter.Instance?.OpenShield()));
+                items.Add(new TargetMenu.Item("g_teleport", Loc.T("world.teleport.random"), () => Teleport(TeleportRules.Random, 0, 0, string.Empty)));
+                if (b.ShieldUntilMs > View.ServerNowMs)
+                    card.Note = $"<color=#1C8FB0>{Loc.F("pvp.shield.plate", Clock(b.ShieldUntilMs - View.ServerNowMs))}</color>";
             }
             else
             {
-                var ally = !string.IsNullOrEmpty(b.AllianceTag) && b.AllianceTag == View.MyAlliance?.Tag;
-                items.Add(new TargetMenu.Item("avatar", Loc.T("profile.title"), () => ProfileCard.Instance?.Show(target.PlayerId, target.Name, target.AvatarId)));
-                items.Add(new TargetMenu.Item("chat", Loc.T("alliance.message"), () => MessagePlayer?.Invoke(target.PlayerId, target.Name)));
-                items.Add(new TargetMenu.Item("nav_world", Loc.T("share.title"), () => ShareLocation?.Invoke(target.X, target.Y, ally ? "base" : "enemy",
-                    (string.IsNullOrEmpty(target.AllianceTag) ? string.Empty : $"[{target.AllianceTag}] ") + target.Name)));
-                var canInvite = HADAL.Shared.Simulation.AlliancePermissions.CanInvite(View.MyRank()) && string.IsNullOrEmpty(b.AllianceTag);
-                items.Add(new TargetMenu.Item("side_alliance", Loc.T("alliance.invite"), () => _commands.Dispatch(new InviteToAllianceCommand
-                {
-                    CommandId = Guid.NewGuid().ToString("N"), ClientSequence = ++_sequence, PlayerId = target.PlayerId
-                }), canInvite));
-                if (ally)
-                    items.Add(new TargetMenu.Item("nav_world", Loc.T("world.teleport.ally"), () => Teleport(TeleportRules.Alliance, 0, 0, target.PlayerId)));
-            }
+                card.Social.Add(new TargetMenu.Item("g_chat", Loc.T("alliance.message"), () => MessagePlayer?.Invoke(target.PlayerId, target.Name)));
+                if (string.IsNullOrEmpty(b.AllianceTag) && HADAL.Shared.Simulation.AlliancePermissions.CanInvite(View.MyRank()))
+                    card.Social.Add(new TargetMenu.Item("g_invite", Loc.T("alliance.invite"), () => _commands.Dispatch(new InviteToAllianceCommand
+                    {
+                        CommandId = Guid.NewGuid().ToString("N"), ClientSequence = ++_sequence, PlayerId = target.PlayerId
+                    })));
 
-            if (!me)
-            {
-                var ally = !string.IsNullOrEmpty(b.AllianceTag) && b.AllianceTag == View.MyAlliance?.Tag;
                 AddPvpItems(items, b, ally);
+                if (ally)
+                    items.Add(new TargetMenu.Item("g_teleport", Loc.T("world.teleport.ally"), () => Teleport(TeleportRules.Alliance, 0, 0, target.PlayerId)));
                 // Greyed-out attack buttons say why (live feedback: "it wouldn't let me attack you").
-                if (!ally && PvpBlock(b) is { } block)
-                    info += $"\n<color=#FFB347>{block}</color>";
+                else if (PvpBlock(b) is { } block)
+                    card.Note = $"<color=#C0601A>{block}</color>";
             }
-            else if (b.ShieldUntilMs > View.ServerNowMs)
-                info += $"\n<color=#7FE9FF>🛡 {Loc.F("pvp.shield.plate", Clock(b.ShieldUntilMs - View.ServerNowMs))}</color>";
 
             GlideTo(b.X, b.Y);
             var x = b.X;
             var y = b.Y;
-            TargetMenu.Show(() => IsOpen ? _camera : null, () => TileToWorld(x, y) + Vector3.up * 3f, tag + Escape(b.Name), info, items);
+            TargetMenu.Show(() => IsOpen ? _camera : null, () => TileToWorld(x, y) + Vector3.up * 1.5f, card, items);
         }
 
         private Vector3? _glide;
@@ -424,6 +433,8 @@ namespace Hadal.UI
 
             ApplyView();
             UpdateShields();
+            // The map's own controls step aside while a target menu is up, like the HUD (Last Asylum).
+            _overlay.SetActive(!TargetMenu.IsOpen);
             HandleSeaTap();
             TickTeamDetails();
             // Other players' teams start and turn back all the time: ask for the area again every few seconds.

@@ -206,7 +206,7 @@ namespace Hadal.UI
         /// A requirement or cost line: an icon, the text (red while not met) and, when <paramref name="action"/> is given,
         /// a small green button that goes and fixes it ("Go", "Get").
         /// </summary>
-        public void Need(string icon, string text, bool met, string actionLabel = null, Action action = null)
+        public void Need(string icon, string text, bool met, string actionLabel = null, Action action = null, bool enabled = true, Color? fill = null)
         {
             var row = Zebra(96);
             Hud.HudIcons.Image(row, icon, 0.02f, 0.1f, 0.13f, 0.9f);
@@ -214,7 +214,8 @@ namespace Hadal.UI
                 .rectTransform.Place(0.15f, 0, action != null ? 0.72f : 0.86f, 1);
             if (action != null)
             {
-                var go = UiKit.Button("Go", row, actionLabel, () => action(), UiKit.Ok, 30);
+                var go = UiKit.Button("Go", row, actionLabel, () => action(), enabled ? fill ?? UiKit.Ok : UiKit.Panel, 30);
+                go.interactable = enabled;
                 ((RectTransform)go.transform).Place(0.74f, 0.14f, 0.98f, 0.86f);
             }
             else

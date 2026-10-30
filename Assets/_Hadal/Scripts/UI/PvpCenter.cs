@@ -118,6 +118,7 @@ namespace Hadal.UI
             if (_stateSync == null)
                 return;
 
+            TickShieldWindow();
             var now = View.ServerNowMs;
             var incoming = Incoming(now);
             var threats = incoming.Where(i => i.Kind != PvpRules.Scout).ToList();
@@ -397,6 +398,65 @@ namespace Hadal.UI
             Open(1);
             if (report != null)
                 ShowReport(report);
+        }
+
+        // --- Shield window (docs/41) ------------------------------------------------------------
+
+        private UiWindow _shield;
+        private float _shieldRefresh;
+
+        /// <summary>
+        /// The base's shield in one place (the map's Shield button): whether it is up and for how long, then each shield
+        /// with what the bag holds and a Use button (or its Hadalite price when the bag has none).
+        /// </summary>
+        public void OpenShield()
+        {
+            if (_shield == null)
+                _shield = UiWindow.Open(_windowCanvas.transform, Loc.T("pvp.tab.shield"), string.Empty, () => _shield = null);
+            RenderShieldWindow();
+        }
+
+        private void RenderShieldWindow()
+        {
+            _shieldRefresh = Time.unscaledTime + 1f;
+            var window = _shield;
+            window.Clear();
+            var pvp = View.Pvp ?? new PvpStatusDto();
+            var now = View.ServerNowMs;
+            var shielded = pvp.ShieldUntilMs > now;
+            window.SetTitle(Loc.T("pvp.tab.shield"), shielded
+                ? Loc.F("pvp.shield.on", Loc.Duration((pvp.ShieldUntilMs - now) / 1000f))
+                : Loc.T("pvp.shield.off"));
+            window.Paragraph(PvpRules.IsBeginner(ReactorLevel()) ? Loc.F("pvp.beginner", PvpRules.BeginnerReactor) : Loc.T("pvp.shield.rules"),
+                null, TextAnchor.MiddleLeft);
+
+            var outgoing = (View.Marches?.Marches ?? Array.Empty<MarchDto>()).Any(m => m.Kind is PvpRules.Attack or PvpRules.Scout or PvpRules.Rally && m.ArrivesAtMs > now);
+            var hadalite = (View.Data.resources ?? Array.Empty<Hadal.Data.Models.ResourceSaveEntry>())
+                .Where(e => ResourceTypeMap.FromStoredValue(e.resourceType) == HADAL.Shared.Enums.ResourceType.Hadalite).Select(e => e.amount).DefaultIfEmpty(0).Sum();
+            window.Section(Loc.T("pvp.tab.shield"));
+            foreach (var id in PvpRules.ShieldItems)
+            {
+                var held = View.Items.TryGetValue(id, out var n) ? n : 0;
+                var price = PvpRules.ShieldHadalite(id);
+                var shieldId = id;
+                window.Need("item_" + id, $"{Loc.T("item." + id)}  <size=22>{Loc.F("pvp.shield.have", held)}</size>", true,
+                    held > 0 ? Loc.T("pvp.shield.use") : $"{price:N0} {Loc.Resource("Hadalite")}",
+                    () => _commands.Dispatch(new UseShieldCommand { CommandId = Guid.NewGuid().ToString("N"), ClientSequence = ++_sequence, ItemId = shieldId }),
+                    !outgoing && (held > 0 || hadalite >= price), held > 0 ? UiKit.Ok : UiKit.Primary);
+            }
+
+            if (outgoing)
+                window.Note($"<color=#{ColorUtility.ToHtmlStringRGB(UiWindow.InkBad)}>{Loc.T("pvp.shield.attackOut")}</color>");
+            window.Fit();
+        }
+
+        private void TickShieldWindow()
+        {
+            if (_shield == null || _shield.IsClosing || Time.unscaledTime < _shieldRefresh)
+                return;
+            if (Input.touchCount > 0 || Input.GetMouseButton(0))
+                return;
+            RenderShieldWindow();
         }
 
         // --- Window ------------------------------------------------------------------------------

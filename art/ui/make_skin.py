@@ -192,6 +192,40 @@ def build():
     save("hud_disc", disc, n, n, [0, 0, 0, 0])
     # Badge: a red count bubble with a white rim; sliced so two-digit counts stretch it into a capsule.
     save("hud_badge", shape(64, 64, 32, (250, 92, 76), (206, 34, 30), border=(255, 255, 255), border_w=4), 64, 64, [30, 30, 30, 30])
+    # World target menu (Last Asylum): blue glossy action discs, the dark crescent they sit on, the info card's tabs.
+    n = 160
+    act = Image.new("RGBA", (n * S, n * S), (0, 0, 0, 0))
+    d = ImageDraw.Draw(act)
+    d.ellipse([4 * S, 10 * S, (n - 4) * S, n * S - 1], fill=(4, 18, 40, 120))
+    d.ellipse([4 * S, 4 * S, (n - 4) * S, (n - 8) * S], fill=(196, 230, 255, 255))
+    face = vgrad(n, n, (92, 168, 246), (26, 92, 190)).convert("RGBA")
+    m = Image.new("L", (n * S, n * S), 0)
+    ImageDraw.Draw(m).ellipse([10 * S, 10 * S, (n - 10) * S, (n - 14) * S], fill=255)
+    act.paste(face, (0, 0), m)
+    gl = Image.new("L", (n * S, n * S), 0)
+    ImageDraw.Draw(gl).ellipse([30 * S, 16 * S, (n - 30) * S, (n * 0.45) * S], fill=70)
+    act.alpha_composite(Image.composite(Image.new("RGBA", act.size, (255, 255, 255, 255)), Image.new("RGBA", act.size, (0, 0, 0, 0)),
+                                        gl.filter(ImageFilter.GaussianBlur(5 * S))))
+    save("act_disc", act, n, n, [0, 0, 0, 0])
+
+    w, h = 512, 256
+    arc = Image.new("RGBA", (w * S, h * S), (0, 0, 0, 0))
+    ImageDraw.Draw(arc).pieslice([0, -h * S, w * S, h * S], 0, 180, fill=(6, 14, 24, 150))
+    hole = Image.new("L", (w * S, h * S), 0)
+    ImageDraw.Draw(hole).pieslice([w * 0.21 * S, -h * 0.58 * S, w * 0.79 * S, h * 0.58 * S], 0, 180, fill=255)
+    arc.putalpha(ImageChops.subtract(arc.getchannel("A"), hole))
+    arc = arc.filter(ImageFilter.GaussianBlur(2 * S))
+    save("arc", arc, w, h, [0, 0, 0, 0])
+
+    tab = Image.new("RGBA", (96 * S, 112 * S), (0, 0, 0, 0))
+    d = ImageDraw.Draw(tab)
+    d.polygon([(0, 0), (96 * S, 0), (96 * S, 84 * S), (48 * S, 110 * S), (0, 84 * S)], fill=(214, 236, 255, 255))
+    face = vgrad(96, 112, (84, 156, 236), (34, 98, 196)).convert("RGBA")
+    m = Image.new("L", tab.size, 0)
+    ImageDraw.Draw(m).polygon([(5 * S, 0), (91 * S, 0), (91 * S, 81 * S), (48 * S, 103 * S), (5 * S, 81 * S)], fill=255)
+    tab.paste(face, (0, 0), m)
+    save("card_tab", tab, 96, 112, [0, 0, 0, 0])
+
     # Fade: dark on the left to clear on the right, behind the suggested task (text without a box).
     fade = Image.new("RGBA", (128, 16), (0, 0, 0, 0))
     for x in range(128):

@@ -29,7 +29,8 @@ namespace Hadal.UI
             dome._renderer = go.GetComponent<MeshRenderer>();
             dome._renderer.shadowCastingMode = UnityEngine.Rendering.ShadowCastingMode.Off;
             dome._renderer.receiveShadows = false;
-            _material ??= new Material(Shader.Find("Sprites/Default"));
+            // The glowing fresnel dome (Resources/Shaders/HadalShieldDome); the plain see-through sphere if it is missing.
+            _material ??= new Material(Shader.Find("Hadal/ShieldDome") ?? Shader.Find("Sprites/Default"));
             dome._renderer.sharedMaterial = _material;
             dome._block = new MaterialPropertyBlock();
             dome._phase = Random.value * 6f;
@@ -54,7 +55,7 @@ namespace Hadal.UI
         {
             // A slow breath with a quick shimmer on top.
             var t = Time.unscaledTime + _phase;
-            var alpha = 0.13f + 0.05f * Mathf.Sin(t * 1.6f) + 0.025f * Mathf.Sin(t * 7.3f);
+            var alpha = 0.16f + 0.05f * Mathf.Sin(t * 1.6f) + 0.025f * Mathf.Sin(t * 7.3f);
             var tint = Tint;
             tint.a = alpha;
             _renderer.GetPropertyBlock(_block);

@@ -451,6 +451,8 @@ namespace Hadal.UI.Hud
                 return;
 
             _lower.SetActive(!(_actions.SheetOpen?.Invoke() ?? false));
+            // A tapped building or base takes the whole screen, its card and buttons only (Last Asylum).
+            _canvas.enabled = !TargetMenu.IsOpen;
 
             var inWorld = _actions.InWorld?.Invoke() ?? false;
             if (inWorld != _shownInWorld)
