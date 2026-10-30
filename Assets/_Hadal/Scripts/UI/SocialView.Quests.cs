@@ -6,6 +6,7 @@ using HADAL.Shared.DTOs;
 using HADAL.Shared.Enums;
 using HADAL.Shared.Simulation;
 using Hadal.Core.Catalog;
+using Hadal.Core.Services;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -95,12 +96,22 @@ namespace Hadal.UI
             string.Join("  ·  ", (rewards ?? Array.Empty<RewardData>()).Select(r => Reward(r.type, r.id, r.amount, r.rarity)));
     }
 
-    /// <summary>Quests (chapter and daily), the bag and reward results (docs/27).</summary>
+    /// <summary>
+    /// Quests (story and daily), the bag and reward results (docs/27) in Last Asylum's pages: daily_quests.jpg's tabs,
+    /// timer, chest bar and task rows with reward tiles and a green Claim or blue Go; bag.jpg's resource chips, tabs and
+    /// four-column rarity grid, with the item dialog (icon, description, owned count, a slider, Use / Use all).
+    /// </summary>
     public sealed partial class SocialView
     {
         private int _questTab;
         private int _bagTab;
         private RewardReportDto _reward;
+        private int _bagCount;
+        private UiWindow _itemWindow;
+        private UiWindow _bagStats;
+
+        /// <summary>Task rows are tall enough for square reward tiles (Last Asylum's quest rows).</summary>
+        private const float QuestRowHeight = 280f;
 
         public void OpenQuests() => Open(Page.Quests);
 
@@ -114,18 +125,23 @@ namespace Hadal.UI
 
         private string QuestKey() => $"{View.QuestVersion}|{_questTab}|{_bagTab}";
 
+        // --- Quests --------------------------------------------------------------------------------
+
         private void RenderQuests()
         {
+            BeginPage();
             var state = View.Quests;
             _title.text = Loc.T("quest.title");
-            _subtitle.text = state == null ? string.Empty : Loc.F("quest.chapter", state.ChapterNumber, state.ChapterTotal);
-
-            UiKit.Choice("Tabs", _list, new[] { Loc.T("quest.tab.chapter"), Loc.T("quest.tab.daily") },
-                () => _questTab, i => { _questTab = i; Render(force: true); }).Row(90);
+            var dots = state == null ? null : new[] { StoryReady(state), DailyReady(state) };
+            UiFrames.Tabs(PinTop(100), new[] { Loc.T("quest.tab.chapter"), Loc.T("quest.tab.daily") }, _questTab, i =>
+            {
+                _questTab = i;
+                Render(force: true);
+            }, dots).Place(0, 0, 1, 1);
 
             if (state == null)
             {
-                Note(Loc.T("quest.none"));
+                NoteRow(Loc.T("quest.none"));
                 return;
             }
 
@@ -135,99 +151,176 @@ namespace Hadal.UI
                 RenderDaily(state);
         }
 
+        private static bool StoryReady(QuestStateDto state) =>
+            state.Guide != null && state.Guide.Progress >= state.Guide.Target
+            || state.Chapter != null && state.Chapter.Progress >= state.Chapter.Target;
+
+        private bool DailyReady(QuestStateDto state) =>
+            state.Daily.Any(p => !p.Claimed && p.Progress >= p.Target)
+            || (_catalog.Quests.dailyChests ?? Array.Empty<DailyChestData>()).Any(c => !state.ClaimedChests.Contains(c.points) && state.DailyPoints >= c.points);
+
         private void RenderChapter(QuestStateDto state)
         {
             RenderGuide(state);
+
+            SectionRow(Loc.F("quest.chapter", state.ChapterNumber, state.ChapterTotal));
             var current = state.Chapter;
             if (current == null || !_catalog.TryGetQuest(current.Id, out var quest, out _))
-            {
-                Note(Loc.T("quest.chapter.done"));
-                return;
-            }
-
-            var done = current.Progress >= current.Target;
-            var card = Card(330);
-            HudIconImage(card.transform, "quest", 0.02f, 0.55f, 0.18f, 0.95f);
-            CardText(card.transform, QuestText.Task(quest), 36, UiKit.Text, 0.21f, 0.6f, 0.97f, 0.95f, TextAnchor.UpperLeft, FontStyle.Bold);
-            ProgressBar(card.transform, current.Progress, current.Target, 0.21f, 0.47f, 0.97f, 0.57f);
-            CardText(card.transform, $"{Loc.T("quest.reward")}: {QuestText.Rewards(quest.rewards)}", 26, UiKit.Amber, 0.04f, 0.05f, 0.68f, 0.42f, TextAnchor.MiddleLeft);
-            var id = quest.id;
-            CardButton(card.transform, done ? Loc.T("quest.claim") : Loc.T("quest.notyet"), done, () => _commands.Dispatch(new ClaimQuestCommand
-            {
-                CommandId = NewId(), ClientSequence = NextSequence(), QuestId = id
-            }), UiKit.Amber, 0.71f, 0.08f, 0.97f, 0.42f);
+                NoteRow(Loc.T("quest.chapter.done"));
+            else
+                TaskRow(quest, current.Progress, current.Target, false);
 
             // The next tasks, so the player sees where the story goes.
             var chapter = _catalog.Quests.chapter ?? Array.Empty<QuestData>();
-            Header(Loc.T("quest.next"));
-            for (var i = state.ChapterNumber; i < Math.Min(chapter.Length, state.ChapterNumber + 3); i++)
+            if (state.ChapterNumber < chapter.Length)
             {
-                var next = Card(120);
-                CardText(next.transform, $"{i + 1}. {QuestText.Task(chapter[i])}", 28, UiKit.Muted, 0.04f, 0.5f, 0.97f, 0.95f, TextAnchor.UpperLeft);
-                CardText(next.transform, QuestText.Rewards(chapter[i].rewards), 24, UiKit.Amber, 0.04f, 0.05f, 0.97f, 0.5f);
+                SectionRow(Loc.T("quest.next"));
+                for (var i = state.ChapterNumber; i < Math.Min(chapter.Length, state.ChapterNumber + 3); i++)
+                    UiFrames.QuestRow(_list, $"{i + 1}. {QuestText.Task(chapter[i])}", RewardTiles(chapter[i].rewards).Take(5).ToArray(), null, false, null)
+                        .Row(QuestRowHeight);
             }
+
+            RenderUpcoming();
+        }
+
+        /// <summary>"Upgrade the reactor to Lv. 3 (1/1)": the task with its progress, green once done.</summary>
+        private static string TaskTitle(QuestData quest, long progress, long target)
+        {
+            var ink = ColorUtility.ToHtmlStringRGB(progress >= target ? UiFrames.InkGood : UiFrames.InkSoft);
+            return $"{QuestText.Task(quest)} <color=#{ink}>({Math.Min(progress, target):N0}/{target:N0})</color>";
+        }
+
+        /// <summary>
+        /// One task row: reward tiles (activity points first for daily tasks), and Claim when done, Go when something on
+        /// screen does it, a grey Not yet otherwise, a grey Claimed afterwards.
+        /// </summary>
+        private void TaskRow(QuestData quest, long progress, long target, bool claimed, int points = 0)
+        {
+            var tiles = RewardTiles(quest.rewards);
+            if (points > 0)
+                tiles = new[] { ("g_star", "rare", points.ToString()) }.Concat(tiles).ToArray();
+            var done = progress >= target;
+            var id = quest.id;
+            var go = done || claimed ? null : QuestGo(quest);
+            if (claimed)
+                UiFrames.QuestRow(_list, TaskTitle(quest, progress, target), tiles.Take(5).ToArray(), Loc.T("event.claimed"), true, null, false).Row(QuestRowHeight);
+            else if (done)
+                UiFrames.QuestRow(_list, TaskTitle(quest, progress, target), tiles.Take(5).ToArray(), Loc.T("quest.claim"), true, () => ClaimQuest(id)).Row(QuestRowHeight);
+            else
+                UiFrames.QuestRow(_list, TaskTitle(quest, progress, target), tiles.Take(5).ToArray(), go != null ? Loc.T("guide.go") : Loc.T("quest.notyet"),
+                    false, go, go != null).Row(QuestRowHeight);
         }
 
         private void RenderDaily(QuestStateDto state)
         {
-            // Activity chests along a points bar.
+            ChestTrack(state);
+
+            // Ready to claim first, then open tasks, the claimed ones last (as Last Asylum sorts them).
+            var rows = state.Daily
+                .Select(p => (Progress: p, Known: _catalog.TryGetQuest(p.Id, out var q, out _), Quest: q))
+                .Where(r => r.Known)
+                .OrderBy(r => r.Progress.Claimed ? 2 : r.Progress.Progress >= r.Progress.Target ? 0 : 1)
+                .ToList();
+            foreach (var row in rows)
+                TaskRow(row.Quest, row.Progress.Progress, row.Progress.Target, row.Progress.Claimed, row.Quest.points);
+        }
+
+        /// <summary>
+        /// The daily activity card: the reset timer, the points medal and a bar with the chests standing at their points
+        /// (alternately above and below it). A ready chest bounces with a red dot and opens on tap; the others show what
+        /// they hold.
+        /// </summary>
+        private void ChestTrack(QuestStateDto state)
+        {
             var chests = _catalog.Quests.dailyChests ?? Array.Empty<DailyChestData>();
             var max = chests.Length > 0 ? chests.Max(c => c.points) : 100;
-            var bar = Card(260);
-            CardText(bar.transform, Loc.F("quest.points", state.DailyPoints, max), 32, UiKit.Text, 0.04f, 0.72f, 0.7f, 0.96f, TextAnchor.UpperLeft, FontStyle.Bold);
-            CardText(bar.transform, Loc.F("quest.reset", Loc.Duration(View.DailyResetAt - Time.realtimeSinceStartup)), 22, UiKit.Muted, 0.6f, 0.72f, 0.97f, 0.96f, TextAnchor.UpperRight);
-            ProgressBar(bar.transform, state.DailyPoints, max, 0.04f, 0.58f, 0.96f, 0.66f);
+            var card = UiFrames.Plate(_list, UiFrames.Band).Row(360);
+
+            var timer = UiFrames.Plate(card.transform, new Color(0.08f, 0.12f, 0.2f, 0.72f));
+            timer.rectTransform.Place(0.02f, 0.86f, 0.46f, 0.98f);
+            var time = UiKit.Label("Timer", timer.transform, string.Empty, UiKit.TypeScale.Caption, Color.white, TextAnchor.MiddleCenter, FontStyle.Bold);
+            time.rectTransform.Place(0.04f, 0, 0.96f, 1);
+            time.Fit(14, UiKit.TypeScale.Caption);
+            UiText.Outline(time, new Color(0.02f, 0.04f, 0.08f, 0.9f));
+            LiveText.Bind(time, () => Loc.F("quest.reset", Loc.Duration(Mathf.Max(0f, View.DailyResetAt - Time.realtimeSinceStartup))), 1f);
+
+            // The medal with today's points.
+            Hud.HudIcons.Image(card.transform, "g_star", 0.01f, 0.38f, 0.13f, 0.62f);
+            var points = UiKit.Label("Points", card.transform, state.DailyPoints.ToString("N0"), UiKit.TypeScale.Body, Color.white, TextAnchor.MiddleCenter, FontStyle.Bold);
+            points.rectTransform.Place(0.01f, 0.25f, 0.13f, 0.38f);
+            UiText.Outline(points, new Color(0.02f, 0.04f, 0.08f, 0.9f));
+
+            const float x0 = 0.15f, x1 = 0.95f;
+            Skin.Bar(card.transform, max > 0 ? (float)state.DailyPoints / max : 0f, "gold").Place(x0, 0.45f, x1, 0.53f);
             for (var i = 0; i < chests.Length; i++)
             {
                 var chest = chests[i];
                 var claimed = state.ClaimedChests.Contains(chest.points);
                 var ready = !claimed && state.DailyPoints >= chest.points;
-                var x0 = 0.04f + i * 0.92f / chests.Length;
-                var x1 = x0 + 0.92f / chests.Length - 0.02f;
-                var points = chest.points;
-                var button = CardButton(bar.transform, claimed ? "✓" : chest.points.ToString(), ready, () => _commands.Dispatch(new ClaimDailyChestCommand
-                {
-                    CommandId = NewId(), ClientSequence = NextSequence(), Points = points
-                }), ready ? UiKit.Amber : UiKit.Field, x0, 0.06f, x1, 0.5f);
-                HudIconImage(button.transform, "event_gift", 0.05f, 0.35f, 0.95f, 1.0f).color = claimed ? new Color(1, 1, 1, 0.35f) : Color.white;
-            }
+                var x = x0 + (x1 - x0) * chest.points / Mathf.Max(1, max);
+                var above = i % 2 == 0;
 
-            foreach (var progress in state.Daily)
-            {
-                if (!_catalog.TryGetQuest(progress.Id, out var quest, out _))
-                    continue;
-                var done = progress.Progress >= progress.Target;
-                var card = Card(170);
-                CardText(card.transform, QuestText.Task(quest), 30, progress.Claimed ? UiKit.Muted : UiKit.Text, 0.04f, 0.58f, 0.68f, 0.95f, TextAnchor.UpperLeft, FontStyle.Bold);
-                ProgressBar(card.transform, progress.Progress, progress.Target, 0.04f, 0.4f, 0.68f, 0.52f);
-                var reward = Loc.F("quest.points.give", quest.points) + (quest.rewards?.Length > 0 ? "  ·  " + QuestText.Rewards(quest.rewards) : string.Empty);
-                CardText(card.transform, reward, 22, UiKit.Amber, 0.04f, 0.04f, 0.68f, 0.36f, TextAnchor.MiddleLeft);
-                var id = quest.id;
-                CardButton(card.transform, progress.Claimed ? "✓" : done ? Loc.T("quest.claim") : Loc.T("quest.notyet"), done && !progress.Claimed,
-                    () => _commands.Dispatch(new ClaimQuestCommand { CommandId = NewId(), ClientSequence = NextSequence(), QuestId = id }), UiKit.Amber);
+                var tick = UiKit.Box("Tick", card.transform, Color.white);
+                tick.sprite = null;
+                tick.raycastTarget = false;
+                tick.rectTransform.Place(x - 0.003f, 0.43f, x + 0.003f, 0.55f);
+
+                var holder = UiKit.Rect("Chest", card.transform).Place(x - 0.06f, above ? 0.62f : 0.06f, x + 0.06f, above ? 0.84f : 0.31f);
+                var icon = Hud.HudIcons.Image(holder, i == chests.Length - 1 ? "item_chest_gold" : i >= chests.Length / 2 ? "item_chest_silver" : "item_chest_bronze",
+                    0, 0, 1, 1);
+                icon.color = claimed ? new Color(1, 1, 1, 0.4f) : Color.white;
+                icon.raycastTarget = true;
+                var label = UiKit.Label("Points", card.transform, claimed ? "✓" : chest.points.ToString(), UiKit.TypeScale.Caption, claimed ? UiFrames.InkGood : UiFrames.Ink,
+                    TextAnchor.MiddleCenter, FontStyle.Bold);
+                label.rectTransform.Place(x - 0.06f, above ? 0.545f : 0.33f, x + 0.06f, above ? 0.635f : 0.42f);
+
+                var pointsNeeded = chest.points;
+                var rewards = chest.rewards;
+                var button = holder.gameObject.AddComponent<Button>();
+                button.targetGraphic = icon;
+                button.onClick.AddListener(() =>
+                {
+                    GameAudio.Play(Sfx.UiTap);
+                    if (ready)
+                        _commands.Dispatch(new ClaimDailyChestCommand { CommandId = NewId(), ClientSequence = NextSequence(), Points = pointsNeeded });
+                    else
+                        Toast(QuestText.Rewards(rewards), UiKit.Accent);
+                });
+                holder.gameObject.AddComponent<PressFeedback>();
+                if (ready)
+                {
+                    UiFrames.Dot(holder);
+                    holder.gameObject.AddComponent<Bob>();
+                }
             }
         }
 
-        private string _bagSelected = string.Empty;
-        private int _bagCount;
-        private GameObject _bagStats;
+        // --- Bag -------------------------------------------------------------------------------------
 
         /// <summary>
-        /// The bag in Last Asylum's layout: tabs (Special · Resources · Speed-ups · Heroes), a grid of square tiles
-        /// framed by rarity or package size with the amount on top and the count in the corner; tapping one opens a
-        /// panel under its row with what it gives, a count slider and Use. The chart button shows bag + owned totals.
+        /// The bag in Last Asylum's page: resource chips and the overview button in the bar, tabs (Special · Resources ·
+        /// Speed-ups · Heroes), a four-column grid of rarity tiles with the amount on top and the count in the corner;
+        /// a tap opens the item dialog. The Heroes tab lists the cards of heroes still to recruit under the grid.
         /// </summary>
         private void RenderBag()
         {
+            BeginPage();
             _title.text = Loc.T("bag.title");
-            _subtitle.text = string.Empty;
+            BarChips(new[]
+            {
+                (Hud.HudIcons.Resource(ResourceType.Titanium), WalletChip(ResourceType.Titanium)),
+                (Hud.HudIcons.Resource(ResourceType.Biomass), WalletChip(ResourceType.Biomass)),
+                (Hud.HudIcons.Resource(ResourceType.Food), WalletChip(ResourceType.Food))
+            }, "g_details", OpenBagStats);
 
+            var cards = View.HeroCards.Where(p => p.Value > 0 && _catalog.TryGetHero(p.Key, out _)).ToList();
+            var recruitable = cards.Any(p => _catalog.TryGetHero(p.Key, out var h) && p.Value >= QuestRules.RecruitShards(h));
             var tabs = new[] { Loc.T("bag.tab.special"), Loc.T("bag.tab.resources"), Loc.T("bag.tab.speedups"), Loc.T("bag.tab.heroes") };
-            var bar = UiKit.Rect("TabsRow", _list).Row(96);
-            UiKit.Choice("Tabs", bar, tabs, () => _bagTab, i => { _bagTab = i; _bagSelected = string.Empty; Render(force: true); }).Place(0, 0, 0.86f, 1);
-            var stats = UiKit.Button("Stats", bar, "Σ", OpenBagStats, UiKit.Field, 40);
-            stats.GetComponentInChildren<TMP_Text>().color = UiKit.Accent;
-            ((RectTransform)stats.transform).Place(0.88f, 0.08f, 1f, 0.92f);
+            UiFrames.Tabs(PinTop(100), tabs, _bagTab, i =>
+            {
+                _bagTab = i;
+                Render(force: true);
+            }, new[] { false, false, false, recruitable }).Place(0, 0, 1, 1);
 
             var entries = View.Items.Where(p => p.Value > 0)
                 .Select(p => (Id: p.Key, Count: p.Value, Tab: BagTab(p.Key)))
@@ -237,43 +330,36 @@ namespace Hadal.UI
                 .ThenBy(e => e.Id, StringComparer.Ordinal)
                 .ToList();
 
-            if (entries.Count == 0 && !(_bagTab == 3 && View.HeroCards.Any(p => p.Value > 0)))
+            if (entries.Count == 0 && !(_bagTab == 3 && cards.Count > 0))
             {
-                Note(Loc.T(_bagTab == 2 ? "bag.speedups.empty" : "bag.empty"));
+                NoteRow(Loc.T(_bagTab == 2 ? "bag.speedups.empty" : "bag.empty"));
                 return;
             }
 
-            // The resources tab can empty itself into the wallet in one tap (each package kind is one command).
+            // The resources tab empties itself into the wallet in one tap (each package kind is one command).
             if (_bagTab == 1 && entries.Count > 0)
             {
-                var all = UiKit.Rect("OpenAll", _list).Row(100);
                 var packages = entries.Select(e => (e.Id, e.Count)).ToList();
-                var button = UiKit.Button("OpenAllButton", all, Loc.F("bag.openAll", packages.Sum(p => p.Count).ToString("N0")), () =>
+                BottomButton(Loc.F("bag.openAll", packages.Sum(p => p.Count).ToString("N0")), UiKit.Gold, () =>
                 {
                     foreach (var (packageId, packageCount) in packages)
                         OpenItems(packageId, packageCount);
-                    _bagSelected = string.Empty;
-                }, UiKit.Gold, 32);
-                ((RectTransform)button.transform).Place(0.15f, 0.05f, 0.85f, 0.95f);
+                });
             }
 
-            const int columns = 4;
-            for (var start = 0; start < entries.Count; start += columns)
+            if (entries.Count > 0)
             {
-                var row = UiKit.Rect("Row", _list).Row(210);
-                for (var c = 0; c < columns && start + c < entries.Count; c++)
-                    BagTile(row, entries[start + c].Id, entries[start + c].Count, c * 0.25f + 0.01f, c * 0.25f + 0.24f);
-
-                // The use panel opens under the row of the chosen tile.
-                var chosen = entries.Skip(start).Take(columns).FirstOrDefault(e => e.Id == _bagSelected);
-                if (chosen.Id != null)
-                    BagUsePanel(chosen.Id, chosen.Count, entries.Skip(start).Take(columns).ToList().FindIndex(e => e.Id == _bagSelected));
+                var grid = UiFrames.Grid(_list, 4, 1f, 18f);
+                grid.GetComponent<GridLayoutGroup>().padding = new RectOffset(4, 4, 6, 6);
+                foreach (var entry in entries)
+                    BagTile(grid, entry.Id, entry.Count);
             }
 
             // Hero cards of heroes not recruited yet stay on the Heroes tab.
-            if (_bagTab == 3)
+            if (_bagTab == 3 && cards.Count > 0)
             {
-                foreach (var (heroId, count) in View.HeroCards.Where(p => p.Value > 0).Select(p => (p.Key, p.Value)))
+                SectionRow(Loc.T("bag.tab.cards"));
+                foreach (var (heroId, count) in cards.Select(p => (p.Key, p.Value)))
                 {
                     if (_catalog.TryGetHero(heroId, out var hero))
                         RecruitCard(hero, count);
@@ -322,205 +408,167 @@ namespace Hadal.UI
             return _catalog.TryGetItem(id, out var item) && !string.IsNullOrEmpty(item.rarity) ? item.rarity : "common";
         }
 
-        /// <summary>Frame colour for the tone (green, blue, purple, orange), when the skin is missing.</summary>
-        private Color BagFrame(string id)
+        /// <summary>What a tile shows over its icon: a package's amount, a speed-up's time, a gift's level and stars.</summary>
+        private static string BagTag(string id) =>
+            GiftItems.TryParseHero(id, out _, out var giftLevel, out var giftStars) ? Loc.F("item.herogift.short", giftLevel, giftStars)
+            : GiftItems.TryParseTroops(id, out _, out var giftTier, out var giftCount) ? $"T{giftTier} ×{CostChips.Compact(giftCount)}"
+            : VipRules.TryParseItem(id, out var vip) ? "VIP " + CostChips.Compact(vip)
+            : Capsules.TryParse(id, out _, out var amount) ? CostChips.Compact(amount)
+            : Speedups.TryParse(id, out _, out var minutes, out var percent) ? QuestText.SpeedupAmount(minutes, percent) : null;
+
+        private void BagTile(Transform grid, string id, int count)
         {
-            return BagTone(id) switch
-            {
-                "legendary" => new Color(0.91f, 0.55f, 0.16f, 1f),
-                "epic" => new Color(0.6f, 0.33f, 0.86f, 1f),
-                "rare" => new Color(0.2f, 0.5f, 0.86f, 1f),
-                _ => new Color(0.27f, 0.66f, 0.33f, 1f)
-            };
-        }
-
-        private void BagTile(RectTransform row, string id, int count, float x0, float x1)
-        {
-            var chosen = id == _bagSelected;
-            var frame = UiKit.Box("Tile", row, BagFrame(id));
-            frame.rectTransform.Place(x0, 0.04f, x1, 0.96f);
-            var slot = Skin.Get("slot_" + BagTone(id));
-            if (slot != null)
-            {
-                frame.sprite = slot;
-                frame.color = Color.white;
-            }
-            if (chosen)
-            {
-                var outline = frame.gameObject.AddComponent<Outline>();
-                outline.effectColor = new Color(1f, 0.82f, 0.3f, 1f);
-                outline.effectDistance = new Vector2(5, -5);
-            }
-
-            // A soft inner shade and the icon in the middle, Last Asylum's card look.
-            if (slot == null)
-            {
-                var inner = UiKit.Box("Inner", frame.transform, new Color(1f, 1f, 1f, 0.12f));
-                inner.rectTransform.Place(0.06f, 0.06f, 0.94f, 0.94f);
-                inner.raycastTarget = false;
-            }
-
             _catalog.TryGetItem(id, out var item);
-            if (GiftItems.TryParseHero(id, out var giftHero, out var giftLevel, out var giftStars) && _catalog.TryGetHero(giftHero, out var giftDefinition))
-                Portrait(frame.transform, giftDefinition, true, 0.12f, 0.14f, 0.88f, 0.78f);
-            else
-                HudIconImage(frame.transform, QuestText.ItemIcon(id, item?.kind), 0.18f, 0.16f, 0.82f, 0.8f);
-            var top = GiftItems.TryParseHero(id, out _, out giftLevel, out giftStars) ? Loc.F("item.herogift.short", giftLevel, giftStars)
-                : GiftItems.TryParseTroops(id, out _, out var giftTier, out var giftCount) ? $"T{giftTier} ×{CostChips.Compact(giftCount)}"
-                : VipRules.TryParseItem(id, out var vipTop) ? "VIP " + CostChips.Compact(vipTop)
-                : Capsules.TryParse(id, out _, out var amount) ? CostChips.Compact(amount)
-                : Speedups.TryParse(id, out _, out var minutes, out var percent) ? QuestText.SpeedupAmount(minutes, percent) : null;
-            if (top != null)
-                Outlined(UiKit.Label("Amount", frame.transform, top, 26, Color.white, TextAnchor.UpperCenter, FontStyle.Bold))
-                    .rectTransform.Place(0, 0.76f, 1, 0.98f);
-            Outlined(UiKit.Label("Count", frame.transform, count.ToString("N0"), 26, Color.white, TextAnchor.LowerRight, FontStyle.Bold))
-                .rectTransform.Place(0.05f, 0.03f, 0.94f, 0.3f);
-
-            var pick = id;
-            frame.gameObject.AddComponent<Button>().onClick.AddListener(() =>
-            {
-                _bagSelected = _bagSelected == pick ? string.Empty : pick;
-                _bagCount = 0; // the use card starts at all of them
-                Render(force: true);
-            });
-            frame.gameObject.AddComponent<PressFeedback>();
+            // Chests wear the red dot: something waits inside.
+            var chest = item?.kind == "chest" || id.StartsWith("chest_", StringComparison.Ordinal);
+            UiFrames.ItemTile(grid, QuestText.ItemIcon(id, item?.kind), BagTone(id), count.ToString("N0"), () => OpenItemDialog(id), BagTag(id), chest);
         }
 
         /// <summary>How many of one item a single Use takes at most (server: PlayerSession.MaxOpenAtOnce).</summary>
         private const int MaxOpenAtOnce = 10_000;
 
         /// <summary>
-        /// Last Asylum's use card under the chosen tile: a pointer up to it, name and description, then — for items
-        /// used in numbers — a − slider + row with the count (starting at all of them) and one big Use button.
-        /// Teleports use one at a time; the targeted one is used on the map, speed-ups on a timer.
+        /// Last Asylum's item dialog: the tile and what the item does, the owned count under the name; for items used in
+        /// numbers a − slider + row with the count (starting at all of them), then Use and Use all. Teleports go one at
+        /// a time; the targeted one is used on the map and speed-ups on a timer, so those only explain.
         /// </summary>
-        private void BagUsePanel(string id, int count, int column)
+        private void OpenItemDialog(string id)
         {
+            var count = View.Items.TryGetValue(id, out var owned) ? owned : 0;
+            if (count <= 0)
+                return;
+            if (_itemWindow != null)
+                _itemWindow.Close();
+
             var hero = GiftItems.TryParseHero(id, out _, out _, out _);
-            var capsule = Capsules.TryParse(id, out _, out _);
+            var capsule = Capsules.TryParse(id, out var resource, out var amount);
             var teleport = TeleportRules.IsItem(id);
             var speedup = Speedups.TryParse(id, out _, out _, out _);
             var max = hero || teleport ? 1 : Math.Max(1, capsule ? count : Math.Min(count, MaxOpenAtOnce));
             var countable = max > 1 && !speedup;
-            var button = !speedup && id != TeleportRules.TargetItem;
-            var height = 190 + (countable ? 110 : 0) + (button ? 120 : 40);
+            var usable = !speedup && id != TeleportRules.TargetItem;
 
-            var holder = UiKit.Rect("Use", _list).Row(height + 18);
-            var dark = new Color(0.12f, 0.17f, 0.24f, 1f);
-            var paper = new Color(0.9f, 0.93f, 0.96f, 1f);
+            UiWindow window = null;
+            window = UiWindow.Open(_canvas.transform, QuestText.Item(id), Loc.F("speedup.have", count.ToString("N0")), () =>
+            {
+                if (_itemWindow == window)
+                    _itemWindow = null;
+            });
+            _itemWindow = window;
 
-            // The little pointer up to the tile it belongs to.
-            var pointer = UiKit.Box("Pointer", holder, paper);
-            pointer.rectTransform.anchorMin = pointer.rectTransform.anchorMax = new Vector2(column * 0.25f + 0.125f, 1f);
-            pointer.rectTransform.sizeDelta = new Vector2(40f, 40f);
-            pointer.rectTransform.anchoredPosition = new Vector2(0f, -16f);
-            pointer.rectTransform.localRotation = Quaternion.Euler(0f, 0f, 45f);
-            pointer.raycastTarget = false;
-            pointer.gameObject.AddComponent<Outline>().effectColor = new Color(0.55f, 0.65f, 0.78f, 0.8f);
-
-            var panel = UiKit.Box("Card", holder, paper);
-            panel.rectTransform.Place(0.01f, 0f, 0.99f, 1f);
-            panel.rectTransform.offsetMax = new Vector2(0f, -18f);
-            panel.raycastTarget = true;
-            panel.gameObject.AddComponent<Outline>().effectColor = new Color(0.55f, 0.65f, 0.78f, 0.8f);
-
-            float Y(float px) => 1f - px / height;
-            UiKit.Label("Name", panel.transform, QuestText.Item(id), 36, dark, TextAnchor.MiddleCenter, FontStyle.Bold).rectTransform.Place(0.04f, Y(70), 0.96f, Y(12));
-            var desc = capsule && Capsules.TryParse(id, out var resource, out var amount)
-                ? Loc.F("bag.capsule.gives", CostChips.Compact(amount), Loc.Resource(resource.ToString()))
-                : QuestText.ItemDescription(id);
+            // The tile on the left, what it does on the right.
+            _catalog.TryGetItem(id, out var item);
+            var head = UiKit.Rect("Item", window.Body).Row(250);
+            var tile = UiFrames.ItemTile(head, QuestText.ItemIcon(id, item?.kind), BagTone(id), null, null, BagTag(id));
+            tile.anchorMin = tile.anchorMax = new Vector2(0, 0.5f);
+            tile.pivot = new Vector2(0, 0.5f);
+            tile.sizeDelta = new Vector2(170, 170);
+            tile.anchoredPosition = new Vector2(12, 0);
+            var desc = capsule ? Loc.F("bag.capsule.gives", CostChips.Compact(amount), Loc.Resource(resource.ToString())) : QuestText.ItemDescription(id);
             if (id == TeleportRules.TargetItem)
                 desc += "\n" + Loc.T("bag.teleport.target");
             else if (speedup)
                 desc += "\n" + Loc.T("bag.speedup.how");
-            UiKit.Label("Desc", panel.transform, desc, 27, new Color(0.3f, 0.38f, 0.46f, 1f), TextAnchor.MiddleCenter).rectTransform.Place(0.05f, Y(184), 0.95f, Y(72));
+            var text = UiKit.Label("Desc", head, desc, UiKit.TypeScale.Body, UiFrames.Ink, TextAnchor.MiddleLeft);
+            text.rectTransform.Place(0, 0.04f, 1, 0.96f);
+            text.rectTransform.offsetMin = new Vector2(206, text.rectTransform.offsetMin.y);
+            text.Fit(18, UiKit.TypeScale.Body);
 
-            if (_bagCount <= 0 || _bagCount > max)
-                _bagCount = max;
+            _bagCount = max;
             if (countable)
+                CountSlider(window.Body, max);
+
+            if (!usable)
             {
-                float top = Y(196), bottom = Y(290);
-                var blue = new Color(0.25f, 0.5f, 0.85f, 1f);
-                var minus = UiKit.Button("Minus", panel.transform, "−", () => { _bagCount = Math.Max(1, _bagCount - 1); Render(force: true); }, blue, 40);
-                ((RectTransform)minus.transform).Place(0.04f, bottom, 0.14f, top);
-                var box = UiKit.Box("CountBox", panel.transform, Color.white);
-                box.rectTransform.Place(0.78f, bottom + 0.02f, 0.96f, top - 0.02f);
-                box.gameObject.AddComponent<Outline>().effectColor = new Color(0.55f, 0.62f, 0.72f, 1f);
-                var countText = UiKit.Label("CountText", box.transform, _bagCount.ToString("N0"), 32, dark, TextAnchor.MiddleCenter, FontStyle.Bold);
-                countText.rectTransform.Place(0, 0, 1, 1);
-                var slider = UiKit.Slider("Count", panel.transform, (_bagCount - 1f) / (max - 1f), v =>
-                {
-                    _bagCount = Mathf.Clamp(1 + Mathf.RoundToInt(v * (max - 1)), 1, max);
-                    countText.text = _bagCount.ToString("N0");
-                });
-                ((RectTransform)slider.transform).Place(0.16f, bottom, 0.64f, top);
-                // Gold fill on a dark track with a blue grip, as in Last Asylum.
-                slider.transform.Find("Track").GetComponent<Image>().color = new Color(0.36f, 0.42f, 0.52f, 1f);
-                slider.fillRect.GetComponent<Image>().color = new Color(0.95f, 0.69f, 0.24f, 1f);
-                slider.handleRect.GetComponent<Image>().color = new Color(0.3f, 0.56f, 0.92f, 1f);
-                var plus = UiKit.Button("Plus", panel.transform, "+", () => { _bagCount = Math.Min(max, _bagCount + 1); Render(force: true); }, blue, 40);
-                ((RectTransform)plus.transform).Place(0.66f, bottom, 0.76f, top);
+                window.Fit();
+                return;
             }
 
-            if (!button)
-                return;
-            var use = UiKit.Button("UseButton", panel.transform, Loc.T("bag.use"), () =>
+            void Use(int n)
             {
-                var n = _bagCount;
-                _bagSelected = string.Empty;
-                _bagCount = 0;
+                window.Close();
                 if (id == TeleportRules.RandomItem)
                     _commands.Dispatch(new TeleportCommand { CommandId = NewId(), ClientSequence = NextSequence(), Mode = TeleportRules.Random });
                 else if (id == TeleportRules.AllianceItem)
                     _commands.Dispatch(new TeleportCommand { CommandId = NewId(), ClientSequence = NextSequence(), Mode = TeleportRules.Alliance });
                 else
                     OpenItems(id, n);
-            }, new Color(0.25f, 0.5f, 0.85f, 1f), 38);
-            use.GetComponentInChildren<TMP_Text>().color = Color.white;
-            ((RectTransform)use.transform).Place(0.3f, Y(height - 16), 0.7f, Y(height - 108));
+            }
+
+            window.AddButton(Loc.T("bag.use"), null, UiKit.Primary, () => Use(_bagCount));
+            if (countable)
+                window.AddButton(Loc.F("bag.useAll", max.ToString("N0")), null, UiKit.Gold, () => Use(max));
+            window.Fit();
+        }
+
+        /// <summary>The genre's count row: − and + around a gold slider, the count in a white box on the right.</summary>
+        private void CountSlider(Transform parent, int max)
+        {
+            var row = UiKit.Rect("Count", parent).Row(130);
+            var blue = UiKit.Primary;
+            var box = UiFrames.Plate(row, Color.white);
+            box.rectTransform.Place(0.8f, 0.16f, 1f, 0.84f);
+            box.gameObject.AddComponent<Outline>().effectColor = new Color(0.55f, 0.62f, 0.72f, 1f);
+            var countText = UiKit.Label("CountText", box.transform, _bagCount.ToString("N0"), UiKit.TypeScale.Subtitle, UiFrames.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
+            countText.rectTransform.Place(0, 0, 1, 1);
+            countText.Fit(16, UiKit.TypeScale.Subtitle);
+
+            UnityEngine.UI.Slider slider = null;
+            void Set(int n)
+            {
+                _bagCount = Mathf.Clamp(n, 1, max);
+                countText.text = _bagCount.ToString("N0");
+                slider?.SetValueWithoutNotify((_bagCount - 1f) / (max - 1f));
+            }
+
+            var minus = UiKit.Button("Minus", row, "−", () => Set(_bagCount - 1), blue, UiKit.TypeScale.Title);
+            ((RectTransform)minus.transform).Place(0, 0.1f, 0.11f, 0.9f);
+            slider = UiKit.Slider("Slider", row, 1f, v => Set(1 + Mathf.RoundToInt(v * (max - 1))));
+            ((RectTransform)slider.transform).Place(0.13f, 0, 0.65f, 1);
+            // Gold fill on a dark track with a blue grip, as in Last Asylum.
+            var track = slider.transform.Find("Track").GetComponent<Image>();
+            track.sprite = UiKit.Rounded;
+            track.color = new Color(0.36f, 0.42f, 0.52f, 1f);
+            var fill = slider.fillRect.GetComponent<Image>();
+            fill.sprite = UiKit.Rounded;
+            fill.color = new Color(0.95f, 0.69f, 0.24f, 1f);
+            var grip = slider.handleRect.GetComponent<Image>();
+            grip.sprite = UiKit.Rounded;
+            grip.color = new Color(0.3f, 0.56f, 0.92f, 1f);
+            var plus = UiKit.Button("Plus", row, "+", () => Set(_bagCount + 1), blue, UiKit.TypeScale.Title);
+            ((RectTransform)plus.transform).Place(0.67f, 0.1f, 0.78f, 0.9f);
+            Set(max);
         }
 
         /// <summary>Last Asylum's resource overview: what the bag holds, what is owned, and both together.</summary>
         private void OpenBagStats()
         {
             if (_bagStats != null)
-                Destroy(_bagStats);
-            var dim = UiKit.Box("BagStats", _canvas.transform, new Color(0, 0, 0, 0.65f));
-            dim.rectTransform.Place(0, 0, 1, 1);
-            dim.gameObject.AddComponent<Button>().onClick.AddListener(() => Destroy(_bagStats));
-            _bagStats = dim.gameObject;
+                _bagStats.Close();
+            UiWindow window = null;
+            window = UiWindow.Open(_canvas.transform, Loc.T("bag.stats.title"), string.Empty, () =>
+            {
+                if (_bagStats == window)
+                    _bagStats = null;
+            });
+            _bagStats = window;
 
-            var card = UiKit.Box("Card", dim.transform, UiKit.Panel);
-            card.rectTransform.Place(0.04f, 0.28f, 0.96f, 0.72f);
-            card.gameObject.AddComponent<Button>();
-            card.gameObject.AddComponent<CanvasGroup>();
-            card.gameObject.AddComponent<PopIn>();
-            UiKit.Label("Title", card.transform, Loc.T("bag.stats.title"), 34, UiKit.Text, TextAnchor.MiddleLeft, FontStyle.Bold).rectTransform.Place(0.05f, 0.86f, 0.85f, 0.97f);
-
-            string[] head = { Loc.T("bag.stats.type"), Loc.T("bag.stats.items"), Loc.T("bag.stats.owned"), Loc.T("bag.stats.total") };
-            float[] cols = { 0.04f, 0.4f, 0.6f, 0.8f, 0.97f };
-            for (var c = 0; c < head.Length; c++)
-                UiKit.Label("Head", card.transform, head[c], 22, UiKit.Muted, c == 0 ? TextAnchor.MiddleLeft : TextAnchor.MiddleRight, FontStyle.Bold)
-                    .rectTransform.Place(cols[c], 0.76f, cols[c + 1], 0.84f);
-
+            UiFrames.TableRow(window.Body, new[] { Loc.T("bag.stats.type"), Loc.T("bag.stats.items"), Loc.T("bag.stats.owned"), Loc.T("bag.stats.total") }, true).Row(70);
             var wallet = Wallet();
             var types = new[] { ResourceType.Titanium, ResourceType.Biomass, ResourceType.Food, ResourceType.Energy, ResourceType.Oxygen };
             for (var i = 0; i < types.Length; i++)
             {
                 var type = types[i];
                 long inBag = View.Items.Where(p => p.Value > 0).Sum(p => Capsules.TryParse(p.Key, out var r, out var a) && r == type ? a * p.Value : 0);
-                wallet.TryGetValue(type, out var owned);
-                var y1 = 0.74f - i * 0.14f;
-                var row = UiKit.Box("Row", card.transform, i % 2 == 0 ? new Color(1, 1, 1, 0.05f) : new Color(0, 0, 0, 0));
-                row.rectTransform.Place(0.02f, y1 - 0.13f, 0.98f, y1);
-                row.raycastTarget = false;
-                HudIconImage(row.transform, Hud.HudIcons.Resource(type), 0.01f, 0.1f, 0.09f, 0.9f);
-                UiKit.Label("Name", row.transform, Loc.Resource(type.ToString()), 24, UiKit.Text, TextAnchor.MiddleLeft).rectTransform.Place(0.11f, 0, 0.4f, 1);
-                var values = new[] { inBag, owned, inBag + owned };
-                for (var c = 0; c < values.Length; c++)
-                    UiKit.Label("V", row.transform, CostChips.Compact(values[c]), 24, c == 2 ? UiKit.Amber : UiKit.Text, TextAnchor.MiddleRight, FontStyle.Bold)
-                        .rectTransform.Place(cols[c + 1] - 0.02f, 0, cols[c + 2] - 0.02f, 1);
+                wallet.TryGetValue(type, out var have);
+                var row = UiFrames.TableRow(window.Body, new[]
+                {
+                    Loc.Resource(type.ToString()), CostChips.Compact(inBag), CostChips.Compact(have), CostChips.Compact(inBag + have)
+                }, false, false, i).Row(84);
+                Hud.HudIcons.Image(row, Hud.HudIcons.Resource(type), 0.005f, 0.12f, 0.055f, 0.88f);
             }
+
+            window.Fit();
         }
 
         private static TMP_Text Outlined(TMP_Text text)
@@ -530,20 +578,22 @@ namespace Hadal.UI
             return text;
         }
 
-        /// <summary>A not-yet-owned hero with its card count and, when enough, the recruit button.</summary>
+        /// <summary>A not-yet-recruited hero: the face, the card count towards recruiting and the Recruit button.</summary>
         private void RecruitCard(HeroDefinition hero, int count)
         {
             var need = QuestRules.RecruitShards(hero);
-            var card = Card(190);
-            Portrait(card.transform, hero, count >= need, 0.01f, 0.03f, 0.2f, 0.97f);
-            CardText(card.transform, $"<color={RarityColor(hero.Rarity.id)}>{Loc.T("hero." + hero.Id)}</color>", 32, UiKit.Text, 0.23f, 0.6f, 0.7f, 0.95f, TextAnchor.UpperLeft, FontStyle.Bold);
-            ProgressBar(card.transform, count, need, 0.23f, 0.38f, 0.7f, 0.5f);
-            CardText(card.transform, Loc.F("hero.cards", count, need), 24, count >= need ? UiKit.Accent : UiKit.Muted, 0.23f, 0.05f, 0.7f, 0.36f);
+            var card = PlateRow(200);
+            Portrait(card.transform, hero, count >= need, 0.01f, 0.05f, 0.18f, 0.95f);
+            UiKit.Label("Name", card.transform, Loc.T("hero." + hero.Id), UiKit.TypeScale.Body + 2, UiFrames.Ink, TextAnchor.MiddleLeft, FontStyle.Bold)
+                .rectTransform.Place(0.21f, 0.55f, 0.7f, 0.92f);
+            UiFrames.Progress(card.transform, count, need, count >= need ? "green" : "blue").Place(0.21f, 0.2f, 0.68f, 0.42f);
             var id = hero.Id;
-            CardButton(card.transform, Loc.T("hero.recruit"), count >= need, () => _commands.Dispatch(new RecruitHeroCommand
+            var button = UiKit.Button("Recruit", card.transform, Loc.T("hero.recruit"), () => _commands.Dispatch(new RecruitHeroCommand
             {
                 CommandId = NewId(), ClientSequence = NextSequence(), HeroId = id
-            }), UiKit.Amber);
+            }), count >= need ? UiKit.Gold : UiKit.Panel, UiKit.TypeScale.Body);
+            button.interactable = count >= need;
+            ((RectTransform)button.transform).Place(0.72f, 0.22f, 0.97f, 0.78f);
         }
 
         private void OpenItems(string id, int count) => _commands.Dispatch(new OpenItemCommand
@@ -551,37 +601,72 @@ namespace Hadal.UI
             CommandId = NewId(), ClientSequence = NextSequence(), ItemId = id, Count = count
         });
 
+        // --- Rewards ----------------------------------------------------------------------------------
+
+        /// <summary>The page the player was on (for the reward dialog to return to), and its mark in the list.</summary>
+        private Page _lastPage = Page.None;
+        private GameObject _lastPageMark;
+
+        /// <summary>Called by every page here: remembers it until the list is cleared or the sheet closes.</summary>
+        private void MarkPage()
+        {
+            if (_page == Page.Reward)
+                return;
+            _lastPage = _page;
+            _lastPageMark = UiKit.Rect("PageMark", _list).gameObject;
+            _lastPageMark.AddComponent<LayoutElement>().ignoreLayout = true;
+            if (_sheet.GetComponent<DisableWatch>() == null)
+                _sheet.AddComponent<DisableWatch>().Disabled = () => _lastPageMark = null;
+        }
+
+        /// <summary>
+        /// Rewards received, as Last Asylum shows them: a dialog over the page the player was on (or over the base when
+        /// the sheet was closed), the rewards as tiles with their names, and Done.
+        /// </summary>
         private void RenderReward()
         {
-            _title.text = Loc.T("reward.title");
-            _subtitle.text = string.Empty;
-            var rewards = _reward?.Rewards ?? Array.Empty<RewardEntryDto>();
+            var rewards = (_reward?.Rewards ?? Array.Empty<RewardEntryDto>())
+                .GroupBy(r => (r.Type, r.Id))
+                .Select(g => (g.Key.Type, g.Key.Id, Amount: g.Sum(r => r.Amount)))
+                .ToArray();
+            UiWindow window = null;
+            window = UiWindow.Open(_canvas.transform, Loc.T("reward.title"), string.Empty, null);
+            RewardRows(window.Body, rewards);
+            window.AddButton(Loc.T("hero.pod.done"), null, UiKit.Primary, () => window.Close());
+            window.Fit();
+            LeaveReward();
+        }
 
-            // Same kind of reward collapses into one line (ten resource draws read as one total).
-            foreach (var group in rewards.GroupBy(r => (r.Type, r.Id)))
+        /// <summary>Back to where the reward came from: the event, mail or alliance page, the page here, or the base.</summary>
+        private void LeaveReward()
+        {
+            var back = _afterReward != Page.None ? _afterReward : _lastPageMark != null ? _lastPage : Page.None;
+            _afterReward = Page.None;
+            if (back != Page.None)
             {
-                var total = group.Sum(r => r.Amount);
-                var card = Card(140);
-                var (type, id) = group.Key;
-                if ((type == "shards" || type == "hero") && _catalog.TryGetHero(id, out var hero))
-                    Portrait(card.transform, hero, true, 0.01f, 0.04f, 0.17f, 0.96f);
-                else
-                    HudIconImage(card.transform, type == "resource" && GameCatalog.TryParseResource(id, out var resource) ? Hud.HudIcons.Resource(resource)
-                        : type == "item" ? QuestText.ItemIcon(id, string.Empty) : type == "troops" ? "event_war" : type == "vip" ? "vip" : "nav_heroes", 0.02f, 0.1f, 0.16f, 0.9f);
-                CardText(card.transform, QuestText.Reward(type, id, total), 32, type == "hero" ? UiKit.Amber : UiKit.Text, 0.2f, 0.1f, 0.97f, 0.9f,
-                    TextAnchor.MiddleLeft, FontStyle.Bold);
+                _page = back;
+                Render(force: true);
             }
-
-            var done = Card(110);
-            CardButton(done.transform, Loc.T("hero.pod.done"), true, () =>
+            else
             {
-                var back = _afterReward;
-                _afterReward = Page.None;
-                if (back != Page.None)
-                    Open(back);
-                else
-                    Close();
-            }, null, 0.25f, 0.1f, 0.75f, 0.9f);
+                Close();
+            }
+        }
+
+        /// <summary>Reward cells four to a row in a dialog's body (rows, so the dialog can size itself at once).</summary>
+        private void RewardRows(Transform parent, (string Type, string Id, long Amount)[] rewards)
+        {
+            for (var start = 0; start < rewards.Length; start += 4)
+            {
+                var row = UiKit.Rect("Rewards", parent).Row(250);
+                for (var c = 0; c < 4 && start + c < rewards.Length; c++)
+                {
+                    var (type, id, amount) = rewards[start + c];
+                    var (icon, rarity, count) = RewardTile(type, id, amount);
+                    var name = type == "item" ? QuestText.Item(id) : type == "resource" ? Loc.Resource(id) : QuestText.Reward(type, id, amount);
+                    UiFrames.RewardCell(row, icon, rarity, count, name).Place(c * 0.25f + 0.01f, 0.02f, c * 0.25f + 0.24f, 0.98f);
+                }
+            }
         }
 
         private static Image HudIconImage(Transform parent, string id, float x0, float y0, float x1, float y1) =>

@@ -255,36 +255,27 @@ namespace Hadal.UI
                 return;
             }
 
-            switch (step.type)
-            {
-                case "level":
-                    _actions.OpenBuilding?.Invoke(step.target);
-                    break;
-                case "count":
-                    _actions.BuildNew?.Invoke(step.target);
-                    break;
-                case "heroes":
-                    _actions.Heroes?.Invoke();
-                    break;
-                case "rings":
-                    _actions.Expand?.Invoke();
-                    break;
-                case "alliance":
-                    _actions.Alliance?.Invoke();
-                    break;
-                case "counter" when step.target is "monster" or "gather":
-                    _actions.OpenMap?.Invoke();
-                    break;
-                case "counter" when step.target == "open":
-                    _actions.Bag?.Invoke();
-                    break;
-                case "counter" when step.target == "allianceChat":
-                    _actions.AllianceChat?.Invoke();
-                    break;
-                case "counter" when step.target is "helped" or "assist":
-                    _actions.AllianceHelp?.Invoke();
-                    break;
-            }
+            GoTo(step.type, step.target);
         }
+
+        /// <summary>Whether <see cref="GoTo"/> has a route for a task of this type and target (the quest list's Go).</summary>
+        public bool CanGoTo(string type, string target) => Route(type, target) != null;
+
+        /// <summary>Opens what does a task of this type: the building, its build list, the map, the bag, the alliance…</summary>
+        public void GoTo(string type, string target) => Route(type, target)?.Invoke();
+
+        private Action Route(string type, string target) => type switch
+        {
+            "level" => () => _actions.OpenBuilding?.Invoke(target),
+            "count" => () => _actions.BuildNew?.Invoke(target),
+            "heroes" => () => _actions.Heroes?.Invoke(),
+            "rings" => () => _actions.Expand?.Invoke(),
+            "alliance" => () => _actions.Alliance?.Invoke(),
+            "counter" when target is "monster" or "gather" or "attack" => () => _actions.OpenMap?.Invoke(),
+            "counter" when target == "open" => () => _actions.Bag?.Invoke(),
+            "counter" when target == "allianceChat" => () => _actions.AllianceChat?.Invoke(),
+            "counter" when target is "helped" or "assist" => () => _actions.AllianceHelp?.Invoke(),
+            _ => null
+        };
     }
 }
