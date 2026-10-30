@@ -1594,3 +1594,7 @@ mail.report.scoutedText = {0} meninjau pangkalan anda. Berjaga-jaga, serangan mu
 mail.report.moved = Sasaran berpindah; tiada pertempuran, tentera anda pulang.
 mail.report.gone = Sasaran pergi; tiada pertempuran, tentera anda pulang.
 mail.report.goThere = Tunjuk di peta
+rank.col.rank = Kedudukan
+rank.col.name = Nama
+rank.col.points = Mata
+alliance.announcement.edit = Sunting

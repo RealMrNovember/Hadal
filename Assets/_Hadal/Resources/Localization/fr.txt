@@ -1594,3 +1594,7 @@ mail.report.scoutedText = {0} a espionné ta base. Reste sur tes gardes, une att
 mail.report.moved = La cible a déménagé ; pas de combat, ton armée est rentrée.
 mail.report.gone = La cible est partie ; pas de combat, ton armée est rentrée.
 mail.report.goThere = Voir sur la carte
+rank.col.rank = Rang
+rank.col.name = Nom
+rank.col.points = Points
+alliance.announcement.edit = Modifier

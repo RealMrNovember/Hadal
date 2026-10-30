@@ -1594,3 +1594,7 @@ mail.report.scoutedText = {0} 侦察了你的基地。保持警惕，可能会�
 mail.report.moved = 目标已迁移；未发生战斗，部队已返回。
 mail.report.gone = 目标已离开；未发生战斗，部队已返回。
 mail.report.goThere = 在地图上查看
+rank.col.rank = 排名
+rank.col.name = 名称
+rank.col.points = 积分
+alliance.announcement.edit = 编辑

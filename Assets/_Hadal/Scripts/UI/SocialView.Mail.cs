@@ -12,10 +12,10 @@ using UnityEngine.UI;
 namespace Hadal.UI
 {
     /// <summary>
-    /// The mailbox in Last Asylum's layout (docs/37): tabs Battle · Alliance · Event · System · Personal, each with its
-    /// unread count; rows with a sealed or opened envelope, a bold title, a one-line summary (the enemy in red), the age, a
-    /// red dot while unread and the gift while attachments wait. "Claim all", "Mark all read" and "Delete read" act on the
-    /// open tab. Battle and scout mails open as a report card drawn from the report itself (two sides, result, troops,
+    /// The mailbox in Last Asylum's layout (docs/37): a home of category rows Battle · Alliance · Event · System · Personal,
+    /// each with its unread count and a red dot; a category is a page of rows with a sealed or opened envelope, a bold
+    /// title, a one-line summary (the enemy in red), the age, a red dot while unread and the gift while attachments wait.
+    /// "Delete read", "Mark all read" and "Claim all" sit in the bar under the list and act on the open category. Battle and scout mails open as a report card drawn from the report itself (two sides, result, troops,
     /// losses, loot); the rest show their text and attachments. Mails go after 30 days, unclaimed attachments with them.
     /// Players write to one player at a time (MailRules); resources go along only to alliance mates, within today's
     /// allowance, which the compose page shows.
@@ -29,15 +29,17 @@ namespace Hadal.UI
         private string _mailId = string.Empty;
         private string _mailTab = string.Empty;
 
-        /// <summary>Opens the mailbox on the first tab with something waiting (else the last one used, else Battle).</summary>
+        /// <summary>Opens the mailbox on its home: the categories, each with its unread count (Last Asylum).</summary>
         public void OpenMail()
         {
             _afterReward = Page.None;
             _mailId = string.Empty;
-            var waiting = MailRules.Tabs.FirstOrDefault(t => TabCount(t).Unread > 0 || TabCount(t).Unclaimed > 0);
-            _mailTab = waiting ?? (_mailTab.Length > 0 ? _mailTab : MailRules.TabBattle);
+            _mailTab = string.Empty;
             Open(Page.Mail);
         }
+
+        /// <summary>The mail page's action bar fixed along the bottom, in canvas units.</summary>
+        private const float MailBarHeight = 150f;
 
         private string MailKey() => $"{View.MailVersion}|{_mailId}|{_mailTab}";
 
@@ -145,7 +147,7 @@ namespace Hadal.UI
             : Loc.T("pvp.outcome." + r.Outcome);
 
         private static Color HeadlineColor(PvpReportDto r) =>
-            IsScout(r) ? UiKit.Accent : r.Outcome == "won" ? UiKit.Ok : r.Outcome == "lost" ? MailRed : UiKit.Amber;
+            IsScout(r) ? new Color(0.13f, 0.42f, 0.78f, 1f) : r.Outcome == "won" ? UiFrames.InkGood : r.Outcome == "lost" ? MailRed : new Color(0.7f, 0.42f, 0.02f, 1f);
 
         /// <summary>"Attack · [TAG] Name" with the enemy in red, as Last Asylum's rows do.</summary>
         private static string ReportSummary(PvpReportDto r) =>
@@ -165,85 +167,66 @@ namespace Hadal.UI
 
         private void RenderMail()
         {
-            _title.text = Loc.T("mail.title");
-            var box = View.Mail ?? new MailListDto();
-            _subtitle.text = box.Unread > 0 ? Loc.F("mail.unread", box.Unread) : string.Empty;
             if (!MailRules.Tabs.Contains(_mailTab))
-                _mailTab = MailRules.TabBattle;
+            {
+                RenderMailHome();
+                return;
+            }
 
-            MailTabs();
-
+            PageTitle(Loc.T("mail.tab." + _mailTab));
             var mails = TabMails();
             var (unread, unclaimed) = TabCount(_mailTab);
             var tab = _mailTab;
-            var bar = UiKit.Rect("MailBar", _list).Row(100);
-            var claimAll = CardButton(bar, Loc.T("mail.claimAll"), unclaimed > 0, () => ClaimMail(string.Empty, tab), UiKit.Gold, 0.0f, 0.08f, 0.325f, 0.92f);
+
+            // Last Asylum's bottom bar under the list: Delete read · Mark all read · Claim all, for this category.
+            var holder = Fixed("MailBar", () => _page == Page.Mail && _mailTab == tab).Place(0, 0, 1, 1);
+            var bar = UiKit.Box("Bar", holder, UiFrames.Navy);
+            bar.sprite = null;
+            bar.rectTransform.anchorMin = Vector2.zero;
+            bar.rectTransform.anchorMax = new Vector2(1, 0);
+            bar.rectTransform.pivot = new Vector2(0.5f, 0);
+            bar.rectTransform.sizeDelta = new Vector2(0, MailBarHeight);
+            CardButton(bar.transform, Loc.T("mail.deleteRead"), mails.Any(m => m.Read && !Claimable(m)), () => DeleteMail(string.Empty, tab), UiKit.Danger,
+                0.03f, 0.14f, 0.33f, 0.86f);
+            CardButton(bar.transform, Loc.T("mail.readAll"), unread > 0, () => ReadAllMail(tab), UiKit.Primary, 0.35f, 0.14f, 0.65f, 0.86f);
+            var claimAll = CardButton(bar.transform, Loc.T("mail.claimAll"), unclaimed > 0, () => ClaimMail(string.Empty, tab), UiKit.Ok, 0.67f, 0.14f, 0.97f, 0.86f);
             if (unclaimed > 0)
-                RedDot(claimAll.transform);
-            CardButton(bar, Loc.T("mail.readAll"), unread > 0, () => ReadAllMail(tab), UiKit.Accent, 0.3375f, 0.08f, 0.6625f, 0.92f);
-            CardButton(bar, Loc.T("mail.deleteRead"), mails.Any(m => m.Read && !Claimable(m)), () => DeleteMail(string.Empty, tab), UiKit.Field,
-                0.675f, 0.08f, 1f, 0.92f);
+                UiFrames.Dot(claimAll.transform);
             foreach (var label in bar.GetComponentsInChildren<TMP_Text>())
-                label.fontSizeMax = Math.Min(label.fontSizeMax, 28);
+                label.fontSizeMax = Math.Min(label.fontSizeMax, UiKit.TypeScale.Body);
+            ListAbove(MailBarHeight + 12f);
 
             if (mails.Length == 0)
             {
-                Note(Loc.T("mail.emptyTab"));
+                InkNote(Loc.T("mail.emptyTab"));
                 return;
             }
 
             foreach (var m in mails)
                 MailRow(m);
-
-            Note(Loc.T("mail.note"));
         }
 
-        /// <summary>Five tabs across, each an icon over its name with a red count while something is unread.</summary>
-        private void MailTabs()
+        /// <summary>
+        /// The mail home (Last Asylum's la01): the 30-day rule on top, then one category row each — icon, name, the unread
+        /// count, a red dot while something is unread or unclaimed.
+        /// </summary>
+        private void RenderMailHome()
         {
-            var strip = UiKit.Rect("MailTabs", _list).Row(132);
-            var tabs = MailRules.Tabs;
-            for (var i = 0; i < tabs.Length; i++)
+            _mailTab = string.Empty;
+            PageTitle(Loc.T("mail.title"));
+            UiKit.Label("Rule", _list, Loc.T("mail.note"), UiKit.TypeScale.Caption, UiFrames.InkSoft, TextAnchor.MiddleCenter).Row(80);
+            foreach (var tab in MailRules.Tabs)
             {
-                var tab = tabs[i];
-                var on = tab == _mailTab;
-                var x0 = (float)i / tabs.Length;
-                var button = UiKit.Button("Tab" + i, strip, string.Empty, () =>
-                {
-                    _mailTab = tab;
-                    _mailId = string.Empty;
-                    Open(Page.Mail);
-                }, on ? UiKit.TabOn : UiKit.TabOff, 22);
-                ((RectTransform)button.transform).Place(x0 + 0.004f, 0.04f, x0 + 1f / tabs.Length - 0.004f, 0.96f);
-                HudIconImage(button.transform, TabIcon(tab), 0.3f, 0.44f, 0.7f, 0.92f).raycastTarget = false;
-                var name = UiKit.Label("Name", button.transform, Loc.T("mail.tab." + tab), 22, on ? new Color(0.06f, 0.1f, 0.14f) : Color.white,
-                    TextAnchor.MiddleCenter, FontStyle.Bold);
-                name.rectTransform.Place(0.02f, 0.06f, 0.98f, 0.44f);
-                name.enableAutoSizing = true;
-                name.fontSizeMin = 14;
-                name.fontSizeMax = 22;
-                name.raycastTarget = false;
-                if (!on)
-                    UiKit.Stroked(name);
-
-                var unread = TabCount(tab).Unread;
-                if (unread > 0)
-                    CountBadge(button.transform, unread);
+                var (unread, unclaimed) = TabCount(tab);
+                var category = tab;
+                UiFrames.CategoryRow(_list, TabIcon(tab), Loc.T("mail.tab." + tab), unread > 0 ? unread > 99 ? "99+" : unread.ToString() : null,
+                    unread > 0 || unclaimed > 0, () =>
+                    {
+                        _mailTab = category;
+                        _mailId = string.Empty;
+                        Open(Page.Mail);
+                    }).Row(150);
             }
-        }
-
-        /// <summary>A red disc with a number at the top right corner (99+ beyond).</summary>
-        private static void CountBadge(Transform parent, int count)
-        {
-            var badge = UiKit.Box("Badge", parent, MailRed);
-            badge.sprite = UiKit.Circle;
-            badge.type = Image.Type.Simple;
-            badge.rectTransform.anchorMin = badge.rectTransform.anchorMax = new Vector2(0.86f, 0.86f);
-            badge.rectTransform.sizeDelta = new Vector2(count > 9 ? 50 : 40, 40);
-            badge.raycastTarget = false;
-            var label = UiKit.Label("Count", badge.transform, count > 99 ? "99+" : count.ToString(), 22, Color.white, TextAnchor.MiddleCenter, FontStyle.Bold);
-            label.rectTransform.Place(0, 0, 1, 1);
-            label.raycastTarget = false;
         }
 
         /// <summary>
@@ -253,8 +236,9 @@ namespace Hadal.UI
         private void MailRow(MailDto m)
         {
             var mail = m;
-            var card = Card(156);
-            card.color = m.Read ? new Color(0.8f, 0.85f, 0.9f, 1f) : Color.white;
+            // Unread rows bright (with the airmail stripe), read ones dimmed, as in Last Asylum's list.
+            var card = InkCard(156, m.Read ? UiFrames.CardAlt : new Color(0.97f, 0.98f, 1f, 1f));
+            card.gameObject.AddComponent<PressFeedback>();
             var button = card.gameObject.AddComponent<Button>();
             button.targetGraphic = card;
             button.onClick.AddListener(() => OpenMailItem(mail));
@@ -279,7 +263,7 @@ namespace Hadal.UI
             }
 
             string title, summary;
-            Color titleColor = UiKit.Text;
+            Color titleColor = UiFrames.Ink;
             if (m.Report != null)
             {
                 title = Headline(m.Report);
@@ -293,14 +277,16 @@ namespace Hadal.UI
                 summary = m.Kind == "player" || first.Length == 0 ? MailSender(m) : first;
             }
 
-            var titleText = Plain(CardText(card.transform, title, 30, titleColor, 0.19f, 0.56f, 0.8f, 0.94f, TextAnchor.MiddleLeft, FontStyle.Bold), m);
+            var titleText = Plain(CardText(card.transform, title, UiKit.TypeScale.Body + 2, titleColor, 0.19f, 0.56f, 0.8f, 0.94f, TextAnchor.MiddleLeft, FontStyle.Bold), m);
             titleText.raycastTarget = false;
-            var summaryText = CardText(card.transform, summary, 23, UiKit.Muted, 0.19f, 0.3f, 0.97f, 0.58f, TextAnchor.MiddleLeft);
+            titleText.textWrappingMode = TextWrappingModes.NoWrap;
+            titleText.overflowMode = TextOverflowModes.Ellipsis;
+            var summaryText = CardText(card.transform, summary, UiKit.TypeScale.Caption, UiFrames.InkSoft, 0.19f, 0.3f, 0.97f, 0.58f, TextAnchor.MiddleLeft);
             summaryText.richText = m.Report != null || m.Kind != "player";
             summaryText.textWrappingMode = TextWrappingModes.NoWrap;
             summaryText.raycastTarget = false;
             var ageLine = m.Kind == "player" ? MailAge(m) : $"{MailAge(m)} · {MailSender(m)}";
-            CardText(card.transform, ageLine, 20, UiKit.Muted, 0.19f, 0.04f, 0.75f, 0.3f, TextAnchor.MiddleLeft).raycastTarget = false;
+            CardText(card.transform, ageLine, UiKit.TypeScale.Micro, UiFrames.InkSoft, 0.19f, 0.04f, 0.75f, 0.3f, TextAnchor.MiddleLeft, FontStyle.Bold).raycastTarget = false;
 
             if (!m.Read)
             {
@@ -344,8 +330,9 @@ namespace Hadal.UI
                 return;
             }
 
-            _title.text = Loc.T("mail.title");
-            _subtitle.text = Loc.T("mail.tab." + MailRules.TabOf(m.Kind));
+            // The top bar names the category; its back arrow returns to the category's list.
+            _mailTab = MailRules.TabOf(m.Kind);
+            PageTitle(Loc.T("mail.tab." + _mailTab));
 
             if (m.Report != null)
             {
@@ -372,34 +359,28 @@ namespace Hadal.UI
 
             if (m.Attachments.Length > 0)
             {
-                Header(Loc.T("mail.attachments"));
+                Band(Loc.T("mail.attachments"));
                 var gifts = Card(190);
                 RewardStrip(gifts.transform, m.Attachments, 0.03f, 0.1f, 0.64f, 0.9f, 190);
                 var claimable = Claimable(m);
-                CardButton(gifts.transform, claimable ? Loc.T("mail.claim") : Loc.T("mail.claimed"), claimable, () => ClaimMail(m.Id), UiKit.Gold, 0.66f, 0.24f, 0.97f, 0.76f);
+                CardButton(gifts.transform, claimable ? Loc.T("mail.claim") : Loc.T("mail.claimed"), claimable, () => ClaimMail(m.Id), UiKit.Ok, 0.66f, 0.24f, 0.97f, 0.76f);
             }
 
             MailActions(m);
         }
 
-        /// <summary>Back · Reply (player mails), Go there (reports) or Open report (old battle mails) · Delete.</summary>
+        /// <summary>Reply (player mails), Go there (reports) or Open report (old battle mails) · Delete; back is the top bar's arrow.</summary>
         private void MailActions(MailDto m)
         {
             var actions = UiKit.Rect("MailActions", _list).Row(110);
             var canReply = m.Kind == "player" && m.SenderId.Length > 0;
             var canGo = m.Report != null && ShowOnMap != null;
             var canReport = m.Report == null && m.Kind == "battle" && PvpCenter.Instance != null && MailText.BattleRef(m.Body, out _, out _);
-            var width = canReply || canGo || canReport ? 1f / 3f : 0.5f;
-            CardButton(actions, Loc.T("mail.back"), true, () =>
-            {
-                _mailId = string.Empty;
-                Open(Page.Mail);
-            }, UiKit.Field, 0.0f, 0.1f, width - 0.01f, 0.9f);
+            var two = canReply || canGo || canReport;
             if (canReply)
             {
                 var title = m.Title.StartsWith("Re: ", StringComparison.Ordinal) ? m.Title : "Re: " + m.Title;
-                CardButton(actions, Loc.T("mail.reply"), true, () => OpenMailCompose(m.SenderId, m.Sender, title), UiKit.Accent,
-                    width + 0.01f, 0.1f, 2 * width - 0.01f, 0.9f);
+                CardButton(actions, Loc.T("mail.reply"), true, () => OpenMailCompose(m.SenderId, m.Sender, title), UiKit.Primary, 0.02f, 0.1f, 0.49f, 0.9f);
             }
             else if (canGo)
             {
@@ -409,7 +390,7 @@ namespace Hadal.UI
                 {
                     Close();
                     ShowOnMap?.Invoke(x, y);
-                }, UiKit.Accent, width + 0.01f, 0.1f, 2 * width - 0.01f, 0.9f);
+                }, UiKit.Primary, 0.02f, 0.1f, 0.49f, 0.9f);
             }
             else if (canReport)
             {
@@ -418,7 +399,7 @@ namespace Hadal.UI
                 {
                     Close();
                     PvpCenter.Instance.OpenReport(battleId, reportKind);
-                }, UiKit.Accent, width + 0.01f, 0.1f, 2 * width - 0.01f, 0.9f);
+                }, UiKit.Primary, 0.02f, 0.1f, 0.49f, 0.9f);
             }
 
             var id = m.Id;
@@ -427,7 +408,7 @@ namespace Hadal.UI
                 _mailId = string.Empty;
                 DeleteMail(id);
                 Open(Page.Mail);
-            }, UiKit.Danger, 1f - width + 0.01f, 0.1f, 1f, 0.9f);
+            }, UiKit.Danger, two ? 0.51f : 0.25f, 0.1f, two ? 0.98f : 0.75f, 0.9f);
         }
 
         // --- Battle and scout reports (docs/37 §3–4) ---------------------------------------
@@ -481,7 +462,7 @@ namespace Hadal.UI
             }
 
             // Overview: powers, rounds, our losses and share.
-            Header(Loc.T("mail.report.overview"));
+            Band(Loc.T("mail.report.overview"));
             var overview = Card(r.Contribution > 0 && r.Contribution < 100 ? 250 : 200);
             PowerBar(overview.transform, r.AttackerPower, r.DefenderPower, 0.62f, 0.92f);
             CardText(overview.transform, Loc.F("report.rounds", r.Rounds), 24, UiKit.Muted, 0.03f, 0.44f, 0.97f, 0.62f, TextAnchor.MiddleCenter);
@@ -491,7 +472,7 @@ namespace Hadal.UI
                 CardText(overview.transform, Loc.F("report.contribution", r.Contribution), 24, UiKit.Muted, 0.03f, 0.02f, 0.97f, 0.22f, TextAnchor.MiddleCenter);
 
             // Both armies, stack by stack.
-            Header(Loc.T("mail.report.troops"));
+            Band(Loc.T("mail.report.troops"));
             ArmyTable(Loc.T("report.attacker"), r.Attacker, AttackerSide, WeAttacked(r));
             ArmyTable(Loc.T("report.defender"), r.Defender, DefenderSide, !WeAttacked(r));
 
@@ -646,7 +627,7 @@ namespace Hadal.UI
             var loot = Entries(r.Plunder);
             if (loot.Length > 0)
             {
-                Header(Loc.T(r.Kind == "scout" ? "mail.pvp.loot.scout" : we ? "mail.pvp.loot.won" : "mail.pvp.loot.lost").TrimEnd(':', '：', ' '));
+                Band(Loc.T(r.Kind == "scout" ? "mail.pvp.loot.scout" : we ? "mail.pvp.loot.won" : "mail.pvp.loot.lost").TrimEnd(':', '：', ' '));
                 var card = Card(170);
                 RewardStrip(card.transform, loot, 0.03f, 0.08f, 0.97f, 0.92f, 170);
             }
@@ -658,7 +639,7 @@ namespace Hadal.UI
             var kept = Entries(r.Protected);
             if (kept.Length > 0)
             {
-                Header(Loc.T("mail.pvp.protected").TrimEnd(':', '：', ' '));
+                Band(Loc.T("mail.pvp.protected").TrimEnd(':', '：', ' '));
                 var card = Card(170);
                 RewardStrip(card.transform, kept, 0.03f, 0.08f, 0.97f, 0.92f, 170);
             }
@@ -682,7 +663,7 @@ namespace Hadal.UI
                 return;
             }
 
-            Header(Loc.T("mail.report.overview"));
+            Band(Loc.T("mail.report.overview"));
             var overview = Card(120);
             CardText(overview.transform, Loc.F("mail.pvp.scout", r.DefenderPower.ToString("N0"), r.Reinforcements), 28, UiKit.Text, 0.03f, 0, 0.97f, 1,
                 TextAnchor.MiddleCenter, FontStyle.Bold);
@@ -766,7 +747,7 @@ namespace Hadal.UI
         private void RenderMailCompose()
         {
             _title.text = Loc.T("mail.compose");
-            _subtitle.text = Loc.F("mail.to", _composeName);
+            _subtitle.text = string.Empty; // the card under the bar names the receiver
             var mate = ComposeToMate();
             var mailsLeft = MailsLeftToday();
 
@@ -794,7 +775,7 @@ namespace Hadal.UI
             // Resources only between alliance mates (the genre's resource help), within today's allowance.
             if (mate)
             {
-                Header(Loc.T("mail.resources"));
+                Band(Loc.T("mail.resources"));
                 var wallet = Wallet();
                 foreach (var type in MailRules.Sendable)
                 {
@@ -816,12 +797,12 @@ namespace Hadal.UI
             }
             else
             {
-                Note(Loc.T("mail.resourcesMatesOnly"));
+                InkNote(Loc.T("mail.resourcesMatesOnly"));
             }
 
             var actions = UiKit.Rect("ComposeActions", _list).Row(110);
-            CardButton(actions, Loc.T("mail.cancel"), true, () => Open(Page.Mail), UiKit.Field, 0.0f, 0.1f, 0.49f, 0.9f);
-            CardButton(actions, Loc.T("mail.send"), mailsLeft > 0, SendComposedMail, UiKit.Accent, 0.51f, 0.1f, 1f, 0.9f);
+            CardButton(actions, Loc.T("mail.cancel"), true, () => Open(Page.Mail), UiKit.TabOn, 0.0f, 0.1f, 0.49f, 0.9f);
+            CardButton(actions, Loc.T("mail.send"), mailsLeft > 0, SendComposedMail, UiKit.Primary, 0.51f, 0.1f, 1f, 0.9f);
         }
 
         private void SendComposedMail()

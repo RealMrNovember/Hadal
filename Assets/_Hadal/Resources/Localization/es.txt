@@ -1594,3 +1594,7 @@ mail.report.scoutedText = {0} exploró tu base. Mantente alerta, puede venir un 
 mail.report.moved = El objetivo se movió; sin batalla, tu ejército volvió.
 mail.report.gone = El objetivo se fue; sin batalla, tu ejército volvió.
 mail.report.goThere = Ver en el mapa
+rank.col.rank = Puesto
+rank.col.name = Nombre
+rank.col.points = Puntos
+alliance.announcement.edit = Editar

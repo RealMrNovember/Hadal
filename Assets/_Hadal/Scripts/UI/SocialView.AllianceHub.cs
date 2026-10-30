@@ -5,15 +5,14 @@ using HADAL.Shared.DTOs;
 using HADAL.Shared.Simulation;
 using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace Hadal.UI
 {
     /// <summary>
-    /// The alliance hub (docs/31 §1, sampled from Last Asylum): a header card (banner, [TAG] Name, leader, power, members,
-    /// language) with the officers' announcement under it, a two-column grid of tiles with red dots, and a bottom bar with
-    /// the logs, applications and settings. War opens the PvP war window and Rally
-    /// Point the PvP rally card (<see cref="RallyPointPrompt"/>).
+    /// The alliance hub (docs/31 §1, Last Asylum's alliance_hub): the banner card (emblem, [TAG] Name, then leader, power,
+    /// members and language as label · value lines), the officers' announcement in a grey box with Edit, a two-column
+    /// grid of feature tiles with red dots, and the navy icon bar fixed at the bottom (battle log, log, applications,
+    /// settings). War opens the PvP war window and Rally Point the PvP rally card (<see cref="RallyPointPrompt"/>).
     /// </summary>
     public sealed partial class SocialView
     {
@@ -22,6 +21,9 @@ namespace Hadal.UI
         private const int AllianceTabMembers = 2;
         private const int AllianceTabSettings = 3;
         private const int AllianceTabApplications = 4;
+
+        /// <summary>The hub's icon bar, in canvas units.</summary>
+        private const float HubBarHeight = 176f;
 
         private string _editAnnouncement;
         private string _editLanguage;
@@ -35,94 +37,78 @@ namespace Hadal.UI
             Render(force: true);
         }
 
-        /// <summary>A row back to the hub on top of every alliance sub-page.</summary>
-        private void BackToHub()
-        {
-            var row = UiKit.Rect("Back", _list).Row(90);
-            CardButton(row, Loc.T("alliance.back"), true, () => OpenAllianceTab(AllianceTabHub), UiKit.Field, 0f, 0.08f, 0.4f, 0.92f);
-        }
-
         private void RenderHub(AllianceDto alliance, int myRank)
         {
-            // Header: banner, [TAG] Name, leader, power, members and language.
+            PageTitle(Loc.T("social.alliance"));
+
+            // The banner card: emblem on the left; [TAG] Name over the label · value lines.
             var leader = alliance.Members.FirstOrDefault(m => m.IsLeader)?.Name ?? "-";
-            var head = Card(230);
-            head.color = new Color(0.06f, 0.16f, 0.24f, 1f);
-            AvatarDisc.Emblem(UiKit.Rect("Banner", head.transform).Place(0.02f, 0.1f, 0.2f, 0.9f), alliance.Emblem);
-            var name = CardText(head.transform, $"[{alliance.Tag}] {alliance.Name}", 38, UiKit.Accent, 0.23f, 0.7f, 0.98f, 0.96f, TextAnchor.MiddleLeft, FontStyle.Bold);
+            var head = InkCard(320);
+            AvatarDisc.Emblem(UiKit.Rect("Banner", head.transform).Place(0.03f, 0.08f, 0.27f, 0.92f), alliance.Emblem);
+            var name = Ink(head.transform, $"[{alliance.Tag}] {alliance.Name}", UiKit.TypeScale.Subtitle, UiFrames.Ink, 0.31f, 0.76f, 0.97f, 0.95f,
+                TextAnchor.MiddleLeft, FontStyle.Bold);
             name.richText = false;
-            var language = string.IsNullOrEmpty(alliance.Language) ? "-" : Loc.NameOf(alliance.Language);
-            CardText(head.transform,
-                $"{Loc.F("alliance.leader", leader)}\n{Loc.F("hero.power", alliance.Members.Sum(m => m.Power).ToString("N0"))}\n" +
-                $"{Loc.F("alliance.members", alliance.Members.Length, alliance.MaxMembers)}   ·   {Loc.F("alliance.hub.language", language)}",
-                24, UiKit.Text, 0.23f, 0.04f, 0.98f, 0.7f, TextAnchor.MiddleLeft);
+            name.Fit(18, UiKit.TypeScale.Subtitle);
+            var language = string.IsNullOrEmpty(alliance.Language) ? "-" : Loc.DisplayName(alliance.Language);
+            UiFrames.InfoLine(head.transform, Loc.T("alliance.role.leader") + ":", leader, 0.31f, 0.57f, 0.97f, 0.75f);
+            UiFrames.InfoLine(head.transform, Loc.T("hud.power") + ":", alliance.Members.Sum(m => m.Power).ToString("N0"), 0.31f, 0.39f, 0.97f, 0.57f);
+            UiFrames.InfoLine(head.transform, Loc.T("alliance.tile.members") + ":", $"{alliance.Members.Length}/{alliance.MaxMembers}", 0.31f, 0.21f, 0.97f, 0.39f);
+            UiFrames.InfoLine(head.transform, Loc.T("settings.language") + ":", language, 0.31f, 0.03f, 0.97f, 0.21f);
 
-            // The announcement, as written by the officers.
-            var text = string.IsNullOrEmpty(alliance.Announcement) ? Loc.T("alliance.announcement.none") : alliance.Announcement;
-            var lines = text.Split('\n').Sum(l => 1 + l.Length / 44);
-            var note = Card(Mathf.Clamp(70 + lines * 34, 120, 520));
-            CardText(note.transform, Loc.T("alliance.announcement"), 24, UiKit.Amber, 0.04f, 0.8f, 0.96f, 0.98f, TextAnchor.UpperLeft, FontStyle.Bold);
-            var body = CardText(note.transform, text, 26, string.IsNullOrEmpty(alliance.Announcement) ? UiKit.Muted : UiKit.Text, 0.04f, 0.04f, 0.96f, 0.8f);
+            // The announcement, as written by the officers, in the grey box; officers edit it from here.
+            var none = string.IsNullOrEmpty(alliance.Announcement);
+            var text = none ? Loc.T("alliance.announcement.none") : alliance.Announcement;
+            var lines = text.Split('\n').Sum(l => 1 + l.Length / 46);
+            var canEdit = AlliancePermissions.CanEditAnnouncement(myRank);
+            var height = Mathf.Clamp(60 + lines * 36 + (canEdit ? 70 : 0), 150, 560);
+            var note = InkCard(height, UiFrames.CardAlt);
+            var bottom = canEdit ? 80f / height : 0.04f;
+            var body = Ink(note.transform, text, UiKit.TypeScale.Body, none ? UiFrames.InkSoft : UiFrames.Ink, 0.04f, bottom, 0.96f, 0.95f, TextAnchor.UpperLeft);
             body.richText = false;
+            if (canEdit)
+            {
+                var edit = CardButton(note.transform, Loc.T("alliance.announcement.edit"), true, () => OpenAllianceTab(AllianceTabSettings), UiKit.Primary,
+                    0.72f, 0.04f, 0.97f, bottom - 0.02f);
+                edit.GetComponentInChildren<TMP_Text>().fontSizeMax = UiKit.TypeScale.Caption;
+            }
 
-            // Nine tiles, two a row; a red dot where something waits.
+            // The tiles, two a row, Last Asylum's order; a red dot where something waits.
             var waiting = View.HelpRequests.Count(r => !r.HelpedByMe);
+            var gifts = GiftsWaiting();
             var tiles = new (string Label, string Icon, bool Dot, Action Open)[]
             {
                 (Loc.T("alliance.tile.war"), "event_war", false, OpenWar),
-                (waiting > 0 ? $"{Loc.T("alliance.tile.help")} ({waiting})" : Loc.T("alliance.tile.help"), "left_help", waiting > 0, () => OpenAllianceTab(AllianceTabHelp)),
-                (GiftsWaiting() > 0 ? $"{Loc.T("alliance.tile.gifts")} ({GiftsWaiting()})" : Loc.T("alliance.tile.gifts"), "event_gift", GiftsWaiting() > 0,
-                    () => OpenAllianceTab(AllianceTabGifts)),
+                (Loc.T("alliance.tile.help"), "left_help", waiting > 0, () => OpenAllianceTab(AllianceTabHelp)),
+                (Loc.T("alliance.tile.gifts"), "event_gift", gifts > 0, () => OpenAllianceTab(AllianceTabGifts)),
                 (Loc.T("alliance.tile.members"), "nav_heroes", false, () => OpenAllianceTab(AllianceTabMembers)),
                 (Loc.T("alliance.tile.shop"), "shop", false, () => OpenAllianceTab(AllianceTabShop)),
-                (Loc.T("alliance.tile.research"), "left_research", false,
-                    () => OpenAllianceTab(AllianceTabResearch)),
+                (Loc.T("alliance.tile.research"), "left_research", false, () => OpenAllianceTab(AllianceTabResearch)),
                 (Loc.T("alliance.tile.rankings"), "power", false, () => OpenAllianceRankings(0)),
-                (Loc.T("alliance.tile.rally"), "nav_world", false, () => { Close(); RallyPointPrompt.Instance?.OpenRallyPoint(); }),
-                (Loc.T("city.list"), "left_home", false, () => { Close(); CityList.Instance?.Open(); }),
-                (Loc.T("alliance.tile.log"), "quest", false, () => OpenAllianceLog(AllianceLogKinds.Log))
+                (Loc.T("alliance.tile.rally"), "g_rally", false, () => { Close(); RallyPointPrompt.Instance?.OpenRallyPoint(); }),
+                (Loc.T("city.list"), "left_home", false, () => { Close(); CityList.Instance?.Open(); })
             };
-            for (var start = 0; start < tiles.Length; start += 2)
+            var grid = UiFrames.Grid(_list, 2, 3.2f, 18f);
+            grid.GetComponent<UnityEngine.UI.GridLayoutGroup>().padding = new RectOffset(0, 0, 8, 8);
+            foreach (var tile in tiles)
             {
-                var row = UiKit.Rect("Tiles", _list).Row(170);
-                for (var c = 0; c < 2 && start + c < tiles.Length; c++)
-                {
-                    var tile = tiles[start + c];
-                    var box = UiKit.Box("Tile", row, UiKit.Field);
-                    box.rectTransform.Place(c * 0.5f + 0.005f, 0.04f, c * 0.5f + 0.495f, 0.96f);
-                    var button = box.gameObject.AddComponent<Button>();
-                    button.targetGraphic = box;
-                    var open = tile.Open;
-                    button.onClick.AddListener(() => open());
-                    HudIconImage(box.transform, tile.Icon, 0.04f, 0.15f, 0.3f, 0.85f);
-                    CardText(box.transform, tile.Label, 28, UiKit.Text, 0.33f, 0.1f, 0.97f, 0.9f, TextAnchor.MiddleLeft, FontStyle.Bold).raycastTarget = false;
-                    if (tile.Dot)
-                        RedDot(box.transform);
-                }
+                var open = tile.Open;
+                UiFrames.Feature(grid, tile.Icon, tile.Label, () => open(), tile.Dot);
             }
 
-            // Bottom bar: the logs for everyone, applications and settings for officers.
+            // The icon bar along the bottom: the logs for everyone, applications and settings for officers.
             var applicants = alliance.Applicants?.Length ?? 0;
-            var bar = new System.Collections.Generic.List<(string Label, bool Dot, Action Open)>
+            var bar = new System.Collections.Generic.List<(string Icon, string Label, bool Dot, Action Click)>
             {
-                (Loc.T("alliance.bar.battlelog"), false, () => OpenAllianceLog(AllianceLogKinds.Battle)),
-                (Loc.T("alliance.bar.log"), false, () => OpenAllianceLog(AllianceLogKinds.Log))
+                ("event_war", Loc.T("alliance.bar.battlelog"), false, () => OpenAllianceLog(AllianceLogKinds.Battle)),
+                ("quest", Loc.T("alliance.bar.log"), false, () => OpenAllianceLog(AllianceLogKinds.Log))
             };
             if (AlliancePermissions.CanApprove(myRank))
-                bar.Add((applicants > 0 ? $"{Loc.T("alliance.bar.applications")} ({applicants})" : Loc.T("alliance.bar.applications"), applicants > 0,
-                    () => OpenAllianceTab(AllianceTabApplications)));
-            if (AlliancePermissions.CanEditAnnouncement(myRank))
-                bar.Add((Loc.T("alliance.bar.settings"), false, () => OpenAllianceTab(AllianceTabSettings)));
-            var strip = UiKit.Rect("Bar", _list).Row(110);
-            var width = 1f / bar.Count;
-            for (var i = 0; i < bar.Count; i++)
-            {
-                var entry = bar[i];
-                var button = CardButton(strip, entry.Label, true, () => entry.Open(), UiKit.Field, i * width + 0.005f, 0.08f, (i + 1) * width - 0.005f, 0.92f);
-                button.GetComponentInChildren<TMP_Text>().fontSize = 26;
-                if (entry.Dot)
-                    RedDot(button.transform);
-            }
+                bar.Add(("g_invite", Loc.T("alliance.bar.applications"), applicants > 0, () => OpenAllianceTab(AllianceTabApplications)));
+            if (canEdit)
+                bar.Add(("g_details", Loc.T("alliance.bar.settings"), false, () => OpenAllianceTab(AllianceTabSettings)));
+            var holder = Fixed("HubBar", () => _page == Page.Alliance && _allianceTab == AllianceTabHub && View.MyAlliance != null).Place(0, 0, 1, 1);
+            UiFrames.IconBar(holder, bar.ToArray(), HubBarHeight);
+            ListAbove(HubBarHeight + 12f);
         }
 
         /// <summary>The PvP war window (attacks, defences, rallies), or a hook set in its place.</summary>
@@ -142,12 +128,12 @@ namespace Hadal.UI
         /// <summary>The announcement (officers) and the alliance language (the leader).</summary>
         private void RenderAnnouncementEditor(AllianceDto alliance, int myRank)
         {
-            Header(Loc.T("alliance.announcement"));
+            Band(Loc.T("alliance.announcement"));
             _editAnnouncement ??= alliance.Announcement ?? string.Empty;
-            var input = UiKit.Input("Announcement", _list, Loc.T("alliance.announcement.hint"), characterLimit: SocialRules.MaxAnnouncement).Row(260);
+            var input = UiKit.Input("Announcement", _list, Loc.T("alliance.announcement.hint"), characterLimit: SocialRules.MaxAnnouncement).Row(280);
             input.lineType = TMP_InputField.LineType.MultiLineNewline;
             input.textComponent.alignment = TextAlignmentOptions.TopLeft;
-            input.textComponent.fontSize = 30;
+            input.textComponent.fontSize = UiKit.TypeScale.Body;
             input.textComponent.textWrappingMode = TextWrappingModes.Normal;
             ((TMP_Text)input.placeholder).alignment = TextAlignmentOptions.TopLeft;
             input.text = _editAnnouncement;
@@ -158,19 +144,18 @@ namespace Hadal.UI
             if (leader)
             {
                 // One button that steps through the game's languages.
-                var row = Card(110);
-                CardText(row.transform, Loc.T("alliance.language"), 28, UiKit.Text, 0.04f, 0.1f, 0.5f, 0.9f, TextAnchor.MiddleLeft, FontStyle.Bold);
-                var shown = string.IsNullOrEmpty(_editLanguage) ? "-" : Loc.NameOf(_editLanguage);
+                var row = InkCard(110);
+                Ink(row.transform, Loc.T("alliance.language"), UiKit.TypeScale.Body, UiFrames.Ink, 0.04f, 0.1f, 0.5f, 0.9f, TextAnchor.MiddleLeft, FontStyle.Bold);
+                var shown = string.IsNullOrEmpty(_editLanguage) ? "-" : Loc.DisplayName(_editLanguage);
                 CardButton(row.transform, shown, true, () =>
                 {
                     var codes = Loc.Languages.Select(l => l.Code).ToArray();
                     _editLanguage = codes[(Array.IndexOf(codes, _editLanguage) + 1) % codes.Length];
                     Render(force: false);
-                }, UiKit.Field, 0.52f, 0.12f, 0.97f, 0.88f);
+                }, UiKit.TabOn, 0.52f, 0.12f, 0.97f, 0.88f);
             }
 
-            var save = Card(110);
-            CardButton(save.transform, Loc.T("alliance.save"), true, () =>
+            WideButton(Loc.T("alliance.save"), true, () =>
             {
                 _commands.Dispatch(new SetAllianceInfoCommand
                 {
@@ -178,7 +163,7 @@ namespace Hadal.UI
                     Language = leader ? _editLanguage ?? string.Empty : string.Empty
                 });
                 _editAnnouncement = _editLanguage = null;
-            }, null, 0.25f, 0.1f, 0.75f, 0.9f);
+            }, UiKit.Primary);
         }
     }
 }

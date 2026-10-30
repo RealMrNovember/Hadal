@@ -1594,3 +1594,7 @@ mail.report.scoutedText = {0} разведал вашу базу. Будьте �
 mail.report.moved = Цель переместилась; боя не было, армия вернулась.
 mail.report.gone = Цель ушла; боя не было, армия вернулась.
 mail.report.goThere = Показать на карте
+rank.col.rank = Место
+rank.col.name = Имя
+rank.col.points = Очки
+alliance.announcement.edit = Изменить

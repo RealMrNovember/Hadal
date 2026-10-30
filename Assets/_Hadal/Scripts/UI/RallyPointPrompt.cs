@@ -125,70 +125,64 @@ namespace Hadal.UI
         {
             Close();
             var km = GatherRules.Km(t.MyX, t.MyY, t.RallyX, t.RallyY);
-            var dim = UiKit.Box("Dim", _canvas.transform, new Color(0, 0, 0, 0.6f));
-            dim.rectTransform.Place(0, 0, 1, 1);
-            dim.gameObject.AddComponent<Button>().onClick.AddListener(Close);
+            // The genre's dialog over the blurred game: navy frame, title on the left, the white cross.
+            var dim = UiFrames.Dim(_canvas.transform, Close);
             _card = dim.gameObject;
-
-            var card = UiKit.Box("Card", dim.transform, UiKit.Panel);
-            card.rectTransform.Place(0.05f, 0.2f, 0.95f, 0.8f);
-            card.gameObject.AddComponent<Button>();
+            var card = UiKit.Box("Card", dim, UiFrames.Navy);
+            card.rectTransform.Place(0.04f, 0.2f, 0.96f, 0.8f);
             card.gameObject.AddComponent<CanvasGroup>();
-            card.gameObject.AddComponent<PopIn>();
-
-            var header = UiKit.Box("Header", card.transform, new Color(0.05f, 0.16f, 0.22f, 1f));
-            header.rectTransform.Place(0, 0.9f, 1, 1);
-            UiKit.Label("Title", header.transform, Loc.T("rally.title"), 38, UiKit.Text, TextAnchor.MiddleLeft, FontStyle.Bold).rectTransform.Place(0.05f, 0, 0.84f, 1);
-            var close = UiKit.Button("Close", header.transform, "X", Close, UiKit.Field, 36);
-            close.GetComponentInChildren<TMP_Text>().color = UiKit.Text;
-            ((RectTransform)close.transform).Place(0.86f, 0.15f, 0.97f, 0.85f);
+            card.gameObject.AddComponent<PopIn>().From = 0.94f;
+            var parts = UiFrames.Dialog(card.rectTransform, Close);
+            parts.Title.text = Loc.T("rally.title");
+            var body = parts.Body;
 
             // "Rally point: X:391 Y:695" — tapping the coordinates opens the map there.
             var rx = t.RallyX;
             var ry = t.RallyY;
-            var coords = UiKit.Button("Coords", card.transform, Loc.F("rally.coords", rx, ry), () =>
+            var coords = UiKit.Label("Coords", body, $"<u>{Loc.F("rally.coords", rx, ry)}</u>", UiKit.TypeScale.Body + 2, UiFrames.InkGood, TextAnchor.MiddleLeft, FontStyle.Bold);
+            coords.rectTransform.Place(0.05f, 0.89f, 0.95f, 0.98f);
+            coords.raycastTarget = true;
+            coords.gameObject.AddComponent<Button>().onClick.AddListener(() =>
             {
                 Close();
                 _actions.ShowOnMap?.Invoke(rx, ry);
-            }, new Color(0, 0, 0, 0f), 28);
-            coords.GetComponentInChildren<TMP_Text>().color = UiKit.Accent;
-            ((RectTransform)coords.transform).Place(0.04f, 0.82f, 0.96f, 0.89f);
+            });
             var note = km > FarKm ? Loc.F("rally.far", km.ToString("N0")) : Loc.T("rally.near");
             if (!t.RallyIsHub)
                 note += "\n" + Loc.T("rally.leader");
-            UiKit.Label("Note", card.transform, note, 24, UiKit.Text, TextAnchor.UpperLeft).rectTransform.Place(0.05f, 0.66f, 0.95f, 0.82f);
+            UiKit.Label("Note", body, note, UiKit.TypeScale.Caption + 2, UiFrames.Ink, TextAnchor.UpperLeft).rectTransform.Place(0.05f, 0.72f, 0.95f, 0.88f);
 
-            BuildPreview(card.transform, t, km);
+            BuildPreview(body, t, km);
 
-            // The Alliance Teleport: have/need, or its Hadalite price.
+            // The Alliance Teleport: have/need, or its Hadalite price, on a light item card.
             var held = View.Items.TryGetValue(TeleportRules.AllianceItem, out var n) ? n : 0;
             var price = TeleportRules.HadaliteFor(TeleportRules.Alliance);
             var hadalite = (View.Data.resources ?? Array.Empty<Hadal.Data.Models.ResourceSaveEntry>())
                 .Where(e => ResourceTypeMap.FromStoredValue(e.resourceType) == ResourceType.Hadalite).Select(e => e.amount).DefaultIfEmpty(0).Sum();
-            var row = UiKit.Box("Item", card.transform, new Color(0, 0, 0, 0.3f));
-            row.rectTransform.Place(0.05f, 0.13f, 0.95f, 0.24f);
-            Hud.HudIcons.Image(row.rectTransform, "nav_world", 0.02f, 0.1f, 0.14f, 0.9f).raycastTarget = false;
-            UiKit.Label("Name", row.transform, Loc.T("item." + TeleportRules.AllianceItem), 26, UiKit.Text, TextAnchor.MiddleLeft, FontStyle.Bold)
-                .rectTransform.Place(0.17f, 0.5f, 0.7f, 0.95f);
-            UiKit.Label("Count", row.transform, held > 0 ? Loc.F("rally.need", held, 1) : $"💎 {price:N0}", 26, held > 0 || hadalite >= price ? UiKit.Ok : UiKit.Danger,
-                TextAnchor.MiddleLeft, FontStyle.Bold).rectTransform.Place(0.17f, 0.05f, 0.7f, 0.5f);
+            var row = UiFrames.CardBox(body, null, "Item");
+            row.rectTransform.Place(0.04f, 0.15f, 0.96f, 0.28f);
+            UiFrames.ItemTile(row.transform, "item_teleport_alliance", "epic", held > 0 ? held.ToString("N0") : null).Place(0.02f, 0.08f, 0.17f, 0.92f);
+            UiKit.Label("Name", row.transform, Loc.T("item." + TeleportRules.AllianceItem), UiKit.TypeScale.Body, UiFrames.Ink, TextAnchor.MiddleLeft, FontStyle.Bold)
+                .rectTransform.Place(0.2f, 0.5f, 0.96f, 0.95f);
+            UiKit.Label("Count", row.transform, held > 0 ? Loc.F("rally.need", held, 1) : $"💎 {price:N0}", UiKit.TypeScale.Body,
+                held > 0 || hadalite >= price ? UiFrames.InkGood : UiFrames.InkBad, TextAnchor.MiddleLeft, FontStyle.Bold).rectTransform.Place(0.2f, 0.05f, 0.96f, 0.5f);
 
             var can = held > 0 || hadalite >= price;
-            var move = UiKit.Button("Move", card.transform, Loc.T("rally.move"), () =>
+            var move = UiKit.Button("Move", body, Loc.T("rally.move"), () =>
             {
                 _commands.Dispatch(new TeleportCommand { CommandId = Guid.NewGuid().ToString("N"), ClientSequence = ++_sequence, Mode = TeleportRules.Alliance });
                 Close();
                 _actions.OpenMap?.Invoke();
-            }, can ? UiKit.Gold : UiKit.Panel, 36);
+            }, can ? UiKit.Primary : UiKit.Panel, 36);
             move.interactable = can;
-            ((RectTransform)move.transform).Place(0.3f, 0.02f, 0.7f, 0.11f);
+            ((RectTransform)move.transform).Place(0.3f, 0.02f, 0.7f, 0.13f);
         }
 
         /// <summary>A crop of the strategic map around the rally point and the base, with the flag, the base and the distance.</summary>
         private void BuildPreview(Transform parent, TerritoryDto t, double km)
         {
             var frame = UiKit.Box("Preview", parent, new Color(0.01f, 0.04f, 0.06f, 1f));
-            frame.rectTransform.Place(0.05f, 0.26f, 0.95f, 0.65f);
+            frame.rectTransform.Place(0.04f, 0.3f, 0.96f, 0.7f);
             frame.gameObject.AddComponent<RectMask2D>();
             _texture = TerritoryPainter.Paint(t, _texture);
 
@@ -197,7 +191,7 @@ namespace Hadal.UI
             var cx = Mathf.Clamp((t.MyX + t.RallyX) / 2f, span / 2f, size - span / 2f);
             var cy = Mathf.Clamp((t.MyY + t.RallyY) / 2f, span / 2f, size - span / 2f);
             // The frame is wider than tall: show more tiles across so the map is not stretched.
-            var aspect = 0.9f / 0.39f * 0.6f;
+            var aspect = 0.92f / 0.4f * 0.6f;
             var spanX = Mathf.Min(size, span * aspect);
             cx = Mathf.Clamp(cx, spanX / 2f, size - spanX / 2f);
             var image = new GameObject("Map").AddComponent<RawImage>();

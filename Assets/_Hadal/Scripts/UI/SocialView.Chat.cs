@@ -37,47 +37,41 @@ namespace Hadal.UI
 
         private void RenderChat(bool force)
         {
-            _title.text = Loc.T("social.chat");
-            _subtitle.text = string.Empty;
+            // In a private conversation the top bar names the other player; its back arrow returns to the list.
+            PageTitle(_chatChannel == ChatChannel.Private && _chatPeer.Length > 0 ? _chatPeerName : Loc.T("social.chat"));
             BuildChatFooter();
 
             var inAlliance = View.MyAlliance != null;
             if (!inAlliance && _chatChannel == ChatChannel.Alliance)
                 _chatChannel = ChatChannel.World;
 
-            // Channel tabs stay fixed under the title (the list below scrolls to the newest line).
+            // Channel tabs: Last Asylum's strip fixed under the top bar (the list below scrolls to the newest line).
             if (_chatTabs != null)
                 Destroy(_chatTabs.gameObject);
-            _chatTabs = UiKit.Choice("Channels", _body, new[] { $"{Loc.T("chat.world")} · {Loc.F("kingdom.short", View.MyKingdom)}", inAlliance ? $"[{View.MyAlliance.Tag}] {Loc.T("chat.alliance")}" : Loc.T("chat.alliance"), Loc.T("chat.private") },
-                () => (int)_chatChannel, i =>
+            var channels = new[]
+            {
+                $"{Loc.T("chat.world")} · {Loc.F("kingdom.short", View.MyKingdom)}",
+                inAlliance ? $"[{View.MyAlliance.Tag}] {Loc.T("chat.alliance")}" : Loc.T("chat.alliance"),
+                Loc.T("chat.private")
+            };
+            _chatTabs = UiFrames.Tabs(_body, channels, (int)_chatChannel, i =>
+            {
+                if (i == (int)ChatChannel.Alliance && View.MyAlliance == null)
                 {
-                    if (i == (int)ChatChannel.Alliance && View.MyAlliance == null)
-                    {
-                        Toast(Loc.Reason(nameof(SocialRejectReason.NotInAlliance)), UiKit.Danger);
-                        return;
-                    }
+                    Toast(Loc.Reason(nameof(SocialRejectReason.NotInAlliance)), UiKit.Danger);
+                    return;
+                }
 
-                    _chatChannel = (ChatChannel)i;
-                    _chatPeer = string.Empty;
-                    Render(force: true);
-                });
-            _chatTabs.Place(0.03f, 0.915f, 0.97f, 0.975f);
+                _chatChannel = (ChatChannel)i;
+                _chatPeer = string.Empty;
+                Render(force: true);
+            });
+            _chatTabs.Place(0.02f, 0.915f, 0.98f, 0.985f);
 
             if (_chatChannel == ChatChannel.Private && _chatPeer.Length == 0)
             {
                 RenderConversations();
                 return;
-            }
-
-            if (_chatChannel == ChatChannel.Private)
-            {
-                var back = Card(90);
-                CardText(back.transform, "‹ " + _chatPeerName, 32, UiKit.Accent, 0.04f, 0.05f, 0.7f, 0.95f, TextAnchor.MiddleLeft, FontStyle.Bold);
-                CardButton(back.transform, Loc.T("chat.private.all"), true, () =>
-                {
-                    _chatPeer = string.Empty;
-                    Render(force: true);
-                }, UiKit.Field, 0.62f, 0.12f, 0.97f, 0.88f);
             }
 
             var any = false;
@@ -92,7 +86,7 @@ namespace Hadal.UI
             }
 
             if (!any)
-                Note(Loc.T("chat.empty"));
+                InkNote(Loc.T("chat.empty"));
         }
 
         /// <summary>
@@ -103,9 +97,11 @@ namespace Hadal.UI
         {
             if (line.IsSystem)
             {
-                var notice = UiKit.Box("System", _list, new Color(0f, 0f, 0f, 0.25f)).Row(58);
+                // System notices: a pale pill in the middle.
+                var notice = UiKit.Box("System", _list, UiFrames.Band).Row(58);
+                notice.sprite = UiKit.Rounded;
                 notice.raycastTarget = false;
-                UiKit.Label("Text", notice.transform, ChatLine(line, compact: false), 22, UiKit.Muted, TextAnchor.MiddleCenter)
+                UiKit.Label("Text", notice.transform, ChatLine(line, compact: false), UiKit.TypeScale.Caption, UiFrames.InkSoft, TextAnchor.MiddleCenter)
                     .rectTransform.Place(0.03f, 0, 0.97f, 1);
                 return;
             }
@@ -136,28 +132,38 @@ namespace Hadal.UI
 
             var tag = string.IsNullOrEmpty(line.AllianceTag) ? string.Empty : $"[{line.AllianceTag}] ";
             var time = DateTimeOffset.FromUnixTimeMilliseconds(line.SentAtUnixMs).ToLocalTime().ToString("HH:mm");
-            var header = mine ? $"<color=#5E7C88>{time}</color>  {Loc.T("chat.you")}" : $"{tag}{Escape(name)}  <color=#5E7C88>{time}</color>";
-            UiKit.Label("Name", row, header, 22, mine ? UiKit.Accent : UiKit.Amber, mine ? TextAnchor.UpperRight : TextAnchor.UpperLeft, FontStyle.Bold)
+            // The name line in dark ink on the light page: the tag soft, the name bold, the time soft.
+            var header = mine ? $"<color=#5C6E87>{time}</color>  {Loc.T("chat.you")}" : $"<color=#5C6E87>{tag}</color>{Escape(name)}  <color=#5C6E87>{time}</color>";
+            UiKit.Label("Name", row, header, UiKit.TypeScale.Caption, mine ? new Color(0.13f, 0.42f, 0.78f, 1f) : UiFrames.Ink, mine ? TextAnchor.UpperRight : TextAnchor.UpperLeft,
+                    FontStyle.Bold)
                 .rectTransform.Place(mine ? 0.15f : 0.16f, 0.72f, mine ? 0.84f : 0.85f, 1f);
 
+            // Others' lines in a white bubble, mine in blue; both with a soft shadow.
             var x0 = mine ? 0.84f - width : 0.16f;
-            var bubble = UiKit.Box("Bubble", row, mine ? new Color(0.13f, 0.52f, 0.86f, 1f) : new Color(0.88f, 0.92f, 0.95f, 1f));
+            var bubble = UiKit.Box("Bubble", row, mine ? new Color(0.24f, 0.52f, 0.9f, 1f) : new Color(0.98f, 0.99f, 1f, 1f));
+            bubble.sprite = UiKit.Rounded;
             bubble.rectTransform.Place(x0, 0.02f, x0 + width, 0.74f);
             bubble.raycastTarget = false;
+            var lift = bubble.gameObject.AddComponent<Shadow>();
+            lift.effectColor = new Color(0.1f, 0.16f, 0.28f, 0.25f);
+            lift.effectDistance = new Vector2(0, -3);
             if (pin != null)
             {
                 PinCard(bubble, pin, mine);
                 return;
             }
 
-            var body = UiKit.EmojiLabel("Text", bubble.transform, text, 28, mine ? Color.white : new Color(0.08f, 0.14f, 0.2f, 1f), TextAnchor.MiddleLeft);
+            var body = UiKit.EmojiLabel("Text", bubble.transform, text, UiKit.TypeScale.Body, mine ? Color.white : UiFrames.Ink, TextAnchor.MiddleLeft);
             body.richText = false;
             body.rectTransform.Place(0, 0, 1, 1);
             body.rectTransform.offsetMin = new Vector2(18f, 6f);
             body.rectTransform.offsetMax = new Vector2(-18f, -6f);
         }
 
-        /// <summary>One card per person the player has written with, newest first.</summary>
+        /// <summary>
+        /// One row per person the player has written with, newest first (Last Asylum's mail-like rows): the portrait, the
+        /// name, the last line and its time; the whole row opens the conversation.
+        /// </summary>
         private void RenderConversations()
         {
             _footer.gameObject.SetActive(false);
@@ -168,19 +174,30 @@ namespace Hadal.UI
                 .ToList();
             if (conversations.Count == 0)
             {
-                Note(Loc.T("chat.private.none"));
+                InkNote(Loc.T("chat.private.none"), 150);
                 return;
             }
 
             foreach (var last in conversations)
             {
                 var (id, name) = Peer(last);
-                var card = Card(130);
-                CardText(card.transform, name, 32, UiKit.Text, 0.04f, 0.5f, 0.7f, 0.95f, TextAnchor.UpperLeft, FontStyle.Bold);
-                var preview = UiKit.EmojiLabel("Text", card.transform, PinPreview(last.Text) ?? last.Text, 26, UiKit.Muted, TextAnchor.UpperLeft);
+                var card = InkCard(140);
+                var open = card.gameObject.AddComponent<Button>();
+                open.targetGraphic = card;
+                open.onClick.AddListener(() => OpenPrivateChat(id, name));
+                card.gameObject.AddComponent<PressFeedback>();
+                var avatar = last.SenderId == id ? last.SenderAvatar : string.Empty;
+                AvatarDisc.Draw(UiKit.Rect("Face", card.transform).Place(0.02f, 0.1f, 0.16f, 0.9f), avatar, name, id);
+                var who = Ink(card.transform, name, UiKit.TypeScale.Body + 2, UiFrames.Ink, 0.19f, 0.52f, 0.76f, 0.94f, TextAnchor.MiddleLeft, FontStyle.Bold);
+                who.richText = false;
+                var preview = UiKit.EmojiLabel("Text", card.transform, PinPreview(last.Text) ?? last.Text, UiKit.TypeScale.Caption + 2, UiFrames.InkSoft, TextAnchor.MiddleLeft);
                 preview.richText = false;
-                preview.rectTransform.Place(0.04f, 0.05f, 0.7f, 0.5f);
-                CardButton(card.transform, Loc.T("chat.open"), true, () => OpenPrivateChat(id, name), UiKit.Accent);
+                preview.textWrappingMode = TMPro.TextWrappingModes.NoWrap;
+                preview.overflowMode = TMPro.TextOverflowModes.Ellipsis;
+                preview.rectTransform.Place(0.19f, 0.08f, 0.9f, 0.5f);
+                var time = DateTimeOffset.FromUnixTimeMilliseconds(last.SentAtUnixMs).ToLocalTime().ToString("HH:mm");
+                Ink(card.transform, time, UiKit.TypeScale.Caption, UiFrames.InkSoft, 0.76f, 0.52f, 0.96f, 0.94f, TextAnchor.MiddleRight);
+                UiKit.Label("Chevron", card.transform, "›", UiKit.TypeScale.Title, UiFrames.InkSoft, TextAnchor.MiddleCenter, FontStyle.Bold).rectTransform.Place(0.9f, 0.05f, 0.98f, 0.5f);
             }
         }
 
@@ -189,8 +206,17 @@ namespace Hadal.UI
             if (_chatInput != null)
                 return;
 
-            // Last Asylum's input bar: a white rounded field and a round blue send button.
+            // Last Asylum's input bar: a pale band along the bottom with a white rounded field and a round blue send button.
             // The limit counts text elements (an emoji is one); the field's own limit only bounds UTF-16 units.
+            var band = UiKit.Box("InputBar", _footer, UiFrames.Band);
+            band.sprite = null;
+            band.raycastTarget = false;
+            band.rectTransform.Place(-0.04f, -0.3f, 1.04f, 1.3f);
+            var edge = UiKit.Box("Edge", band.transform, new Color(0.1f, 0.16f, 0.28f, 0.25f));
+            edge.sprite = null;
+            edge.raycastTarget = false;
+            edge.rectTransform.Place(0, 1, 1, 1);
+            edge.rectTransform.offsetMin = new Vector2(0, -3);
             var maxLength = Math.Max(1, _catalog.Chat.maxLength);
             _chatInput = UiKit.Input("Message", _footer, Loc.T("chat.hint"), characterLimit: maxLength * SocialRules.MaxUnitsPerElement);
             ((RectTransform)_chatInput.transform).Place(0.13f, 0, 0.72f, 1);
@@ -206,7 +232,7 @@ namespace Hadal.UI
             var shareDisc = share.gameObject.AddComponent<Image>();
             shareDisc.sprite = UiKit.Circle;
             shareDisc.preserveAspect = true;
-            shareDisc.color = new Color(0.05f, 0.2f, 0.27f, 1f);
+            shareDisc.color = UiFrames.Navy;
             share.gameObject.AddComponent<Button>().onClick.AddListener(ShareMyBase);
             share.gameObject.AddComponent<PressFeedback>();
             HudIcons.Image(share, "nav_world", 0.18f, 0.18f, 0.82f, 0.82f).raycastTarget = false;
@@ -230,7 +256,7 @@ namespace Hadal.UI
             var smileyDisc = smiley.gameObject.AddComponent<Image>();
             smileyDisc.sprite = UiKit.Circle;
             smileyDisc.preserveAspect = true;
-            smileyDisc.color = new Color(0.05f, 0.2f, 0.27f, 1f);
+            smileyDisc.color = UiFrames.Navy;
             smiley.gameObject.AddComponent<Button>().onClick.AddListener(ToggleEmojiPicker);
             smiley.gameObject.AddComponent<PressFeedback>();
             UiKit.EmojiLabel("Icon", smiley, "🙂", 40, Color.white, TextAnchor.MiddleCenter).rectTransform.Place(0, 0, 1, 1);
@@ -239,7 +265,7 @@ namespace Hadal.UI
             var disc = send.gameObject.AddComponent<Image>();
             disc.sprite = UiKit.Circle;
             disc.preserveAspect = true;
-            disc.color = new Color(0.13f, 0.52f, 0.86f, 1f);
+            disc.color = UiKit.Primary;
             send.gameObject.AddComponent<Button>().onClick.AddListener(() =>
             {
                 SendChat();
@@ -262,7 +288,7 @@ namespace Hadal.UI
         {
             if (_emojiPicker == null)
             {
-                var panel = UiKit.Box("EmojiPicker", _body, new Color(0.04f, 0.11f, 0.16f, 0.97f));
+                var panel = UiFrames.CardBox(_body, UiFrames.Card, "EmojiPicker");
                 panel.rectTransform.Place(0.03f, 0.105f, 0.97f, 0.36f);
                 _emojiPicker = panel.gameObject;
                 const int columns = 8;
@@ -575,10 +601,10 @@ namespace Hadal.UI
             var text = Pin.Format(x, y, kind, label);
             var pin = Pin.Parse(text);
 
-            var dim = UiKit.Box("SharePicker", _canvas.transform, new Color(0, 0, 0, 0.6f));
-            dim.rectTransform.Place(0, 0, 1, 1);
+            // The genre's dialog over the blurred game; a tap outside or the cross closes it.
+            var dim = UiFrames.Dim(_canvas.transform, () => Destroy(_sharePicker));
+            dim.name = "SharePicker";
             _sharePicker = dim.gameObject;
-            dim.gameObject.AddComponent<Button>().onClick.AddListener(() => Destroy(_sharePicker));
 
             var targets = new List<(string Label, ChatChannel Channel, string Peer, bool Enabled)>
             {
@@ -592,29 +618,40 @@ namespace Hadal.UI
                 targets.Add(($"{Loc.T("chat.private")} · {peerName}", ChatChannel.Private, id, true));
             }
 
-            // Sizes in screen fractions: a title row and one button row per target.
-            var height = 0.1f + targets.Count * 0.075f;
-            var card = UiKit.Box("Card", dim.transform, UiKit.Panel);
-            card.rectTransform.Place(0.08f, 0.5f - height / 2f, 0.92f, 0.5f + height / 2f);
-            card.gameObject.AddComponent<Button>();
+            // Content-sized, in screen fractions: the header, the place card, then one button row per target.
+            const float header = 0.055f, place = 0.075f, step = 0.068f;
+            var height = header + place + 0.02f + targets.Count * step + 0.015f;
+            var card = UiKit.Box("Card", dim, UiFrames.Navy);
+            card.rectTransform.Place(0.06f, 0.5f - height / 2f, 0.94f, 0.5f + height / 2f);
             card.gameObject.AddComponent<CanvasGroup>();
-            card.gameObject.AddComponent<PopIn>();
-            var heading = UiKit.Label("Title", card.transform, $"{Loc.T("share.title")}: {pin.Title()}  ({pin.X}, {pin.Y})", 30, UiKit.Text, TextAnchor.MiddleCenter, FontStyle.Bold);
-            heading.richText = false;
-            heading.rectTransform.Place(0.04f, 1f - 0.085f / height, 0.96f, 1f - 0.01f / height);
+            card.gameObject.AddComponent<PopIn>().From = 0.94f;
+            var parts = UiFrames.Dialog(card.rectTransform, () => Destroy(_sharePicker));
+            parts.Title.text = Loc.T("share.title");
+            var body = parts.Body;
+            var inner = height - header; // the body's height in screen fractions (near enough: the frame is thin)
+
+            // What is shared: its kind, name and coordinates on a light card.
+            var info = UiFrames.CardBox(body, null, "Place");
+            info.rectTransform.Place(0.03f, 1f - (place + 0.01f) / inner, 0.97f, 1f - 0.01f / inner);
+            Hud.HudIcons.Image(info.transform, pin.Kind == "node" ? "queue_drone" : pin.Kind == "enemy" ? "event_war" : "left_home", 0.02f, 0.12f, 0.14f, 0.88f);
+            var title = UiKit.Label("Title", info.transform, string.IsNullOrEmpty(pin.Title()) ? Loc.T("share.kind." + pin.Kind) : pin.Title(), UiKit.TypeScale.Body,
+                UiFrames.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
+            title.richText = false;
+            title.rectTransform.Place(0.17f, 0.5f, 0.97f, 0.95f);
+            UiKit.Label("Coords", info.transform, Loc.F("world.coords", pin.X, pin.Y), UiKit.TypeScale.Caption, UiFrames.InkGood, TextAnchor.MiddleLeft, FontStyle.Bold)
+                .rectTransform.Place(0.17f, 0.05f, 0.97f, 0.5f);
+
             for (var i = 0; i < targets.Count; i++)
             {
                 var target = targets[i];
-                var top = 1f - (0.09f + i * 0.075f) / height;
-                var button = UiKit.Button("Target", card.transform, target.Label, () =>
+                var top = 1f - (place + 0.03f + i * step) / inner;
+                var button = UiKit.Button("Target", body, target.Label, () =>
                 {
                     Destroy(_sharePicker);
                     SendPin(target.Channel, target.Peer, text);
-                }, i == 0 ? UiKit.Accent : UiKit.Field, 30);
-                ((RectTransform)button.transform).Place(0.06f, top - 0.065f / height, 0.94f, top);
+                }, i == 0 ? UiKit.Primary : UiKit.TabOn, 30);
+                ((RectTransform)button.transform).Place(0.06f, top - (step - 0.012f) / inner, 0.94f, top);
                 button.interactable = target.Enabled;
-                if (i > 0)
-                    button.GetComponentInChildren<TMP_Text>().color = UiKit.Text;
             }
         }
 

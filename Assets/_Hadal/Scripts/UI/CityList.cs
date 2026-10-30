@@ -13,9 +13,9 @@ using UnityEngine.UI;
 namespace Hadal.UI
 {
     /// <summary>
-    /// Last Asylum's City List (docs/32 §2.4): our cities and the others, filtered by level, each with its coordinates
-    /// (tap to see it on the map), distance in km, owner and whether it neighbours our land; the owned count and the City
-    /// Bonus. Opened from the alliance hub.
+    /// Last Asylum's City List (docs/32 §2.4), in the genre's dialog over the blurred game: our cities and the others,
+    /// filtered by level, each on a light row with its coordinates (tap to see it on the map), distance in km, owner and
+    /// whether it neighbours our land; the owned count and the City Bonus at the bottom. Opened from the alliance hub.
     /// </summary>
     public sealed class CityList : MonoBehaviour
     {
@@ -27,6 +27,7 @@ namespace Hadal.UI
         private ulong _sequence;
         private Canvas _canvas;
         private GameObject _window;
+        private RectTransform _body;
         private int _tab;
         private int _level;
         private int _rendered = -1;
@@ -54,6 +55,7 @@ namespace Hadal.UI
             if (_window != null)
                 Destroy(_window);
             _window = null;
+            _body = null;
         }
 
         private void Update()
@@ -62,47 +64,41 @@ namespace Hadal.UI
                 Render();
         }
 
+        /// <summary>The backdrop and dialog are made once; tabs, filters and new data redraw only the body.</summary>
         private void Render()
         {
-            Close();
             _rendered = View.TerritoryVersion;
-            var t = View.Territory;
-            var dim = UiKit.Box("Dim", _canvas.transform, new Color(0, 0, 0, 0.6f));
-            dim.rectTransform.Place(0, 0, 1, 1);
-            dim.gameObject.AddComponent<Button>().onClick.AddListener(Close);
-            _window = dim.gameObject;
-            var card = UiKit.Box("Card", dim.transform, UiKit.Panel);
-            card.rectTransform.Place(0.03f, 0.08f, 0.97f, 0.92f);
-            card.gameObject.AddComponent<Button>();
-
-            var header = UiKit.Box("Header", card.transform, new Color(0.05f, 0.16f, 0.22f, 1f));
-            header.rectTransform.Place(0, 0.93f, 1, 1);
-            UiKit.Label("Title", header.transform, Loc.T("city.list"), 40, UiKit.Text, TextAnchor.MiddleLeft, FontStyle.Bold).rectTransform.Place(0.05f, 0, 0.8f, 1);
-            var close = UiKit.Button("Close", header.transform, "X", Close, UiKit.Field, 38);
-            close.GetComponentInChildren<TMP_Text>().color = UiKit.Text;
-            ((RectTransform)close.transform).Place(0.85f, 0.15f, 0.96f, 0.85f);
-
-            // Tabs: ours / open to take; then the level filter.
-            var tabs = new[] { Loc.T("city.tab.ours"), Loc.T("city.tab.open") };
-            for (var i = 0; i < tabs.Length; i++)
+            if (_window == null)
             {
-                var index = i;
-                var b = UiKit.Button("Tab" + i, card.transform, tabs[i], () => { _tab = index; Render(); }, i == _tab ? UiKit.TabOn : UiKit.TabOff, 28);
-                b.GetComponentInChildren<TMP_Text>().color = i == _tab ? new Color(0.05f, 0.1f, 0.15f) : UiKit.Text;
-                ((RectTransform)b.transform).Place(0.03f + i * 0.475f, 0.865f, 0.495f + i * 0.475f, 0.92f);
+                var dim = UiFrames.Dim(_canvas.transform, Close);
+                _window = dim.gameObject;
+                var card = UiKit.Box("Card", dim, UiFrames.Navy);
+                card.rectTransform.Place(0.03f, 0.08f, 0.97f, 0.92f);
+                card.gameObject.AddComponent<CanvasGroup>();
+                card.gameObject.AddComponent<PopIn>().From = 0.94f;
+                var parts = UiFrames.Dialog(card.rectTransform, Close);
+                parts.Title.text = Loc.T("city.list");
+                _body = parts.Body;
             }
 
+            for (var i = _body.childCount - 1; i >= 0; i--)
+                if (_body.GetChild(i).name != "Subtitle")
+                    Destroy(_body.GetChild(i).gameObject);
+            var t = View.Territory;
+
+            // Tabs: ours / open to take; then the level filter.
+            UiFrames.Tabs(_body, new[] { Loc.T("city.tab.ours"), Loc.T("city.tab.open") }, _tab, i => { _tab = i; Render(); }).Place(0.03f, 0.915f, 0.97f, 0.985f);
             for (var l = 0; l <= 6; l++)
             {
                 var level = l;
-                var b = UiKit.Button("Lv" + l, card.transform, l == 0 ? Loc.T("city.all") : Loc.F("base.level", l), () => { _level = level; Render(); },
-                    l == _level ? UiKit.Primary : UiKit.Field, 20);
-                ((RectTransform)b.transform).Place(0.03f + l * 0.135f, 0.81f, 0.155f + l * 0.135f, 0.855f);
+                var b = UiKit.Button("Lv" + l, _body, l == 0 ? Loc.T("city.all") : Loc.F("base.level", l), () => { _level = level; Render(); },
+                    l == _level ? UiKit.Primary : UiKit.TabOn, 20);
+                ((RectTransform)b.transform).Place(0.03f + l * 0.135f, 0.85f, 0.155f + l * 0.135f, 0.905f);
             }
 
             if (t == null)
             {
-                UiKit.Label("Wait", card.transform, "…", 40, UiKit.Muted, TextAnchor.MiddleCenter).rectTransform.Place(0, 0.4f, 1, 0.6f);
+                UiKit.Label("Wait", _body, "…", UiKit.TypeScale.Title, UiFrames.InkSoft, TextAnchor.MiddleCenter).rectTransform.Place(0, 0.4f, 1, 0.6f);
                 return;
             }
 
@@ -114,38 +110,42 @@ namespace Hadal.UI
                 .Where(c => _level == 0 || c.Level == _level)
                 .OrderBy(c => GatherRules.Km(t.MyX, t.MyY, c.X, c.Y)).Take(60).ToList();
 
-            var list = UiKit.ScrollList("List", card.transform, 10f);
-            ((RectTransform)list.parent).Place(0.03f, 0.14f, 0.97f, 0.8f);
+            var list = UiKit.ScrollList("List", _body, 10f);
+            ((RectTransform)list.parent).Place(0.02f, 0.15f, 0.98f, 0.84f);
             if (cities.Count == 0)
-                UiKit.Label("None", list, Loc.T("city.none"), 26, UiKit.Muted, TextAnchor.MiddleCenter).Row(120f);
-            foreach (var c in cities)
+                UiFrames.Note(list, Loc.T("city.none")).Row(120f);
+            for (var i = 0; i < cities.Count; i++)
             {
-                var row = UiKit.Box("City", list, UiKit.Field).Row(150f);
-                Hud.HudIcons.Image(row.rectTransform, "left_home", 0.02f, 0.15f, 0.16f, 0.85f).raycastTarget = false;
+                var c = cities[i];
+                var row = UiFrames.CardBox(list, i % 2 == 0 ? UiFrames.Card : UiFrames.CardAlt, "City").Row(150f);
+                Hud.HudIcons.Image(row.rectTransform, "left_home", 0.02f, 0.12f, 0.16f, 0.88f).raycastTarget = false;
                 var name = c.Level >= TerritoryRules.ThroneLevel ? Loc.T("pvp.throne") : Loc.T("city.name");
-                UiKit.Label("Name", row.transform, $"{name} {Loc.F("base.level", c.Level)}", 28, UiKit.Text, TextAnchor.MiddleLeft, FontStyle.Bold)
-                    .rectTransform.Place(0.19f, 0.66f, 0.7f, 0.96f);
+                UiKit.Label("Name", row.transform, $"{name} {Loc.F("base.level", c.Level)}", UiKit.TypeScale.Body, UiFrames.Ink, TextAnchor.MiddleLeft, FontStyle.Bold)
+                    .rectTransform.Place(0.19f, 0.64f, 0.62f, 0.96f);
                 var x = c.X;
                 var y = c.Y;
-                var coords = UiKit.Button("Coords", row.transform, Loc.F("world.coords", x, y), () => { Close(); _showOnMap?.Invoke(x, y); }, new Color(0, 0, 0, 0), 22);
-                coords.GetComponentInChildren<TMP_Text>().color = UiKit.Ok;
-                coords.GetComponentInChildren<TMP_Text>().alignment = TextAlignmentOptions.Left;
-                ((RectTransform)coords.transform).Place(0.19f, 0.36f, 0.6f, 0.66f);
-                UiKit.Label("Km", row.transform, Loc.F("city.distance", GatherRules.Km(t.MyX, t.MyY, x, y).ToString("N0")), 22, UiKit.Muted, TextAnchor.MiddleLeft)
-                    .rectTransform.Place(0.19f, 0.06f, 0.6f, 0.36f);
+                var coords = UiKit.Label("Coords", row.transform, $"<u>{Loc.F("world.coords", x, y)}</u>", UiKit.TypeScale.Caption + 2, UiFrames.InkGood,
+                    TextAnchor.MiddleLeft, FontStyle.Bold);
+                coords.rectTransform.Place(0.19f, 0.34f, 0.6f, 0.64f);
+                coords.raycastTarget = true;
+                coords.gameObject.AddComponent<Button>().onClick.AddListener(() => { Close(); _showOnMap?.Invoke(x, y); });
+                UiKit.Label("Km", row.transform, Loc.F("city.distance", GatherRules.Km(t.MyX, t.MyY, x, y).ToString("N0")), UiKit.TypeScale.Caption, UiFrames.InkSoft,
+                    TextAnchor.MiddleLeft).rectTransform.Place(0.19f, 0.05f, 0.6f, 0.34f);
                 var owner = string.IsNullOrEmpty(c.AllianceTag) ? Loc.T("pvp.unowned") : $"[{c.AllianceTag}]";
                 var neighbour = _tab == 1 && Near(ourLand, x, y, AllianceLandRules.CityReach);
-                UiKit.Label("Owner", row.transform, owner + (neighbour ? "\n" + Loc.T("city.neighbour") : string.Empty), 22,
-                    c.AllianceId == mine ? UiKit.Ok : string.IsNullOrEmpty(c.AllianceId) ? UiKit.Muted : UiKit.Danger, TextAnchor.MiddleRight, FontStyle.Bold)
-                    .rectTransform.Place(0.6f, 0.1f, 0.97f, 0.9f);
+                var who = UiKit.Label("Owner", row.transform, owner + (neighbour ? "\n" + Loc.T("city.neighbour") : string.Empty), UiKit.TypeScale.Caption,
+                    c.AllianceId == mine ? UiFrames.InkGood : string.IsNullOrEmpty(c.AllianceId) ? UiFrames.InkSoft : UiFrames.InkBad, TextAnchor.MiddleRight, FontStyle.Bold);
+                who.rectTransform.Place(0.6f, 0.08f, 0.97f, 0.92f);
+                who.richText = false;
             }
 
-            UiKit.Label("Held", card.transform, Loc.F("city.owned", t.Held, t.Allowed), 28, UiKit.Text, TextAnchor.MiddleCenter, FontStyle.Bold)
-                .rectTransform.Place(0.05f, 0.08f, 0.95f, 0.13f);
-            UiKit.Label("Rule", card.transform, Loc.T("city.rule"), 20, UiKit.Muted, TextAnchor.MiddleCenter).rectTransform.Place(0.05f, 0.005f, 0.6f, 0.075f);
-            var bonus = UiKit.Button("Bonus", card.transform, Loc.T("city.bonus"), () => Toaster.Show(Loc.F("city.bonus.text", t.Held * AllianceLandRules.CityGatherPercent), UiKit.Accent),
+            UiKit.Label("Held", _body, Loc.F("city.owned", t.Held, t.Allowed), UiKit.TypeScale.Body, UiFrames.Ink, TextAnchor.MiddleCenter, FontStyle.Bold)
+                .rectTransform.Place(0.05f, 0.085f, 0.95f, 0.145f);
+            UiKit.Label("Rule", _body, Loc.T("city.rule"), UiKit.TypeScale.Micro, UiFrames.InkSoft, TextAnchor.MiddleLeft).rectTransform.Place(0.04f, 0.01f, 0.6f, 0.08f);
+            var held = t.Held;
+            var bonus = UiKit.Button("Bonus", _body, Loc.T("city.bonus"), () => Toaster.Show(Loc.F("city.bonus.text", held * AllianceLandRules.CityGatherPercent), UiKit.Accent),
                 UiKit.Gold, 26);
-            ((RectTransform)bonus.transform).Place(0.62f, 0.01f, 0.97f, 0.075f);
+            ((RectTransform)bonus.transform).Place(0.62f, 0.012f, 0.97f, 0.078f);
         }
 
         private static HashSet<(int, int)> OurLand(TerritoryDto t)

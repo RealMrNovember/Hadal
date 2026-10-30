@@ -1594,3 +1594,7 @@ mail.report.scoutedText = {0} استطلع قاعدتك. ابقَ متيقظًا
 mail.report.moved = انتقل الهدف؛ لا معركة، وعاد جيشك.
 mail.report.gone = غادر الهدف؛ لا معركة، وعاد جيشك.
 mail.report.goThere = عرض على الخريطة
+rank.col.rank = الترتيب
+rank.col.name = الاسم
+rank.col.points = النقاط
+alliance.announcement.edit = تعديل

@@ -1594,3 +1594,7 @@ mail.report.scoutedText = {0} hat deine Basis ausgespäht. Sei wachsam, ein Angr
 mail.report.moved = Das Ziel ist umgezogen; kein Kampf, deine Armee kam zurück.
 mail.report.gone = Das Ziel ist weg; kein Kampf, deine Armee kam zurück.
 mail.report.goThere = Auf Karte zeigen
+rank.col.rank = Rang
+rank.col.name = Name
+rank.col.points = Punkte
+alliance.announcement.edit = Bearbeiten

@@ -8,8 +8,8 @@ using UnityEngine;
 namespace Hadal.UI
 {
     /// <summary>
-    /// The alliance log (joins and leaves, rank changes, research) and the battle log (docs/31 §2), newest first with the
-    /// date; fetched from the server each time the page opens.
+    /// The alliance log (joins and leaves, rank changes, research; tabs) and the battle log (docs/31 §2): zebra lines,
+    /// newest first, an icon per kind and the date on the right; fetched from the server each time the page opens.
     /// </summary>
     public sealed partial class SocialView
     {
@@ -34,36 +34,56 @@ namespace Hadal.UI
         private void RenderAllianceLog(string kind)
         {
             var log = View.AllianceLog(kind);
-            Header(Loc.T(kind == AllianceLogKinds.Battle ? "alliance.bar.battlelog" : "alliance.bar.log"));
             var entries = (log?.Entries ?? Array.Empty<AllianceLogEntryDto>()).AsEnumerable();
             if (kind == AllianceLogKinds.Log)
             {
-                UiKit.Choice("LogTabs", _list, new[] { Loc.T("alliance.log.tab.members"), Loc.T("alliance.log.tab.ranks"), Loc.T("alliance.log.tab.research") },
-                    () => _logTab, i => { _logTab = i; Render(force: true); }).Row(90);
+                UiFrames.Tabs(_list, new[] { Loc.T("alliance.log.tab.members"), Loc.T("alliance.log.tab.ranks"), Loc.T("alliance.log.tab.research") },
+                    Mathf.Clamp(_logTab, 0, 2), i => { _logTab = i; Render(force: true); }).Row(96);
                 entries = entries.Where(e => Array.IndexOf(LogTabTypes[Mathf.Clamp(_logTab, 0, 2)], e.Type) >= 0);
             }
 
             var shown = entries.ToList();
             if (log == null)
             {
-                Note(Loc.T("alliance.log.loading"));
+                InkNote(Loc.T("alliance.log.loading"));
                 return;
             }
 
             if (shown.Count == 0)
             {
-                Note(Loc.T("alliance.log.empty"));
+                InkNote(Loc.T("alliance.log.empty"));
                 return;
             }
 
-            foreach (var e in shown)
+            for (var i = 0; i < shown.Count; i++)
             {
-                var card = Card(110);
-                var text = CardText(card.transform, LogText(kind, e), 26, UiKit.Text, 0.03f, 0.08f, 0.78f, 0.92f, TextAnchor.MiddleLeft);
+                var e = shown[i];
+                var card = InkCard(110, i % 2 == 0 ? UiFrames.Card : UiFrames.CardAlt);
+                HudIconImage(card.transform, LogIcon(kind, e.Type), 0.015f, 0.15f, 0.1f, 0.85f);
+                var text = Ink(card.transform, LogText(kind, e), UiKit.TypeScale.Caption + 2, UiFrames.Ink, 0.12f, 0.06f, 0.78f, 0.94f);
                 text.richText = false;
                 var at = DateTimeOffset.FromUnixTimeMilliseconds(e.AtMs).ToLocalTime();
-                CardText(card.transform, at.ToString("dd.MM HH:mm"), 22, UiKit.Muted, 0.78f, 0.08f, 0.97f, 0.92f, TextAnchor.MiddleRight);
+                Ink(card.transform, at.ToString("dd.MM") + "\n" + at.ToString("HH:mm"), UiKit.TypeScale.Caption, UiFrames.InkSoft, 0.78f, 0.06f, 0.97f, 0.94f,
+                    TextAnchor.MiddleRight);
             }
+        }
+
+        /// <summary>The line's icon: battles by kind, the log by what changed.</summary>
+        private static string LogIcon(string kind, string type)
+        {
+            type ??= string.Empty;
+            if (kind == AllianceLogKinds.Battle)
+                return type == "scout" ? "g_scout"
+                    : type.StartsWith("rally", StringComparison.Ordinal) ? "g_rally"
+                    : type.StartsWith("defence", StringComparison.Ordinal) ? "g_shield"
+                    : "g_attack";
+            return type switch
+            {
+                "joined" => "g_invite",
+                "left" or "kicked" => "g_profile",
+                "research" => "left_research",
+                _ => "g_star"
+            };
         }
 
         /// <summary>Words one line: "alliance.log.joined" / "alliance.battle.attack_won" with its arguments.</summary>

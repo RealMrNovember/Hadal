@@ -1594,3 +1594,7 @@ mail.report.scoutedText = {0}があなたの基地を偵察しました。攻撃
 mail.report.moved = 目標が移動しました。戦闘はなく、軍は帰還しました。
 mail.report.gone = 目標が去りました。戦闘はなく、軍は帰還しました。
 mail.report.goThere = マップで表示
+rank.col.rank = 順位
+rank.col.name = 名前
+rank.col.points = ポイント
+alliance.announcement.edit = 編集
