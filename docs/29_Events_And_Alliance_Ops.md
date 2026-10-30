@@ -202,7 +202,8 @@ Rules in `AlliancePollRules` (HADAL.Shared), server in `SocialHub.Polls`, client
   in the last 3 days; without one, the most powerful active member of the next rank down; nobody active → nothing
   happens. The old leader becomes an officer (a veteran when the officer seats are full) without a duty. The alliance
   reads `sys.inactive` in chat and the log and every member gets an alliance mail (`mail.alliance.leader.*`). A leader
-  whose last visit was never recorded starts the 14 days at the first check.
+  whose last visit was never recorded starts the 14 days at the first check; an online leader's last visit is refreshed
+  hourly, so a server restart (no disconnect) cannot make them look long gone.
 - **Overseer panel**: "İttifak Oylamaları" lists every alliance's votes read-only (search by tag or name); a game master
   can close one now (the summary still goes to chat) or delete it without a trace; both are audited (`poll.close`,
   `poll.delete`).
