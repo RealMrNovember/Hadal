@@ -34,3 +34,10 @@ MonoBehaviour:
   _pressureResistanceBonus: 0
   _prefab: {fileID: 919132149155446097, guid: a1a5082bab3f18ec3b5406157a4c2da5, type: 3}
   _ghostPrefab: {fileID: 0}
+  _tierPrefabs:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
