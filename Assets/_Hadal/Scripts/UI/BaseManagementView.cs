@@ -114,23 +114,19 @@ namespace Hadal.UI
             labels.transform.SetParent(transform, false);
             _overlay = UiKit.Rect("Timers", labels.transform).Place(0, 0, 1, 1);
 
-            var sheetImage = UiKit.Box("Sheet", _canvas.transform, UiKit.Panel);
-            sheetImage.rectTransform.Place(0.02f, 0.01f, 0.98f, 0.52f);
-            _sheet = sheetImage.gameObject.AddComponent<CanvasGroup>();
-            sheetImage.gameObject.AddComponent<PopIn>().Slide = true;
+            // Building details, the build list, expand and research: the genre's centred dialog over the blurred base.
+            var dim = UiFrames.Dim(_canvas.transform, Close);
+            _sheet = dim.gameObject.AddComponent<CanvasGroup>();
+            var sheetImage = UiKit.Box("Sheet", dim, UiFrames.Navy);
+            sheetImage.rectTransform.Place(0.03f, 0.13f, 0.97f, 0.86f);
+            sheetImage.gameObject.AddComponent<CanvasGroup>();
+            sheetImage.gameObject.AddComponent<PopIn>().From = 0.94f;
+            var parts = UiFrames.Dialog(sheetImage.rectTransform, Close);
+            _title = parts.Title;
+            _subtitle = parts.Subtitle;
 
-            UiKit.TitleBar(sheetImage.transform, 0.87f);
-            _title = UiKit.Stroked(UiKit.Label("Title", sheetImage.transform, string.Empty, 48, UiKit.Accent, TextAnchor.MiddleLeft, FontStyle.Bold));
-            _title.rectTransform.Place(0.05f, 0.885f, 0.8f, 0.985f);
-            _subtitle = UiKit.Label("Subtitle", sheetImage.transform, string.Empty, 32, UiKit.Muted);
-            _subtitle.rectTransform.Place(0.05f, 0.8f, 0.95f, 0.865f);
-
-            var close = UiKit.Button("Close", sheetImage.transform, "X", Close, UiKit.Field, 40);
-            close.GetComponentInChildren<TMP_Text>().color = UiKit.Text;
-            ((RectTransform)close.transform).Place(0.84f, 0.88f, 0.96f, 0.98f);
-
-            _list = UiKit.ScrollList("List", sheetImage.transform);
-            ((RectTransform)_list.parent).Place(0.04f, 0.03f, 0.96f, 0.8f);
+            _list = UiKit.ScrollList("List", parts.Body);
+            ((RectTransform)_list.parent).Place(0.02f, 0.02f, 0.98f, 0.95f);
 
             _expand = UiKit.Button("Expand", _canvas.transform, Loc.T("base.expand"), OpenExpand, new Color(0.03f, 0.10f, 0.14f, 0.85f), 36);
             _expand.GetComponentInChildren<TMP_Text>().color = UiKit.Accent;

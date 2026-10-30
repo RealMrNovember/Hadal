@@ -83,6 +83,17 @@ namespace Hadal.UI
             menu.BuildPlainCard(title, info, bar, barText);
         }
 
+        /// <summary>
+        /// A building in the base (Last Asylum's): no card, just the level in gold and the name in white over it, the
+        /// actions on the crescent below.
+        /// </summary>
+        public static void ShowLabel(Func<Camera> camera, Func<Vector3> target, string level, string name, IReadOnlyList<Item> items, Action closed = null)
+        {
+            var menu = Instance();
+            menu.Open(camera, target, items, closed);
+            menu.BuildLabel(level, name);
+        }
+
         /// <summary>A player's base: the full card (Last Asylum's).</summary>
         public static void Show(Func<Camera> camera, Func<Vector3> target, Card card, IReadOnlyList<Item> items, Action closed = null)
         {
@@ -280,6 +291,21 @@ namespace Hadal.UI
                 b.anchorMin = b.anchorMax = new Vector2(cx, 0.62f);
                 b.sizeDelta = new Vector2(92f, 92f);
             }
+        }
+
+        private void BuildLabel(string level, string name)
+        {
+            var root = UiKit.Rect("Card", _root);
+            root.anchorMin = root.anchorMax = new Vector2(0.5f, 0.5f);
+            root.pivot = new Vector2(0.5f, 0f);
+            root.sizeDelta = new Vector2(CardWidth, 120f);
+            _card = root;
+            var top = UiKit.Label("Level", root, level, UiKit.TypeScale.Subtitle, new Color(1f, 0.78f, 0.3f, 1f), TextAnchor.MiddleCenter, FontStyle.Bold);
+            top.rectTransform.Place(0, 0.5f, 1, 1);
+            UiText.Outline(top, new Color(0.05f, 0.04f, 0.02f, 0.95f));
+            var label = UiKit.Label("Name", root, name, UiKit.TypeScale.Subtitle + 2, Color.white, TextAnchor.MiddleCenter, FontStyle.Bold);
+            label.rectTransform.Place(0, 0, 1, 0.52f);
+            UiText.Outline(label, new Color(0.03f, 0.05f, 0.1f, 0.95f));
         }
 
         private void BuildPlainCard(string title, string info, float bar, string barText)

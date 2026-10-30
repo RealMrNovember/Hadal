@@ -48,7 +48,7 @@ namespace Hadal.UI
             // Channel tabs stay fixed under the title (the list below scrolls to the newest line).
             if (_chatTabs != null)
                 Destroy(_chatTabs.gameObject);
-            _chatTabs = UiKit.Choice("Channels", _sheet.transform, new[] { $"{Loc.T("chat.world")} · {Loc.F("kingdom.short", View.MyKingdom)}", inAlliance ? $"[{View.MyAlliance.Tag}] {Loc.T("chat.alliance")}" : Loc.T("chat.alliance"), Loc.T("chat.private") },
+            _chatTabs = UiKit.Choice("Channels", _body, new[] { $"{Loc.T("chat.world")} · {Loc.F("kingdom.short", View.MyKingdom)}", inAlliance ? $"[{View.MyAlliance.Tag}] {Loc.T("chat.alliance")}" : Loc.T("chat.alliance"), Loc.T("chat.private") },
                 () => (int)_chatChannel, i =>
                 {
                     if (i == (int)ChatChannel.Alliance && View.MyAlliance == null)
@@ -61,7 +61,7 @@ namespace Hadal.UI
                     _chatPeer = string.Empty;
                     Render(force: true);
                 });
-            _chatTabs.Place(0.03f, 0.875f, 0.97f, 0.922f);
+            _chatTabs.Place(0.03f, 0.915f, 0.97f, 0.975f);
 
             if (_chatChannel == ChatChannel.Private && _chatPeer.Length == 0)
             {
@@ -262,7 +262,7 @@ namespace Hadal.UI
         {
             if (_emojiPicker == null)
             {
-                var panel = UiKit.Box("EmojiPicker", _sheet.transform, new Color(0.04f, 0.11f, 0.16f, 0.97f));
+                var panel = UiKit.Box("EmojiPicker", _body, new Color(0.04f, 0.11f, 0.16f, 0.97f));
                 panel.rectTransform.Place(0.03f, 0.105f, 0.97f, 0.36f);
                 _emojiPicker = panel.gameObject;
                 const int columns = 8;
@@ -372,7 +372,7 @@ namespace Hadal.UI
         {
             if (_newMessages == null)
             {
-                _newMessages = UiKit.Button("NewMessages", _sheet.transform, string.Empty, () => ScrollChatToBottom(),
+                _newMessages = UiKit.Button("NewMessages", _body, string.Empty, () => ScrollChatToBottom(),
                     new Color(0.13f, 0.52f, 0.86f, 0.95f), 26);
                 ((RectTransform)_newMessages.transform).Place(0.3f, 0.105f, 0.7f, 0.145f);
                 _newMessages.GetComponentInChildren<TMP_Text>().color = Color.white;

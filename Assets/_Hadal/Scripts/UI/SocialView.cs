@@ -99,6 +99,9 @@ namespace Hadal.UI
 
         private HeroStage _stage;
 
+        /// <summary>The page's body under the top bar; page parts that float over the list (tabs, bars) sit in it.</summary>
+        private RectTransform _body;
+
         private void OnDestroy() => _localBus?.Unsubscribe<CommandResolvedEvent>(OnCommandResolved);
 
         // --- Layout --------------------------------------------------------------------------
@@ -113,27 +116,22 @@ namespace Hadal.UI
             var safe = UiKit.Rect("Safe", _canvas.transform).Place(0, 0, 1, 1);
             safe.gameObject.AddComponent<Hud.SafeArea>();
             // The sheet reaches up to the HUD header, which sits at the very top of the screen.
-            var sheetImage = UiKit.Box("Sheet", _canvas.transform, UiKit.Panel);
-            sheetImage.rectTransform.Place(0.01f, 0.005f, 0.99f, 0.905f);
-            _sheet = sheetImage.gameObject;
+            // Every page is the genre's full screen (docs/41): the navy bar with the back arrow and title over a light body.
+            var page = UiKit.Rect("Page", _canvas.transform).Place(0, 0, 1, 1);
+            page.gameObject.AddComponent<Hud.SafeArea>();
+            var parts = UiFrames.Page(page, Close);
+            _sheet = page.gameObject;
             _sheet.AddComponent<CanvasGroup>();
-            _sheet.AddComponent<PopIn>().From = 0.94f;
+            _sheet.AddComponent<PopIn>().From = 0.97f;
+            _title = parts.Title;
+            _subtitle = parts.Subtitle;
+            _body = parts.Body;
 
-            UiKit.TitleBar(sheetImage.transform, 0.928f);
-            _title = UiKit.Stroked(UiKit.Label("Title", sheetImage.transform, string.Empty, 48, UiKit.Accent, TextAnchor.MiddleLeft, FontStyle.Bold));
-            _title.rectTransform.Place(0.05f, 0.936f, 0.8f, 0.992f);
-            _subtitle = UiKit.Label("Subtitle", sheetImage.transform, string.Empty, 30, UiKit.Muted);
-            _subtitle.rectTransform.Place(0.05f, 0.882f, 0.95f, 0.925f);
-
-            var close = UiKit.Button("Close", sheetImage.transform, "X", Close, UiKit.Field, 40);
-            close.GetComponentInChildren<TMP_Text>().color = UiKit.Text;
-            ((RectTransform)close.transform).Place(0.84f, 0.93f, 0.96f, 0.99f);
-
-            _list = UiKit.ScrollList("List", sheetImage.transform);
-            ((RectTransform)_list.parent).Place(0.04f, 0.02f, 0.96f, 0.875f);
+            _list = UiKit.ScrollList("List", _body);
+            ((RectTransform)_list.parent).Place(0.02f, 0.02f, 0.98f, 0.965f);
 
             // Chat input lives outside the list so redraws never touch it.
-            _footer = UiKit.Rect("Footer", sheetImage.transform).Place(0.03f, 0.018f, 0.97f, 0.085f);
+            _footer = UiKit.Rect("Footer", _body).Place(0.03f, 0.018f, 0.97f, 0.085f);
             _footer.gameObject.SetActive(false);
 
             _toast = UiKit.Label("Toast", _canvas.transform, string.Empty, 38, UiKit.Text, TextAnchor.MiddleCenter, FontStyle.Bold);
@@ -302,10 +300,9 @@ namespace Hadal.UI
             for (var i = _list.childCount - 1; i >= 0; i--)
                 Destroy(_list.GetChild(i).gameObject);
 
-            // Chat is a full page (Last Asylum): it covers the HUD header and leaves room for the input bar.
-            ((RectTransform)_sheet.transform).Place(0.01f, 0.005f, 0.99f, _page == Page.Chat ? 0.995f : 0.905f);
+            // Chat leaves room for its channel tabs and input bar, the hero list for its bottom bar.
             var listRect = (RectTransform)_list.parent;
-            listRect.Place(0.03f, _page == Page.Chat ? 0.1f : _page == Page.Heroes ? 0.1f : 0.02f, 0.97f, _page == Page.Chat ? 0.865f : 0.875f);
+            listRect.Place(0.02f, _page == Page.Chat ? 0.1f : _page == Page.Heroes ? 0.1f : 0.02f, 0.98f, _page == Page.Chat ? 0.905f : 0.965f);
             if (_heroBar != null)
                 _heroBar.gameObject.SetActive(false); // the hero list turns its "Get heroes" bar back on
             if (_page != Page.Chat && _chatTabs != null)

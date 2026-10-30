@@ -269,7 +269,7 @@ namespace Hadal.UI
         private RectTransform HeroBar()
         {
             if (_heroBar == null)
-                _heroBar = UiKit.Rect("HeroBar", _sheet.transform).Place(0.03f, 0.012f, 0.97f, 0.092f);
+                _heroBar = UiKit.Rect("HeroBar", _body).Place(0.03f, 0.012f, 0.97f, 0.092f);
             for (var i = _heroBar.childCount - 1; i >= 0; i--)
                 Destroy(_heroBar.GetChild(i).gameObject);
             _heroBar.gameObject.SetActive(true);

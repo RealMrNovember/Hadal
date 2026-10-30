@@ -75,8 +75,10 @@ namespace Hadal.UI
                     Loc.Duration(Math.Max(0, (training.EndsAtMs - _stateSync.View.ServerNowMs) / 1000f)))
                 : building.IsUnderConstruction ? Loc.F("base.upgrading", building.level + 1, Loc.Duration(building.constructionEndsAt - Time.realtimeSinceStartup))
                 : Rates(definition, building.level);
-            TargetMenu.Show(() => Camera.main, () => SlotWorld(ring, sector) + Vector3.up * 3f,
-                $"{Loc.F("base.level", building.level)}  {Loc.Building(definition.Id)}", status, items);
+            // Last Asylum: no card on a building, the level and name over it; a running job still says how long it has.
+            var running = building.level == 0 || training != null || building.IsUnderConstruction;
+            TargetMenu.ShowLabel(() => Camera.main, () => SlotWorld(ring, sector) + Vector3.up * 3f,
+                running ? status : Loc.F("base.level", building.level), Loc.Building(definition.Id), items);
         }
 
         /// <summary>The speed-up window on a construction (its timer read live from the building).</summary>

@@ -53,3 +53,4 @@ artifacts/
 # dotnet output for HADAL.Shared (see shared/Directory.Build.props)
 obj~/
 bin~/
+docs/la_ref/

@@ -174,7 +174,20 @@ def speed():
     return img
 
 
-GLYPHS = {"up": up, "details": details, "speed": speed, "home": home, "shield": shield, "profile": profile, "reinforce": reinforce, "invite": invite,
+def back():
+    img, d = canvas()
+    d.polygon(p(10, 64, 58, 16, 58, 44, 118, 44, 118, 84, 58, 84, 58, 112), fill=W)
+    return img
+
+
+def plus():
+    img, d = canvas()
+    d.rounded_rectangle(p(52, 16, 76, 112), radius=8 * S, fill=W)
+    d.rounded_rectangle(p(16, 52, 112, 76), radius=8 * S, fill=W)
+    return img
+
+
+GLYPHS = {"back": back, "plus": plus, "up": up, "details": details, "speed": speed, "home": home, "shield": shield, "profile": profile, "reinforce": reinforce, "invite": invite,
           "attack": attack, "rally": rally, "scout": scout, "teleport": teleport, "share": share,
           "star": star, "info": info, "chat": chat}
 
