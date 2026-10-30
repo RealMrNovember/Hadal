@@ -18,6 +18,7 @@ namespace Hadal.UI
     public sealed partial class BaseManagementView
     {
         private GameObject _upgrade;
+        private UiWindow _upgradeWindow;
         private string _upgradeKey = string.Empty;
         private float _upgradeRefresh;
 
@@ -103,22 +104,29 @@ namespace Hadal.UI
 
         private void CloseUpgrade()
         {
-            if (_upgrade != null)
-                Destroy(_upgrade);
+            var window = _upgradeWindow;
+            _upgradeWindow = null;
             _upgrade = null;
             _upgradeKey = string.Empty;
+            if (window != null)
+                window.Close();
         }
 
         /// <summary>Once a second while open, so costs turn green as resources come in and the window closes when work starts.</summary>
         private void TickUpgrade()
         {
-            if (_upgrade == null || Time.unscaledTime < _upgradeRefresh)
+            if (_upgradeWindow == null || _upgradeWindow.IsClosing || Time.unscaledTime < _upgradeRefresh)
                 return;
             if (Input.touchCount > 0 || Input.GetMouseButton(0))
                 return;
             RenderUpgrade();
         }
 
+        /// <summary>
+        /// The upgrade window (docs/41, Last Asylum's): next level and what it brings, then one "Spend" list where a
+        /// missing building has a Go button to it and a short resource a Go to the bag, and the Upgrade button with
+        /// its time. It refills in place each second rather than re-opening.
+        /// </summary>
         private void RenderUpgrade()
         {
             _upgradeRefresh = Time.unscaledTime + 1f;
@@ -130,10 +138,6 @@ namespace Hadal.UI
                 return;
             }
 
-            var fresh = _upgrade == null;
-            if (_upgrade != null)
-                Destroy(_upgrade);
-
             var rules = _catalog.Progression;
             var target = building.level + 1;
             var wallet = Wallet();
@@ -141,91 +145,114 @@ namespace Hadal.UI
             var verdict = BuildingProgression.ValidateUpgrade(_catalog, definition.Id, building.level, false,
                 ActiveConstructions(), ReactorLevel(), wallet, modifiers.ExtraBuilders, HighestLevel);
 
-            // Dim behind a centred window; tapping the dim closes it.
-            var dim = UiKit.Box("Upgrade", _canvas.transform, new Color(0f, 0.01f, 0.02f, 0.72f));
-            dim.rectTransform.Place(0, 0, 1, 1);
-            dim.gameObject.AddComponent<Button>().onClick.AddListener(CloseUpgrade);
-            _upgrade = dim.gameObject;
-
-            var card = UiKit.Box("Card", dim.transform, UiKit.Panel);
-            card.rectTransform.Place(0.04f, 0.17f, 0.96f, 0.83f);
-            card.gameObject.AddComponent<Button>();
-            if (fresh)
+            var title = Loc.Building(definition.Id);
+            var subtitle = Loc.F("base.level", building.level);
+            if (_upgradeWindow == null)
             {
-                card.gameObject.AddComponent<CanvasGroup>();
-                card.gameObject.AddComponent<PopIn>();
+                UiWindow opened = null;
+                opened = UiWindow.Open(_canvas.transform, title, subtitle, () =>
+                {
+                    // Closed by its own cross or the backdrop: forget it here too.
+                    if (_upgradeWindow != opened)
+                        return;
+                    _upgradeWindow = null;
+                    _upgrade = null;
+                    _upgradeKey = string.Empty;
+                });
+                _upgradeWindow = opened;
+                _upgrade = opened.gameObject;
+            }
+            else
+            {
+                _upgradeWindow.Clear();
+                _upgradeWindow.SetTitle(title, subtitle);
             }
 
-            // Header strip: name, level, close.
-            var header = UiKit.Box("Header", card.transform, new Color(0.05f, 0.16f, 0.22f, 1f));
-            header.rectTransform.Place(0, 0.88f, 1, 1);
-            UiKit.Label("Title", header.transform, Loc.Building(definition.Id), 44, UiKit.Text, TextAnchor.MiddleLeft, FontStyle.Bold)
-                .rectTransform.Place(0.05f, 0.4f, 0.8f, 1f);
-            UiKit.Label("Level", header.transform, Loc.F("base.level", building.level), 30, UiKit.Accent, TextAnchor.MiddleLeft, FontStyle.Bold)
-                .rectTransform.Place(0.05f, 0.02f, 0.8f, 0.45f);
-            var close = UiKit.Button("Close", header.transform, "X", CloseUpgrade, UiKit.Field, 40);
-            close.GetComponentInChildren<Text>().color = UiKit.Text;
-            ((RectTransform)close.transform).Place(0.84f, 0.18f, 0.96f, 0.82f);
-
-            var list = UiKit.ScrollList("List", card.transform, 10f);
-            ((RectTransform)list.parent).Place(0.04f, 0.2f, 0.96f, 0.86f);
+            var window = _upgradeWindow;
+            var green = ColorUtility.ToHtmlStringRGB(UiWindow.InkGood);
 
             // What the level brings.
-            Section(list, Loc.T("upgrade.effect"));
-            Row(list, Loc.T("base.next"), Loc.F("base.level", target), UiKit.Ok);
+            window.Row(Loc.T("base.next"), Loc.F("base.level", target), UiWindow.InkGood);
+            window.Section(Loc.T("upgrade.effect"));
             var power = BuildingProgression.Power(definition, building.level);
             var nextPower = BuildingProgression.Power(definition, target);
-            Row(list, Loc.T("upgrade.power"), $"{power:N0}  <color=#5BE37A>+{Math.Max(0, nextPower - power):N0}</color>", UiKit.Text);
+            window.Row(Loc.T("upgrade.power"), $"{power:N0}  <color=#{green}>+{Math.Max(0, nextPower - power):N0}</color>");
             var now = Rates(definition, building.level);
             var next = Rates(definition, target);
             if (next.Length > 0 && next != now)
-                Row(list, Loc.T("upgrade.output"), next, UiKit.Ok, 90);
+                window.Row(Loc.T("upgrade.output"), WithoutLabels(next), UiWindow.InkGood);
 
-            // What it needs besides resources.
-            var needs = new List<(string Text, bool Ok)>();
+            // One list of what it takes: buildings first (Go to the one to raise), then resources (Go to the bag).
+            window.Section(Loc.T("upgrade.spend"));
             var reactorNeed = BuildingProgression.ReactorFor(definition, target);
             if (definition.Id != BuildingProgression.ReactorId && reactorNeed > 0)
-                needs.Add(($"{Loc.Building(BuildingProgression.ReactorId)} {Loc.F("base.level", reactorNeed)}", ReactorLevel() >= reactorNeed));
+                NeedBuilding(window, BuildingProgression.ReactorId, reactorNeed);
             if (definition.Id == BuildingProgression.ReactorId)
-                needs.AddRange(_catalog.ReactorRequirements(target).Select(n => ($"{Loc.Building(n.Key)} {Loc.F("base.level", n.Value)}", HighestLevel(n.Key) >= n.Value)));
-            if (needs.Count > 0)
-            {
-                Section(list, Loc.T("base.needs.title"));
-                foreach (var (text, ok) in needs)
-                    Check(list, text, ok);
-            }
+                foreach (var n in _catalog.ReactorRequirements(target))
+                    NeedBuilding(window, n.Key, n.Value);
 
-            // What it costs: have / need, red when short.
-            Section(list, Loc.T("upgrade.spend"));
             foreach (var c in BuildingProgression.Cost(definition, target, rules))
             {
                 wallet.TryGetValue(c.Key, out var have);
                 var ok = have >= c.Value;
-                var row = UiKit.Box("Cost", list, new Color(0.04f, 0.11f, 0.15f, 1f)).Row(84);
-                Hud.HudIcons.Image(row.transform, Hud.HudIcons.Resource(c.Key), 0.02f, 0.1f, 0.12f, 0.9f);
-                UiKit.Label("Amount", row.transform, $"<color={(ok ? "#E6F2F7" : "#FF5A5A")}>{CostChips.Compact(have)}</color> / {CostChips.Compact(c.Value)}",
-                    32, UiKit.Text, TextAnchor.MiddleLeft, FontStyle.Bold).rectTransform.Place(0.15f, 0, 0.8f, 1);
-                UiKit.Label("Mark", row.transform, ok ? "✓" : "✗", 40, ok ? UiKit.Ok : UiKit.Danger, TextAnchor.MiddleCenter, FontStyle.Bold)
-                    .rectTransform.Place(0.84f, 0, 0.98f, 1);
+                var bad = ColorUtility.ToHtmlStringRGB(UiWindow.InkBad);
+                var amount = ok ? $"{CostChips.Compact(have)} / {CostChips.Compact(c.Value)}"
+                    : $"<color=#{bad}>{CostChips.Compact(have)}</color> / {CostChips.Compact(c.Value)}";
+                if (ok)
+                    window.Need(Hud.HudIcons.Resource(c.Key), amount, true);
+                else
+                    window.Need(Hud.HudIcons.Resource(c.Key), amount, true, Loc.T("guide.go"), () =>
+                    {
+                        CloseUpgrade();
+                        _social.OpenBag();
+                    });
             }
 
-            // Why not, then one big green button with the time on it.
+            // Why not (in the note), then the Upgrade button with its time.
             var seconds = modifiers.BuildSeconds(BuildingProgression.Seconds(definition, target, rules));
             if (verdict != ConstructionRejectReason.None)
-                UiKit.Label("Reason", card.transform, Loc.Reason(verdict.ToString()), 28, UiKit.Danger, TextAnchor.MiddleCenter)
-                    .rectTransform.Place(0.05f, 0.14f, 0.95f, 0.2f);
+                window.Note($"<color=#{ColorUtility.ToHtmlStringRGB(UiWindow.InkBad)}>{Loc.Reason(verdict.ToString())}</color>");
             var key = building.instanceKey;
-            var go = UiKit.Button("Upgrade", card.transform, $"{Loc.T("base.upgrade")}\n<size=26>{Loc.Duration(seconds)}</size>", () =>
+            window.AddButton(Loc.T("base.upgrade"), Loc.Duration(seconds), UiKit.Ok, () =>
             {
                 Upgrade(key);
                 CloseUpgrade();
-            }, verdict == ConstructionRejectReason.None ? UiKit.Ok : UiKit.Panel, 40);
-            go.interactable = verdict == ConstructionRejectReason.None;
-            if (!go.interactable)
-                go.GetComponentInChildren<Text>().color = UiKit.Muted;
-            ((RectTransform)go.transform).Place(0.2f, 0.025f, 0.8f, 0.13f);
+            }, verdict == ConstructionRejectReason.None);
+            window.Fit();
         }
 
+        /// <summary>Opens a building's round menu once the tap that asked for it has ended (else the release closes it).</summary>
+        private System.Collections.IEnumerator ShowActionsAfterTap(BuildingSaveEntry building)
+        {
+            yield return new WaitForSecondsRealtime(0.25f);
+            ShowBuildingActions(building);
+        }
+
+        /// <summary>A building the upgrade waits on; while it is short, Go flies to the highest one of that kind.</summary>
+        private void NeedBuilding(UiWindow window, string definitionId, int level)
+        {
+            var met = HighestLevel(definitionId) >= level;
+            var text = $"{Loc.Building(definitionId)} {Loc.F("base.level", level)}";
+            if (met)
+            {
+                window.Need("queue_build", text, true);
+                return;
+            }
+
+            window.Need("queue_build", text, false, Loc.T("guide.go"), () =>
+            {
+                var best = Buildings().Where(b => b.definitionId == definitionId).OrderByDescending(b => b.level).FirstOrDefault();
+                CloseUpgrade();
+                if (!string.IsNullOrEmpty(best.instanceKey))
+                    StartCoroutine(ShowActionsAfterTap(best));
+            });
+        }
+
+        /// <summary>"Output: +22 Energy/h" lines without their "Output:" (the row already says it).</summary>
+        private static string WithoutLabels(string lines) =>
+            string.Join("\n", lines.Split('\n').Select(l => l.IndexOf(": ", StringComparison.Ordinal) is var c and > 0 ? l.Substring(c + 2) : l));
+
+        // Rows for the windows still on the old frame (training); new windows use UiWindow.
         private static void Section(Transform list, string title)
         {
             var bar = UiKit.Box("Section", list, new Color(0.07f, 0.2f, 0.27f, 1f)).Row(64);
@@ -237,14 +264,6 @@ namespace Hadal.UI
             var row = UiKit.Rect("Row", list).Row(height);
             UiKit.Label("Label", row, label, 28, UiKit.Muted, TextAnchor.MiddleLeft).rectTransform.Place(0.02f, 0, 0.45f, 1);
             UiKit.Label("Value", row, value, 28, valueColor, TextAnchor.MiddleRight, FontStyle.Bold).rectTransform.Place(0.4f, 0, 0.98f, 1);
-        }
-
-        private static void Check(Transform list, string text, bool ok)
-        {
-            var row = UiKit.Box("Need", list, new Color(0.04f, 0.11f, 0.15f, 1f)).Row(76);
-            UiKit.Label("Text", row.transform, text, 30, ok ? UiKit.Text : UiKit.Danger, TextAnchor.MiddleLeft, FontStyle.Bold).rectTransform.Place(0.04f, 0, 0.8f, 1);
-            UiKit.Label("Mark", row.transform, ok ? "✓" : "✗", 40, ok ? UiKit.Ok : UiKit.Danger, TextAnchor.MiddleCenter, FontStyle.Bold)
-                .rectTransform.Place(0.84f, 0, 0.98f, 1);
         }
     }
 }

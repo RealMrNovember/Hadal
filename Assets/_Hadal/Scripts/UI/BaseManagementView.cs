@@ -107,7 +107,11 @@ namespace Hadal.UI
             _canvas = UiKit.Canvas("BaseUi", 40);
             _canvas.transform.SetParent(transform, false);
 
-            _overlay = UiKit.Rect("Timers", _canvas.transform).Place(0, 0, 1, 1);
+            // Labels pinned to buildings (levels, timers) belong to the world: their own canvas under the HUD, so a
+            // level plate never sits on top of a HUD button.
+            var labels = UiKit.Canvas("BaseLabels", 30);
+            labels.transform.SetParent(transform, false);
+            _overlay = UiKit.Rect("Timers", labels.transform).Place(0, 0, 1, 1);
 
             var sheetImage = UiKit.Box("Sheet", _canvas.transform, UiKit.Panel);
             sheetImage.rectTransform.Place(0.02f, 0.01f, 0.98f, 0.52f);
