@@ -16,9 +16,11 @@ using UnityEngine.UI;
 namespace Hadal.UI
 {
     /// <summary>
-    /// A player's profile card over any screen (Last Asylum: tap a face in chat or a base on the map): the face,
-    /// name, alliance, level, power and where the base is, with Message, Invite and Show on map. The player's own
-    /// card picks the avatar from the ready-made portraits and leads to the settings.
+    /// A player's profile card over any screen, as Last Asylum's "Doktor Bilgisi" dialog (tap a face in chat or a base
+    /// on the map): the portrait card with the level, the power and level pills, then the name, alliance and kingdom
+    /// rows, and the navy icon bar under it: Message · Mail · Invite · Show on map for another player; War Log ·
+    /// Account · Settings for the player's own, whose portrait opens the ready-made faces to pick from and whose name
+    /// row leads to renaming.
     /// </summary>
     public sealed class ProfileCard : MonoBehaviour
     {
@@ -41,7 +43,8 @@ namespace Hadal.UI
         private ulong _sequence;
 
         private Canvas _canvas;
-        private GameObject _popup;
+        private UiFrames.Sheet _sheet;
+        private bool _picking;
         private string _playerId = string.Empty;
         private string _nameHint = string.Empty;
         private string _avatarHint = string.Empty;
@@ -50,7 +53,7 @@ namespace Hadal.UI
 
         private ClientStateView View => _stateSync.View;
 
-        public bool IsOpen => _popup != null;
+        public bool IsOpen => _sheet is { IsOpen: true };
 
         public void Initialize(IStateSyncService stateSync, ICommandDispatcher commands, ILocalEventBus localBus, Actions actions)
         {
@@ -100,14 +103,13 @@ namespace Hadal.UI
 
         public void Close()
         {
-            if (_popup != null)
-                Destroy(_popup);
-            _popup = null;
+            _sheet?.Close();
+            _sheet = null;
         }
 
         private void Update()
         {
-            if (_popup != null && _renderedVersion != View.ProfileVersion)
+            if (_sheet is { IsOpen: true } && _renderedVersion != View.ProfileVersion)
                 Render();
         }
 
@@ -129,144 +131,167 @@ namespace Hadal.UI
 
         private void Render()
         {
-            var animate = _popup == null;
-            Close();
             _renderedVersion = View.ProfileVersion;
-
-            var dim = UiKit.Box("Popup", _canvas.transform, new Color(0, 0, 0, 0.6f));
-            dim.rectTransform.Place(0, 0, 1, 1);
-            dim.gameObject.AddComponent<Button>().onClick.AddListener(Close);
-            _popup = dim.gameObject;
-
-            var card = UiKit.Box("Card", dim.transform, UiKit.Panel);
-            card.rectTransform.Place(0.04f, _mine ? 0.16f : 0.3f, 0.96f, _mine ? 0.84f : 0.72f);
-            card.gameObject.AddComponent<Button>();
-            if (animate)
+            if (_sheet is not { IsOpen: true })
             {
-                card.gameObject.AddComponent<CanvasGroup>();
-                card.gameObject.AddComponent<PopIn>();
+                _picking = false;
+                _sheet = UiFrames.OpenSheet(_canvas.transform, Loc.T("profile.title"), Close, footer: 150f);
             }
 
-            var close = UiKit.Button("Close", card.transform, "X", Close, UiKit.Field, 40);
-            close.GetComponentInChildren<TMP_Text>().color = UiKit.Text;
-            ((RectTransform)close.transform).Place(0.86f, _mine ? 0.92f : 0.86f, 0.97f, 0.985f);
-
+            UiFrames.ClearSheet(_sheet);
             if (_mine)
-                RenderMine(card.transform);
+                RenderMine(_sheet.Content);
             else
-                RenderOther(card.transform);
+                RenderOther(_sheet.Content);
+            UiFrames.FitSheet(_sheet);
         }
 
-        private void RenderOther(Transform card)
+        /// <summary>
+        /// Last Asylum's "Doktor Bilgisi" head: the portrait card on the left (the face, the level under it), the power
+        /// and level pills on the right, and the online state for another player.
+        /// </summary>
+        private void Head(Transform content, string avatarId, string name, string seed, long power, int level, string note, Action onFace)
+        {
+            var head = UiKit.Rect("Head", content).Row(330);
+            var frame = UiFrames.SheetBlock(head, Color.white, "Portrait");
+            frame.rectTransform.Place(0.02f, 0.02f, 0.42f, 0.98f);
+            var shadow = frame.gameObject.AddComponent<Shadow>();
+            shadow.effectColor = new Color(0.1f, 0.16f, 0.28f, 0.4f);
+            shadow.effectDistance = new Vector2(3, -5);
+            var faceArea = UiKit.Rect("Face", frame.transform).Place(0.06f, 0.22f, 0.94f, 0.96f);
+            Face(faceArea, avatarId, name, seed, 0, 0, 1, 1);
+            if (onFace != null)
+            {
+                frame.raycastTarget = true;
+                frame.gameObject.AddComponent<Button>().onClick.AddListener(() => onFace());
+                frame.gameObject.AddComponent<PressFeedback>();
+                UiFrames.Glyph(frame.transform, "✏", 0.76f, 0.76f, 0.96f, 0.96f, UiFrames.InkSoft);
+            }
+
+            var lv = UiKit.Label("Level", frame.transform, Loc.F("world.level", level), UiKit.TypeScale.Body, UiFrames.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
+            lv.rectTransform.Place(0.04f, 0.02f, 0.96f, 0.2f);
+
+            UiFrames.StatPill(head, "power", power.ToString("N0")).Place(0.46f, 0.74f, 0.98f, 0.96f);
+            UiFrames.StatPill(head, "left_home", Loc.F("world.level", level)).Place(0.46f, 0.48f, 0.98f, 0.7f);
+            if (!string.IsNullOrEmpty(note))
+                UiKit.Label("Note", head, note, UiKit.TypeScale.Body, UiFrames.InkSoft, TextAnchor.MiddleCenter).rectTransform.Place(0.46f, 0.08f, 0.98f, 0.44f);
+        }
+
+        private void RenderOther(Transform content)
         {
             var known = View.ProfileCard != null && View.ProfileCard.PlayerId == _playerId ? View.ProfileCard : null;
             var name = known?.Name ?? _nameHint;
             var avatar = known?.AvatarId ?? _avatarHint;
-
-            Face(card, avatar, name, _playerId, 0.04f, 0.5f, 0.32f, 0.95f);
             var tag = string.IsNullOrEmpty(known?.AllianceTag) ? string.Empty : $"[{known.AllianceTag}] ";
-            UiKit.Label("Name", card, tag + Escape(name), 40, UiKit.Text, TextAnchor.MiddleLeft, FontStyle.Bold).rectTransform.Place(0.36f, 0.76f, 0.85f, 0.94f);
+            var online = known == null ? "…"
+                : known.Online ? $"<color=#2E9E4A>● {Loc.T("world.online")}</color>" : $"<color=#6B7A88>● {Loc.T("world.offline")}</color>";
+            Head(content, avatar, name, _playerId, known?.Power ?? 0, known?.Level ?? 0, online, null);
+            UiFrames.InfoRow(content, null, tag + Escape(name)).Row(84);
             if (known == null)
             {
-                UiKit.Label("Wait", card, "…", 40, UiKit.Muted, TextAnchor.MiddleLeft).rectTransform.Place(0.36f, 0.5f, 0.95f, 0.74f);
+                Footer(Array.Empty<(string, string, Action, bool)>());
                 return;
             }
 
-            var dot = known.Online ? $"<color=#5BE37A>● {Loc.T("world.online")}</color>" : $"<color=#5E7C88>● {Loc.T("world.offline")}</color>";
-            var alliance = string.IsNullOrEmpty(known.AllianceName) ? Loc.T("profile.noalliance") : known.AllianceName;
-            var kingdom = known.Kingdom > 0 ? $"   {Loc.F("kingdom.number", known.Kingdom)}" : string.Empty;
-            UiKit.Label("Info", card, $"{Loc.F("world.level", known.Level)}   {Loc.F("hero.power", known.Power.ToString("N0"))}\n{alliance}{kingdom}\n" +
-                                      $"{Loc.F("world.coords", known.X, known.Y)}   {dot}", 28, UiKit.Muted, TextAnchor.UpperLeft)
-                .rectTransform.Place(0.36f, 0.4f, 0.97f, 0.76f);
-
-            // Message · Mail · Invite · Show on map, like the genre's profile footer.
-            var id = known.PlayerId;
+            var alliance = string.IsNullOrEmpty(known.AllianceName) ? Loc.T("profile.noalliance") : $"{tag}{known.AllianceName}";
+            UiFrames.InfoRow(content, "side_alliance", alliance, anchor: TextAnchor.MiddleRight).Row(84);
+            if (known.Kingdom > 0)
+                UiFrames.InfoRow(content, "🏰", Loc.F("kingdom.number", known.Kingdom), "🔍", () => KingdomList.Show(_stateSync, _commands), TextAnchor.MiddleRight).Row(84);
             var x = known.X;
             var y = known.Y;
+            UiFrames.InfoRow(content, "nav_world", Loc.F("world.coords", x, y), "🔍", () => { Close(); _actions.ShowOnMap?.Invoke(x, y); }, TextAnchor.MiddleRight)
+                .Row(84);
+
+            // Message · Mail · Invite · Show on map, in the icon bar under the card.
+            var id = known.PlayerId;
             var canInvite = AlliancePermissions.CanInvite(View.MyRank()) && string.IsNullOrEmpty(known.AllianceTag);
-            var buttons = new List<(string Label, bool Enabled, Action Click)>
+            Footer(new (string, string, Action, bool)[]
             {
-                (Loc.T("alliance.message"), true, () => { Close(); _actions.Message?.Invoke(id, name); }),
-                (Loc.T("mail.send"), _actions.Mail != null, () => { Close(); _actions.Mail?.Invoke(id, name); }),
-                (Loc.T("alliance.invite"), canInvite, () => _commands.Dispatch(new InviteToAllianceCommand
+                ("g_chat", Loc.T("alliance.message"), () => { Close(); _actions.Message?.Invoke(id, name); }, true),
+                ("side_mail", Loc.T("mail.send"), () => { Close(); _actions.Mail?.Invoke(id, name); }, _actions.Mail != null),
+                ("g_invite", Loc.T("alliance.invite"), () => _commands.Dispatch(new InviteToAllianceCommand
                 {
                     CommandId = Guid.NewGuid().ToString("N"), ClientSequence = ++_sequence, PlayerId = id
-                })),
-                (Loc.T("profile.map"), true, () => { Close(); _actions.ShowOnMap?.Invoke(x, y); })
-            };
-            for (var i = 0; i < buttons.Count; i++)
-            {
-                var b = buttons[i];
-                var button = UiKit.Button(b.Label, card, b.Label, () => b.Click(), i == 0 ? UiKit.Accent : UiKit.Field, 30);
-                ((RectTransform)button.transform).Place(0.03f + i * 0.24f, 0.06f, 0.255f + i * 0.24f, 0.28f);
-                button.interactable = b.Enabled;
-                if (i > 0)
-                    button.GetComponentInChildren<TMP_Text>().color = UiKit.Text;
-            }
+                }), canInvite),
+                ("nav_world", Loc.T("profile.map"), () => { Close(); _actions.ShowOnMap?.Invoke(x, y); }, true)
+            });
         }
 
-        private void RenderMine(Transform card)
+        private void RenderMine(Transform content)
         {
             var me = View.MyProfile ?? new PlayerProfileDto();
             var name = string.IsNullOrEmpty(me.Name) ? View.PlayerId : me.Name;
-            Face(card, me.AvatarId, name, View.PlayerId, 0.04f, 0.76f, 0.24f, 0.98f);
-            UiKit.Label("Name", card, Escape(name), 40, UiKit.Text, TextAnchor.MiddleLeft, FontStyle.Bold).rectTransform.Place(0.28f, 0.86f, 0.85f, 0.96f);
             var alliance = View.MyAlliance;
-            UiKit.Label("Alliance", card, (alliance != null ? $"[{alliance.Tag}] {alliance.Name}" : Loc.T("profile.noalliance")) + $"   {Loc.F("kingdom.number", View.MyKingdom)}",
-                    28, UiKit.Muted, TextAnchor.MiddleLeft)
-                .rectTransform.Place(0.28f, 0.78f, 0.97f, 0.86f);
+            Head(content, me.AvatarId, name, View.PlayerId, me.Power, me.Level, null, () =>
+            {
+                _picking = !_picking;
+                Render();
+            });
 
-            UiKit.Label("Pick", card, Loc.T("profile.avatar"), 30, UiKit.Amber, TextAnchor.MiddleLeft, FontStyle.Bold).rectTransform.Place(0.04f, 0.7f, 0.96f, 0.76f);
+            // Name (edit: the account page renames), alliance, kingdom (the kingdom list).
+            var tag = alliance != null ? $"[{alliance.Tag}] " : string.Empty;
+            UiFrames.InfoRow(content, null, tag + Escape(name), "✏", () =>
+            {
+                Close();
+                _actions.Settings?.Invoke();
+                FindFirstObjectByType<AccountPanelView>()?.OpenAccount();
+            }).Row(84);
+            UiFrames.InfoRow(content, "side_alliance", alliance != null ? $"[{alliance.Tag}] {alliance.Name}" : Loc.T("profile.noalliance"),
+                anchor: TextAnchor.MiddleRight).Row(84);
+            UiFrames.InfoRow(content, "🏰", Loc.F("kingdom.number", View.MyKingdom), "🔍", () => KingdomList.Show(_stateSync, _commands), TextAnchor.MiddleRight)
+                .Row(84);
 
-            // Ready-made faces: "none" (the initial) and every painted hero portrait, five a row.
+            if (_picking)
+                AvatarPicker(content, me, name);
+
+            // Record (the war log) · Account · Settings, Last Asylum's bar under the card.
+            Footer(new (string, string, Action, bool)[]
+            {
+                ("📜", Loc.T("pvp.tab.log"), () => { Close(); PvpCenter.Instance?.Open(1); }, PvpCenter.Instance != null),
+                ("g_profile", Loc.T("settings.account"), () =>
+                {
+                    Close();
+                    _actions.Settings?.Invoke();
+                    FindFirstObjectByType<AccountPanelView>()?.OpenAccount();
+                }, _actions.Settings != null),
+                ("⚙", Loc.T("profile.settings"), () => { Close(); _actions.Settings?.Invoke(); }, _actions.Settings != null)
+            });
+        }
+
+        /// <summary>Ready-made faces, five a row: "none" (the initial) and every painted hero portrait; the chosen one ringed.</summary>
+        private void AvatarPicker(Transform content, PlayerProfileDto me, string name)
+        {
+            UiFrames.Section(content, Loc.T("profile.avatar")).Row(60);
             var choices = new List<string> { string.Empty };
             var library = CharacterLibrary.Instance;
             choices.AddRange(ClientCatalog.Catalog.Heroes.Select(h => h.Portrait).Where(p => !string.IsNullOrEmpty(p) && library?.Portrait(p) != null).Distinct());
-            const int columns = 5;
-            const float top = 0.69f, size = 0.105f;
-            for (var i = 0; i < Math.Min(choices.Count, 20); i++)
+            var grid = UiFrames.Grid(content, 5, 1f, 10f);
+            foreach (var avatarId in choices.Take(20))
             {
-                var avatarId = choices[i];
-                var col = i % columns;
-                var row = i / columns;
-                var x0 = 0.04f + col * 0.184f;
-                var y1 = top - row * (size + 0.01f);
-                var cell = UiKit.Rect("Choice", card).Place(x0, y1 - size, x0 + 0.17f, y1);
+                var cell = UiKit.Rect("Choice", grid);
                 var chosen = avatarId == (me.AvatarId ?? string.Empty);
-                if (chosen)
-                {
-                    var ring = cell.gameObject.AddComponent<Image>();
-                    ring.sprite = UiKit.CircleRing;
-                    ring.preserveAspect = true;
-                    ring.color = UiKit.Accent;
-                }
-
+                var ring = cell.gameObject.AddComponent<Image>();
+                ring.sprite = UiKit.CircleRing;
+                ring.preserveAspect = true;
+                ring.color = chosen ? UiKit.Primary : new Color(0, 0, 0, 0);
                 var face = UiKit.Rect("Face", cell).Place(0.08f, 0.08f, 0.92f, 0.92f);
                 AvatarDisc.Draw(face, avatarId, name, View.PlayerId);
-                var button = cell.gameObject.AddComponent<Button>();
-                if (cell.GetComponent<Image>() == null)
-                    cell.gameObject.AddComponent<Image>().color = new Color(0, 0, 0, 0);
-                button.onClick.AddListener(() => _commands.Dispatch(new SetProfileCommand
+                var id = avatarId;
+                cell.gameObject.AddComponent<Button>().onClick.AddListener(() => _commands.Dispatch(new SetProfileCommand
                 {
-                    CommandId = Guid.NewGuid().ToString("N"), ClientSequence = ++_sequence, AvatarId = avatarId
+                    CommandId = Guid.NewGuid().ToString("N"), ClientSequence = ++_sequence, AvatarId = id
                 }));
                 cell.gameObject.AddComponent<PressFeedback>();
             }
 
-            // The player's total march speed from every source the server adds up (research, VIP, alliance research).
-            var bonuses = PlayerBonuses.Of(View, ClientCatalog.Catalog);
-            var speed = Loc.F("profile.marchspeed", bonuses.MarchSpeedPercent);
-            if (bonuses.ReturnSpeedPercent > 0)
-                speed += "   " + Loc.F("research.march.return", bonuses.ReturnSpeedPercent);
-            UiKit.Label("MarchSpeed", card, speed, 26, UiKit.Accent, TextAnchor.MiddleCenter, FontStyle.Bold).rectTransform.Place(0.04f, 0.175f, 0.96f, 0.235f);
-            Note(card, Loc.T("profile.upload.soon"), 0.12f, 0.17f);
-            var settings = UiKit.Button("Settings", card, Loc.T("profile.settings"), () => { Close(); _actions.Settings?.Invoke(); }, UiKit.Field, 32);
-            settings.GetComponentInChildren<TMP_Text>().color = UiKit.Text;
-            ((RectTransform)settings.transform).Place(0.04f, 0.02f, 0.96f, 0.11f);
+            UiFrames.SheetText(content, Loc.T("profile.upload.soon"), UiKit.TypeScale.Caption).Row(48);
         }
 
-        private static void Note(Transform card, string text, float y0, float y1) =>
-            UiKit.Label("Note", card, text, 22, UiKit.Muted, TextAnchor.MiddleCenter).rectTransform.Place(0.04f, y0, 0.96f, y1);
+        private void Footer((string Icon, string Label, Action Click, bool Enabled)[] buttons)
+        {
+            if (buttons.Length > 0)
+                UiFrames.IconBar(_sheet.Footer, buttons).Place(0, 0, 1, 1);
+        }
 
         private static void Face(Transform card, string avatarId, string name, string seed, float x0, float y0, float x1, float y1)
         {
@@ -276,10 +301,11 @@ namespace Hadal.UI
             fitter.aspectMode = AspectRatioFitter.AspectMode.FitInParent;
             fitter.aspectRatio = 1f;
             var rim = ring.gameObject.AddComponent<Image>();
-            rim.sprite = UiKit.Circle;
-            rim.color = UiKit.Accent;
+            rim.sprite = UiKit.Rounded;
+            rim.type = Image.Type.Sliced;
+            rim.color = UiFrames.CardAlt;
             rim.raycastTarget = false;
-            AvatarDisc.Draw(UiKit.Rect("Inner", ring).Place(0.04f, 0.04f, 0.96f, 0.96f), avatarId, name, seed);
+            AvatarDisc.Draw(UiKit.Rect("Inner", ring).Place(0.03f, 0.03f, 0.97f, 0.97f), avatarId, name, seed);
         }
 
         private static string Escape(string text) => (text ?? string.Empty).Replace("<", "<​");

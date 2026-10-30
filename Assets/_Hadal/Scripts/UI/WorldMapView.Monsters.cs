@@ -260,43 +260,35 @@ namespace Hadal.UI
                 _sonar.text = $"{Loc.T("world.sonar")} {SonarNow()}/{View.Marches?.SonarCapacity ?? MonsterRules.SonarCapacity}";
         }
 
-        /// <summary>Pick a level, then glide to the nearest swarm of it in view.</summary>
+        /// <summary>Monster search as a dialog: the kinds roaming the map, a level stepper, then Search glides to the nearest swarm of it.</summary>
         private void OpenSearch()
         {
-            ClosePopup();
             TargetMenu.Hide();
-            var dim = UiKit.Box("Popup", _popupCanvas.transform, new Color(0, 0, 0, 0.5f));
-            dim.rectTransform.Place(0, 0, 1, 1);
-            dim.gameObject.AddComponent<Button>().onClick.AddListener(ClosePopup);
-            _popup = dim.gameObject;
-
-            var card = UiKit.Box("Card", dim.transform, UiKit.Panel);
-            card.rectTransform.Place(0.04f, 0.04f, 0.96f, 0.42f);
-            card.gameObject.AddComponent<Button>();
-            card.gameObject.AddComponent<CanvasGroup>();
-            card.gameObject.AddComponent<PopIn>().Slide = true;
-
-            UiKit.Label("Title", card.transform, Loc.T("world.search.title"), 34, UiKit.Text, TextAnchor.MiddleLeft, FontStyle.Bold).rectTransform.Place(0.05f, 0.82f, 0.8f, 0.97f);
+            var sheet = MapDialog("search", Loc.T("world.search.title"), 140f);
+            var content = sheet.Content;
             // The kinds the map lays out by itself (event bosses come with events), three to a row.
-            var kinds = MonsterRules.Roaming;
-            for (var i = 0; i < kinds.Length; i++)
+            var grid = UiFrames.Grid(content, 3, 2.2f, 10f);
+            foreach (var kind in MonsterRules.Roaming)
             {
-                var x0 = 0.05f + i % 3 * 0.305f;
-                var y1 = 0.79f - i / 3 * 0.15f;
-                var tile = UiKit.Box("Kind", card.transform, UiKit.Field);
-                tile.rectTransform.Place(x0, y1 - 0.14f, x0 + 0.29f, y1);
-                UiKit.Label("Name", tile.transform, $"{MonsterName(kinds[i].Id)}\n<size=16>{Loc.F("world.search.levels", kinds[i].MinLevel, kinds[i].MaxLevel)}</size>",
-                    20, UiKit.Text, TextAnchor.MiddleCenter, FontStyle.Bold).rectTransform.Place(0, 0, 1, 1);
+                var tile = UiFrames.SheetBlock(grid, UiFrames.Card, "Kind");
+                var name = UiKit.Label("Name", tile.transform, $"{MonsterName(kind.Id)}\n<size={Mathf.RoundToInt(UiKit.TypeScale.Caption * UiKit.Scale)}>{Loc.F("world.search.levels", kind.MinLevel, kind.MaxLevel)}</size>",
+                    UiKit.TypeScale.Body, UiFrames.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
+                name.rectTransform.Place(0.03f, 0.03f, 0.97f, 0.97f);
+                name.Fit(13, UiKit.TypeScale.Body);
             }
 
-            var minus = UiKit.Button("Minus", card.transform, "-", () => { _searchLevel = Math.Max(1, _searchLevel - 1); OpenSearch(); }, UiKit.Primary, 40);
-            ((RectTransform)minus.transform).Place(0.05f, 0.28f, 0.2f, 0.42f);
-            UiKit.Label("Level", card.transform, Loc.F("base.level", _searchLevel), 32, UiKit.Amber, TextAnchor.MiddleCenter, FontStyle.Bold).rectTransform.Place(0.22f, 0.28f, 0.78f, 0.42f);
-            var plus = UiKit.Button("Plus", card.transform, "+", () => { _searchLevel = Math.Min(35, _searchLevel + 1); OpenSearch(); }, UiKit.Primary, 40);
-            ((RectTransform)plus.transform).Place(0.8f, 0.28f, 0.95f, 0.42f);
+            var stepper = UiKit.Rect("Level", content).Row(120);
+            var minus = UiKit.Button("Minus", stepper, "-", () => { _searchLevel = Math.Max(1, _searchLevel - 1); OpenSearch(); }, UiKit.Primary, UiKit.TypeScale.Display);
+            ((RectTransform)minus.transform).Place(0.04f, 0.08f, 0.22f, 0.92f);
+            var level = UiFrames.SheetBlock(stepper, UiFrames.CardAlt, "Value");
+            level.rectTransform.Place(0.25f, 0.08f, 0.75f, 0.92f);
+            UiKit.Label("Text", level.transform, Loc.F("base.level", _searchLevel), UiKit.TypeScale.Title, UiFrames.Ink, TextAnchor.MiddleCenter, FontStyle.Bold)
+                .rectTransform.Place(0, 0, 1, 1);
+            var plus = UiKit.Button("Plus", stepper, "+", () => { _searchLevel = Math.Min(35, _searchLevel + 1); OpenSearch(); }, UiKit.Primary, UiKit.TypeScale.Display);
+            ((RectTransform)plus.transform).Place(0.78f, 0.08f, 0.96f, 0.92f);
 
-            var go = UiKit.Button("Find", card.transform, Loc.T("world.search.go"), FindMonster, UiKit.Primary, 36);
-            ((RectTransform)go.transform).Place(0.25f, 0.05f, 0.75f, 0.22f);
+            UiFrames.FooterButton(sheet.Footer, Loc.T("world.search.go"), FindMonster, UiKit.Ok, 0.2f, 0.8f);
+            UiFrames.FitSheet(sheet);
         }
 
         private void FindMonster()

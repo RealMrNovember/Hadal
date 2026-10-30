@@ -27,6 +27,7 @@ namespace Hadal.UI.Hud
         private Image _alarmFill;
         private TMP_Text _alarmText;
         private GameObject _survivalCard;
+        private UiFrames.Sheet _survivalSheet;
         private TMP_Text _survivalTimer;
         private int _survivalCardVersion = -1;
         private string _knownEmergency;
@@ -170,44 +171,55 @@ namespace Hadal.UI.Hud
             return true;
         }
 
+        /// <summary>
+        /// The life-support dialog (Last Asylum's dialog over the blurred game): what is wrong next to its resource, a
+        /// "what to do" band with the hint, the emergency's clock, and Repair (or Ask for help while the crew works) and
+        /// Go to the building in the footer. It follows the state in place, without opening again.
+        /// </summary>
         private void OpenSurvivalCard()
         {
-            if (_survivalCard != null)
-                Destroy(_survivalCard);
             _survivalTimer = null;
             var s = Survival;
             if (s == null)
+            {
+                CloseSurvivalCard();
                 return;
+            }
+
             _survivalCardVersion = View.SurvivalVersion;
+            var title = Loc.T(HasEmergency ? "survival.title.emergency" : "survival.title");
+            if (_survivalSheet is { IsOpen: true })
+            {
+                UiFrames.ClearSheet(_survivalSheet);
+                _survivalSheet.Parts.Title.text = title;
+            }
+            else
+            {
+                _survivalSheet = UiFrames.OpenSheet(_canvas.transform, title, CloseSurvivalCard, footer: 128f);
+            }
 
-            var dim = UiKit.Box("SurvivalCard", _canvas.transform, new Color(0, 0, 0, 0.6f));
-            dim.rectTransform.Place(0, 0, 1, 1);
-            dim.gameObject.AddComponent<Button>().onClick.AddListener(CloseSurvivalCard);
-            _survivalCard = dim.gameObject;
-
-            var card = UiKit.Box("Card", dim.transform, UiKit.Panel);
-            card.rectTransform.Place(0.06f, 0.3f, 0.94f, 0.7f);
-            card.gameObject.AddComponent<Button>(); // taps on the card do not close it
-            HudIcons.Image(card.transform, HasEmergency || s.Oxygen > 0 ? HudIcons.Resource(ResourceType.Oxygen) : HudIcons.Resource(ResourceType.Energy),
-                0.03f, 0.83f, 0.14f, 0.97f);
-            UiKit.Label("Title", card.transform, Loc.T(HasEmergency ? "survival.title.emergency" : "survival.title"), 40, UiKit.Danger,
-                TextAnchor.MiddleLeft, FontStyle.Bold).rectTransform.Place(0.16f, 0.83f, 0.86f, 0.97f);
-            UiKit.Button("Close", card.transform, "X", CloseSurvivalCard).GetComponent<RectTransform>().Place(0.87f, 0.85f, 0.97f, 0.97f);
-
+            _survivalCard = _survivalSheet.Root.gameObject;
+            var content = _survivalSheet.Content;
             var (what, hint, goTo) = Explain(s);
-            UiKit.Label("What", card.transform, what, 28, UiKit.Text, TextAnchor.UpperLeft).rectTransform.Place(0.05f, 0.5f, 0.95f, 0.82f);
-            UiKit.Label("HintTitle", card.transform, Loc.T("survival.hint.title"), 28, UiKit.Amber, TextAnchor.MiddleLeft, FontStyle.Bold)
-                .rectTransform.Place(0.05f, 0.42f, 0.95f, 0.5f);
-            UiKit.Label("Hint", card.transform, hint, 26, UiKit.Text, TextAnchor.UpperLeft).rectTransform.Place(0.05f, 0.2f, 0.95f, 0.42f);
+
+            var head = UiKit.Rect("What", content).Row(Mathf.Clamp(60 + what.Split('\n').Sum(l => 1 + l.Length / 34) * 40, 150, 420));
+            var icon = UiFrames.SheetBlock(head, UiFrames.CardAlt, "Icon");
+            icon.rectTransform.Place(0f, 0.04f, 0.2f, 0.96f);
+            HudIcons.Image(icon.transform, HasEmergency || s.Oxygen > 0 ? HudIcons.Resource(ResourceType.Oxygen) : HudIcons.Resource(ResourceType.Energy),
+                0.1f, 0.1f, 0.9f, 0.9f);
+            UiFrames.Note(head, what, UiFrames.InkBad).Place(0.22f, 0f, 1f, 1f);
+
+            UiFrames.Section(content, Loc.T("survival.hint.title")).Row(60);
+            UiFrames.Note(content, hint, UiFrames.Ink).Row(Mathf.Clamp(50 + hint.Split('\n').Sum(l => 1 + l.Length / 40) * 40, 110, 420));
 
             if (HasEmergency)
             {
-                _survivalTimer = UiKit.Label("Timer", card.transform, EmergencyTimerLine(), 24, UiKit.Muted, TextAnchor.MiddleLeft);
-                _survivalTimer.rectTransform.Place(0.05f, 0.14f, 0.95f, 0.2f);
+                _survivalTimer = UiFrames.SheetText(content, EmergencyTimerLine(), UiKit.TypeScale.Body, UiFrames.Ink, TextAnchor.MiddleCenter, FontStyle.Bold);
+                _survivalTimer.Row(56);
             }
 
-            // The buttons: Repair (with its cost) or Ask for help while the crew works, and Go to the building.
-            var buttons = new List<(string Text, UnityEngine.Events.UnityAction Click, Color Fill)>();
+            // The footer: Repair (with its cost) or Ask for help while the crew works, and Go to the building.
+            var buttons = new List<(string Text, System.Action Click, Color Fill)>();
             var repairing = View.RepairEndsAt > Time.realtimeSinceStartup;
             if (HasEmergency && !repairing)
             {
@@ -230,16 +242,17 @@ namespace Hadal.UI.Hud
 
             for (var i = 0; i < buttons.Count; i++)
             {
-                var x0 = 0.05f + i * 0.46f;
-                var b = UiKit.Button("Action" + i, card.transform, buttons[i].Text, buttons[i].Click, buttons[i].Fill, 28);
-                b.GetComponent<RectTransform>().Place(x0, 0.03f, x0 + 0.44f, 0.13f);
+                var share = 1f / buttons.Count;
+                UiFrames.FooterButton(_survivalSheet.Footer, buttons[i].Text, buttons[i].Click, buttons[i].Fill, i * share, (i + 1) * share);
             }
+
+            UiFrames.FitSheet(_survivalSheet);
         }
 
         private void CloseSurvivalCard()
         {
-            if (_survivalCard != null)
-                Destroy(_survivalCard);
+            _survivalSheet?.Close();
+            _survivalSheet = null;
             _survivalCard = null;
             _survivalTimer = null;
         }

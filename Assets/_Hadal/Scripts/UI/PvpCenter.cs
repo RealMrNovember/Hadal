@@ -15,11 +15,12 @@ namespace Hadal.UI
 {
     /// <summary>
     /// The PvP layer over every screen (docs/30 §5): while an attack or a rally is on its way the screen edge pulses red
-    /// and a banner counts down to the server's arrival time; new battle reports pop up as toasts. The war window has
-    /// three tabs: the shield (8 h to 7 days, item or Hadalite), the war log, and the alliance's attacks and defences
-    /// with Go / Join / Reinforce.
+    /// and a banner counts down to the server's arrival time; each battle's result comes up as a dialog. The War Room
+    /// (Last Asylum's dialog over the blurred game) has three tabs: the shield (the Boost dialog's shield panel), the war
+    /// log as battle mail rows, and the alliance's attacks and defences with Go / Join / Reinforce. The Boost dialog
+    /// itself (shield, war and economy bonuses) lives in PvpCenter.Boost.cs.
     /// </summary>
-    public sealed class PvpCenter : MonoBehaviour
+    public sealed partial class PvpCenter : MonoBehaviour
     {
         public sealed class Actions
         {
@@ -50,19 +51,19 @@ namespace Hadal.UI
         private bool _guardsKnown;
 
         private Canvas _windowCanvas;
-        private GameObject _window;
+        private UiFrames.Sheet _room;
         private int _tab;
         private float _nextWarRequest;
         private int _renderedLog = -1;
         private int _renderedWar = -1;
-        private int _renderedPvp = -1;
-        private int _renderedInventory = -1;
-        private RectTransform _body;
+        private string _renderedShield = string.Empty;
+        private bool _showingReport;
         private readonly List<(TMP_Text Label, long AtMs, string Format)> _clocks = new();
 
         private ClientStateView View => _stateSync.View;
 
-        public bool IsOpen => _window != null;
+        /// <summary>The War Room or the Boost dialog is up.</summary>
+        public bool IsOpen => _room is { IsOpen: true } || BoostOpen;
 
         /// <summary>A hostile march is on its way to us: the onboarding guide steps aside (live feedback).</summary>
         public bool UnderAttack { get; private set; }
@@ -96,7 +97,7 @@ namespace Hadal.UI
             var actions = new (string Key, Action Act, Color Color)[]
             {
                 ("pvp.alarm.goto", GoToAttacker, UiKit.Field),
-                ("pvp.alarm.shield", () => Open(0), UiKit.Primary),
+                ("pvp.alarm.shield", OpenShield, UiKit.Primary),
                 ("pvp.alarm.help", () => _actions.RequestHelp?.Invoke(), UiKit.Ok)
             };
             for (var i = 0; i < actions.Length; i++)
@@ -119,7 +120,7 @@ namespace Hadal.UI
             if (_stateSync == null)
                 return;
 
-            TickShieldWindow();
+            TickBoost();
             var now = View.ServerNowMs;
             var incoming = Incoming(now);
             var threats = incoming.Where(i => i.Kind != PvpRules.Scout).ToList();
@@ -154,10 +155,10 @@ namespace Hadal.UI
                 SumUpMissed();
             }
 
-            if (_result == null && _window == null && _results.Count > 0)
+            if (_result == null && !IsOpen && _results.Count > 0)
                 ShowResult(_results.Dequeue());
 
-            if (_window != null)
+            if (_room is { IsOpen: true })
                 TickWindow(now);
         }
 
@@ -210,9 +211,9 @@ namespace Hadal.UI
             var total = Math.Max(1L, first.ArrivesAtMs - _firstSeenMs[first.MarchId]);
             var more = incoming.Count > 1 ? Loc.F("pvp.alarm.more", incoming.Count - 1) : string.Empty;
             _banner.Set(cardMood, shielded ? Loc.T("pvp.alarm.blocked") : what, who, more, left, (first.ArrivesAtMs - now) / (float)total);
-            _banner.Show(_window == null);
+            _banner.Show(!IsOpen);
             _banner.Tick(dt, cardMood == AlarmMood.Threat ? AlarmTempo.Threat(left).Period : 3f, cardMood != AlarmMood.Threat);
-            _bannerActions.gameObject.SetActive(_window == null && _result == null && _banner.Showing);
+            _bannerActions.gameObject.SetActive(!IsOpen && _result == null && _banner.Showing);
             _bannerActions.Find("Act2").gameObject.SetActive(View.MyAlliance != null);
 
             // A new attack buzzes the phone once; a low sonar ping repeats, quicker as the impact nears.
@@ -281,7 +282,7 @@ namespace Hadal.UI
         // --- Results and the away summary (docs/30 §5.5) ------------------------------------------
 
         private readonly Queue<PvpReportDto> _results = new();
-        private GameObject _result;
+        private UiFrames.Sheet _result;
         private int _checkedLog = -1;
 
         private string SeenKey => "hadal.pvp.seen." + View.PlayerId;
@@ -306,7 +307,7 @@ namespace Hadal.UI
             PlayerPrefs.Save();
         }
 
-        /// <summary>Battles on us since we last looked, from before this login: one "your base was attacked" card.</summary>
+        /// <summary>Battles on us since we last looked, from before this login: one "your base was attacked" dialog.</summary>
         private void SumUpMissed()
         {
             var reports = View.WarLog?.Reports ?? Array.Empty<PvpReportDto>();
@@ -319,7 +320,7 @@ namespace Hadal.UI
             if (missed.Count == 0)
                 return;
 
-            var lines = new List<string> { Loc.F("pvp.away.count", missed.Count) };
+            var lines = new List<string>();
             var dead = missed.Sum(r => r.Dead);
             var wounded = missed.Sum(r => r.Wounded);
             if (dead + wounded > 0)
@@ -327,17 +328,16 @@ namespace Hadal.UI
             var lost = Loot(missed.SelectMany(r => r.Plunder ?? Array.Empty<ResourceAmountEntry>()), "−");
             if (lost.Length > 0)
                 lines.Add(lost);
-            lines.AddRange(missed.Take(4).Select(r => "• " + ReportLine(r)));
-            lines.Add(Loc.T("pvp.result.mail"));
-            Card(Loc.T("pvp.away.title"), string.Join("\n", lines), UiKit.Danger, Loc.T("pvp.tab.log"), () => Open(1));
+            ResultDialog(Loc.T("pvp.away.title"), null, Loc.F("pvp.away.count", missed.Count), UiFrames.InkBad, lines, missed.Take(4).ToList(),
+                Loc.T("pvp.tab.log"), () => Open(1));
         }
 
-        /// <summary>One battle's result as it lands: "Zafer! +X Titanyum" or "Yenilgi", losses, and the report.</summary>
+        /// <summary>One battle's result as it lands: both sides face to face, what was won or lost, and the report.</summary>
         private void ShowResult(PvpReportDto r)
         {
             var won = Won(r);
             GameAudio.Play(won ? Sfx.Reward : Sfx.Error);
-            var lines = new List<string> { ReportLine(r) };
+            var lines = new List<string>();
             if (r.Outcome == "shielded")
                 lines.Add(Hit(r) ? Loc.F("pvp.result.blocked", r.OpponentName) : Loc.T("pvp.result.bounced"));
             var loot = Loot(r.Plunder ?? Array.Empty<ResourceAmountEntry>(), Hit(r) ? "−" : "+");
@@ -347,11 +347,10 @@ namespace Hadal.UI
                 lines.Add(Loc.F("pvp.losses", r.Dead.ToString("N0"), r.Wounded.ToString("N0")));
             if (r.Kind == "scout")
                 lines.Add(Loc.F("pvp.scout.result", r.DefenderPower.ToString("N0"), r.Reinforcements));
-            lines.Add(Loc.T("pvp.result.mail"));
             var title = r.Kind is "scout" or "scouted" ? Loc.T("pvp.kind." + r.Kind)
                 : r.Outcome is "won" or "lost" ? Loc.T(won ? "pvp.result.win" : "pvp.result.loss") : Loc.T("pvp.outcome." + r.Outcome);
             var report = r;
-            Card(title, string.Join("\n", lines), won ? UiKit.Ok : UiKit.Danger, Loc.T("mail.pvp.open"), () =>
+            ResultDialog(title, r, Summary(r), won ? UiFrames.InkGood : UiFrames.InkBad, lines, null, Loc.T("mail.pvp.open"), () =>
             {
                 Open(1);
                 ShowReport(report);
@@ -364,160 +363,159 @@ namespace Hadal.UI
             return string.Join("  ", sums.Select(p => $"{sign}{CostChips.Compact(p.Value)} {Loc.T("resource." + p.Key)}"));
         }
 
-        /// <summary>A card over every screen with a title, text, an action and OK.</summary>
-        private void Card(string title, string text, Color color, string action, Action onAction)
+        /// <summary>
+        /// A result dialog over every screen (Last Asylum's battle result): the two sides face to face when there was a
+        /// battle, the headline, what it cost or brought, a few report rows, then the action and OK in the footer.
+        /// </summary>
+        private void ResultDialog(string title, PvpReportDto battle, string headline, Color color, List<string> lines, List<PvpReportDto> rows,
+            string action, Action onAction)
         {
-            var dim = UiKit.Box("Result", _windowCanvas.transform, new Color(0, 0, 0, 0.55f));
-            dim.rectTransform.Place(0, 0, 1, 1);
-            _result = dim.gameObject;
-            var card = UiKit.Box("Card", dim.transform, UiKit.Panel);
-            card.rectTransform.Place(0.06f, 0.3f, 0.94f, 0.7f);
-            card.gameObject.AddComponent<Button>();
-            card.gameObject.AddComponent<CanvasGroup>();
-            card.gameObject.AddComponent<PopIn>();
-            card.gameObject.AddComponent<Outline>().effectColor = color;
-            UiKit.Label("Title", card.transform, title, 44, color, TextAnchor.MiddleCenter, FontStyle.Bold).rectTransform.Place(0.04f, 0.82f, 0.96f, 0.97f);
-            UiKit.Label("Text", card.transform, text, 26, UiKit.Text, TextAnchor.UpperLeft).rectTransform.Place(0.06f, 0.22f, 0.94f, 0.8f);
-            var go = UiKit.Button("Action", card.transform, action, () => { CloseResult(); onAction(); }, UiKit.Primary, 28);
-            ((RectTransform)go.transform).Place(0.05f, 0.04f, 0.48f, 0.18f);
-            var ok = UiKit.Button("Ok", card.transform, Loc.T("pvp.result.ok"), CloseResult, UiKit.Field, 28);
-            ((RectTransform)ok.transform).Place(0.52f, 0.04f, 0.95f, 0.18f);
+            CloseResult();
+            var sheet = UiFrames.OpenSheet(_windowCanvas.transform, title, CloseResult, footer: 128f);
+            _result = sheet;
+            if (battle != null)
+                Face(sheet.Content, battle).Row(230);
+
+            var head = UiKit.Label("Headline", sheet.Content, headline, UiKit.TypeScale.Subtitle, color, TextAnchor.MiddleCenter, FontStyle.Bold);
+            head.richText = true;
+            head.Row(70);
+            foreach (var line in lines)
+                UiFrames.SheetText(sheet.Content, line, UiKit.TypeScale.Body, UiFrames.Ink).Row(56);
+            foreach (var r in rows ?? new List<PvpReportDto>())
+                LogRow(sheet.Content, r, null);
+            UiFrames.SheetText(sheet.Content, Loc.T("pvp.result.mail"), UiKit.TypeScale.Caption + 2).Row(50);
+
+            UiFrames.FooterButton(sheet.Footer, action, () =>
+            {
+                CloseResult();
+                onAction();
+            }, UiKit.Primary, 0f, 0.5f);
+            UiFrames.FooterButton(sheet.Footer, Loc.T("pvp.result.ok"), CloseResult, UiKit.Ok, 0.5f, 1f);
+            UiFrames.FitSheet(sheet);
         }
 
         private void CloseResult()
         {
-            if (_result != null)
-                Destroy(_result);
+            _result?.Close();
             _result = null;
         }
 
-        /// <summary>Opens the result screen of a battle in the war log (from its mail); the log itself when it has scrolled out.</summary>
+        /// <summary>Opens the result of a battle in the war log (from its mail); the log itself when it has scrolled out.</summary>
         public void OpenReport(string battleId, string reportKind)
         {
             var reports = View.WarLog?.Reports ?? Array.Empty<PvpReportDto>();
             var report = reports.FirstOrDefault(r => r.Id == battleId && r.Kind == reportKind) ?? reports.FirstOrDefault(r => r.Id == battleId);
             Open(1);
             if (report != null)
-                ShowReport(report);
+                ShowReport(report, viaMail: false);
         }
 
-        // --- Shield window (docs/41) ------------------------------------------------------------
+        // --- Report wording (as the mailbox words it) -----------------------------------------
 
-        private UiWindow _shield;
-        private float _shieldRefresh;
-
-        /// <summary>
-        /// The base's shield in one place (the map's Shield button): whether it is up and for how long, then each shield
-        /// with what the bag holds and a Use button (or its Hadalite price when the bag has none).
-        /// </summary>
-        public void OpenShield()
+        /// <summary>The other side: "[TAG] Name", or the city or alliance building fought over.</summary>
+        private static string Opponent(PvpReportDto r)
         {
-            if (_shield == null)
-                _shield = UiWindow.Open(_windowCanvas.transform, Loc.T("pvp.tab.shield"), string.Empty, () => _shield = null);
-            RenderShieldWindow();
-        }
-
-        private void RenderShieldWindow()
-        {
-            _shieldRefresh = Time.unscaledTime + 1f;
-            var window = _shield;
-            window.Clear();
-            var pvp = View.Pvp ?? new PvpStatusDto();
-            var now = View.ServerNowMs;
-            var shielded = pvp.ShieldUntilMs > now;
-            window.SetTitle(Loc.T("pvp.tab.shield"), shielded
-                ? Loc.F("pvp.shield.on", Loc.Duration((pvp.ShieldUntilMs - now) / 1000f))
-                : Loc.T("pvp.shield.off"));
-            window.Paragraph(PvpRules.IsBeginner(ReactorLevel()) ? Loc.F("pvp.beginner", PvpRules.BeginnerReactor) : Loc.T("pvp.shield.rules"),
-                null, TextAnchor.MiddleLeft);
-
-            var outgoing = (View.Marches?.Marches ?? Array.Empty<MarchDto>()).Any(m => m.Kind is PvpRules.Attack or PvpRules.Scout or PvpRules.Rally && m.ArrivesAtMs > now);
-            var hadalite = (View.Data.resources ?? Array.Empty<Hadal.Data.Models.ResourceSaveEntry>())
-                .Where(e => ResourceTypeMap.FromStoredValue(e.resourceType) == HADAL.Shared.Enums.ResourceType.Hadalite).Select(e => e.amount).DefaultIfEmpty(0).Sum();
-            window.Section(Loc.T("pvp.tab.shield"));
-            foreach (var id in PvpRules.ShieldItems)
+            if (!string.IsNullOrEmpty(r.StrongholdId))
             {
-                var held = View.Items.TryGetValue(id, out var n) ? n : 0;
-                var price = PvpRules.ShieldHadalite(id);
-                var shieldId = id;
-                window.Need("item_" + id, $"{Loc.T("item." + id)}  <size=22>{Loc.F("pvp.shield.have", held)}</size>", true,
-                    held > 0 ? Loc.T("pvp.shield.use") : $"{price:N0} {Loc.Resource("Hadalite")}",
-                    () => _commands.Dispatch(new UseShieldCommand { CommandId = Guid.NewGuid().ToString("N"), ClientSequence = ++_sequence, ItemId = shieldId }),
-                    !outgoing && (held > 0 || hadalite >= price), held > 0 ? UiKit.Ok : UiKit.Primary);
+                var place = AllianceLandRules.IsBuilding(r.StrongholdId) ? Loc.T("bld." + r.StrongholdId)
+                    : r.StrongholdId == AllianceLandRules.Beacon ? Loc.T("land.beacon") : Loc.T("city.name");
+                return r.StrongholdLevel > 0 ? $"{place} {Loc.F("base.level", r.StrongholdLevel)}" : place;
             }
 
-            if (outgoing)
-                window.Note($"<color=#{ColorUtility.ToHtmlStringRGB(UiWindow.InkBad)}>{Loc.T("pvp.shield.attackOut")}</color>");
-            window.Fit();
+            return (string.IsNullOrEmpty(r.OpponentTag) ? string.Empty : $"[{r.OpponentTag}] ") + r.OpponentName;
         }
 
-        private void TickShieldWindow()
+        private static bool WeAttacked(PvpReportDto r) => r.Kind is "attack" or "rally" or "scout";
+
+        private static bool IsScout(PvpReportDto r) => r.Kind is "scout" or "scouted";
+
+        /// <summary>Victory / Defeat / Shield blocked / Scout report / You were scouted.</summary>
+        private static string Headline(PvpReportDto r) =>
+            r.Kind == "scouted" ? Loc.T("mail.head.scouted")
+            : r.Kind == "scout" ? Loc.T("mail.head.scout")
+            : r.Outcome is "won" or "lost" or "shielded" ? Loc.T("mail.head." + r.Outcome)
+            : Loc.T("pvp.outcome." + r.Outcome);
+
+        private static Color HeadlineColor(PvpReportDto r) =>
+            IsScout(r) ? UiFrames.Ink : r.Outcome == "won" ? UiFrames.InkGood : r.Outcome == "lost" ? UiFrames.InkBad : new Color(0.72f, 0.42f, 0.06f, 1f);
+
+        /// <summary>"Attack · [TAG] Name" with the enemy in red, as Last Asylum's battle mail rows say it.</summary>
+        private static string Summary(PvpReportDto r) =>
+            $"{Loc.T("pvp.kind." + r.Kind)} · <color=#D0392F>{Opponent(r).Replace("<", "‹").Replace(">", "›")}</color>" +
+            (r.Captured ? " · " + Loc.T("pvp.captured") : string.Empty);
+
+        private static string ReportIcon(PvpReportDto r) => IsScout(r) ? "left_search" : r.Outcome == "shielded" ? "item_shield_8h" : "event_war";
+
+        /// <summary>The report's head: the attacker blue on the left, the defender red on the right, the result over each.</summary>
+        private static RectTransform Face(Transform parent, PvpReportDto r)
         {
-            if (_shield == null || _shield.IsClosing || Time.unscaledTime < _shieldRefresh)
-                return;
-            if (Input.touchCount > 0 || Input.GetMouseButton(0))
-                return;
-            RenderShieldWindow();
+            var we = WeAttacked(r);
+            var us = Loc.T("mail.report.you");
+            var them = Opponent(r);
+            var attackerWon = r.Outcome == "won" ? we : r.Outcome == "lost" ? !we : (bool?)null;
+            if (IsScout(r) || r.Outcome is "shielded" or "moved" or "gone")
+                attackerWon = null;
+            string Result(bool attacker) => IsScout(r) ? Loc.T(attacker ? "mail.report.scoutSide" : "mail.report.scoutedSide")
+                : attackerWon == null ? string.Empty : Loc.T(attackerWon.Value == attacker ? "battle.won" : "battle.lost");
+            var attackerPower = r.AttackerPower > 0 ? Loc.F("hero.power", r.AttackerPower.ToString("N0")) : string.Empty;
+            var defenderPower = r.DefenderPower > 0 && r.Kind != "scouted" ? Loc.F("hero.power", r.DefenderPower.ToString("N0")) : string.Empty;
+            return UiFrames.Versus(parent,
+                (we ? us : them, Result(true), attackerWon == true, attackerPower),
+                (we ? them : us, Result(false), attackerWon == false, defenderPower),
+                IsScout(r) || r.Outcome == "shielded" ? ReportIcon(r) : null);
         }
 
-        // --- Window ------------------------------------------------------------------------------
+        // --- War Room -----------------------------------------------------------------------------
 
-        /// <summary>Opens the war window on a tab: 0 shield and alarms, 1 war log, 2 alliance war.</summary>
+        private const int TabShield = 0;
+        private const int TabLog = 1;
+        private const int TabWar = 2;
+
+        /// <summary>Opens the War Room on a tab: 0 shield, 1 war log, 2 alliance war.</summary>
         public void Open(int tab)
         {
-            _tab = tab;
-            Close();
-            var dim = UiKit.Box("Dim", _windowCanvas.transform, new Color(0, 0, 0, 0.6f));
-            dim.rectTransform.Place(0, 0, 1, 1);
-            dim.gameObject.AddComponent<Button>().onClick.AddListener(Close);
-            _window = dim.gameObject;
-
-            var card = UiKit.Box("Card", dim.transform, UiKit.Panel);
-            card.rectTransform.Place(0.03f, 0.1f, 0.97f, 0.9f);
-            card.gameObject.AddComponent<Button>();
-            card.gameObject.AddComponent<CanvasGroup>();
-            card.gameObject.AddComponent<PopIn>();
-
-            var header = UiKit.Box("Header", card.transform, new Color(0.05f, 0.16f, 0.22f, 1f));
-            header.rectTransform.Place(0, 0.92f, 1, 1);
-            UiKit.Label("Title", header.transform, Loc.T("pvp.title"), 42, UiKit.Text, TextAnchor.MiddleLeft, FontStyle.Bold).rectTransform.Place(0.05f, 0, 0.8f, 1);
-            var close = UiKit.Button("Close", header.transform, "X", Close, UiKit.Field, 40);
-            close.GetComponentInChildren<TMP_Text>().color = UiKit.Text;
-            ((RectTransform)close.transform).Place(0.84f, 0.15f, 0.96f, 0.85f);
-
-            var tabs = new[] { Loc.T("pvp.tab.shield"), Loc.T("pvp.tab.log"), Loc.T("pvp.tab.alliance") };
-            for (var i = 0; i < tabs.Length; i++)
-            {
-                var index = i;
-                var x0 = 0.03f + i * 0.32f;
-                var button = UiKit.Button("Tab" + i, card.transform, tabs[i], () => Open(index), i == _tab ? UiKit.TabOn : UiKit.TabOff, 28);
-                button.GetComponentInChildren<TMP_Text>().color = i == _tab ? new Color(0.05f, 0.1f, 0.15f) : UiKit.Text;
-                ((RectTransform)button.transform).Place(x0, 0.85f, x0 + 0.3f, 0.905f);
-            }
-
-            _body = UiKit.Rect("Body", card.transform).Place(0.03f, 0.02f, 0.97f, 0.84f);
-            _renderedLog = _renderedWar = _renderedPvp = _renderedInventory = -1;
+            _tab = Mathf.Clamp(tab, TabShield, TabWar);
+            if (_room is not { IsOpen: true })
+                _room = UiFrames.OpenSheet(_windowCanvas.transform, Loc.T("pvp.title"), Close, height: 0.74f, top: 100f);
+            _renderedLog = _renderedWar = -1;
+            _renderedShield = string.Empty;
+            _showingReport = false;
             _nextWarRequest = 0f;
+            Refill();
         }
 
         public void Close()
         {
-            if (_window != null)
-                Destroy(_window);
-            _window = null;
+            _room?.Close();
+            _room = null;
             _clocks.Clear();
+        }
+
+        /// <summary>Empties the room and draws its tabs again (the body follows in <see cref="TickWindow"/>).</summary>
+        private void Refill()
+        {
+            _clocks.Clear();
+            UiFrames.ClearSheet(_room);
+            var labels = new[] { Loc.T("pvp.tab.shield"), Loc.T("pvp.tab.log"), Loc.T("pvp.tab.alliance") };
+            UiFrames.Tabs(_room.Top, labels, _tab, i => Open(i)).Place(0, 0, 1, 1);
         }
 
         private void TickWindow(long now)
         {
             switch (_tab)
             {
-                case 0:
-                    if (_renderedPvp != View.PvpVersion || _renderedInventory != View.QuestVersion)
-                        RenderShield();
+                case TabShield:
+                    var key = ShieldKey(now);
+                    if (key != _renderedShield)
+                    {
+                        Refill();
+                        _renderedShield = key;
+                        ShieldPanel(_room.Content, _clocks);
+                    }
+
                     break;
-                case 1:
-                    if (_renderedLog != View.WarLogVersion)
+                case TabLog:
+                    if (!_showingReport && _renderedLog != View.WarLogVersion)
                         RenderLog();
                     break;
                 default:
@@ -532,148 +530,112 @@ namespace Hadal.UI
                     break;
             }
 
-            foreach (var (label, at, format) in _clocks)
+            Tick(_clocks, now);
+        }
+
+        private static void Tick(List<(TMP_Text Label, long AtMs, string Format)> clocks, long now)
+        {
+            foreach (var (label, at, format) in clocks)
                 if (label != null)
                     label.text = string.Format(format, Loc.Duration(Math.Max(0, (at - now) / 1000f)));
         }
 
-        private void ClearBody()
-        {
-            _clocks.Clear();
-            for (var i = _body.childCount - 1; i >= 0; i--)
-                Destroy(_body.GetChild(i).gameObject);
-        }
-
-        private void RenderShield()
-        {
-            _renderedPvp = View.PvpVersion;
-            _renderedInventory = View.QuestVersion;
-            ClearBody();
-            var pvp = View.Pvp ?? new PvpStatusDto();
-            var now = View.ServerNowMs;
-
-            var status = UiKit.Box("Status", _body, new Color(0.04f, 0.11f, 0.15f, 1f));
-            status.rectTransform.Place(0, 0.8f, 1, 1);
-            var shielded = pvp.ShieldUntilMs > now;
-            var line = UiKit.Label("Shield", status.transform, string.Empty, 32, shielded ? UiKit.Ok : UiKit.Muted, TextAnchor.MiddleLeft, FontStyle.Bold);
-            line.rectTransform.Place(0.04f, 0.5f, 0.96f, 0.95f);
-            if (shielded)
-                _clocks.Add((line, pvp.ShieldUntilMs, "🛡 " + Loc.T("pvp.shield.on")));
-            else
-                line.text = Loc.T("pvp.shield.off");
-            var beginner = PvpRules.IsBeginner(ReactorLevel());
-            UiKit.Label("Rules", status.transform, beginner ? Loc.F("pvp.beginner", PvpRules.BeginnerReactor) : Loc.T("pvp.shield.rules"), 22, UiKit.Muted, TextAnchor.UpperLeft)
-                .rectTransform.Place(0.04f, 0.2f, 0.96f, 0.5f);
-
-            // What an attack can never take (docs/33 §2): the storage share the Shield Generator raises.
-            var guard = (pvp.Protected ?? Array.Empty<ResourceAmountEntry>()).Where(p => p.Value > 0).ToList();
-            if (guard.Count > 0)
-                UiKit.Label("Protected", status.transform, Loc.F("pvp.protected", string.Join("  ",
-                        guard.Select(p => $"{CostChips.Compact(p.Value)} {Loc.T("resource." + p.Key)}"))), 22, UiKit.Ok, TextAnchor.MiddleLeft)
-                    .rectTransform.Place(0.04f, 0.02f, 0.96f, 0.2f);
-
-            var outgoing = (View.Marches?.Marches ?? Array.Empty<MarchDto>()).Any(m => m.Kind is PvpRules.Attack or PvpRules.Scout or PvpRules.Rally && m.ArrivesAtMs > now);
-            var hadalite = (View.Data.resources ?? Array.Empty<Hadal.Data.Models.ResourceSaveEntry>())
-                .Where(e => ResourceTypeMap.FromStoredValue(e.resourceType) == HADAL.Shared.Enums.ResourceType.Hadalite).Select(e => e.amount).DefaultIfEmpty(0).Sum();
-            for (var i = 0; i < PvpRules.ShieldItems.Length; i++)
-            {
-                var id = PvpRules.ShieldItems[i];
-                var y1 = 0.77f - i * 0.135f;
-                var row = UiKit.Box("Row" + id, _body, new Color(0, 0, 0, 0.3f));
-                row.rectTransform.Place(0, y1 - 0.12f, 1, y1);
-                var held = View.Items.TryGetValue(id, out var n) ? n : 0;
-                UiKit.Label("Name", row.transform, Loc.T("item." + id), 30, UiKit.Text, TextAnchor.MiddleLeft, FontStyle.Bold).rectTransform.Place(0.04f, 0.5f, 0.6f, 0.95f);
-                UiKit.Label("Have", row.transform, Loc.F("pvp.shield.have", held), 22, UiKit.Muted, TextAnchor.MiddleLeft).rectTransform.Place(0.04f, 0.05f, 0.6f, 0.5f);
-                var price = PvpRules.ShieldHadalite(id);
-                var can = !outgoing && (held > 0 || hadalite >= price);
-                var shieldId = id;
-                var use = UiKit.Button("Use", row.transform, held > 0 ? Loc.T("pvp.shield.use") : $"💎 {price:N0}", () =>
-                    _commands.Dispatch(new UseShieldCommand { CommandId = Guid.NewGuid().ToString("N"), ClientSequence = ++_sequence, ItemId = shieldId }),
-                    can ? (held > 0 ? UiKit.Ok : UiKit.Primary) : UiKit.Panel, 28);
-                use.interactable = can;
-                ((RectTransform)use.transform).Place(0.62f, 0.15f, 0.96f, 0.85f);
-            }
-
-            if (outgoing)
-                UiKit.Label("Out", _body, Loc.T("pvp.shield.attackOut"), 22, UiKit.Amber, TextAnchor.MiddleCenter).rectTransform.Place(0, 0.12f, 1, 0.2f);
-            else if ((pvp.Incoming ?? Array.Empty<IncomingDto>()).Any(x => x.ArrivesAtMs > now && x.Kind != PvpRules.Scout))
-                UiKit.Label("Incoming", _body, shielded ? Loc.T("pvp.alarm.blocked") : Loc.T("pvp.shield.incoming"), 22, shielded ? UiKit.Ok : UiKit.Amber, TextAnchor.MiddleCenter)
-                    .rectTransform.Place(0, 0.12f, 1, 0.2f);
-
-            // Who guards the base: alliance mates' teams, here or on their way.
-            var guards = pvp.Garrison ?? Array.Empty<GarrisonDto>();
-            if (guards.Length > 0)
-            {
-                var names = string.Join(", ", guards.Select(g => g.ArrivesAtMs > now
-                    ? $"{g.OwnerName} ({CostChips.Compact(g.Troops)}, {Loc.Duration((g.ArrivesAtMs - now) / 1000f)})"
-                    : $"{g.OwnerName} ({CostChips.Compact(g.Troops)})"));
-                UiKit.Label("Guards", _body, Loc.F("pvp.guards", names), 22, UiKit.Ok, TextAnchor.MiddleLeft).rectTransform.Place(0, 0.2f, 1, 0.245f);
-            }
-
-            // What is coming, with Go buttons.
-            var incoming = (pvp.Incoming ?? Array.Empty<IncomingDto>()).Where(x => x.ArrivesAtMs > now).OrderBy(x => x.ArrivesAtMs).Take(2).ToList();
-            for (var i = 0; i < incoming.Count; i++)
-            {
-                var inc = incoming[i];
-                var y1 = 0.11f - i * 0.055f;
-                var label = UiKit.Label("Incoming" + i, _body, string.Empty, 22, UiKit.Danger, TextAnchor.MiddleLeft, FontStyle.Bold);
-                label.rectTransform.Place(0, y1 - 0.05f, 0.75f, y1);
-                var who = (string.IsNullOrEmpty(inc.AttackerTag) ? string.Empty : $"[{inc.AttackerTag}] ") + inc.AttackerName;
-                _clocks.Add((label, inc.ArrivesAtMs, $"⚠ {who.Replace("{", "{{").Replace("}", "}}")} — {{0}}"));
-                var go = UiKit.Button("Go" + i, _body, Loc.T("pvp.go"), () => { Close(); _actions.ShowOnMap?.Invoke(inc.FromX, inc.FromY); }, UiKit.Field, 22);
-                ((RectTransform)go.transform).Place(0.77f, y1 - 0.05f, 1f, y1);
-            }
-        }
-
+        /// <summary>The war log as Last Asylum's battle mail list: a disc with the kind, the headline, the enemy in red, the age.</summary>
         private void RenderLog()
         {
             _renderedLog = View.WarLogVersion;
-            ClearBody();
+            Refill();
             var reports = View.WarLog?.Reports ?? Array.Empty<PvpReportDto>();
             if (reports.Length == 0)
             {
-                UiKit.Label("Empty", _body, Loc.T("pvp.log.empty"), 28, UiKit.Muted, TextAnchor.MiddleCenter).rectTransform.Place(0, 0.4f, 1, 0.6f);
+                UiFrames.Note(_room.Content, Loc.T("pvp.log.empty")).Row(160);
                 return;
             }
 
-            var list = UiKit.ScrollList("List", _body, 10f);
-            ((RectTransform)list.parent).Place(0, 0, 1, 1);
-            var now = View.ServerNowMs;
             foreach (var r in reports)
             {
-                var row = UiKit.Box("Report", list, Won(r) ? new Color(0.05f, 0.2f, 0.12f, 0.9f) : new Color(0.25f, 0.06f, 0.06f, 0.9f)).Row(150f);
-                UiKit.Label("Line", row.transform, ReportLine(r), 26, UiKit.Text, TextAnchor.UpperLeft, FontStyle.Bold).rectTransform.Place(0.03f, 0.5f, 0.97f, 0.95f);
-                var detail = new List<string> { Loc.F("pvp.ago", Loc.Duration(Math.Max(0, (now - r.AtMs) / 1000f))), Loc.F("world.coords", r.X, r.Y) };
-                if (r.Dead + r.Wounded > 0)
-                    detail.Add(Loc.F("pvp.losses", r.Dead.ToString("N0"), r.Wounded.ToString("N0")));
-                var loot = (r.Plunder ?? Array.Empty<ResourceAmountEntry>()).Where(p => p.Value > 0).ToList();
-                if (loot.Count > 0)
-                    detail.Add((r.Kind == "defence" || r.Kind == "team" ? "−" : "+") + string.Join(" ", loot.Select(p => $"{CostChips.Compact(p.Value)} {Loc.T("resource." + p.Key)}")));
-                if (r.Kind == "scout")
-                    detail.Add(Loc.F("pvp.scout.result", r.DefenderPower.ToString("N0"), r.Reinforcements));
-                UiKit.Label("Detail", row.transform, string.Join("   ", detail), 22, UiKit.Muted, TextAnchor.UpperLeft).rectTransform.Place(0.03f, 0.04f, 0.97f, 0.5f);
                 var report = r;
-                row.gameObject.AddComponent<Button>().onClick.AddListener(() => ShowReport(report));
+                LogRow(_room.Content, r, () => ShowReport(report));
             }
         }
 
-        /// <summary>
-        /// The result screen (docs/33 §2): both armies with their start and losses by type, our dead and wounded, the loot
-        /// and its share, our contribution, rounds, and the battle id, seed and rule version. The server computed all of it.
-        /// </summary>
-        private void ShowReport(PvpReportDto r)
+        /// <summary>One battle mail row; tapping it opens the report.</summary>
+        private void LogRow(Transform parent, PvpReportDto r, Action open)
         {
-            ClearBody();
-            _renderedLog = View.WarLogVersion; // stay on the report until the player goes back
-            UiKit.Label("Title", _body, ReportLine(r), 28, Won(r) ? UiKit.Ok : UiKit.Danger, TextAnchor.UpperLeft, FontStyle.Bold).rectTransform.Place(0, 0.88f, 1, 1);
-            var lines = new List<string>
+            var row = UiFrames.SheetBlock(parent, Won(r) || IsScout(r) ? UiFrames.Card : new Color(0.93f, 0.86f, 0.86f, 1f), "Report");
+            row.Row(150);
+            if (open != null)
             {
-                Loc.F("world.coords", r.X, r.Y) + "   " + Loc.F("pvp.ago", Loc.Duration(Math.Max(0, (View.ServerNowMs - r.AtMs) / 1000f)))
-            };
+                row.raycastTarget = true;
+                row.gameObject.AddComponent<Button>().onClick.AddListener(() =>
+                {
+                    GameAudio.Play(Sfx.UiTap);
+                    open();
+                });
+                row.gameObject.AddComponent<PressFeedback>();
+            }
+
+            var disc = UiKit.Box("Disc", row.transform, new Color(0.78f, 0.85f, 0.93f, 1f));
+            disc.sprite = UiKit.Circle;
+            disc.type = Image.Type.Simple;
+            disc.preserveAspect = true;
+            disc.raycastTarget = false;
+            disc.rectTransform.Place(0.02f, 0.1f, 0.17f, 0.9f);
+            Hud.HudIcons.Image(disc.transform, ReportIcon(r), 0.16f, 0.16f, 0.84f, 0.84f);
+
+            var head = UiKit.Label("Headline", row.transform, Headline(r), UiKit.TypeScale.Body + 2, HeadlineColor(r), TextAnchor.MiddleLeft, FontStyle.Bold);
+            head.rectTransform.Place(0.2f, 0.6f, 0.97f, 0.95f);
+            var summary = UiKit.Label("Summary", row.transform, Summary(r), UiKit.TypeScale.Caption + 2, UiFrames.Ink, TextAnchor.MiddleLeft);
+            summary.rectTransform.Place(0.2f, 0.32f, 0.97f, 0.62f);
+            summary.textWrappingMode = TextWrappingModes.NoWrap;
+            summary.overflowMode = TextOverflowModes.Ellipsis;
+            var detail = new List<string> { Loc.F("pvp.ago", Loc.Duration(Math.Max(0, (View.ServerNowMs - r.AtMs) / 1000f))) };
+            if (r.Dead + r.Wounded > 0)
+                detail.Add(Loc.F("pvp.losses", r.Dead.ToString("N0"), r.Wounded.ToString("N0")));
+            var loot = Loot(r.Plunder ?? Array.Empty<ResourceAmountEntry>(), Hit(r) ? "−" : "+");
+            if (loot.Length > 0 && r.Kind != "scout")
+                detail.Add(loot);
+            var age = UiKit.Label("Detail", row.transform, string.Join("  ·  ", detail), UiKit.TypeScale.Caption, UiFrames.InkSoft, TextAnchor.MiddleLeft);
+            age.rectTransform.Place(0.2f, 0.05f, 0.97f, 0.34f);
+            age.textWrappingMode = TextWrappingModes.NoWrap;
+            age.overflowMode = TextOverflowModes.Ellipsis;
+        }
+
+        /// <summary>
+        /// A battle's report. The mailbox's report card is the one report screen (Last Asylum's), so a report whose mail
+        /// is still in the box opens there; an older one is drawn here in the same order: place and time, the two
+        /// sides face to face, the overview, both armies stack by stack, and the battle's id with its seed.
+        /// </summary>
+        private void ShowReport(PvpReportDto r, bool viaMail = true)
+        {
+            if (viaMail && FindFirstObjectByType<SocialView>() is { } social && social.OpenBattleMail(r.Id, r.Kind))
+            {
+                Close();
+                return;
+            }
+
+            _tab = TabLog;
+            Refill();
+            _showingReport = true;
+            var content = _room.Content;
+            var at = DateTimeOffset.FromUnixTimeMilliseconds(r.AtMs).ToLocalTime();
+            var top = UiKit.Rect("Place", content).Row(56);
+            UiKit.Label("Where", top, Loc.F("mail.report.place", r.X, r.Y), UiKit.TypeScale.Body, UiFrames.InkGood, TextAnchor.MiddleLeft, FontStyle.Bold)
+                .rectTransform.Place(0.02f, 0, 0.6f, 1);
+            UiKit.Label("When", top, at.ToString("yyyy-MM-dd HH:mm"), UiKit.TypeScale.Caption + 2, UiFrames.InkSoft, TextAnchor.MiddleRight)
+                .rectTransform.Place(0.5f, 0, 0.98f, 1);
+            Face(content, r).Row(230);
+
+            UiFrames.Section(content, Loc.T("mail.report.overview")).Row(60);
+            var lines = new List<string>();
+            if (r.Outcome == "shielded")
+                lines.Add(WeAttacked(r) ? Loc.T("mail.pvp.bounced") : Loc.F("mail.pvp.blocked", Opponent(r)));
+            else if (r.Outcome is "moved" or "gone")
+                lines.Add(Loc.T("mail.report." + r.Outcome));
             if (r.Rounds > 0)
                 lines.Add(Loc.F("report.rounds", r.Rounds) + "   " + Loc.F("report.powers", r.AttackerPower.ToString("N0"), r.DefenderPower.ToString("N0")));
             if (r.Dead + r.Wounded > 0)
-                lines.Add(Loc.F("pvp.losses", r.Dead.ToString("N0"), r.Wounded.ToString("N0")));
+                lines.Add(Loc.F("mail.report.ourLosses", r.Dead.ToString("N0"), r.Wounded.ToString("N0")));
             var loot = (r.Plunder ?? Array.Empty<ResourceAmountEntry>()).Where(p => p.Value > 0).ToList();
             if (loot.Count > 0)
                 lines.Add(Loc.T("report.loot") + " " + string.Join("  ", loot.Select(p => $"{CostChips.Compact(p.Value)} {Loc.T("resource." + p.Key)}")));
@@ -683,87 +645,102 @@ namespace Hadal.UI
                 lines.Add(Loc.F("report.contribution", r.Contribution));
             if (r.Kind == "scout")
                 lines.Add(Loc.F("pvp.scout.result", r.DefenderPower.ToString("N0"), r.Reinforcements));
-            UiKit.Label("Lines", _body, string.Join("\n", lines), 22, UiKit.Text, TextAnchor.UpperLeft).rectTransform.Place(0, 0.62f, 1, 0.88f);
+            for (var i = 0; i < lines.Count; i++)
+                UiFrames.TableRow(content, new[] { lines[i] }, index: i).Row(64);
 
-            // The two armies, type by type.
-            Army(Loc.T("report.attacker"), r.Attacker, 0f, 0.5f);
-            Army(Loc.T("report.defender"), r.Defender, 0.5f, 1f);
-            if (r.RuleVersion > 0)
-                UiKit.Label("Seed", _body, Loc.F("report.integrity", r.Id, r.Seed, r.RuleVersion), 16, UiKit.Muted, TextAnchor.LowerLeft)
-                    .rectTransform.Place(0, 0.1f, 1, 0.15f);
-            var back = UiKit.Button("Back", _body, Loc.T("report.back"), () => { _renderedLog = -1; }, UiKit.Field, 26);
-            ((RectTransform)back.transform).Place(0, 0, 0.45f, 0.09f);
+            if (!(r.Outcome is "shielded" or "moved" or "gone") && r.Kind != "scouted")
+            {
+                Army(Loc.T("report.attacker"), r.Attacker, WeAttacked(r));
+                Army(Loc.T("report.defender"), r.Defender, !WeAttacked(r));
+            }
+
+            UiFrames.SheetText(content, r.RuleVersion > 0 ? Loc.F("report.integrity", r.Id, r.Seed, r.RuleVersion) : Loc.F("mail.pvp.ref", r.Id),
+                UiKit.TypeScale.Micro).Row(44);
+            var buttons = UiKit.Rect("Buttons", content).Row(112);
+            UiFrames.FooterButton(buttons, Loc.T("report.back"), () =>
+            {
+                _showingReport = false;
+                _renderedLog = -1;
+            }, UiKit.Field, 0f, 0.5f);
             var x = r.X;
             var y = r.Y;
-            var go = UiKit.Button("Go", _body, Loc.T("pvp.go"), () => { Close(); _actions.ShowOnMap?.Invoke(x, y); }, UiKit.Primary, 26);
-            ((RectTransform)go.transform).Place(0.55f, 0, 1, 0.09f);
-
-            void Army(string title, BattleStackDto[] stacks, float x0, float x1)
+            UiFrames.FooterButton(buttons, Loc.T("pvp.go"), () =>
             {
-                UiKit.Label("Side", _body, title, 24, UiKit.Accent, TextAnchor.MiddleLeft, FontStyle.Bold).rectTransform.Place(x0, 0.56f, x1, 0.61f);
-                var text = string.Join("\n", (stacks ?? Array.Empty<BattleStackDto>()).Select(s =>
-                    $"{Loc.T("troop." + s.Type)} T{s.Tier}: {CostChips.Compact(s.Start)} <color=#FF8A80>−{CostChips.Compact(s.Lost)}</color>"));
-                UiKit.Label("Stacks", _body, text.Length == 0 ? "—" : text, 20, UiKit.Text, TextAnchor.UpperLeft).rectTransform.Place(x0, 0.16f, x1, 0.56f);
+                Close();
+                _actions.ShowOnMap?.Invoke(x, y);
+            }, UiKit.Primary, 0.5f, 1f);
+
+            void Army(string side, BattleStackDto[] stacks, bool ours)
+            {
+                UiFrames.Section(content, ours ? $"{side} · {Loc.T("mail.report.you")}" : side).Row(60);
+                var all = (stacks ?? Array.Empty<BattleStackDto>()).OrderByDescending(s => s.Start).ToList();
+                if (all.Count == 0)
+                {
+                    UiFrames.TableRow(content, new[] { Loc.T("mail.report.noTroops") }).Row(64);
+                    return;
+                }
+
+                UiFrames.TableRow(content, new[] { string.Empty, Loc.T("mail.report.start"), Loc.T("mail.report.lost"), Loc.T("mail.report.left") }, header: true).Row(52);
+                for (var i = 0; i < all.Count; i++)
+                {
+                    var s = all[i];
+                    UiFrames.TableRow(content, new[]
+                    {
+                        $"T{s.Tier} {Loc.T("troop." + s.Type)}", s.Start.ToString("N0"),
+                        s.Lost > 0 ? $"<color=#C8352B>−{s.Lost:N0}</color>" : "0", Math.Max(0, s.Start - s.Lost).ToString("N0")
+                    }, index: i).Row(64);
+                }
             }
         }
 
-        /// <summary>One line for a report: what happened, against whom, and how it ended.</summary>
-        private static string ReportLine(PvpReportDto r)
-        {
-            // A city ("k12"), an alliance building ("relay", "rig", "cannon") or a beacon.
-            var place = AllianceLandRules.IsBuilding(r.StrongholdId) ? Loc.T("bld." + r.StrongholdId)
-                : r.StrongholdId == AllianceLandRules.Beacon ? Loc.T("land.beacon") : Loc.T("city.name");
-            var who = r.StrongholdId.Length > 0 ? $"{place} {Loc.F("base.level", r.StrongholdLevel)}"
-                : (string.IsNullOrEmpty(r.OpponentTag) ? string.Empty : $"[{r.OpponentTag}] ") + r.OpponentName;
-            var kind = Loc.T("pvp.kind." + r.Kind);
-            var outcome = Loc.T("pvp.outcome." + r.Outcome);
-            var captured = r.Captured ? " " + Loc.T("pvp.captured") : string.Empty;
-            return $"{kind}: {who} — {outcome}{captured}";
-        }
-
+        /// <summary>The alliance's marches in and out: who goes where, the clock, and Go / Join / Reinforce.</summary>
         private void RenderWar()
         {
             _renderedWar = View.WarListVersion;
-            ClearBody();
+            Refill();
             if (View.MyAlliance == null)
             {
-                UiKit.Label("None", _body, Loc.T("pvp.war.noAlliance"), 28, UiKit.Muted, TextAnchor.MiddleCenter).rectTransform.Place(0, 0.4f, 1, 0.6f);
+                UiFrames.Note(_room.Content, Loc.T("pvp.war.noAlliance")).Row(160);
                 return;
             }
 
             var rows = View.WarList?.Rows ?? Array.Empty<WarRowDto>();
             if (rows.Length == 0)
             {
-                UiKit.Label("Empty", _body, Loc.T("pvp.war.empty"), 28, UiKit.Muted, TextAnchor.MiddleCenter).rectTransform.Place(0, 0.4f, 1, 0.6f);
+                UiFrames.Note(_room.Content, Loc.T("pvp.war.empty")).Row(160);
                 return;
             }
 
-            var list = UiKit.ScrollList("List", _body, 10f);
-            ((RectTransform)list.parent).Place(0, 0, 1, 1);
             var now = View.ServerNowMs;
             foreach (var w in rows)
             {
-                var row = UiKit.Box("War", list, w.Incoming ? new Color(0.28f, 0.06f, 0.06f, 0.92f) : new Color(0.05f, 0.14f, 0.24f, 0.92f)).Row(170f);
+                var row = UiFrames.SheetBlock(_room.Content, w.Incoming ? new Color(0.94f, 0.86f, 0.86f, 1f) : UiFrames.Card, "War");
+                row.Row(176);
                 var attacker = (string.IsNullOrEmpty(w.AttackerTag) ? string.Empty : $"[{w.AttackerTag}] ") + w.AttackerName;
                 var target = w.TargetKind == PvpRules.TargetStronghold ? Loc.T("pvp.stronghold")
                     : (string.IsNullOrEmpty(w.TargetTag) ? string.Empty : $"[{w.TargetTag}] ") + w.TargetName;
                 var title = $"{(w.Incoming ? "⬇ " + Loc.T("pvp.war.in") : "⬆ " + Loc.T("pvp.war.out"))} · {Loc.T("pvp.kind." + w.Kind)}";
-                UiKit.Label("Title", row.transform, title, 24, w.Incoming ? UiKit.Danger : UiKit.Accent, TextAnchor.UpperLeft, FontStyle.Bold).rectTransform.Place(0.03f, 0.66f, 0.7f, 0.96f);
-                UiKit.Label("Who", row.transform, $"{attacker} → {target}", 24, UiKit.Text, TextAnchor.MiddleLeft).rectTransform.Place(0.03f, 0.36f, 0.97f, 0.66f);
-                var clock = UiKit.Label("Clock", row.transform, string.Empty, 22, UiKit.Muted, TextAnchor.MiddleLeft);
-                clock.rectTransform.Place(0.03f, 0.04f, 0.6f, 0.36f);
+                UiKit.Label("Title", row.transform, title, UiKit.TypeScale.Body, w.Incoming ? UiFrames.InkBad : UiKit.Primary, TextAnchor.MiddleLeft, FontStyle.Bold)
+                    .rectTransform.Place(0.03f, 0.66f, 0.7f, 0.96f);
+                var who = UiKit.Label("Who", row.transform, $"{attacker} → {target}", UiKit.TypeScale.Caption + 2, UiFrames.Ink, TextAnchor.MiddleLeft);
+                who.rectTransform.Place(0.03f, 0.36f, 0.7f, 0.66f);
+                who.richText = false;
+                var clock = UiKit.Label("Clock", row.transform, string.Empty, UiKit.TypeScale.Caption + 2, UiFrames.InkSoft, TextAnchor.MiddleLeft);
+                clock.rectTransform.Place(0.03f, 0.04f, 0.7f, 0.36f);
                 if (w.DepartsAtMs > now)
                     _clocks.Add((clock, w.DepartsAtMs, Loc.T("pvp.war.departs") + $"  ({w.Teams}/{w.MaxTeams})"));
                 else
                     _clocks.Add((clock, w.ArrivesAtMs, Loc.T("pvp.war.arrives")));
 
                 var row0 = w;
-                var go = UiKit.Button("Go", row.transform, Loc.T("pvp.go"), () => { Close(); _actions.ShowOnMap?.Invoke(row0.ToX, row0.ToY); }, UiKit.Field, 22);
-                ((RectTransform)go.transform).Place(0.72f, 0.62f, 0.97f, 0.94f);
+                var go = UiKit.Button("Go", row.transform, Loc.T("pvp.go"), () => { Close(); _actions.ShowOnMap?.Invoke(row0.ToX, row0.ToY); }, UiKit.Primary,
+                    UiKit.TypeScale.Body);
+                ((RectTransform)go.transform).Place(0.72f, 0.54f, 0.97f, 0.94f);
                 if (w.Kind == PvpRules.Rally && !w.Incoming && !w.Joined && w.DepartsAtMs > now && w.Teams < w.MaxTeams)
                 {
-                    var join = UiKit.Button("Join", row.transform, Loc.T("pvp.rally.join"), () => { Close(); _actions.JoinRally?.Invoke(row0); }, UiKit.Ok, 22);
-                    ((RectTransform)join.transform).Place(0.72f, 0.08f, 0.97f, 0.4f);
+                    var join = UiKit.Button("Join", row.transform, Loc.T("pvp.rally.join"), () => { Close(); _actions.JoinRally?.Invoke(row0); }, UiKit.Ok,
+                        UiKit.TypeScale.Body);
+                    ((RectTransform)join.transform).Place(0.72f, 0.08f, 0.97f, 0.48f);
                 }
                 else if (w.Incoming && w.TargetKind == PvpRules.TargetBase && w.TargetId != View.PlayerId)
                 {
@@ -771,8 +748,8 @@ namespace Hadal.UI
                     {
                         Close();
                         _actions.Reinforce?.Invoke(row0.TargetId, target, row0.ToX, row0.ToY);
-                    }, UiKit.Primary, 22);
-                    ((RectTransform)help.transform).Place(0.72f, 0.08f, 0.97f, 0.4f);
+                    }, UiKit.Gold, UiKit.TypeScale.Body);
+                    ((RectTransform)help.transform).Place(0.72f, 0.08f, 0.97f, 0.48f);
                 }
             }
         }

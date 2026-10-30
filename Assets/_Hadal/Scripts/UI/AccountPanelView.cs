@@ -10,19 +10,23 @@ using UnityEngine.UI;
 namespace Hadal.UI
 {
     /// <summary>
-    /// Gear button (top right) and the Settings panel. Its home page links to Account (player name,
-    /// protection status, transfer code, Link with Google, sign in elsewhere by transfer code or Google,
-    /// Apple placeholder), Language,
-    /// Sound, Graphics, Notifications, Gift Code, Support and About (SettingsPages.cs).
+    /// Gear button (top right) and the Settings dialog (Last Asylum's: a centred dialog over the blurred game, the home
+    /// page a grid of icon tiles). Its tiles lead to Account (player name, protection status, transfer code, Link with
+    /// Google, sign in elsewhere by transfer code or Google, Apple placeholder), the game settings (sound and graphics
+    /// in sections with ON/OFF switches), Language, Notifications, Gift Code, Support and About (SettingsPages.cs).
     /// A badge on the gear nudges unprotected players without blocking play.
     /// </summary>
     public sealed partial class AccountPanelView : MonoBehaviour
     {
+        /// <summary>Amber that still reads on the light body (unprotected account).</summary>
+        private static readonly Color Warn = new(0.74f, 0.42f, 0.04f, 1f);
+
         private IAccountService _account;
 
         private GameObject _badge;
         private CanvasGroup _panel;
         private TMP_Text _header;
+        private RectTransform _card;
         private readonly System.Collections.Generic.List<(RectTransform Page, string TitleKey)> _pages = new();
         private RectTransform _main;
         private RectTransform _protect;
@@ -81,17 +85,16 @@ namespace Hadal.UI
             _badge = UiKit.Box("Badge", gear.transform, UiKit.Amber).gameObject;
             ((RectTransform)_badge.transform).Place(0.78f, 0.72f, 0.98f, 0.98f);
 
-            // Modal panel.
-            var panelImage = UiKit.Box("Panel", root, new Color(0f, 0.01f, 0.02f, 0.7f));
-            panelImage.rectTransform.Place(0, 0, 1, 1);
-            _panel = panelImage.gameObject.AddComponent<CanvasGroup>();
-            var card = UiKit.Box("Card", panelImage.transform, UiKit.Panel);
-            card.rectTransform.Place(0.05f, 0.12f, 0.95f, 0.9f);
+            // Last Asylum's settings dialog over the blurred game: the white cross steps back a page, a tap outside closes.
+            var dim = UiFrames.Dim(root, Close);
+            dim.name = "Panel";
+            _panel = dim.gameObject.AddComponent<CanvasGroup>();
+            var card = UiKit.Box("Card", dim, UiFrames.Navy);
+            _card = card.rectTransform;
             card.gameObject.AddComponent<CanvasGroup>();
-            card.gameObject.AddComponent<PopIn>();
-
-            _header = UiKit.Label("Header", card.transform, Loc.T("settings.title"), 56, UiKit.Accent, TextAnchor.MiddleLeft, FontStyle.Bold);
-            _header.rectTransform.Place(0.06f, 0.90f, 0.94f, 0.98f);
+            card.gameObject.AddComponent<PopIn>().From = 0.94f;
+            _header = UiFrames.Dialog(_card, Back).Title;
+            _header.text = Loc.T("settings.title");
 
             BuildSettings(card.transform);
             BuildMain(_main = Page("Main", card.transform, "account.title"));
@@ -102,82 +105,85 @@ namespace Hadal.UI
             _panel.gameObject.SetActive(false);
         }
 
+        /// <summary>A page: a column over the dialog's light body (direct child of the card, under the title).</summary>
         private RectTransform Page(string name, Transform card, string titleKey)
         {
-            var page = UiKit.Column(name, card);
-            page.Place(0.06f, 0.03f, 0.94f, 0.89f);
+            var page = UiKit.Column(name, card, 14f);
+            page.anchorMin = Vector2.zero;
+            page.anchorMax = Vector2.one;
+            page.offsetMin = new Vector2(36f, 34f);
+            page.offsetMax = new Vector2(-36f, -128f);
             _pages.Add((page, titleKey));
             return page;
         }
 
+        /// <summary>The cross: an inner page goes back to where it was opened from; the home page closes.</summary>
+        private void Back()
+        {
+            var shown = _pages.Find(p => p.Page.gameObject.activeSelf).Page;
+            if (shown == null || shown == _home)
+                Close();
+            else if (shown == _protect || shown == _switch)
+                Show(_main);
+            else
+                Show(_home);
+        }
+
         private void BuildMain(Transform column)
         {
-            UiKit.Label("NameLabel", column, Loc.T("account.name"), 34, UiKit.Muted).Row(44);
+            UiFrames.Section(column, Loc.T("account.name")).Row(56);
             var nameRow = UiKit.Rect("NameRow", column).Row(110);
             _name = UiKit.Input("Name", nameRow, Loc.T("account.name"), characterLimit: AccountRules.NameMaxLength);
             ((RectTransform)_name.transform).Place(0, 0, 0.68f, 1);
-            var save = UiKit.Button("Save", nameRow, Loc.T("account.save"), () => _ = SaveName());
+            var save = UiKit.Button("Save", nameRow, Loc.T("account.save"), () => _ = SaveName(), UiKit.Primary, UiKit.TypeScale.Subtitle);
             ((RectTransform)save.transform).Place(0.71f, 0, 1, 1);
-            UiKit.Label("NameRule", column, Loc.F("account.rename.rule", RenameRules.HadalitePrice), 24, UiKit.Muted).Row(70);
+            UiKit.Label("NameRule", column, Loc.F("account.rename.rule", RenameRules.HadalitePrice), UiKit.TypeScale.Caption, UiFrames.InkSoft).Row(76);
 
-            _accountId = UiKit.Label("AccountId", column, string.Empty, 30, UiKit.Muted).Row(44);
-            _protection = UiKit.Label("Protection", column, string.Empty, 36, UiKit.Text).Row(120);
+            UiFrames.Section(column, Loc.T("settings.account")).Row(56);
+            _accountId = UiKit.Label("AccountId", column, string.Empty, UiKit.TypeScale.Body, UiFrames.InkSoft).Row(44);
+            _protection = UiKit.Label("Protection", column, string.Empty, UiKit.TypeScale.Body, UiFrames.Ink).Row(110);
 
-            UiKit.Button("Protect", column, Loc.T("account.protect"), () => Show(_protect)).Row(110);
-            UiKit.Button("Switch", column, Loc.T("account.switch"), () => Show(_switch), UiKit.Field).Row(110)
-                .GetComponentInChildren<TMP_Text>().color = UiKit.Text;
-
-            UiKit.Button("Google", column, Loc.T("account.google"), () => _ = LinkGoogle(), UiKit.Field).Row(100)
-                .GetComponentInChildren<TMP_Text>().color = UiKit.Text;
-            var apple = UiKit.Button("Apple", column, Loc.T("account.apple"), null, UiKit.Field).Row(100);
+            UiKit.Button("Protect", column, Loc.T("account.protect"), () => Show(_protect), UiKit.Primary, UiKit.TypeScale.Subtitle).Row(104);
+            UiKit.Button("Switch", column, Loc.T("account.switch"), () => Show(_switch), UiKit.Field, UiKit.TypeScale.Subtitle).Row(104);
+            UiKit.Button("Google", column, Loc.T("account.google"), () => _ = LinkGoogle(), UiKit.Field, UiKit.TypeScale.Subtitle).Row(96);
+            var apple = UiKit.Button("Apple", column, Loc.T("account.apple"), null, UiKit.Panel, UiKit.TypeScale.Subtitle).Row(96);
             apple.interactable = false;
-            apple.GetComponentInChildren<TMP_Text>().color = UiKit.Muted;
 
-            _mainMessage = UiKit.Label("Message", column, string.Empty, 32, UiKit.Danger).Row(80);
-            UiKit.Button("Back", column, Loc.T("account.back"), () => Show(_home), UiKit.Field).Row(100)
-                .GetComponentInChildren<TMP_Text>().color = UiKit.Text;
+            _mainMessage = UiKit.Label("Message", column, string.Empty, UiKit.TypeScale.Body, UiFrames.InkBad, TextAnchor.MiddleCenter).Row(80);
         }
 
         private void BuildProtect(Transform column)
         {
-            UiKit.Label("Hint", column, Loc.T("account.protect.hint"), 34, UiKit.Muted).Row(130);
+            UiFrames.Note(column, Loc.T("account.protect.hint")).Row(150);
             _password = UiKit.Input("Password", column, Loc.T("account.password"), true, AccountRules.PasswordMaxLength).Row(110);
             _password2 = UiKit.Input("Password2", column, Loc.T("account.password2"), true, AccountRules.PasswordMaxLength).Row(110);
-            UiKit.Button("Create", column, Loc.T("account.create"), () => _ = CreateCode()).Row(110);
+            UiKit.Button("Create", column, Loc.T("account.create"), () => _ = CreateCode(), UiKit.Primary, UiKit.TypeScale.Subtitle).Row(104);
 
-            _codeLabel = UiKit.Label("CodeLabel", column, Loc.T("account.code"), 34, UiKit.Muted).Row(44);
-            _code = UiKit.Label("Code", column, string.Empty, 64, UiKit.Amber, TextAnchor.MiddleCenter, FontStyle.Bold).Row(100);
-            _copy = UiKit.Button("Copy", column, Loc.T("account.copy"), CopyCode, UiKit.Field).Row(90);
-            _copy.GetComponentInChildren<TMP_Text>().color = UiKit.Text;
+            _codeLabel = UiKit.Label("CodeLabel", column, Loc.T("account.code"), UiKit.TypeScale.Body, UiFrames.InkSoft, TextAnchor.MiddleCenter).Row(44);
+            _code = UiKit.Label("Code", column, string.Empty, UiKit.TypeScale.Display + 8, UiFrames.Ink, TextAnchor.MiddleCenter, FontStyle.Bold).Row(100);
+            _copy = UiKit.Button("Copy", column, Loc.T("account.copy"), CopyCode, UiKit.Field, UiKit.TypeScale.Subtitle).Row(90);
 
-            _protectMessage = UiKit.Label("Message", column, string.Empty, 32, UiKit.Danger).Row(110);
-            UiKit.Button("Back", column, Loc.T("account.back"), () => Show(_main), UiKit.Field).Row(100)
-                .GetComponentInChildren<TMP_Text>().color = UiKit.Text;
+            _protectMessage = UiKit.Label("Message", column, string.Empty, UiKit.TypeScale.Body, UiFrames.InkBad, TextAnchor.MiddleCenter).Row(110);
         }
 
         private void BuildSwitch(Transform column)
         {
-            UiKit.Label("Hint", column, Loc.T("account.switch.hint"), 34, UiKit.Muted).Row(130);
+            UiFrames.Note(column, Loc.T("account.switch.hint")).Row(150);
             _transferCode = UiKit.Input("Code", column, Loc.T("account.transfercode"), characterLimit: 16).Row(110);
             _transferCode.characterValidation = TMP_InputField.CharacterValidation.None;
             _transferPassword = UiKit.Input("Password", column, Loc.T("account.password"), true, AccountRules.PasswordMaxLength).Row(110);
-            UiKit.Button("SignIn", column, Loc.T("account.signin"), () => _ = SignIn()).Row(110);
-            UiKit.Button("GoogleSignIn", column, Loc.T("account.google.signin"), () => _ = SignInWithGoogle(), UiKit.Field).Row(110)
-                .GetComponentInChildren<TMP_Text>().color = UiKit.Text;
-            _switchMessage = UiKit.Label("Message", column, string.Empty, 32, UiKit.Danger).Row(110);
-            UiKit.Button("Back", column, Loc.T("account.back"), () => Show(_main), UiKit.Field).Row(100)
-                .GetComponentInChildren<TMP_Text>().color = UiKit.Text;
+            UiKit.Button("SignIn", column, Loc.T("account.signin"), () => _ = SignIn(), UiKit.Primary, UiKit.TypeScale.Subtitle).Row(104);
+            UiKit.Button("GoogleSignIn", column, Loc.T("account.google.signin"), () => _ = SignInWithGoogle(), UiKit.Field, UiKit.TypeScale.Subtitle).Row(104);
+            _switchMessage = UiKit.Label("Message", column, string.Empty, UiKit.TypeScale.Body, UiFrames.InkBad, TextAnchor.MiddleCenter).Row(110);
         }
 
         private void BuildGift(Transform column)
         {
-            UiKit.Label("Hint", column, Loc.T("gift.hint"), 34, UiKit.Muted).Row(130);
+            UiFrames.Note(column, Loc.T("gift.hint")).Row(150);
             _giftCode = UiKit.Input("Code", column, Loc.T("gift.code"), characterLimit: 24).Row(110);
             _giftCode.characterValidation = TMP_InputField.CharacterValidation.None;
-            UiKit.Button("Redeem", column, Loc.T("gift.redeem"), () => _ = Redeem()).Row(110);
-            _giftMessage = UiKit.Label("Message", column, string.Empty, 36, UiKit.Danger, TextAnchor.MiddleCenter).Row(160);
-            UiKit.Button("Back", column, Loc.T("account.back"), () => Show(_home), UiKit.Field).Row(100)
-                .GetComponentInChildren<TMP_Text>().color = UiKit.Text;
+            UiKit.Button("Redeem", column, Loc.T("gift.redeem"), () => _ = Redeem(), UiKit.Gold, UiKit.TypeScale.Subtitle).Row(104);
+            _giftMessage = UiKit.Label("Message", column, string.Empty, UiKit.TypeScale.Body + 2, UiFrames.InkBad, TextAnchor.MiddleCenter).Row(160);
         }
 
         private void Render(ProfileResponse profile)
@@ -195,7 +201,7 @@ namespace Hadal.UI
             _protection.text = isProtected ? Loc.T("account.protected") : Loc.T("account.unprotected");
             if (_account.IsGoogleLinked)
                 _protection.text += "\n" + GoogleStatus();
-            _protection.color = isProtected ? UiKit.Accent : UiKit.Amber;
+            _protection.color = isProtected ? UiFrames.InkGood : Warn;
         }
 
         /// <summary>The main HUD opens settings from the avatar; the corner gear is then not needed.</summary>
@@ -234,6 +240,9 @@ namespace Hadal.UI
                     _header.text = Loc.T(titleKey);
             }
 
+            // Content-sized like Last Asylum's: the tile grid in a short dialog, the inner pages taller.
+            var share = page == _home ? 0.38f : 0.8f;
+            _card.Place(0.03f, 0.5f - share / 2f, 0.97f, 0.5f + share / 2f);
             OnPageShown(page);
 
             if (page == _protect)
@@ -267,7 +276,7 @@ namespace Hadal.UI
                 return;
 
             var result = await _account.SetDisplayNameAsync(_name.text);
-            _mainMessage.color = result.IsSuccess ? UiKit.Accent : UiKit.Danger;
+            _mainMessage.color = result.IsSuccess ? UiFrames.InkGood : UiFrames.InkBad;
             _mainMessage.text = result.IsSuccess ? Loc.T("account.saved") : Loc.Error(result.Error);
             _busy = false;
         }
@@ -288,13 +297,13 @@ namespace Hadal.UI
             {
                 _code.text = result.Value.transferCode;
                 SetCodeVisible(true);
-                _protectMessage.color = UiKit.Muted;
+                _protectMessage.color = UiFrames.InkSoft;
                 _protectMessage.text = Loc.T("account.code.note");
                 _password.text = _password2.text = string.Empty;
             }
             else
             {
-                _protectMessage.color = UiKit.Danger;
+                _protectMessage.color = UiFrames.InkBad;
                 _protectMessage.text = Loc.Error(result.Error);
             }
 
@@ -320,7 +329,7 @@ namespace Hadal.UI
                 return;
             }
 
-            _switchMessage.color = UiKit.Danger;
+            _switchMessage.color = UiFrames.InkBad;
             _switchMessage.text = Loc.Error(result.Error);
             _busy = false;
         }
@@ -336,10 +345,10 @@ namespace Hadal.UI
             if (!Begin())
                 return;
 
-            _mainMessage.color = UiKit.Muted;
+            _mainMessage.color = UiFrames.InkSoft;
             _mainMessage.text = Loc.T("account.google.working");
             var result = await _account.LinkGoogleAsync();
-            _mainMessage.color = result.IsSuccess ? UiKit.Accent : UiKit.Danger;
+            _mainMessage.color = result.IsSuccess ? UiFrames.InkGood : UiFrames.InkBad;
             _mainMessage.text = result.IsSuccess ? GoogleStatus() : Loc.Error(result.Error);
             _busy = false;
         }
@@ -349,7 +358,7 @@ namespace Hadal.UI
             if (!Begin())
                 return;
 
-            _switchMessage.color = UiKit.Muted;
+            _switchMessage.color = UiFrames.InkSoft;
             _switchMessage.text = Loc.T("account.google.working");
             var result = await _account.SignInWithGoogleAsync();
             if (result.IsSuccess)
@@ -359,7 +368,7 @@ namespace Hadal.UI
                 return;
             }
 
-            _switchMessage.color = UiKit.Danger;
+            _switchMessage.color = UiFrames.InkBad;
             _switchMessage.text = Loc.Error(result.Error);
             _busy = false;
         }
@@ -389,13 +398,13 @@ namespace Hadal.UI
             {
                 var rewards = string.Join(", ", Array.ConvertAll(result.Value.rewards ?? Array.Empty<CouponRewardEntry>(),
                     r => $"+{r.amount} {Loc.T("resource." + r.resource)}"));
-                _giftMessage.color = UiKit.Accent;
+                _giftMessage.color = UiFrames.InkGood;
                 _giftMessage.text = Loc.F("gift.done", rewards);
                 _giftCode.text = string.Empty;
             }
             else
             {
-                _giftMessage.color = UiKit.Danger;
+                _giftMessage.color = UiFrames.InkBad;
                 _giftMessage.text = Loc.Error(result.Error);
             }
 

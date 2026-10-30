@@ -9,15 +9,19 @@ using UnityEngine.UI;
 
 namespace Hadal.UI
 {
-    /// <summary>The Settings home page and its sub-pages; account pages live in AccountPanelView.cs.</summary>
+    /// <summary>
+    /// The Settings home page and its sub-pages, after Last Asylum's settings (p06/p07): the home page shows who and
+    /// which version, then a grid of icon tiles; the game settings are pale section bands (Sound, Graphics) with a
+    /// label and an ON/OFF switch per line and check boxes for exclusive choices. Account pages live in
+    /// AccountPanelView.cs.
+    /// </summary>
     public sealed partial class AccountPanelView
     {
         public const string WebsiteUrl = "https://hadal.cicibyte.com/";
 
         private RectTransform _home;
         private RectTransform _language;
-        private RectTransform _sound;
-        private RectTransform _graphics;
+        private RectTransform _game;
         private RectTransform _notifications;
         private RectTransform _support;
         private RectTransform _about;
@@ -31,62 +35,54 @@ namespace Hadal.UI
         {
             BuildHome(_home = Page("Home", card, "settings.title"));
             BuildLanguage(_language = Page("Language", card, "settings.language"));
-            BuildSound(_sound = Page("Sound", card, "settings.sound"));
-            BuildGraphics(_graphics = Page("Graphics", card, "settings.graphics"));
+            BuildGame(_game = Page("Game", card, "settings.title"));
             BuildNotifications(_notifications = Page("Notifications", card, "settings.notifications"));
             BuildSupport(_support = Page("Support", card, "settings.support"));
             BuildAbout(_about = Page("About", card, "settings.about"));
         }
 
+        /// <summary>Who is signed in and the version on top, then the tiles (four a row) to every page.</summary>
         private void BuildHome(Transform column)
         {
-            _homeProfile = UiKit.Label("Profile", column, string.Empty, 34, UiKit.Muted).Row(60);
+            _homeProfile = UiKit.Label("Profile", column, string.Empty, UiKit.TypeScale.Body, UiFrames.Ink, TextAnchor.MiddleCenter, FontStyle.Bold).Row(44);
+            UiKit.Label("Version", column, Loc.F("about.version", Application.version), UiKit.TypeScale.Body, UiFrames.Ink, TextAnchor.MiddleCenter, FontStyle.Bold)
+                .Row(44);
 
-            var tiles = new (string Name, string Key, Func<RectTransform> Target)[]
+            var tiles = new (string Name, string Icon, string Key, Func<RectTransform> Target)[]
             {
-                ("Account", "settings.account", () => _main),
-                ("Language", "settings.language", () => _language),
-                ("Sound", "settings.sound", () => _sound),
-                ("Graphics", "settings.graphics", () => _graphics),
-                ("Notifications", "settings.notifications", () => _notifications),
-                ("Gift", "settings.gift", () => _gift),
-                ("Support", "settings.support", () => _support),
-                ("About", "settings.about", () => _about)
+                ("Account", "g_profile", "settings.account", () => _main),
+                ("Settings", "⚙", "settings.title", () => _game),
+                ("Language", "🌐", "settings.language", () => _language),
+                ("Notifications", "🔔", "settings.notifications", () => _notifications),
+                ("Support", "left_help", "settings.support", () => _support),
+                ("Gift", "event_gift", "settings.gift", () => _gift),
+                ("About", "g_info", "settings.about", () => _about)
             };
 
-            for (var i = 0; i < tiles.Length; i += 2)
+            // "Row0" keeps the tiles where the account flow test looks for them (Panel/Card/Home/Row0/Account).
+            var grid = UiFrames.Grid(column, 4, 1f, 16f);
+            grid.name = "Row0";
+            grid.GetComponent<GridLayoutGroup>().padding = new RectOffset(0, 0, 8, 8);
+            foreach (var tile in tiles)
             {
-                var row = UiKit.Rect("Row" + i / 2, column).Row(150);
-                for (var j = 0; j < 2 && i + j < tiles.Length; j++)
-                {
-                    var tile = tiles[i + j];
-                    var label = tile.Key == "settings.language" ? $"{Loc.T(tile.Key)}\n<size=28>{Loc.DisplayName(Loc.Current)}</size>" : Loc.T(tile.Key);
-                    var button = UiKit.Button(tile.Name, row, label, () => Show(tile.Target()), UiKit.Field, 38);
-                    button.GetComponentInChildren<TMP_Text>().color = tile.Key == "settings.gift" ? UiKit.Accent : UiKit.Text;
-                    ((RectTransform)button.transform).Place(j * 0.5f, 0, j * 0.5f + 0.5f, 1, 8);
-                }
+                var target = tile.Target;
+                UiFrames.IconTile(grid, tile.Icon, Loc.T(tile.Key), () => Show(target())).name = tile.Name;
             }
-
-            UiKit.Rect("Spacer", column).Row(40);
-            Back(column, Close, "account.close");
         }
 
         private void BuildLanguage(Transform column)
         {
-            UiKit.Label("Hint", column, Loc.T("language.hint"), 34, UiKit.Muted).Row(70);
-            var list = UiKit.ScrollList("List", column, 12f);
+            UiFrames.Note(column, Loc.T("language.hint")).Row(96);
+            var list = UiKit.ScrollList("List", column, 10f);
             list.parent.gameObject.AddComponent<LayoutElement>().flexibleHeight = 1;
             foreach (var (code, name) in Loc.Languages)
             {
                 var selected = code == Loc.Current;
-                var button = UiKit.Button(code, list, name, () => ChooseLanguage(code), selected ? UiKit.Accent : UiKit.Field, 38).Row(100);
+                var button = UiKit.Button(code, list, name, () => ChooseLanguage(code), selected ? UiKit.Primary : UiKit.TabOn, UiKit.TypeScale.Subtitle).Row(96);
                 var text = button.GetComponentInChildren<TMP_Text>();
-                text.color = selected ? UiKit.Abyss : UiKit.Text;
                 UiText.SetFont(text, UiKit.FontFor(code));
-                text.text = Loc.DisplayName(code);
+                text.text = selected ? "✓  " + Loc.DisplayName(code) : Loc.DisplayName(code);
             }
-
-            Back(column, () => Show(_home));
         }
 
         private static void ChooseLanguage(string code)
@@ -99,44 +95,52 @@ namespace Hadal.UI
             SessionRestart.Restart();
         }
 
-        private void BuildSound(Transform column)
+        /// <summary>Last Asylum's game settings: a band per section, an ON/OFF line per switch, check boxes for choices.</summary>
+        private void BuildGame(Transform column)
         {
-            UiKit.Switch("Music", column, Loc.T("sound.music"), () => GameSettings.MusicOn, v => GameSettings.MusicOn = v).Row(110);
-            UiKit.Slider("MusicVolume", column, GameSettings.MusicVolume, v => GameSettings.MusicVolume = v).Row(80);
-            UiKit.Switch("Effects", column, Loc.T("sound.effects"), () => GameSettings.SoundOn, v => GameSettings.SoundOn = v).Row(110);
-            UiKit.Slider("EffectsVolume", column, GameSettings.SoundVolume, v =>
+            var list = UiKit.ScrollList("List", column, 6f);
+            list.parent.gameObject.AddComponent<LayoutElement>().flexibleHeight = 1;
+
+            UiFrames.Section(list, Loc.T("settings.sound")).Row(60);
+            UiFrames.ToggleRow(list, "🎵", Loc.T("sound.music"), () => GameSettings.MusicOn, v => GameSettings.MusicOn = v).Row(96);
+            UiKit.Slider("MusicVolume", list, GameSettings.MusicVolume, v => GameSettings.MusicVolume = v).Row(64);
+            UiFrames.ToggleRow(list, "🔊", Loc.T("sound.effects"), () => GameSettings.SoundOn, v => GameSettings.SoundOn = v).Row(96);
+            UiKit.Slider("EffectsVolume", list, GameSettings.SoundVolume, v =>
             {
                 GameSettings.SoundVolume = v;
                 GameAudio.Play(Sfx.UiTap);
-            }).Row(80);
-            UiKit.Switch("Vibration", column, Loc.T("sound.vibration"), () => GameSettings.Vibration, v =>
+            }).Row(64);
+            UiFrames.ToggleRow(list, "📱", Loc.T("sound.vibration"), () => GameSettings.Vibration, v =>
             {
                 GameSettings.Vibration = v;
 #if UNITY_ANDROID || UNITY_IOS
                 if (v)
                     Handheld.Vibrate();
 #endif
-            }).Row(110);
-            UiKit.Rect("Spacer", column).Row(40);
-            Back(column, () => Show(_home));
+            }).Row(96);
+
+            UiFrames.Section(list, Loc.T("settings.graphics")).Row(60);
+            Caption(list, Loc.T("graphics.quality"));
+            UiFrames.CheckRow(list, new[] { Loc.T("graphics.low"), Loc.T("graphics.medium"), Loc.T("graphics.high") },
+                () => (int)GameSettings.Quality, i => GameSettings.Quality = (GraphicsQuality)i).Row(84);
+            Caption(list, Loc.T("graphics.fps"));
+            UiFrames.CheckRow(list, new[] { "30 FPS", "60 FPS" }, () => GameSettings.FrameRate >= 60 ? 1 : 0, i => GameSettings.FrameRate = i == 1 ? 60 : 30)
+                .Row(84);
+            UiFrames.ToggleRow(list, null, Loc.T("graphics.power"), () => GameSettings.PowerSaving, v => GameSettings.PowerSaving = v).Row(96);
+            Hint(list, Loc.T("graphics.power.hint"));
+            UiFrames.ToggleRow(list, null, Loc.T("graphics.reducealerts"), () => GameSettings.ReduceAlertEffects, v => GameSettings.ReduceAlertEffects = v).Row(96);
+            Hint(list, Loc.T("graphics.reducealerts.hint"));
         }
 
-        private void BuildGraphics(Transform column)
+        private static void Caption(Transform list, string text)
         {
-            UiKit.Label("QualityLabel", column, Loc.T("graphics.quality"), 34, UiKit.Muted).Row(50);
-            UiKit.Choice("Quality", column, new[] { Loc.T("graphics.low"), Loc.T("graphics.medium"), Loc.T("graphics.high") },
-                () => (int)GameSettings.Quality, i => GameSettings.Quality = (GraphicsQuality)i).Row(110);
-            UiKit.Label("FpsLabel", column, Loc.T("graphics.fps"), 34, UiKit.Muted).Row(50);
-            UiKit.Choice("Fps", column, new[] { "30 FPS", "60 FPS" },
-                () => GameSettings.FrameRate >= 60 ? 1 : 0, i => GameSettings.FrameRate = i == 1 ? 60 : 30).Row(110);
-            UiKit.Switch("PowerSaving", column, Loc.T("graphics.power"), () => GameSettings.PowerSaving, v => GameSettings.PowerSaving = v).Row(110);
-            UiKit.Label("PowerHint", column, Loc.T("graphics.power.hint"), 30, UiKit.Muted).Row(80);
-            UiKit.Switch("ReduceAlerts", column, Loc.T("graphics.reducealerts"), () => GameSettings.ReduceAlertEffects,
-                v => GameSettings.ReduceAlertEffects = v).Row(110);
-            UiKit.Label("ReduceAlertsHint", column, Loc.T("graphics.reducealerts.hint"), 30, UiKit.Muted).Row(80);
-            UiKit.Rect("Spacer", column).Row(20);
-            Back(column, () => Show(_home));
+            var label = UiKit.Label("Caption", list, text, UiKit.TypeScale.Body, UiFrames.Ink, TextAnchor.MiddleLeft);
+            label.margin = new Vector4(20f, 0f, 0f, 0f);
+            label.Row(52);
         }
+
+        private static void Hint(Transform list, string text) =>
+            UiKit.Label("Hint", list, text, UiKit.TypeScale.Caption, UiFrames.InkSoft, TextAnchor.UpperLeft).Row(70);
 
         /// <summary>
         /// Phone notifications (docs/36): the master switch, the timer categories the phone schedules, the alerts the
@@ -145,51 +149,50 @@ namespace Hadal.UI
         /// </summary>
         private void BuildNotifications(Transform column)
         {
-            UiKit.Label("Hint", column, Loc.T("notify.hint"), 30, UiKit.Muted).Row(60);
-            _notifyBlocked = UiKit.Button("Blocked", column, Loc.T("notify.permission.open"), PhoneNotifications.OpenPhoneSettings, UiKit.Danger, 30);
+            _notifyBlocked = UiKit.Button("Blocked", column, Loc.T("notify.permission.open"), PhoneNotifications.OpenPhoneSettings, UiKit.Danger, UiKit.TypeScale.Body);
             _notifyBlocked.Row(90);
-            var list = UiKit.ScrollList("List", column, 10f);
+            var list = UiKit.ScrollList("List", column, 6f);
             list.parent.gameObject.AddComponent<LayoutElement>().flexibleHeight = 1;
 
-            UiKit.Switch("Master", list, Loc.T("notify.master"), () => !NotificationPrefsStore.Current.Off, on =>
+            UiKit.Label("Hint", list, Loc.T("notify.hint"), UiKit.TypeScale.Caption + 2, UiFrames.InkSoft, TextAnchor.MiddleCenter).Row(52);
+            UiFrames.ToggleRow(list, "🔔", Loc.T("notify.master"), () => !NotificationPrefsStore.Current.Off, on =>
             {
                 var prefs = NotificationPrefsStore.Current;
                 prefs.Off = !on;
                 NotificationPrefsStore.Save(prefs);
                 if (on)
                     PhoneNotifications.OnPlayerEnabledSomething();
-            }).Row(110);
+            }).Row(96);
 
+            UiFrames.Section(list, Loc.T("settings.notifications")).Row(60);
             for (var i = 0; i < NotificationRules.CategoryCount; i++)
             {
                 var category = (NotificationCategory)i;
                 if (category == NotificationCategory.Attack)
-                    UiKit.Label("PushHeader", list, Loc.T("notify.section.push"), 30, UiKit.Muted).Row(60);
-                var row = UiKit.Switch(category.ToString(), list, Loc.T(NotificationTexts.CategoryKey(category)),
+                    UiFrames.Section(list, Loc.T("notify.section.push")).Row(60);
+                var row = UiFrames.ToggleRow(list, null, Loc.T(NotificationTexts.CategoryKey(category)),
                     () => NotificationPrefsStore.IsEnabled(category), on =>
                     {
                         NotificationPrefsStore.SetEnabled(category, on);
                         if (on)
                             PhoneNotifications.OnPlayerEnabledSomething();
                     });
-                row.Row(100);
+                row.Row(88);
                 if (NotificationRules.IsPush(category))
                     Soon(row);
             }
 
-            UiKit.Switch("Quiet", list, Loc.T("notify.quiet"), () => NotificationPrefsStore.Current.QuietHours, on =>
+            UiFrames.Section(list, Loc.T("notify.quiet")).Row(60);
+            UiFrames.ToggleRow(list, null, Loc.T("notify.quiet"), () => NotificationPrefsStore.Current.QuietHours, on =>
             {
                 var prefs = NotificationPrefsStore.Current;
                 prefs.QuietHours = on;
                 NotificationPrefsStore.Save(prefs);
-            }).Row(110);
-            UiKit.Label("QuietFrom", list, Loc.T("notify.quiet.from"), 28, UiKit.Muted).Row(44);
+            }).Row(96);
+            Caption(list, Loc.T("notify.quiet.from"));
             QuietChoice("From", list, QuietStarts, p => p.QuietStartMinute, (p, m) => p.QuietStartMinute = m);
-            UiKit.Label("QuietTo", list, Loc.T("notify.quiet.to"), 28, UiKit.Muted).Row(44);
+            Caption(list, Loc.T("notify.quiet.to"));
             QuietChoice("To", list, QuietEnds, p => p.QuietEndMinute, (p, m) => p.QuietEndMinute = m);
-
-            UiKit.Rect("Spacer", column).Row(10);
-            Back(column, () => Show(_home));
         }
 
         private static readonly int[] QuietStarts = { 21 * 60, 22 * 60, 23 * 60, 0 };
@@ -201,50 +204,48 @@ namespace Hadal.UI
             Action<NotificationPrefsDto, int> set)
         {
             var labels = Array.ConvertAll(minutes, m => $"{m / 60:00}:{m % 60:00}");
-            UiKit.Choice(name, list, labels, () => Math.Max(0, Array.IndexOf(minutes, get(NotificationPrefsStore.Current))), i =>
+            var row = UiFrames.CheckRow(list, labels, () => Math.Max(0, Array.IndexOf(minutes, get(NotificationPrefsStore.Current))), i =>
             {
                 var prefs = NotificationPrefsStore.Current;
                 set(prefs, minutes[i]);
                 NotificationPrefsStore.Save(prefs);
-            }).Row(96);
+            });
+            row.name = name;
+            row.Row(84);
         }
 
-        /// <summary>A push category before phase 2: greyed out, "soon" instead of on/off.</summary>
+        /// <summary>A push category before phase 2: greyed out, "soon" instead of ON/OFF.</summary>
         private static void Soon(Button row)
         {
             row.interactable = false;
-            row.transform.Find("Label").GetComponent<TMP_Text>().color = UiKit.Muted;
-            row.transform.Find("Pill").GetComponent<Image>().color = new Color(0.12f, 0.24f, 0.3f, 1f);
-            var state = row.transform.Find("Pill/State").GetComponent<TMP_Text>();
+            row.transform.Find("Label").GetComponent<TMP_Text>().color = UiFrames.InkSoft;
+            row.transform.Find("Switch").GetComponent<Image>().color = new Color(0.7f, 0.74f, 0.8f, 1f);
+            row.transform.Find("Switch/Knob").gameObject.SetActive(false);
+            var state = row.transform.Find("Switch/State").GetComponent<TMP_Text>();
+            state.rectTransform.Place(0, 0, 1, 1);
             state.text = Loc.T("notify.soon");
-            state.color = UiKit.Muted;
         }
 
         private void BuildSupport(Transform column)
         {
-            UiKit.Label("Hint", column, Loc.T("support.hint"), 34, UiKit.Muted).Row(140);
-            _supportId = UiKit.Label("AccountId", column, string.Empty, 40, UiKit.Amber, TextAnchor.MiddleCenter, FontStyle.Bold).Row(90);
-            _supportCopy = UiKit.Button("Copy", column, Loc.T("support.copy"), CopyAccountId, UiKit.Field);
-            _supportCopy.Row(110).GetComponentInChildren<TMP_Text>().color = UiKit.Text;
-            UiKit.Button("Website", column, Loc.T("support.website"), () => Application.OpenURL(WebsiteUrl)).Row(110);
-            UiKit.Rect("Spacer", column).Row(40);
-            Back(column, () => Show(_home));
+            UiFrames.Note(column, Loc.T("support.hint")).Row(160);
+            UiFrames.Section(column, Loc.T("account.id")).Row(56);
+            _supportId = UiKit.Label("AccountId", column, string.Empty, UiKit.TypeScale.Display, UiFrames.Ink, TextAnchor.MiddleCenter, FontStyle.Bold).Row(96);
+            _supportCopy = UiKit.Button("Copy", column, Loc.T("support.copy"), CopyAccountId, UiKit.Field, UiKit.TypeScale.Subtitle);
+            _supportCopy.Row(104);
+            UiKit.Button("Website", column, Loc.T("support.website"), () => Application.OpenURL(WebsiteUrl), UiKit.Primary, UiKit.TypeScale.Subtitle).Row(104);
         }
 
         private void BuildAbout(Transform column)
         {
-            UiKit.Label("Logo", column, "HADAL", 120, UiKit.Accent, TextAnchor.MiddleCenter, FontStyle.Bold).Row(180);
-            UiKit.Label("Tagline", column, Loc.T("title.tagline"), 32, UiKit.Muted, TextAnchor.MiddleCenter, FontStyle.Italic).Row(90);
-            UiKit.Label("Version", column, Loc.F("about.version", Application.version), 34, UiKit.Text, TextAnchor.MiddleCenter).Row(60);
-            _aboutAccount = UiKit.Label("Account", column, string.Empty, 30, UiKit.Muted, TextAnchor.MiddleCenter).Row(50);
-            UiKit.Label("Studio", column, Loc.T("about.studio"), 30, UiKit.Muted, TextAnchor.MiddleCenter).Row(50);
-            UiKit.Label("Site", column, "hadal.cicibyte.com", 30, UiKit.Accent, TextAnchor.MiddleCenter).Row(50);
-            UiKit.Rect("Spacer", column).Row(40);
-            Back(column, () => Show(_home));
+            var logo = UiKit.Label("Logo", column, "HADAL", 120, UiFrames.Navy, TextAnchor.MiddleCenter, FontStyle.Bold).Row(180);
+            logo.characterSpacing = 8f;
+            UiKit.Label("Tagline", column, Loc.T("title.tagline"), UiKit.TypeScale.Body + 2, UiFrames.InkSoft, TextAnchor.MiddleCenter, FontStyle.Italic).Row(90);
+            UiFrames.Section(column, Loc.F("about.version", Application.version)).Row(60);
+            _aboutAccount = UiKit.Label("Account", column, string.Empty, UiKit.TypeScale.Body, UiFrames.Ink, TextAnchor.MiddleCenter).Row(56);
+            UiKit.Label("Studio", column, Loc.T("about.studio"), UiKit.TypeScale.Body, UiFrames.InkSoft, TextAnchor.MiddleCenter).Row(56);
+            UiKit.Label("Site", column, "hadal.cicibyte.com", UiKit.TypeScale.Body, UiKit.Primary, TextAnchor.MiddleCenter, FontStyle.Bold).Row(56);
         }
-
-        private static void Back(Transform column, UnityEngine.Events.UnityAction action, string key = "account.back") =>
-            UiKit.Button("Back", column, Loc.T(key), action, UiKit.Field).Row(100).GetComponentInChildren<TMP_Text>().color = UiKit.Text;
 
         private string AccountId => _account.Profile?.accountId ?? string.Empty;
 

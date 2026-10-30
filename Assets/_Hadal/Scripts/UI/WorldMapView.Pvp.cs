@@ -160,34 +160,29 @@ namespace Hadal.UI
                 $"{Loc.T("pvp.team.gathering")}\n{Loc.F("world.coords", x, y)}", items);
         }
 
-        /// <summary>Rally muster: 1, 3, 5 or 10 minutes, then the team setup.</summary>
+        /// <summary>Rally muster as a dialog: the target, what a muster is, then 1, 3, 5 or 10 minutes; the team setup follows.</summary>
         private void OpenMuster(string title, int x, int y, string kind, string targetId, BattleSide enemy = null)
         {
             TargetMenu.Hide();
-            ClosePopup();
-            var dim = UiKit.Box("Popup", _popupCanvas.transform, new Color(0, 0, 0, 0.6f));
-            dim.rectTransform.Place(0, 0, 1, 1);
-            dim.gameObject.AddComponent<Button>().onClick.AddListener(ClosePopup);
-            _popup = dim.gameObject;
-            var card = UiKit.Box("Card", dim.transform, UiKit.Panel);
-            card.rectTransform.Place(0.08f, 0.36f, 0.92f, 0.64f);
-            card.gameObject.AddComponent<Button>();
-            UiKit.Label("Title", card.transform, Loc.T("pvp.rally"), 40, UiKit.Text, TextAnchor.MiddleCenter, FontStyle.Bold).rectTransform.Place(0.05f, 0.78f, 0.95f, 0.96f);
-            UiKit.Label("Target", card.transform, title, 28, UiKit.Accent, TextAnchor.MiddleCenter).rectTransform.Place(0.05f, 0.64f, 0.95f, 0.78f);
-            UiKit.Label("Hint", card.transform, Loc.T("pvp.rally.muster"), 24, UiKit.Muted, TextAnchor.MiddleCenter).rectTransform.Place(0.05f, 0.5f, 0.95f, 0.64f);
+            var sheet = MapDialog("muster", Loc.T("pvp.rally"));
+            var content = sheet.Content;
+            UiFrames.SheetText(content, $"{title}   <color=#5A6B87>{Loc.F("world.coords", x, y)}</color>", UiKit.TypeScale.Body + 2, UiFrames.Ink,
+                TextAnchor.MiddleCenter, FontStyle.Bold).Row(60);
+            UiFrames.Note(content, Loc.T("pvp.rally.muster")).Row(120);
+            var row = UiKit.Rect("Options", content).Row(116);
             var options = PvpRules.MusterOptions;
             for (var i = 0; i < options.Length; i++)
             {
                 var seconds = options[i];
-                var x0 = 0.05f + i * 0.23f;
-                var button = UiKit.Button("Muster" + seconds, card.transform, Loc.F("pvp.minutes", seconds / 60), () => OpenPvpSetup(new PvpPlan
+                UiFrames.FooterButton(row, Loc.F("pvp.minutes", seconds / 60), () => OpenPvpSetup(new PvpPlan
                 {
                     Title = title, X = x, Y = y, Info = Loc.F("pvp.rally.info", seconds / 60), GoLabel = Loc.T("pvp.rally.start"), GoColor = AttackRed,
                     Enemy = enemy,
                     Send = heroes => SendPvp(PvpRules.Rally, kind, targetId, heroes, seconds)
-                }), UiKit.Primary, 30);
-                ((RectTransform)button.transform).Place(x0, 0.12f, x0 + 0.21f, 0.4f);
+                }), UiKit.Primary, (float)i / options.Length, (float)(i + 1) / options.Length);
             }
+
+            UiFrames.FitSheet(sheet);
         }
 
         /// <summary>Joins an alliance rally from the war list: the team setup towards the rally's target.</summary>
