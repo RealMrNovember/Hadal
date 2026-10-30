@@ -658,7 +658,7 @@ namespace Hadal.UI
         {
             for (var start = 0; start < rewards.Length; start += 4)
             {
-                var row = UiKit.Rect("Rewards", parent).Row(250);
+                var row = UiKit.Rect("Rewards", parent).Row(300);
                 for (var c = 0; c < 4 && start + c < rewards.Length; c++)
                 {
                     var (type, id, amount) = rewards[start + c];

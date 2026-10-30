@@ -88,7 +88,7 @@ namespace Hadal.UI
             layout.spacing = 8f;
             layout.childControlWidth = layout.childControlHeight = true;
             layout.childForceExpandWidth = layout.childForceExpandHeight = false;
-            var width = chips.Length >= 3 ? 124f : 150f;
+            var width = chips.Length >= 3 ? button != null ? 108f : 124f : 150f;
             foreach (var (icon, value) in chips)
                 UiFrames.Chip(row, icon, value, width);
             if (button != null)
@@ -162,7 +162,7 @@ namespace Hadal.UI
         /// <summary>A grid of reward cells (tile and name), four across.</summary>
         private void RewardGrid(Transform parent, (string Type, string Id, long Amount)[] rewards)
         {
-            var grid = UiFrames.Grid(parent, 4, 0.74f, 16);
+            var grid = UiFrames.Grid(parent, 4, 0.92f, 16);
             foreach (var (type, id, amount) in rewards)
             {
                 var (icon, rarity, count) = RewardTile(type, id, amount);

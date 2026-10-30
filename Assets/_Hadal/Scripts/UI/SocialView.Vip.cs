@@ -131,8 +131,8 @@ namespace Hadal.UI
             for (var i = 0; i < tiles.Length && i < 4; i++)
             {
                 var (icon, rarity, count) = tiles[i];
-                var x = 0.02f + i * 0.165f;
-                UiFrames.ItemTile(row.transform, icon, rarity, count).Place(x, 0.14f, x + 0.15f, 0.86f);
+                var x = 0.02f + i * 0.155f;
+                UiFrames.ItemTile(row.transform, icon, rarity, count).Place(x, 0.14f, x + 0.135f, 0.86f);
             }
 
             var label = level <= 0 ? Loc.T("vip.chestLocked") : vip.ChestReady ? Loc.T("vip.openChest") : Loc.T("event.claimed");

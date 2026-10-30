@@ -115,7 +115,7 @@ namespace Hadal.UI
         public static RectTransform RewardCell(Transform parent, string icon, string rarity, string count, string name)
         {
             var cell = UiKit.Rect("Reward", parent);
-            ItemTile(cell, icon, rarity, count).Place(0.08f, 0.3f, 0.92f, 1f);
+            ItemTile(cell, icon, rarity, count).Place(0.12f, 0.3f, 0.88f, 1f);
             var label = UiKit.Label("Name", cell, name, UiKit.TypeScale.Caption, Ink, TextAnchor.UpperCenter, FontStyle.Bold);
             label.rectTransform.Place(0, 0, 1, 0.28f);
             label.Fit(14, UiKit.TypeScale.Caption);
