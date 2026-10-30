@@ -173,6 +173,80 @@ namespace Hadal.Game.Tests
         }
 
         [Fact]
+        public async Task Calendar_SchedulesAreListedEditedRunAndAudited()
+        {
+            var gm = await LoginAsync(AdminRoles.GameMaster);
+            var viewer = await LoginAsync(AdminRoles.Viewer);
+
+            // The default schedules are seeded on start; the week grid shows their occurrences per kingdom.
+            var schedules = await Proxied(viewer).GetFromJsonAsync<JsonArray>("/admin/api/schedules");
+            Assert.Contains(schedules!, s => s!["schedule"]!["id"]!.GetValue<string>() == "depth-race");
+            Assert.Contains(schedules!, s => s!["schedule"]!["id"]!.GetValue<string>() == "alliance-week");
+            var calendar = await Proxied(viewer).GetFromJsonAsync<JsonObject>("/admin/api/calendar");
+            Assert.Equal(7, calendar!["days"]!.AsArray().Count);
+            Assert.Contains(calendar["entries"]!.AsArray(), e => e!["scheduleId"]!.GetValue<string>() == "depth-race" && e["kingdom"]!.GetValue<string>() == "w1");
+
+            var id = "api-hunt-" + Guid.NewGuid().ToString("N")[..8];
+            object Body(int[] weekdays, int startMinute) => new
+            {
+                id, enabled = false, weekdays, startMinute, durationHours = 6, leadHours = 12,
+                blueprint = new
+                {
+                    template = "points", banner = "bloom", title = new Dictionary<string, string> { ["en"] = "Hunt", ["tr"] = "Av" },
+                    actions = new[] { new { action = "monster_kill", points = 10, per = 1 } }
+                }
+            };
+
+            Assert.Equal(HttpStatusCode.Forbidden, (await Proxied(viewer).PostAsJsonAsync("/admin/api/schedules", Body(new[] { 6 }, 600))).StatusCode);
+            var bad = await Proxied(gm).PostAsJsonAsync("/admin/api/schedules", Body(Array.Empty<int>(), 600));
+            Assert.Equal(HttpStatusCode.BadRequest, bad.StatusCode);
+            Assert.Equal("InvalidWeekdays", (await bad.Content.ReadFromJsonAsync<JsonObject>())!["error"]!.GetValue<string>());
+
+            (await Proxied(gm).PostAsJsonAsync("/admin/api/schedules", Body(new[] { 6 }, 600))).EnsureSuccessStatusCode();
+            (await Proxied(gm).PostAsJsonAsync("/admin/api/schedules", Body(new[] { 0, 6 }, 18 * 60 + 30))).EnsureSuccessStatusCode();
+            var edited = await Proxied(viewer).GetFromJsonAsync<JsonObject>($"/admin/api/schedules/{id}");
+            Assert.Equal(2, edited!["schedule"]!["weekdays"]!.AsArray().Count);
+            Assert.Equal(18 * 60 + 30, edited["schedule"]!["startMinute"]!.GetValue<int>());
+            Assert.False(edited["schedule"]!["enabled"]!.GetValue<bool>());
+
+            (await Proxied(gm).PostAsJsonAsync($"/admin/api/schedules/{id}/enabled", new { enabled = true })).EnsureSuccessStatusCode();
+            Assert.True((await Proxied(viewer).GetFromJsonAsync<JsonObject>($"/admin/api/schedules/{id}"))!["schedule"]!["enabled"]!.GetValue<bool>());
+
+            // "Create the next occurrence now": a published event per kingdom, reachable by its id.
+            var run = await Proxied(gm).PostAsync($"/admin/api/schedules/{id}/run", null);
+            run.EnsureSuccessStatusCode();
+            var created = (await run.Content.ReadFromJsonAsync<JsonObject>())!["created"]!.AsArray().Select(c => c!.GetValue<string>()).ToList();
+            Assert.NotEmpty(created);
+            Assert.All(created, c => Assert.StartsWith(id + ":", c));
+            var occurrence = await Proxied(viewer).GetFromJsonAsync<JsonObject>($"/admin/api/events/{created[0]}");
+            Assert.Equal(id, occurrence!["event"]!["definition"]!["scheduleId"]!.GetValue<string>());
+
+            // A schedule from an existing event starts disabled, on that event's weekday and time.
+            var start = new DateTimeOffset(2026, 11, 4, 20, 0, 0, TimeSpan.Zero); // a Wednesday
+            var blueprint = await Proxied(gm).PostAsJsonAsync("/admin/api/events", new
+            {
+                template = "points", title = new Dictionary<string, string> { ["en"] = "Blueprint" }, banner = "abyss", startsAt = start, endsAt = start.AddHours(8),
+                actions = new[] { new { action = "gather", points = 1, per = 1000 } }
+            });
+            blueprint.EnsureSuccessStatusCode();
+            var eventId = (await blueprint.Content.ReadFromJsonAsync<JsonObject>())!["id"]!.GetValue<string>();
+            var fromEvent = await Proxied(gm).PostAsync($"/admin/api/schedules/from-event/{eventId}", null);
+            fromEvent.EnsureSuccessStatusCode();
+            var copy = (await fromEvent.Content.ReadFromJsonAsync<JsonObject>())!["schedule"]!;
+            Assert.False(copy["enabled"]!.GetValue<bool>());
+            Assert.Equal(3, Assert.Single(copy["weekdays"]!.AsArray())!.GetValue<int>());
+            Assert.Equal(20 * 60, copy["startMinute"]!.GetValue<int>());
+            Assert.Equal(8, copy["durationHours"]!.GetValue<double>());
+
+            Assert.Equal(HttpStatusCode.OK, (await Proxied(gm).DeleteAsync($"/admin/api/schedules/{copy["id"]!.GetValue<string>()}")).StatusCode);
+            Assert.Equal(HttpStatusCode.BadRequest, (await Proxied(gm).PostAsync("/admin/api/schedules/no-such-schedule/run", null)).StatusCode);
+
+            var audit = await Proxied(gm).GetFromJsonAsync<JsonArray>("/admin/api/audit");
+            foreach (var action in new[] { "schedule.create", "schedule.update", "schedule.enable", "schedule.run", "schedule.from-event", "schedule.delete" })
+                Assert.Contains(audit!, e => e!["action"]!.GetValue<string>() == action);
+        }
+
+        [Fact]
         public async Task Roles_AreEnforced()
         {
             var viewer = await LoginAsync(AdminRoles.Viewer);

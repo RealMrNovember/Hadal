@@ -70,6 +70,9 @@ namespace Hadal.Game.Events
         /// <summary>What each live boss has left and who hit it how hard, written behind so a restart mid-event keeps it.</summary>
         public List<EventBossProgress> BossProgress { get; set; } = new();
 
+        /// <summary>The weekly schedule that created this event (EventSchedule), empty for a one-off event.</summary>
+        public string ScheduleId { get; set; } = string.Empty;
+
         public string Note { get; set; } = string.Empty;
         public string CreatedBy { get; set; } = string.Empty;
         public DateTimeOffset CreatedAt { get; set; }

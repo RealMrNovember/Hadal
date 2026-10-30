@@ -16,7 +16,7 @@ namespace Hadal.Game.Events
     /// rank rewards. Everything lives in memory under one lock; scores are written behind in batches. Lock order:
     /// events, then social hub, then session — sessions never call in here (their actions are taken each tick).
     /// </summary>
-    public sealed class EventService
+    public sealed partial class EventService
     {
         private sealed class Live
         {
@@ -158,7 +158,8 @@ namespace Hadal.Game.Events
             }
         }
 
-        public static bool Handles(CommandType type) => type is CommandType.ClaimEventStage or CommandType.ClaimEventRank or CommandType.ViewEventRanking;
+        public static bool Handles(CommandType type) => type is CommandType.ClaimEventStage or CommandType.ClaimEventRank or CommandType.ViewEventRanking
+            or CommandType.ViewEventCalendar;
 
         public async Task InitializeAsync(DateTimeOffset now, CancellationToken cancellationToken)
         {
@@ -188,6 +189,7 @@ namespace Hadal.Game.Events
             }
 
             _logger.LogInformation("Events: {Events} defined, {Scores} scores loaded.", definitions.Count, scores.Count);
+            await InitializeCalendarAsync(now, cancellationToken);
         }
 
         // --- Sessions -----------------------------------------------------------------------------
@@ -286,6 +288,13 @@ namespace Hadal.Game.Events
                     _logger.LogInformation("Event {Id} is now {Phase}.", live.Def.Id, phase);
                 }
 
+                // The weekly calendar creates the occurrences that are due (EventService.Calendar).
+                if (now >= _nextCalendarRun)
+                {
+                    _nextCalendarRun = now + CalendarEvery;
+                    phaseChanged |= RunCalendar(now) > 0;
+                }
+
                 FlushBossHits();
                 RefreshBosses(now);
 
@@ -344,6 +353,15 @@ namespace Hadal.Game.Events
                     session.Acknowledge(view.CommandId, view.ClientSequence, ranking == null ? "UnknownEvent" : null, now, ranking == null ? null : new List<EntityChangeDto>
                     {
                         new() { EntityId = EntityIds.EventRanking + view.EventId, Kind = EntityChangeKind.Update, Payload = _serializer.Serialize(ranking) }
+                    });
+                    break;
+                case CommandType.ViewEventCalendar when TryDeserialize(envelope.Payload, out ViewEventCalendarCommand? calendar):
+                    EventCalendarDto dto;
+                    lock (_gate)
+                        dto = CalendarFor(session, calendar!.Lang, now);
+                    session.Acknowledge(calendar.CommandId, calendar.ClientSequence, null, now, new List<EntityChangeDto>
+                    {
+                        new() { EntityId = EntityIds.EventCalendar, Kind = EntityChangeKind.Update, Payload = _serializer.Serialize(dto) }
                     });
                     break;
                 default:
@@ -677,7 +695,7 @@ namespace Hadal.Game.Events
                 Id = def.Id, Template = def.Template, Title = Texts(def.Title), Description = Texts(def.Description), Banner = def.Banner,
                 StartsAtMs = start, EndsAtMs = end, ClaimUntilMs = def.ClaimUntil.ToUnixTimeMilliseconds(),
                 Actions = Actions(def.Actions), Phases = phases.ToArray(), Stages = def.Stages.Select(Tier).ToArray(),
-                RankBands = def.RankBands.Select(Tier).ToArray(), MinRankPoints = def.MinRankPoints
+                RankBands = def.RankBands.Select(Tier).ToArray(), MinRankPoints = def.MinRankPoints, ScheduleId = def.ScheduleId ?? string.Empty
             };
         }
 
@@ -685,7 +703,7 @@ namespace Hadal.Game.Events
         {
             Id = shape.Id, Template = shape.Template, Title = shape.Title, Description = shape.Description, Banner = shape.Banner,
             StartsAtMs = shape.StartsAtMs, EndsAtMs = shape.EndsAtMs, ClaimUntilMs = shape.ClaimUntilMs, Actions = shape.Actions,
-            Phases = shape.Phases, Stages = shape.Stages, RankBands = shape.RankBands, MinRankPoints = shape.MinRankPoints
+            Phases = shape.Phases, Stages = shape.Stages, RankBands = shape.RankBands, MinRankPoints = shape.MinRankPoints, ScheduleId = shape.ScheduleId
         };
 
         // --- Overseer -----------------------------------------------------------------------------

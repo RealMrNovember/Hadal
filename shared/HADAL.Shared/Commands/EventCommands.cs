@@ -29,4 +29,16 @@ namespace HADAL.Shared.Commands
         [ProtoMember(2)] public ulong ClientSequence { get; set; }
         [ProtoMember(3)] public string EventId { get; set; } = string.Empty;
     }
+
+    /// <summary>
+    /// Asks for the event calendar: the coming week's events, the recurring ones included before they are created
+    /// (answered with an <c>EventCalendarDto</c>). Texts come in <see cref="Lang"/> only, to keep the answer small.
+    /// </summary>
+    [ProtoContract]
+    public sealed class ViewEventCalendarCommand : ICommand
+    {
+        [ProtoMember(1)] public string CommandId { get; set; } = string.Empty;
+        [ProtoMember(2)] public ulong ClientSequence { get; set; }
+        [ProtoMember(3)] public string Lang { get; set; } = string.Empty;
+    }
 }

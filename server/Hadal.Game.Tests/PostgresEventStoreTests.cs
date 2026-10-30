@@ -53,5 +53,41 @@ namespace Hadal.Game.Tests
             await store.DeleteEventAsync(id, default);
             Assert.Empty((await store.LoadProgressAsync(new[] { id }, default)).Scores);
         }
+
+        [Fact]
+        public async Task Schedules_and_the_occurrence_ledger_round_trip()
+        {
+            if (string.IsNullOrEmpty(ConnectionString))
+                return; // not configured on this machine
+
+            await using var dataSource = NpgsqlDataSource.Create(ConnectionString);
+            var store = new PostgresEventStore(dataSource);
+            await store.InitializeAsync(default);
+
+            var now = DateTimeOffset.UtcNow;
+            var schedule = DefaultSchedules.All(now)[0];
+            schedule.Id = "test-" + Guid.NewGuid().ToString("N")[..8];
+            await store.SaveScheduleAsync(schedule, default);
+            schedule.Enabled = false;
+            await store.SaveScheduleAsync(schedule, default); // upsert
+            var loaded = Assert.Single(await store.LoadSchedulesAsync(default), s => s.Id == schedule.Id);
+            Assert.False(loaded.Enabled);
+            Assert.Equal(schedule.Blueprint.Phases.Count, loaded.Blueprint.Phases.Count);
+            Assert.Equal("Derinlik Yarışı", loaded.Blueprint.Title["tr"]);
+
+            // The ledger keeps an id once; old entries are not loaded, markers always are.
+            var recent = schedule.Id + ":" + now.ToString("yyyy-MM-dd") + ":w1";
+            var old = schedule.Id + ":2020-01-01:w1";
+            var marker = "seed:" + schedule.Id;
+            await store.SaveOccurrencesAsync(new[] { (recent, schedule.Id, now), (old, schedule.Id, now.AddYears(-6)), (marker, string.Empty, now.AddYears(-6)) }, default);
+            await store.SaveOccurrencesAsync(new[] { (recent, schedule.Id, now) }, default); // a second write changes nothing
+            var ledger = await store.LoadOccurrencesAsync(now.AddDays(-14), default);
+            Assert.Contains(recent, ledger);
+            Assert.Contains(marker, ledger);
+            Assert.DoesNotContain(old, ledger);
+
+            await store.DeleteScheduleAsync(schedule.Id, default);
+            Assert.DoesNotContain(await store.LoadSchedulesAsync(default), s => s.Id == schedule.Id);
+        }
     }
 }

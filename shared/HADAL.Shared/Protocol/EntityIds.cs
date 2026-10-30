@@ -143,5 +143,8 @@ namespace HADAL.Shared.Protocol
 
         /// <summary>Prefix of an event ranking (<c>EventRankingDto</c>), followed by the event id.</summary>
         public const string EventRanking = Event + "ranking:";
+
+        /// <summary>The coming week's events, recurring ones included (<c>EventCalendarDto</c>), on request.</summary>
+        public const string EventCalendar = Event + "calendar";
     }
 }

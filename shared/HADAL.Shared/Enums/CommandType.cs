@@ -78,5 +78,6 @@ namespace HADAL.Shared.Enums
         [ProtoEnum] SetNotificationPrefs = 70,
         [ProtoEnum] RegisterPushToken = 71,
         [ProtoEnum] ViewKingdoms = 72,
+        [ProtoEnum] ViewEventCalendar = 73,
     }
 }

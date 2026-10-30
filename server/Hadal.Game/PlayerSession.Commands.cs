@@ -26,7 +26,7 @@ namespace Hadal.Game
         /// <summary>Read-only requests answer every time: a repeated one changes nothing and its answer is fresh data.</summary>
         private static bool IsReadOnly(CommandType type) => type is CommandType.ViewWorld or CommandType.ViewProfile
             or CommandType.ViewEventRanking or CommandType.ViewWar or CommandType.ViewTerritory or CommandType.ViewAllianceLog
-            or CommandType.ViewAllianceRanking or CommandType.BrowseAlliances;
+            or CommandType.ViewAllianceRanking or CommandType.BrowseAlliances or CommandType.ViewEventCalendar;
 
         /// <summary>
         /// Claims a command id before the command runs. False when this id was seen already: the command must not run

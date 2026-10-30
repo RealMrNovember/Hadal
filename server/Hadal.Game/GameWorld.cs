@@ -92,7 +92,8 @@ namespace Hadal.Game
                 KingdomOf = id => Kingdoms.KingdomOf(id) ?? Map.WorldId,
                 TagOf = Social.TagOf,
                 AllianceInfo = Social.AllianceInfo,
-                DropGift = Social.DropGift
+                DropGift = Social.DropGift,
+                KingdomIds = () => Kingdoms.List(_clock.UtcNow).Select(k => k.Kingdom.Id).ToList()
             };
             WireMap(Map);
             Mail = new MailService(mailStore ?? new InMemoryMailStore(), serializer, logger)

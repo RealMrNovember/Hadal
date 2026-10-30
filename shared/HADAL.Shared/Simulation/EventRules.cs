@@ -221,4 +221,60 @@ namespace HADAL.Shared.Simulation
             return phase == EventPhase.Ended && !e.RankClaimed && e.MyPoints > 0 && e.MyPoints >= e.MinRankPoints && Band(e, rank) != null;
         }
     }
+
+    /// <summary>
+    /// The event calendar's day arithmetic (docs/29 §2.2), shared by the server and the client's week strip. Days are
+    /// counted on a clock <c>offsetMs</c> ahead of UTC (0 = server time, the phone's offset for the player's own days).
+    /// </summary>
+    public static class EventCalendar
+    {
+        public const long DayMs = 86_400_000L;
+
+        /// <summary>How many days the calendar shows, today first.</summary>
+        public const int Days = 7;
+
+        /// <summary>The start of the day holding <paramref name="ms"/>.</summary>
+        public static long DayStart(long ms, long offsetMs) => FloorDiv(ms + offsetMs, DayMs) * DayMs - offsetMs;
+
+        /// <summary>The day of week (0 = Sunday … 6 = Saturday, as System.DayOfWeek) of the day holding <paramref name="ms"/>.</summary>
+        public static int Weekday(long ms, long offsetMs) => (int)(((FloorDiv(ms + offsetMs, DayMs) + 4) % 7 + 7) % 7); // 1970-01-01 was a Thursday
+
+        /// <summary>The starts of the <see cref="Days"/> days from the one holding <paramref name="nowMs"/>.</summary>
+        public static long[] Week(long nowMs, long offsetMs)
+        {
+            var today = DayStart(nowMs, offsetMs);
+            var days = new long[Days];
+            for (var i = 0; i < Days; i++)
+                days[i] = today + i * DayMs;
+            return days;
+        }
+
+        /// <summary>The entries overlapping the day starting at <paramref name="dayStartMs"/>: earliest start first, then earliest end, then id.</summary>
+        public static List<EventDto> OnDay(IEnumerable<EventDto> entries, long dayStartMs)
+        {
+            var dayEnd = dayStartMs + DayMs;
+            var list = new List<EventDto>();
+            if (entries == null)
+                return list;
+            foreach (var e in entries)
+            {
+                if (e != null && e.StartsAtMs < dayEnd && e.EndsAtMs > dayStartMs)
+                    list.Add(e);
+            }
+
+            list.Sort((a, b) =>
+            {
+                var c = a.StartsAtMs.CompareTo(b.StartsAtMs);
+                if (c == 0)
+                    c = a.EndsAtMs.CompareTo(b.EndsAtMs);
+                return c != 0 ? c : string.CompareOrdinal(a.Id, b.Id);
+            });
+            return list;
+        }
+
+        /// <summary>Whether the entry starts on the day starting at <paramref name="dayStartMs"/> (else it carries over from before).</summary>
+        public static bool StartsOn(EventDto e, long dayStartMs) => e.StartsAtMs >= dayStartMs && e.StartsAtMs < dayStartMs + DayMs;
+
+        private static long FloorDiv(long a, long b) => a >= 0 ? a / b : -((-a + b - 1) / b);
+    }
 }

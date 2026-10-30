@@ -298,6 +298,7 @@ namespace Hadal.Gateway.Admin
             // --- Events (docs/29) -------------------------------------------------------------
 
             api.MapEventEndpoints();
+            api.MapCalendarEndpoints();
 
             // --- Mail (docs/29 §2.1) ----------------------------------------------------------
 

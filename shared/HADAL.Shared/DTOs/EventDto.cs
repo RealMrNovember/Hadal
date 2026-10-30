@@ -84,6 +84,9 @@ namespace HADAL.Shared.DTOs
 
         /// <summary>Points needed for a rank reward (0 = any score).</summary>
         [ProtoMember(21)] public long MinRankPoints { get; set; }
+
+        /// <summary>The weekly schedule this event comes from (empty = a one-off event).</summary>
+        [ProtoMember(22)] public string ScheduleId { get; set; } = string.Empty;
     }
 
     /// <summary>Every event the player can see: upcoming, live and ended ones still paying out.</summary>
@@ -92,6 +95,20 @@ namespace HADAL.Shared.DTOs
     {
         [ProtoMember(1)] public EventDto[] Events { get; set; } = System.Array.Empty<EventDto>();
         [ProtoMember(2)] public long ServerNowMs { get; set; }
+    }
+
+    /// <summary>
+    /// The event calendar (docs/29 §2.2): every event overlapping [<see cref="FromMs"/>, <see cref="ToMs"/>), the
+    /// recurring ones too before the server creates them (same id as the event they become). Rules and rewards only,
+    /// no progress; texts in the language asked for.
+    /// </summary>
+    [ProtoContract]
+    public sealed class EventCalendarDto
+    {
+        [ProtoMember(1)] public EventDto[] Entries { get; set; } = System.Array.Empty<EventDto>();
+        [ProtoMember(2)] public long ServerNowMs { get; set; }
+        [ProtoMember(3)] public long FromMs { get; set; }
+        [ProtoMember(4)] public long ToMs { get; set; }
     }
 
     [ProtoContract]

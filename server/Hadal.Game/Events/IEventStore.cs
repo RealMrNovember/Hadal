@@ -18,6 +18,19 @@ namespace Hadal.Game.Events
         Task DeleteEventAsync(string eventId, CancellationToken cancellationToken);
         Task SaveScoresAsync(IReadOnlyList<EventScore> scores, CancellationToken cancellationToken);
         Task SaveAlliancePointsAsync(IReadOnlyList<(string EventId, string AllianceId, long Points)> totals, CancellationToken cancellationToken);
+
+        /// <summary>Recurring schedules (EventSchedule).</summary>
+        Task<List<EventSchedule>> LoadSchedulesAsync(CancellationToken cancellationToken);
+        Task SaveScheduleAsync(EventSchedule schedule, CancellationToken cancellationToken);
+        Task DeleteScheduleAsync(string scheduleId, CancellationToken cancellationToken);
+
+        /// <summary>
+        /// The calendar's ledger: every occurrence id it ever created (and the seed marker). Insert-only, so an occurrence
+        /// the Overseer deleted is not created again. Returns the entries starting at or after <paramref name="since"/>
+        /// and the markers.
+        /// </summary>
+        Task<HashSet<string>> LoadOccurrencesAsync(DateTimeOffset since, CancellationToken cancellationToken);
+        Task SaveOccurrencesAsync(IReadOnlyList<(string OccurrenceId, string ScheduleId, DateTimeOffset StartsAt)> occurrences, CancellationToken cancellationToken);
     }
 
     public sealed class InMemoryEventStore : IEventStore
@@ -26,6 +39,8 @@ namespace Hadal.Game.Events
         private readonly Dictionary<string, string> _events = new(StringComparer.Ordinal);
         private readonly Dictionary<(string, string), (string AllianceId, long Points, string State, DateTimeOffset At)> _scores = new();
         private readonly Dictionary<(string, string), long> _alliances = new();
+        private readonly Dictionary<string, string> _schedules = new(StringComparer.Ordinal);
+        private readonly Dictionary<string, DateTimeOffset> _occurrences = new(StringComparer.Ordinal);
 
         public Task InitializeAsync(CancellationToken cancellationToken) => Task.CompletedTask;
 
@@ -94,6 +109,44 @@ namespace Hadal.Game.Events
 
             return Task.CompletedTask;
         }
+
+        public Task<List<EventSchedule>> LoadSchedulesAsync(CancellationToken cancellationToken)
+        {
+            lock (_gate)
+                return Task.FromResult(_schedules.Values.Select(EventSchedule.FromJson).ToList());
+        }
+
+        public Task SaveScheduleAsync(EventSchedule schedule, CancellationToken cancellationToken)
+        {
+            lock (_gate)
+                _schedules[schedule.Id] = schedule.ToJson();
+            return Task.CompletedTask;
+        }
+
+        public Task DeleteScheduleAsync(string scheduleId, CancellationToken cancellationToken)
+        {
+            lock (_gate)
+                _schedules.Remove(scheduleId);
+            return Task.CompletedTask;
+        }
+
+        public Task<HashSet<string>> LoadOccurrencesAsync(DateTimeOffset since, CancellationToken cancellationToken)
+        {
+            lock (_gate)
+                return Task.FromResult(_occurrences.Where(p => p.Value >= since || p.Key.StartsWith("seed:", StringComparison.Ordinal))
+                    .Select(p => p.Key).ToHashSet(StringComparer.Ordinal));
+        }
+
+        public Task SaveOccurrencesAsync(IReadOnlyList<(string OccurrenceId, string ScheduleId, DateTimeOffset StartsAt)> occurrences, CancellationToken cancellationToken)
+        {
+            lock (_gate)
+            {
+                foreach (var o in occurrences)
+                    _occurrences.TryAdd(o.OccurrenceId, o.StartsAt);
+            }
+
+            return Task.CompletedTask;
+        }
     }
 
     public sealed class PostgresEventStore : IEventStore
@@ -123,7 +176,23 @@ CREATE TABLE IF NOT EXISTS hadal.event_alliance_points (
     alliance_id  text   NOT NULL,
     points       bigint NOT NULL DEFAULT 0,
     PRIMARY KEY (event_id, alliance_id)
-);";
+);
+
+-- The weekly calendar (docs/29 §2.2): recurring schedules, and the ledger of every occurrence the calendar created
+-- (insert-only; the seed marker 'seed:defaults' lives there too).
+CREATE TABLE IF NOT EXISTS hadal.event_schedules (
+    schedule_id  text        PRIMARY KEY,
+    definition   jsonb       NOT NULL,
+    updated_at   timestamptz NOT NULL DEFAULT now()
+);
+
+CREATE TABLE IF NOT EXISTS hadal.event_occurrences (
+    occurrence_id  text        PRIMARY KEY,
+    schedule_id    text        NOT NULL,
+    starts_at      timestamptz NOT NULL,
+    created_at     timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS event_occurrences_start ON hadal.event_occurrences (starts_at);";
 
         private readonly NpgsqlDataSource _dataSource;
 
@@ -238,6 +307,68 @@ ON CONFLICT (event_id, alliance_id) DO UPDATE SET points = EXCLUDED.points");
                 command.Parameters.AddWithValue("e", t.EventId);
                 command.Parameters.AddWithValue("a", t.AllianceId);
                 command.Parameters.AddWithValue("n", t.Points);
+                batch.BatchCommands.Add(command);
+            }
+
+            await batch.ExecuteNonQueryAsync(cancellationToken);
+        }
+
+        public async Task<List<EventSchedule>> LoadSchedulesAsync(CancellationToken cancellationToken)
+        {
+            var list = new List<EventSchedule>();
+            await using var connection = await _dataSource.OpenConnectionAsync(cancellationToken);
+            await using var command = new NpgsqlCommand("SELECT definition::text FROM hadal.event_schedules", connection);
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+            while (await reader.ReadAsync(cancellationToken))
+                list.Add(EventSchedule.FromJson(reader.GetString(0)));
+            return list;
+        }
+
+        public async Task SaveScheduleAsync(EventSchedule schedule, CancellationToken cancellationToken)
+        {
+            await using var connection = await _dataSource.OpenConnectionAsync(cancellationToken);
+            await using var command = new NpgsqlCommand(@"
+INSERT INTO hadal.event_schedules (schedule_id, definition, updated_at) VALUES (@id, @json::jsonb, now())
+ON CONFLICT (schedule_id) DO UPDATE SET definition = EXCLUDED.definition, updated_at = now()", connection);
+            command.Parameters.AddWithValue("id", schedule.Id);
+            command.Parameters.AddWithValue("json", schedule.ToJson());
+            await command.ExecuteNonQueryAsync(cancellationToken);
+        }
+
+        public async Task DeleteScheduleAsync(string scheduleId, CancellationToken cancellationToken)
+        {
+            await using var connection = await _dataSource.OpenConnectionAsync(cancellationToken);
+            await using var command = new NpgsqlCommand("DELETE FROM hadal.event_schedules WHERE schedule_id = @id", connection);
+            command.Parameters.AddWithValue("id", scheduleId);
+            await command.ExecuteNonQueryAsync(cancellationToken);
+        }
+
+        public async Task<HashSet<string>> LoadOccurrencesAsync(DateTimeOffset since, CancellationToken cancellationToken)
+        {
+            var set = new HashSet<string>(StringComparer.Ordinal);
+            await using var connection = await _dataSource.OpenConnectionAsync(cancellationToken);
+            await using var command = new NpgsqlCommand(
+                "SELECT occurrence_id FROM hadal.event_occurrences WHERE starts_at >= @since OR occurrence_id LIKE 'seed:%'", connection);
+            command.Parameters.AddWithValue("since", since);
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+            while (await reader.ReadAsync(cancellationToken))
+                set.Add(reader.GetString(0));
+            return set;
+        }
+
+        public async Task SaveOccurrencesAsync(IReadOnlyList<(string OccurrenceId, string ScheduleId, DateTimeOffset StartsAt)> occurrences, CancellationToken cancellationToken)
+        {
+            if (occurrences.Count == 0)
+                return;
+            await using var connection = await _dataSource.OpenConnectionAsync(cancellationToken);
+            await using var batch = new NpgsqlBatch(connection);
+            foreach (var o in occurrences)
+            {
+                var command = new NpgsqlBatchCommand(@"
+INSERT INTO hadal.event_occurrences (occurrence_id, schedule_id, starts_at) VALUES (@o, @s, @t) ON CONFLICT (occurrence_id) DO NOTHING");
+                command.Parameters.AddWithValue("o", o.OccurrenceId);
+                command.Parameters.AddWithValue("s", o.ScheduleId);
+                command.Parameters.AddWithValue("t", o.StartsAt);
                 batch.BatchCommands.Add(command);
             }
 
