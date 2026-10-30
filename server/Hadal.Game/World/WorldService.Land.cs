@@ -310,17 +310,19 @@ ON CONFLICT (id) DO UPDATE SET world_id = EXCLUDED.world_id, alliance_id = EXCLU
                 AdvanceBuildings(now);
                 var alliance = _social.AllianceIdOf(session.PublicId);
                 var rank = _social.RankOf(session.PublicId);
+                // Hub, beacons and buildings: the leader and logistics officers (docs/29 §2.3).
+                var builder = AlliancePermissions.CanBuild(rank, _social.RoleOf(session.PublicId));
                 var reason = alliance.Length == 0 ? "NotInAlliance" : null;
                 if (reason == null)
                 {
                     reason = command.Action switch
                     {
-                        AllianceLandRules.PlaceHub => PlaceHub(session, alliance, rank, command.X, command.Y, now),
-                        AllianceLandRules.PlaceBeacon => PlaceBeacon(session, alliance, rank, command.X, command.Y, now),
+                        AllianceLandRules.PlaceHub => PlaceHub(session, alliance, builder, command.X, command.Y, now),
+                        AllianceLandRules.PlaceBeacon => PlaceBeacon(session, alliance, builder, command.X, command.Y, now),
                         AllianceLandRules.MoveHub => MoveHub(alliance, rank, command.X, command.Y, now),
-                        AllianceLandRules.Remove => RemoveBeacon(alliance, rank, command.StrongholdId),
+                        AllianceLandRules.Remove => RemoveBeacon(alliance, builder, command.StrongholdId),
                         AllianceLandRules.Donate => Donate(session, alliance, command.StrongholdId, command.Resource, command.Amount, now),
-                        AllianceLandRules.PlaceBuilding => PlaceBuilding(session, alliance, rank, command.Resource, command.X, command.Y, now),
+                        AllianceLandRules.PlaceBuilding => PlaceBuilding(session, alliance, builder, command.Resource, command.X, command.Y, now),
                         AllianceLandRules.AbandonCity => AbandonCity(alliance, rank, command.StrongholdId),
                         _ => "MalformedCommand"
                     };
@@ -350,9 +352,9 @@ ON CONFLICT (id) DO UPDATE SET world_id = EXCLUDED.world_id, alliance_id = EXCLU
         private bool FreeForStructure(int x, int y) =>
             x >= 0 && y >= 0 && x < MapSize && y < MapSize && CanStand(x, y) && !_structureAt.ContainsKey((x, y));
 
-        private string? PlaceHub(PlayerSession session, string alliance, int rank, int x, int y, DateTimeOffset now)
+        private string? PlaceHub(PlayerSession session, string alliance, bool builder, int x, int y, DateTimeOffset now)
         {
-            if (rank < AlliancePermissions.Officer)
+            if (!builder)
                 return "NoPermission";
             if (HubOf(alliance) != null)
                 return "HasTerritory";
@@ -375,9 +377,9 @@ ON CONFLICT (id) DO UPDATE SET world_id = EXCLUDED.world_id, alliance_id = EXCLU
             return null;
         }
 
-        private string? PlaceBeacon(PlayerSession session, string alliance, int rank, int x, int y, DateTimeOffset now)
+        private string? PlaceBeacon(PlayerSession session, string alliance, bool builder, int x, int y, DateTimeOffset now)
         {
-            if (rank < AlliancePermissions.Officer)
+            if (!builder)
                 return "NoPermission";
             if (HubOf(alliance) is not { } hub)
                 return "NoHub";
@@ -429,9 +431,9 @@ ON CONFLICT (id) DO UPDATE SET world_id = EXCLUDED.world_id, alliance_id = EXCLU
             return null;
         }
 
-        private string? RemoveBeacon(string alliance, int rank, string id)
+        private string? RemoveBeacon(string alliance, bool builder, string id)
         {
-            if (rank < AlliancePermissions.Officer)
+            if (!builder)
                 return "NoPermission";
             if (!_structures.TryGetValue(id ?? string.Empty, out var s) || s.AllianceId != alliance)
                 return "NotOurs";

@@ -178,7 +178,7 @@ Ayrıntılar aşağıda, aynı sırayla.
 
 - ✅ Etkinlik motoru ve admin sayfası: bireysel ve ittifak yarışmaları, giriş ödülleri, aşamalar, sıralama (`docs/29` E1)
 - ✅ Haftalık döngü takvimi ve hazır etkinlik şablonları: haftalık programlar her krallık için etkinliği başlangıçtan önce kendisi oluşturur (sabit kimlik, kayıt defteri; yeniden başlatmada çift oluşmaz). Hazır programlar: her gün Derinlik Yarışı (4 saatlik 6 tema, her gün kayar), pazartesi başlayan İttifak Haftası ve 7 günlük Dalış Günlüğü. Admin'de takvim (7 günlük ızgara, aç/kapat, gün/saat/süre, etkinlikten program, sıradakini şimdi oluştur); oyunda etkinlik merkezinde Takvim sekmesi (`docs/29` §2.5). Hafta sonu bonus penceresi bonus şablonuyla gelecek.
-- ⬜ Görev izinleri, oylama ve zaman dilimi seçimi (E2)
+- ✅ Görev izinleri, oylama ve zaman dilimi seçimi (E2): lider her şeyi yapar, R4 görevine göre — savaş zaman oylaması açar, lojistik merkez/şamandıra/ittifak binası kurar, diplomasi anket açar ve duyuruyu yazar (keşif için harita işareti henüz yok). Anketler (2–6 seçenek, 1–72 saat, tek/çoklu, gizli/açık; açıkken oy değiştirilebilir, sonuç canlı) ve etkinlik zaman oylaması (2–5 saat, 24 saat oylama, kazanan sunucu saatiyle sabitlenir ve sonraki etkinlik adımı için saklanır); kapanınca özet ittifak sohbetine düşer. Lider 14 gün girmezse liderlik en güçlü aktif R4'e geçer, sohbet ve postayla duyurulur. Oyunda ittifak merkezinde Oylamalar sayfası, adminde oylama listesi (kapat/sil, denetim kaydıyla). Bağışlar zaten vardı (`docs/29` §2.3, §5.1).
 - ⬜ Hendek Fethi, Derinlik Kuşatması, İttifak Düellosu, Seferberlik (E3–E6)
 - 🟡 Savaş raporlarının ve etkinlik ödüllerinin postayla gelmesi (savaş raporları sekmeli postada: 0.9.5)
 

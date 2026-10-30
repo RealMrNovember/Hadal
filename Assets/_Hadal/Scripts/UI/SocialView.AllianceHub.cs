@@ -59,7 +59,7 @@ namespace Hadal.UI
             var none = string.IsNullOrEmpty(alliance.Announcement);
             var text = none ? Loc.T("alliance.announcement.none") : alliance.Announcement;
             var lines = text.Split('\n').Sum(l => 1 + l.Length / 46);
-            var canEdit = AlliancePermissions.CanEditAnnouncement(myRank);
+            var canEdit = AlliancePermissions.CanEditAnnouncement(myRank, View.MyRole());
             var height = Mathf.Clamp(60 + lines * 36 + (canEdit ? 70 : 0), 150, 560);
             var note = InkCard(height, UiFrames.CardAlt);
             var bottom = canEdit ? 80f / height : 0.04f;
@@ -84,6 +84,7 @@ namespace Hadal.UI
                 (Loc.T("alliance.tile.shop"), "shop", false, () => OpenAllianceTab(AllianceTabShop)),
                 (Loc.T("alliance.tile.research"), "left_research", false, () => OpenAllianceTab(AllianceTabResearch)),
                 (Loc.T("alliance.tile.rankings"), "power", false, () => OpenAllianceRankings(0)),
+                (Loc.T("alliance.tile.polls"), "g_info", PollsWaiting() > 0, () => OpenAllianceTab(AllianceTabPolls)),
                 (Loc.T("alliance.tile.rally"), "g_rally", false, () => { Close(); RallyPointPrompt.Instance?.OpenRallyPoint(); }),
                 (Loc.T("city.list"), "left_home", false, () => { Close(); CityList.Instance?.Open(); })
             };

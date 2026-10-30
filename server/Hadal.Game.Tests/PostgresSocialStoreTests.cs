@@ -53,6 +53,34 @@ namespace Hadal.Game.Tests
             Assert.DoesNotContain(members, m => m.AllianceId == alliance.Id);
         }
 
+        /// <summary>Alliance votes (docs/29 §5): saved, updated in place, deleted one by one or by alliance.</summary>
+        [Fact]
+        public async Task Alliance_polls_round_trip_and_go_with_their_alliance()
+        {
+            if (string.IsNullOrEmpty(ConnectionString))
+                return; // not configured on this machine
+
+            await using var dataSource = NpgsqlDataSource.Create(ConnectionString);
+            var store = new PostgresSocialStore(dataSource);
+            await store.InitializeAsync(default);
+            var suffix = Guid.NewGuid().ToString("N")[..8];
+            var now = DateTimeOffset.UtcNow;
+            await store.SavePollAsync("v1" + suffix, "a" + suffix, true, now, "{\"id\":\"v1" + suffix + "\",\"ballots\":{}}", default);
+            await store.SavePollAsync("v1" + suffix, "a" + suffix, false, now, "{\"id\":\"v1" + suffix + "\",\"ballots\":{\"p\":[1]}}", default); // upsert
+            await store.SavePollAsync("v2" + suffix, "a" + suffix, true, now, "{\"id\":\"v2" + suffix + "\"}", default);
+            await store.SavePollAsync("v3" + suffix, "b" + suffix, true, now, "{\"id\":\"v3" + suffix + "\"}", default);
+
+            var mine = (await store.LoadPollsAsync(default)).Where(j => j.Contains(suffix, StringComparison.Ordinal)).ToList();
+            Assert.Equal(3, mine.Count);
+            Assert.Contains(mine, j => j.Contains("v1" + suffix, StringComparison.Ordinal) && j.Contains("[1]", StringComparison.Ordinal));
+
+            await store.DeletePollAsync("v2" + suffix, default);
+            await store.DeletePollsOfAllianceAsync("a" + suffix, default);
+            mine = (await store.LoadPollsAsync(default)).Where(j => j.Contains(suffix, StringComparison.Ordinal)).ToList();
+            Assert.Single(mine);
+            await store.DeletePollsOfAllianceAsync("b" + suffix, default);
+        }
+
         /// <summary>Disband clean-up (roadmap §1): one alliance's documents go, a longer id with the same start stays.</summary>
         [Fact]
         public async Task Deleting_an_alliances_documents_removes_only_that_alliance()

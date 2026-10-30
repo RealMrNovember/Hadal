@@ -44,17 +44,17 @@ namespace Hadal.UI
             if (View.MyAlliance == null || View.Territory == null)
                 return;
             var rank = View.MyRank();
+            var builder = AlliancePermissions.CanBuild(rank, View.MyRole()); // the leader and logistics officers (docs/29 §2.3)
             var hub = MyHub();
             if (hub == null)
             {
-                items.Add(new TargetMenu.Item("side_alliance", Loc.T("land.plant"), () => LandCommand(AllianceLandRules.PlaceHub, x: x, y: y),
-                    rank >= AlliancePermissions.Officer));
+                items.Add(new TargetMenu.Item("side_alliance", Loc.T("land.plant"), () => LandCommand(AllianceLandRules.PlaceHub, x: x, y: y), builder));
                 return;
             }
 
             var t = View.Territory;
             items.Add(new TargetMenu.Item("side_alliance", Loc.F("land.beacon.place", AllianceLandRules.BeaconCost(t.Beacons).ToString("N0")),
-                () => LandCommand(AllianceLandRules.PlaceBeacon, x: x, y: y), rank >= AlliancePermissions.Officer && t.Beacons < t.BeaconsAllowed));
+                () => LandCommand(AllianceLandRules.PlaceBeacon, x: x, y: y), builder && t.Beacons < t.BeaconsAllowed));
             items.Add(new TargetMenu.Item("nav_world", Loc.T("land.moveHub"), () => LandCommand(AllianceLandRules.MoveHub, x: x, y: y), rank >= AlliancePermissions.Leader));
             AddBuildingItem(items, x, y);
         }
@@ -146,7 +146,7 @@ namespace Hadal.UI
                 items.Add(new TargetMenu.Item("res_titanium", Loc.T("land.donate"), () => OpenDonate(target), s.PointsNext > 0));
             if (ours && !hub)
                 items.Add(new TargetMenu.Item("left_home", Loc.T(AllianceLandRules.IsBuilding(target.Kind) ? "bld.remove" : "land.remove"), () => LandCommand(AllianceLandRules.Remove, target.Id),
-                    View.MyRank() >= AlliancePermissions.Officer));
+                    AlliancePermissions.CanBuild(View.MyRank(), View.MyRole())));
             items.Add(new TargetMenu.Item("chat", Loc.T("share.title"), () => ShareLocation?.Invoke(target.X, target.Y, ours ? "base" : "enemy", title)));
             AddBuildingMenu(s, ours, lines, items, title);
             GlideTo(s.X, s.Y);

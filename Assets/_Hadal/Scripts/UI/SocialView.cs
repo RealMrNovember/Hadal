@@ -56,7 +56,8 @@ namespace Hadal.UI
             CommandType.AnswerInvite, CommandType.AnswerApplication, CommandType.ClaimEventStage, CommandType.ClaimEventRank,
             CommandType.ClaimVipLogin, CommandType.ClaimVipChest, CommandType.ReadMail, CommandType.ClaimMail, CommandType.DeleteMail,
             CommandType.SendMail, CommandType.SetAllianceInfo, CommandType.BuyAllianceItem, CommandType.CollectAllianceGift,
-            CommandType.DonateAllianceResearch, CommandType.SetResearchFocus
+            CommandType.DonateAllianceResearch, CommandType.SetResearchFocus, CommandType.CreateAlliancePoll, CommandType.VoteAlliancePoll,
+            CommandType.CloseAlliancePoll
         };
 
         private IStateSyncService _stateSync;
@@ -167,6 +168,8 @@ namespace Hadal.UI
         {
             _title.color = Color.white;
             _stage?.Hide();
+            ClosePollDialog();
+            CloseDutyPicker();
             _sheet.SetActive(false);
             _footer.gameObject.SetActive(false);
             if (_heroBar != null)
@@ -258,7 +261,7 @@ namespace Hadal.UI
         private string PageKey() => _page switch
         {
             Page.Heroes or Page.HeroDetail or Page.Pod => $"{_page}|{_heroId}|{HeroesKey()}|{View.QuestVersion}",
-            Page.Alliance => $"{_page}|{View.AllianceVersion}|{_confirmLeave}|{_allianceTab}|{View.AllianceLogVersion}|{_logTab}|{View.AllianceCoinsVersion}|{View.AllianceGiftsVersion}|{View.AllianceResearchVersion}|{_researchTab}|{View.AllianceRankingVersion}|{_rankingTab}",
+            Page.Alliance => $"{_page}|{View.AllianceVersion}|{_confirmLeave}|{_allianceTab}|{View.AllianceLogVersion}|{_logTab}|{View.AllianceCoinsVersion}|{View.AllianceGiftsVersion}|{View.AllianceResearchVersion}|{_researchTab}|{View.AllianceRankingVersion}|{_rankingTab}|{View.AlliancePollsVersion}|{(_allianceTab == AllianceTabPolls ? NowMs / 60_000L : 0)}",
             Page.Chat => $"{_page}|{View.ChatVersion}|{_chatChannel}|{_chatPeer}|{View.ProfileVersion}",
             Page.Quests or Page.Bag => $"{_page}|{QuestKey()}",
             Page.Expedition => $"{_page}|{ExpeditionKey()}",
@@ -364,6 +367,11 @@ namespace Hadal.UI
                 return;
             }
 
+            if (result.Type == CommandType.CreateAlliancePoll)
+                ClosePollDialog();
+            if (result.Type is CommandType.VoteAlliancePoll or CommandType.CloseAlliancePoll)
+                ForgetPollPicks(); // picks start again from the ballot the server now holds
+
             var text = result.Type switch
             {
                 CommandType.LevelUpHero => Loc.T("hero.trained"),
@@ -377,6 +385,9 @@ namespace Hadal.UI
                 CommandType.SetAllianceInfo => Loc.T("alliance.saved"),
                 CommandType.DonateAllianceResearch => Loc.T("alliance.research.donated"),
                 CommandType.SetResearchFocus => Loc.T("alliance.saved"),
+                CommandType.CreateAlliancePoll => Loc.T("alliance.poll.created"),
+                CommandType.VoteAlliancePoll => Loc.T("alliance.poll.voted"),
+                CommandType.CloseAlliancePoll => Loc.T("alliance.poll.closedToast"),
                 CommandType.AnswerInvite => View.MyAlliance != null ? Loc.T("alliance.joined") : string.Empty,
                 CommandType.AnswerApplication => Loc.T("alliance.saved"),
                 CommandType.LeaveAlliance => Loc.T("alliance.left"),

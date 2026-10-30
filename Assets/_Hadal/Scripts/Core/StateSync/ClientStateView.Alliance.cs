@@ -60,6 +60,25 @@ namespace Hadal.Core.StateSync
             AllianceRankingVersion++;
         }
 
+        /// <summary>The alliance's open and recent polls and time-slot votes (docs/29 §5), pushed on every change.</summary>
+        public AlliancePollsDto AlliancePolls { get; private set; } = new AlliancePollsDto();
+        public int AlliancePollsVersion { get; private set; }
+
+        public void ApplyAlliancePolls(AlliancePollsDto polls)
+        {
+            AlliancePolls = polls ?? new AlliancePollsDto();
+            AlliancePollsVersion++;
+        }
+
+        /// <summary>The viewer's officer duty ("war", "logistics", "diplomacy", "scout"), empty without one.</summary>
+        public string MyRole()
+        {
+            foreach (var m in MyAlliance?.Members ?? System.Array.Empty<AllianceMemberDto>())
+                if (m.PlayerId == PlayerId)
+                    return m.Role ?? string.Empty;
+            return string.Empty;
+        }
+
         /// <summary>An alliance ranking ("power", "kills", "donations") as last fetched, or null.</summary>
         public AllianceRankingDto AllianceRanking(string kind) => _allianceRankings.TryGetValue(kind ?? string.Empty, out var r) ? r : null;
 

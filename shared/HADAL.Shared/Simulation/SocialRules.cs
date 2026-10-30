@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.Linq;
 using System.Text;
@@ -38,6 +39,17 @@ namespace HADAL.Shared.Simulation
         NotEnoughCoins = 26,
         NothingToCollect = 27,
         DonationLimit = 28,
+
+        /// <summary>A poll or time-slot vote that breaks AlliancePollRules (question, options, hours, slots).</summary>
+        InvalidPoll = 29,
+        UnknownPoll = 30,
+        PollClosed = 31,
+
+        /// <summary>The alliance already has AlliancePollRules.MaxOpen open votes.</summary>
+        TooManyPolls = 32,
+
+        /// <summary>A ballot with no, unknown or repeated options, or several on a single-choice poll.</summary>
+        InvalidVote = 33,
     }
 
     /// <summary>Chat channels. Values are a wire contract.</summary>
@@ -59,8 +71,11 @@ namespace HADAL.Shared.Simulation
     }
 
     /// <summary>
-    /// Alliance ranks and what each may do (docs/rehber 10 §3): R5 Leader, R4 Officer, R3 Veteran, R2 Diver,
-    /// R1 Recruit. A captain only changes or removes ranks below their own.
+    /// Alliance ranks and what each may do (docs/rehber 10 §3, docs/29 §2.3): R5 Leader, R4 Officer, R3 Veteran, R2 Diver,
+    /// R1 Recruit. A captain only changes or removes ranks below their own. The leader may do everything; an officer
+    /// carries one duty and gets that duty's rights: war runs alliance events (time-slot votes now; the Lure Trap and its
+    /// difficulty later), logistics places alliance buildings, diplomacy runs polls and writes the announcement, scout
+    /// will mark targets once map marks exist. An officer without a duty keeps the plain officer rights only.
     /// </summary>
     public static class AlliancePermissions
     {
@@ -76,8 +91,45 @@ namespace HADAL.Shared.Simulation
         /// <summary>A recruit becomes a diver by itself after this long.</summary>
         public const int RecruitHours = 48;
 
-        /// <summary>Optional duty tags an officer carries; they show who to ask, they grant nothing.</summary>
-        public static readonly string[] Roles = { "", "war", "logistics", "diplomacy", "scout" };
+        public const string War = "war";
+        public const string Logistics = "logistics";
+        public const string Diplomacy = "diplomacy";
+        public const string Scout = "scout";
+
+        /// <summary>The duty an officer carries ("" none). Several officers may share one.</summary>
+        public static readonly string[] Roles = { "", War, Logistics, Diplomacy, Scout };
+
+        /// <summary>A leader offline this long hands over by itself (docs/29 §5).</summary>
+        public const int InactiveLeaderDays = 14;
+
+        /// <summary>An heir must have been online within this many days.</summary>
+        public const int ActiveHeirDays = 3;
+
+        /// <summary>Whether <paramref name="rank"/> with duty <paramref name="role"/> holds <paramref name="duty"/>'s rights.</summary>
+        public static bool HasDuty(int rank, string? role, string duty) => rank == Leader || (rank == Officer && role == duty);
+
+        /// <summary>War: alliance events — time-slot votes now; scheduling the Lure Trap and its difficulty later.</summary>
+        public static bool CanRunEvents(int rank, string? role) => HasDuty(rank, role, War);
+
+        /// <summary>Logistics: plant the hub, place and remove beacons and alliance buildings.</summary>
+        public static bool CanBuild(int rank, string? role) => HasDuty(rank, role, Logistics);
+
+        /// <summary>Diplomacy: polls (and the announcement, <see cref="CanEditAnnouncement"/>).</summary>
+        public static bool CanRunPolls(int rank, string? role) => HasDuty(rank, role, Diplomacy);
+
+        /// <summary>Scout: target marks on the map. No marks exist yet; reserved for them.</summary>
+        public static bool CanMarkTargets(int rank, string? role) => HasDuty(rank, role, Scout);
+
+        /// <summary>
+        /// Who takes over from a leader gone <see cref="InactiveLeaderDays"/> (docs/29 §5): the most powerful officer seen
+        /// within <see cref="ActiveHeirDays"/>; without one the most powerful active member of the next rank down. Null
+        /// when nobody is active. Equal power goes to the member listed first (the longest-standing).
+        /// </summary>
+        public static string? InactiveLeaderHeir(IEnumerable<(string Id, int Rank, long Power, bool Active)> members, string leaderId) =>
+            members.Select((m, i) => (m, i))
+                .Where(x => x.m.Id != leaderId && x.m.Active && x.m.Rank < Leader)
+                .OrderByDescending(x => x.m.Rank).ThenByDescending(x => x.m.Power).ThenBy(x => x.i)
+                .Select(x => x.m.Id).FirstOrDefault();
 
         public static bool CanInvite(int rank) => rank >= Veteran;
 
@@ -96,8 +148,11 @@ namespace HADAL.Shared.Simulation
 
         public static bool CanTransfer(int actor) => actor == Leader;
 
-        /// <summary>The hub's announcement: officers (R4) and the leader.</summary>
-        public static bool CanEditAnnouncement(int actor) => actor >= Officer;
+        /// <summary>The hub's announcement: the leader and diplomacy officers.</summary>
+        public static bool CanEditAnnouncement(int actor, string? role) => HasDuty(actor, role, Diplomacy);
+
+        /// <summary>The alliance research focus: the leader and every officer.</summary>
+        public static bool CanSetResearchFocus(int actor) => actor >= Officer;
     }
 
     /// <summary>Chat and alliance rules shared by server and client (docs/25_Heroes_Alliance_Chat.md).</summary>

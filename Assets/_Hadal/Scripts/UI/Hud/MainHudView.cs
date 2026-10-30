@@ -628,7 +628,10 @@ namespace Hadal.UI.Hud
             // The alliance button also lights for alliance gifts waiting to be collected (docs/31 step 5).
             var helpWaiting = View.MyAlliance != null && View.HelpRequests.Any(r => !r.HelpedByMe);
             var giftsWaiting = View.MyAlliance != null && View.AllianceGifts.Gifts.Any(g => !g.Collected && g.ExpiresAtMs > View.ServerNowMs);
-            _allianceDot.SetActive(helpWaiting || giftsWaiting);
+            // ... and for an open alliance vote the player has not answered (docs/29 §5).
+            var voteWaiting = View.MyAlliance != null && (View.AlliancePolls.Polls ?? Array.Empty<AlliancePollDto>())
+                .Any(p => AlliancePollRules.AwaitsVote(p, View.ServerNowMs));
+            _allianceDot.SetActive(helpWaiting || giftsWaiting || voteWaiting);
             _helpDot.SetActive(helpWaiting);
             var nowMs = View.ServerNowMs;
             Count(_warDot, (View.Pvp?.Incoming ?? Array.Empty<IncomingDto>()).Count(i => i.ArrivesAtMs > nowMs));

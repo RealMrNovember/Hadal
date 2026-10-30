@@ -21,7 +21,7 @@ namespace Hadal.UI
         private static readonly string[][] LogTabTypes =
         {
             new[] { "joined", "left", "kicked" },
-            new[] { "rank", "leader" },
+            new[] { "rank", "leader", "inactive" },
             new[] { "research" }
         };
 
@@ -94,7 +94,11 @@ namespace Hadal.UI
                 args[1] = $"R{rank} {RankName(rank)}";
             if (e.Type == "research" && args.Length > 1)
                 args[1] = Loc.T("alliance.research.node." + args[1]);
+            args = args.Select(a => (object)(a is string s && s.StartsWith("alliance.", StringComparison.Ordinal) && Loc.Has(s) ? Loc.T(s) : a)).ToArray();
             var key = (kind == AllianceLogKinds.Battle ? "alliance.battle." : "alliance.log.") + e.Type;
+            // Votes and the leader handover are logged with their chat notice's words (docs/29 §5).
+            if (!Loc.Has(key) && kind == AllianceLogKinds.Log && Loc.Has("chat.sys." + e.Type))
+                key = "chat.sys." + e.Type;
             if (!Loc.Has(key))
                 return string.Join(" · ", args);
             try

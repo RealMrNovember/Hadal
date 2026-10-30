@@ -6,14 +6,14 @@ namespace Hadal.Game.Social
     /// <summary>The alliance hub's header (docs/31 §1): the announcement officers write and the alliance language.</summary>
     public sealed partial class SocialHub
     {
-        /// <summary>Officers set the announcement; the leader may change the language too. Caller holds the lock.</summary>
+        /// <summary>Diplomacy officers set the announcement; the leader may change the language too. Caller holds the lock.</summary>
         private SocialRejectReason SetInfo(string playerId, SetAllianceInfoCommand command, DateTimeOffset now)
         {
             var alliance = AllianceOf(playerId);
             if (alliance == null)
                 return SocialRejectReason.NotInAlliance;
             var rank = RankOf(alliance, playerId);
-            if (!AlliancePermissions.CanEditAnnouncement(rank))
+            if (!AlliancePermissions.CanEditAnnouncement(rank, RoleOf(alliance, playerId)))
                 return SocialRejectReason.NotAllowed;
 
             var record = alliance.Record with

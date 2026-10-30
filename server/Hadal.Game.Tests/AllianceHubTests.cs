@@ -66,13 +66,21 @@ namespace Hadal.Game.Tests
         }
 
         [Fact]
-        public async Task Officers_write_the_announcement_and_every_member_sees_it()
+        public async Task Diplomacy_officers_write_the_announcement_and_every_member_sees_it()
         {
             var (leader, member) = await Alliance("hubnote");
             Send(member.S, new SetAllianceInfoCommand { CommandId = Id(), Announcement = "Saldırı 20:00'de" }, CommandType.SetAllianceInfo);
             Assert.Equal(nameof(SocialRejectReason.NotAllowed), LastAck(member.C).Reason);
 
-            Send(leader.S, new SetMemberRankCommand { CommandId = Id(), MemberId = member.S.PublicId, Rank = AlliancePermissions.Officer }, CommandType.SetMemberRank);
+            // An officer of another duty may not (docs/29 §2.3); the diplomacy duty may.
+            Send(leader.S, new SetMemberRankCommand { CommandId = Id(), MemberId = member.S.PublicId, Rank = AlliancePermissions.Officer, Role = "war" },
+                CommandType.SetMemberRank);
+            Assert.Equal(CommandResultCode.Accepted, LastAck(leader.C).Result);
+            Send(member.S, new SetAllianceInfoCommand { CommandId = Id(), Announcement = "Saldırı 20:00'de" }, CommandType.SetAllianceInfo);
+            Assert.Equal(nameof(SocialRejectReason.NotAllowed), LastAck(member.C).Reason);
+
+            Send(leader.S, new SetMemberRankCommand { CommandId = Id(), MemberId = member.S.PublicId, Rank = AlliancePermissions.Officer, Role = "diplomacy" },
+                CommandType.SetMemberRank);
             Assert.Equal(CommandResultCode.Accepted, LastAck(leader.C).Result);
             Send(member.S, new SetAllianceInfoCommand { CommandId = Id(), Announcement = "  Saldırı\t20:00'de\r\nHerkes hazır olsun  ", Language = "de" },
                 CommandType.SetAllianceInfo);

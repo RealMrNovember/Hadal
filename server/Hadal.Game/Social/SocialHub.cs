@@ -112,7 +112,8 @@ namespace Hadal.Game.Social
             or CommandType.SetMemberRank or CommandType.TransferLeadership or CommandType.SetAllianceSettings or CommandType.InviteToAlliance
             or CommandType.AnswerInvite or CommandType.AnswerApplication or CommandType.SetAllianceInfo or CommandType.ViewAllianceLog
             or CommandType.BuyAllianceItem or CommandType.CollectAllianceGift or CommandType.DonateAllianceResearch
-            or CommandType.SetResearchFocus or CommandType.ViewAllianceRanking;
+            or CommandType.SetResearchFocus or CommandType.ViewAllianceRanking
+            or CommandType.CreateAlliancePoll or CommandType.VoteAlliancePoll or CommandType.CloseAlliancePoll;
 
         /// <summary>Loads alliances and recent chat. Call once at startup, after the schema exists.</summary>
         public async Task InitializeAsync(CancellationToken cancellationToken)
@@ -149,6 +150,7 @@ namespace Hadal.Game.Social
 
             _logger.LogInformation("Social hub: {Alliances} alliances, {Members} members, {Lines} chat lines.", alliances.Count, members.Count, chat.Count);
             await LoadDocsAsync(cancellationToken);
+            await LoadPollsAsync(cancellationToken);
         }
 
         // --- Sessions -----------------------------------------------------------------------------
@@ -188,7 +190,8 @@ namespace Hadal.Game.Social
                     InvitesChange(session.PublicId, now),
                     CoinsChange(session.PublicId, now),
                     GiftsChange(session.PublicId, now),
-                    ResearchChange(session.PublicId, now)
+                    ResearchChange(session.PublicId, now),
+                    PollsChange(session.PublicId, now)
                 }, now);
             }
         }
@@ -289,6 +292,15 @@ namespace Hadal.Game.Social
                         break;
                     case CommandType.AnswerApplication when TryDeserialize(envelope.Payload, out AnswerApplicationCommand? application):
                         Done(session, application!.CommandId, application.ClientSequence, AnswerApplication(session.PublicId, application, now), now);
+                        break;
+                    case CommandType.CreateAlliancePoll when TryDeserialize(envelope.Payload, out CreateAlliancePollCommand? poll):
+                        Done(session, poll!.CommandId, poll.ClientSequence, CreatePoll(session, poll, now), now);
+                        break;
+                    case CommandType.VoteAlliancePoll when TryDeserialize(envelope.Payload, out VoteAlliancePollCommand? vote):
+                        Done(session, vote!.CommandId, vote.ClientSequence, Vote(session, vote, now), now);
+                        break;
+                    case CommandType.CloseAlliancePoll when TryDeserialize(envelope.Payload, out CloseAlliancePollCommand? close):
+                        Done(session, close!.CommandId, close.ClientSequence, ClosePoll(session, close, now), now);
                         break;
                     default:
                         session.Acknowledge(envelope.CommandId, envelope.ClientSequence, "MalformedCommand", now);
@@ -419,7 +431,7 @@ namespace Hadal.Game.Social
             if (_online.TryGetValue(playerId, out var session))
             {
                 session.SetInAlliance(true, now);
-                session.Push(new List<EntityChangeDto> { HistoryChange(playerId), HelpChange(playerId, now), InvitesChange(playerId, now) }, now);
+                session.Push(new List<EntityChangeDto> { HistoryChange(playerId), HelpChange(playerId, now), InvitesChange(playerId, now), PollsChange(playerId, now) }, now);
                 ApplyResearchTo(session, now); // the new alliance's research bonuses
             }
 
@@ -650,7 +662,8 @@ namespace Hadal.Game.Social
                 {
                     new() { EntityId = EntityIds.MyAlliance, Kind = EntityChangeKind.Delete },
                     HistoryChange(playerId),
-                    HelpChange(playerId, now)
+                    HelpChange(playerId, now),
+                    PollsChange(playerId, now)
                 }, now);
 
             if (alliance.Members.Count == 0)
@@ -660,6 +673,7 @@ namespace Hadal.Game.Social
                 _channels.Remove(AllianceChannel(alliance.Record.Id));
                 Write(ct => _store.DeleteAllianceAsync(alliance.Record.Id, ct));
                 ForgetAllianceDocs(alliance.Record.Id);
+                ForgetPolls(alliance.Record.Id);
                 return SocialRejectReason.None;
             }
 
@@ -1137,6 +1151,13 @@ namespace Hadal.Game.Social
         {
             lock (_gate)
                 return AllianceOf(playerId) is { } alliance ? RankOf(alliance, playerId) : 0;
+        }
+
+        /// <summary>A player's officer duty (AlliancePermissions.Roles), empty without one (alliance buildings).</summary>
+        public string RoleOf(string playerId)
+        {
+            lock (_gate)
+                return AllianceOf(playerId) is { } alliance ? RoleOf(alliance, playerId) : string.Empty;
         }
 
         /// <summary>How many members an alliance has; 0 when it no longer exists (territory limit).</summary>

@@ -664,7 +664,7 @@ namespace Hadal.UI
                 var bar = line.Text.IndexOf('|');
                 var key = bar < 0 ? line.Text : line.Text.Substring(0, bar);
                 var argument = bar < 0 ? string.Empty : line.Text.Substring(bar + 1);
-                body = "· " + Loc.F("chat." + key, argument.Split('|'));
+                body = "· " + Loc.F("chat." + key, SystemArgs(argument));
             }
             else
             {
@@ -684,6 +684,14 @@ namespace Hadal.UI
             var time = DateTimeOffset.FromUnixTimeMilliseconds(line.SentAtUnixMs).ToLocalTime().ToString("HH:mm");
             return $"<size=24><color=#5E7C88>{time}</color></size>  {body}";
         }
+
+        /// <summary>
+        /// A system line's arguments: an argument that is itself a key ("alliance.poll.purpose.lure_trap") is translated;
+        /// the others (names, a poll's question and answers) are escaped like player text.
+        /// </summary>
+        public static object[] SystemArgs(string argument) =>
+            (argument ?? string.Empty).Split('|').Select(a => (object)(a.StartsWith("alliance.", StringComparison.Ordinal) && Loc.Has(a) ? Loc.T(a) : Escape(a)))
+                .ToArray();
 
         /// <summary>Players cannot inject rich-text tags into other players' screens.</summary>
         private static string Escape(string text) => (text ?? string.Empty).Replace("<", "<​");

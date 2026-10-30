@@ -46,7 +46,7 @@ namespace Hadal.Game.Social
             var alliance = AllianceOf(playerId);
             if (alliance == null)
                 return SocialRejectReason.NotInAlliance;
-            if (!AlliancePermissions.CanEditAnnouncement(RankOf(alliance, playerId)))
+            if (!AlliancePermissions.CanSetResearchFocus(RankOf(alliance, playerId)))
                 return SocialRejectReason.NotAllowed;
             var node = AllianceResearchRules.Find(command.NodeId);
             var tree = TreeOf(alliance.Record.Id);

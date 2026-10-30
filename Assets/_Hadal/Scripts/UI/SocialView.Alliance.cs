@@ -220,6 +220,10 @@ namespace Hadal.UI
                     PageTitle(Loc.T("alliance.tile.shop"));
                     RenderAllianceShop();
                     return;
+                case AllianceTabPolls:
+                    PageTitle(Loc.T("alliance.tile.polls"));
+                    RenderAlliancePolls();
+                    return;
                 case AllianceTabLog:
                     PageTitle(Loc.T("alliance.bar.log"));
                     RenderAllianceLog(AllianceLogKinds.Log);
@@ -228,7 +232,7 @@ namespace Hadal.UI
                     PageTitle(Loc.T("alliance.bar.battlelog"));
                     RenderAllianceLog(AllianceLogKinds.Battle);
                     return;
-                case AllianceTabSettings when AlliancePermissions.CanEditAnnouncement(myRank):
+                case AllianceTabSettings when AlliancePermissions.CanEditAnnouncement(myRank, View.MyRole()) || AlliancePermissions.CanEditSettings(myRank):
                     PageTitle(Loc.T("alliance.bar.settings"));
                     RenderSettings(alliance, myRank);
                     return;
@@ -408,11 +412,7 @@ namespace Hadal.UI
             if (rank > AlliancePermissions.Recruit && AlliancePermissions.CanSetRank(myRank, rank, rank - 1))
                 slots.Add((Loc.T("alliance.demote"), true, () => SetRank(id, rank - 1, null), UiKit.TabOn));
             if (rank == AlliancePermissions.Officer && AlliancePermissions.CanSetRole(myRank))
-            {
-                var roles = AlliancePermissions.Roles;
-                var next = roles[(Array.IndexOf(roles, member.Role ?? string.Empty) + 1) % roles.Length];
-                slots.Add((Loc.T("alliance.duty"), true, () => SetRank(id, rank, next), UiKit.TabOn));
-            }
+                slots.Add((Loc.T("alliance.duty"), true, () => OpenDutyPicker(member), UiKit.TabOn)); // docs/29 §2.3
 
             var x = 0.02f;
             var width = 0.96f / Math.Max(1, slots.Count);

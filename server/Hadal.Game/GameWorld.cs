@@ -102,6 +102,9 @@ namespace Hadal.Game
                 AllianceIdOf = Social.AllianceIdOf,
                 KingdomOf = id => Kingdoms.KingdomOf(id) ?? Map.WorldId
             };
+            // Alliance notices by mail (leader handover); sent off the hub's lock.
+            Social.MailTo = (ids, title, body) => _ = Task.Run(() => Mail.SendAsync(ids,
+                new MailDraft(MailKinds.Alliance, "HADAL", title, body, new MailAttachments()), _clock.UtcNow, CancellationToken.None));
             Onboarding = new OnboardingLog(onboardingStore ?? new InMemoryOnboardingStore(), logger);
             Push = new PushService(clock, logger)
             {
@@ -672,6 +675,15 @@ namespace Hadal.Game
             catch (Exception exception)
             {
                 _logger.LogError(exception, "Paying event bosses failed.");
+            }
+
+            try
+            {
+                Social.Tick(now); // alliance votes that ran out, inactive leaders (docs/29 §5)
+            }
+            catch (Exception exception)
+            {
+                _logger.LogError(exception, "Alliance housekeeping failed.");
             }
 
             try

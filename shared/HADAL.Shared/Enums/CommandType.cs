@@ -79,5 +79,8 @@ namespace HADAL.Shared.Enums
         [ProtoEnum] RegisterPushToken = 71,
         [ProtoEnum] ViewKingdoms = 72,
         [ProtoEnum] ViewEventCalendar = 73,
+        [ProtoEnum] CreateAlliancePoll = 74,
+        [ProtoEnum] VoteAlliancePoll = 75,
+        [ProtoEnum] CloseAlliancePoll = 76,
     }
 }

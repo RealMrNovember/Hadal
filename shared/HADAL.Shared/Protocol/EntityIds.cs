@@ -106,6 +106,9 @@ namespace HADAL.Shared.Protocol
         /// <summary>Prefix of an alliance ranking (<c>AllianceRankingDto</c>), followed by its kind.</summary>
         public const string AllianceRanking = Alliance + "ranking:";
 
+        /// <summary>The alliance's open and recent polls and time-slot votes (<c>AlliancePollsDto</c>), docs/29 §5.</summary>
+        public const string AlliancePolls = Alliance + "polls";
+
         /// <summary>VIP points, level and today's claims (<c>VipStateDto</c>).</summary>
         public const string Vip = Base + "vip";
 

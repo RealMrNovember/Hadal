@@ -43,7 +43,7 @@ namespace Hadal.UI
             UiFrames.Tabs(_list, new[] { Loc.T("alliance.research.tab.development"), Loc.T("alliance.research.tab.war") }, Mathf.Clamp(_researchTab, 0, 1),
                 i => { _researchTab = i; Render(force: true); }).Row(96);
             var tab = _researchTab == 1 ? AllianceResearchRules.War : AllianceResearchRules.Development;
-            var officer = AlliancePermissions.CanEditAnnouncement(myRank);
+            var officer = AlliancePermissions.CanSetResearchFocus(myRank);
             foreach (var node in AllianceResearchRules.Nodes.Where(n => n.Tab == tab))
             {
                 var state = nodes.FirstOrDefault(n => n.Id == node.Id) ?? new AllianceResearchNodeDto { Id = node.Id };

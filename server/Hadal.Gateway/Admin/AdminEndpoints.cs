@@ -295,6 +295,10 @@ namespace Hadal.Gateway.Admin
                 return deleted ? Results.Ok(new { ok = true }) : Results.NotFound();
             }).RequireAdmin(AdminRoles.GameMaster);
 
+            // --- Alliance polls and time-slot votes (docs/29 §5) -------------------------------
+
+            api.MapPollEndpoints();
+
             // --- Events (docs/29) -------------------------------------------------------------
 
             api.MapEventEndpoints();

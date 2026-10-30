@@ -242,6 +242,13 @@ namespace Hadal.Core.StateSync
                 return true;
             }
 
+            if (id == EntityIds.AlliancePolls)
+            {
+                if (TryDeserializePayload(change.Payload, serialization, out AlliancePollsDto polls))
+                    view.ApplyAlliancePolls(polls);
+                return true;
+            }
+
             if (id == EntityIds.AllianceGifts)
             {
                 if (TryDeserializePayload(change.Payload, serialization, out AllianceGiftsDto gifts))

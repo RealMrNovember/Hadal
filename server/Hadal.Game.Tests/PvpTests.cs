@@ -366,6 +366,26 @@ namespace Hadal.Game.Tests
         }
 
         [Fact]
+        public async Task Only_the_leader_and_logistics_officers_place_alliance_land()
+        {
+            var (lead, leadConnection, mate, mateConnection) = await Alliance("duty");
+            var (lx, ly) = _world.Map.PositionOf(lead.PublicId)!.Value;
+
+            // An officer on another duty may not plant the hub (docs/29 §2.3) ...
+            Send(lead, new SetMemberRankCommand { CommandId = "r" + Guid.NewGuid().ToString("N"), MemberId = mate.PublicId, Rank = AlliancePermissions.Officer,
+                Role = AlliancePermissions.War }, CommandType.SetMemberRank);
+            Assert.Equal(CommandResultCode.Accepted, LastAck(leadConnection).Result);
+            Assert.Equal("NoPermission", Land(mate, mateConnection, AllianceLandRules.PlaceHub, lx + 3, ly));
+
+            // ... the logistics officer may; the leader always may (here: refused only because the hub exists).
+            Send(lead, new SetMemberRankCommand { CommandId = "r" + Guid.NewGuid().ToString("N"), MemberId = mate.PublicId, Rank = AlliancePermissions.Officer,
+                Role = AlliancePermissions.Logistics }, CommandType.SetMemberRank);
+            var hub = PlantHub(mate, mateConnection, lx + 3, ly);
+            Assert.Equal(_world.Social.AllianceIdOf(lead.PublicId), _world.Map.LandOwnerForTests(hub.X, hub.Y));
+            Assert.Equal("HasTerritory", Land(lead, leadConnection, AllianceLandRules.PlaceHub, hub.X + 1, hub.Y + 1));
+        }
+
+        [Fact]
         public async Task The_rally_point_is_the_leaders_base_until_the_hub_is_planted()
         {
             var (lead, leadConnection, diver, diverConnection) = await Alliance("rp");

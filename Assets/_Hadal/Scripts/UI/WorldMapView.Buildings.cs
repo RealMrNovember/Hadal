@@ -50,7 +50,8 @@ namespace Hadal.UI
         {
             if (MyHub() == null || !OnOurLand(x, y))
                 return;
-            items.Add(new TargetMenu.Item("power", Loc.T("bld.place"), () => OpenBuildingPicker(x, y), View.MyRank() >= AlliancePermissions.Officer));
+            items.Add(new TargetMenu.Item("power", Loc.T("bld.place"), () => OpenBuildingPicker(x, y),
+                AlliancePermissions.CanBuild(View.MyRank(), View.MyRole())));
         }
 
         /// <summary>The picker as a dialog: a row per building with its icon, bonus, what unlocks it, and Build.</summary>

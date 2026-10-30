@@ -32,6 +32,15 @@ namespace Hadal.Game.Social
 
         Task DeleteDocsAsync(string prefix, CancellationToken cancellationToken);
 
+        /// <summary>Every stored alliance poll and time-slot vote (SocialStore.Polls), as JSON, oldest first.</summary>
+        Task<List<string>> LoadPollsAsync(CancellationToken cancellationToken);
+
+        Task SavePollAsync(string pollId, string allianceId, bool open, DateTimeOffset createdAt, string json, CancellationToken cancellationToken);
+
+        Task DeletePollAsync(string pollId, CancellationToken cancellationToken);
+
+        Task DeletePollsOfAllianceAsync(string allianceId, CancellationToken cancellationToken);
+
         Task DeleteAllianceAsync(string allianceId, CancellationToken cancellationToken);
 
         Task SaveMemberAsync(MemberRecord member, CancellationToken cancellationToken);

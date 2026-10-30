@@ -57,7 +57,7 @@ ALTER TABLE hadal.alliance_members ADD COLUMN IF NOT EXISTS last_seen timestampt
         }
 
         public Task InitializeAsync(CancellationToken cancellationToken) =>
-            PostgresSchema.ApplyAsync(_dataSource, Schema + DocsSchema, cancellationToken);
+            PostgresSchema.ApplyAsync(_dataSource, Schema + DocsSchema + PollsSchema, cancellationToken);
 
         public async Task<(List<AllianceRecord> Alliances, List<MemberRecord> Members)> LoadAlliancesAsync(CancellationToken cancellationToken)
         {

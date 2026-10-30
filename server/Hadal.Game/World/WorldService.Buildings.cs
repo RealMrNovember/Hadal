@@ -4,7 +4,7 @@ using HADAL.Shared.Simulation;
 namespace Hadal.Game.World
 {
     /// <summary>
-    /// Alliance buildings (docs/32 §2.3): R4/R5 place a Relay, Rig or Cannon on the alliance's land once the alliance is
+    /// Alliance buildings (docs/32 §2.3): the leader and logistics officers (docs/29 §2.3) place a Relay, Rig or Cannon on the alliance's land once the alliance is
     /// big and strong enough; members' teams sent to it ("reinforce") build it, then guard it; donations raise its level;
     /// enemies wear its durability down, at 0 it is damaged (no bonus) and mends over time. Beacons can be attacked too
     /// and fall at 0. The hub cannot be attacked.
@@ -21,9 +21,9 @@ namespace Hadal.Game.World
             return members.Sum(id => _bases.TryGetValue(id, out var b) ? b.Power : 0);
         }
 
-        private string? PlaceBuilding(PlayerSession session, string alliance, int rank, string kind, int x, int y, DateTimeOffset now)
+        private string? PlaceBuilding(PlayerSession session, string alliance, bool builder, string kind, int x, int y, DateTimeOffset now)
         {
-            if (rank < AlliancePermissions.Officer)
+            if (!builder)
                 return "NoPermission";
             if (!AllianceLandRules.IsBuilding(kind))
                 return "MalformedCommand";
