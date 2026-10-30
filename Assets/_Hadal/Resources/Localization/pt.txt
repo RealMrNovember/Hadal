@@ -1594,3 +1594,7 @@ mail.report.scoutedText = {0} espionou sua base. Fique atento, um ataque pode vi
 mail.report.moved = O alvo se mudou; sem batalha, seu exército voltou.
 mail.report.gone = O alvo saiu; sem batalha, seu exército voltou.
 mail.report.goThere = Mostrar no mapa
+table.level = Nv
+table.batch = Lote
+table.tier = Escalão
+table.beds = Leitos

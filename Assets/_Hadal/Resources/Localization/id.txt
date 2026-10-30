@@ -1594,3 +1594,7 @@ mail.report.scoutedText = {0} mengintai markasmu. Tetap waspada, serangan bisa m
 mail.report.moved = Target pindah; tidak ada pertempuran, pasukanmu pulang.
 mail.report.gone = Target pergi; tidak ada pertempuran, pasukanmu pulang.
 mail.report.goThere = Tampilkan di peta
+table.level = Lv
+table.batch = Kelompok
+table.tier = Tingkat
+table.beds = Ranjang

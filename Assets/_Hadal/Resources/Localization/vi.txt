@@ -1594,3 +1594,7 @@ mail.report.scoutedText = {0} đã do thám căn cứ của bạn. Hãy cảnh g
 mail.report.moved = Mục tiêu đã di chuyển; không có trận đánh, quân đã về.
 mail.report.gone = Mục tiêu đã rời đi; không có trận đánh, quân đã về.
 mail.report.goThere = Xem trên bản đồ
+table.level = Cấp
+table.batch = Lô
+table.tier = Bậc
+table.beds = Giường

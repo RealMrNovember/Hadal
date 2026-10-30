@@ -187,9 +187,55 @@ def plus():
     return img
 
 
+def train():
+    """A diver's helmet: the dome, its round visor and the collar (troop training)."""
+    img, d = canvas()
+    d.ellipse(p(18, 14, 110, 106), fill=W)
+    d.rounded_rectangle(p(14, 92, 114, 116), radius=8 * S, fill=W)
+    d.ellipse(p(38, 36, 90, 86), fill=(0, 0, 0, 0))
+    d.ellipse(p(47, 45, 81, 77), fill=W)
+    d.ellipse(p(53, 51, 75, 71), fill=(0, 0, 0, 0))
+    return img
+
+
+def army():
+    """Three figures, the middle one in front (the army)."""
+    img, d = canvas()
+    person(d, 30, 58, 26)
+    person(d, 98, 58, 26)
+    d.ellipse(p(42, 30, 86, 74), fill=(0, 0, 0, 0))
+    d.pieslice(p(28, 70, 100, 152), 180, 360, fill=(0, 0, 0, 0))
+    person(d, 64, 64, 34)
+    return img
+
+
+def heal():
+    """A heart with a cross cut out of it (the Med Bay)."""
+    img, d = canvas()
+    d.ellipse(p(12, 18, 66, 72), fill=W)
+    d.ellipse(p(62, 18, 116, 72), fill=W)
+    d.polygon(p(15, 56, 113, 56, 64, 116), fill=W)
+    d.rectangle(p(57, 34, 71, 82), fill=(0, 0, 0, 0))
+    d.rectangle(p(40, 51, 88, 65), fill=(0, 0, 0, 0))
+    return img
+
+
+def research():
+    """A lab flask with a line of liquid (research)."""
+    img, d = canvas()
+    d.rounded_rectangle(p(40, 10, 88, 22), radius=5 * S, fill=W)
+    d.rectangle(p(50, 20, 78, 50), fill=W)
+    d.polygon(p(50, 46, 78, 46, 114, 106, 14, 106), fill=W)
+    d.rounded_rectangle(p(12, 96, 116, 116), radius=9 * S, fill=W)
+    d.rectangle(p(56, 22, 72, 52), fill=(0, 0, 0, 0))
+    d.polygon(p(56, 50, 72, 50, 84, 70, 44, 70), fill=(0, 0, 0, 0))
+    return img
+
+
 GLYPHS = {"back": back, "plus": plus, "up": up, "details": details, "speed": speed, "home": home, "shield": shield, "profile": profile, "reinforce": reinforce, "invite": invite,
           "attack": attack, "rally": rally, "scout": scout, "teleport": teleport, "share": share,
           "star": star, "info": info, "chat": chat}
+GLYPHS.update({"train": train, "army": army, "heal": heal, "research": research})
 
 if __name__ == "__main__":
     OUT.mkdir(parents=True, exist_ok=True)

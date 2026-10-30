@@ -63,7 +63,7 @@ namespace Hadal.UI
             AddMilitaryActions(definition, building, items);
 
             if (definition.Id == ResearchRules.CenterId && building.level > 0)
-                items.Add(new TargetMenu.Item("left_research", Loc.T("hud.research"), () =>
+                items.Add(new TargetMenu.Item("g_research", Loc.T("hud.research"), () =>
                 {
                     OpenBuilding(key);
                     OpenResearch();
@@ -256,19 +256,5 @@ namespace Hadal.UI
         /// <summary>"Output: +22 Energy/h" lines without their "Output:" (the row already says it).</summary>
         private static string WithoutLabels(string lines) =>
             string.Join("\n", lines.Split('\n').Select(l => l.IndexOf(": ", StringComparison.Ordinal) is var c and > 0 ? l.Substring(c + 2) : l));
-
-        // Rows for the windows still on the old frame (training); new windows use UiWindow.
-        private static void Section(Transform list, string title)
-        {
-            var bar = UiKit.Box("Section", list, new Color(0.07f, 0.2f, 0.27f, 1f)).Row(64);
-            UiKit.Label("Text", bar.transform, title, 30, UiKit.Text, TextAnchor.MiddleCenter, FontStyle.Bold).rectTransform.Place(0, 0, 1, 1);
-        }
-
-        private static void Row(Transform list, string label, string value, Color valueColor, float height = 70)
-        {
-            var row = UiKit.Rect("Row", list).Row(height);
-            UiKit.Label("Label", row, label, 28, UiKit.Muted, TextAnchor.MiddleLeft).rectTransform.Place(0.02f, 0, 0.45f, 1);
-            UiKit.Label("Value", row, value, 28, valueColor, TextAnchor.MiddleRight, FontStyle.Bold).rectTransform.Place(0.4f, 0, 0.98f, 1);
-        }
     }
 }

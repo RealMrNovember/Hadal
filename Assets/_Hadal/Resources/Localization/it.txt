@@ -1594,3 +1594,7 @@ mail.report.scoutedText = {0} ha spiato la tua base. Stai all’erta, potrebbe a
 mail.report.moved = Il bersaglio si è spostato; nessuna battaglia, l’esercito è tornato.
 mail.report.gone = Il bersaglio se n’è andato; nessuna battaglia, l’esercito è tornato.
 mail.report.goThere = Mostra sulla mappa
+table.level = Liv
+table.batch = Lotto
+table.tier = Grado
+table.beds = Letti

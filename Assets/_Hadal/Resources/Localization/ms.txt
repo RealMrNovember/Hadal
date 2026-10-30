@@ -1594,3 +1594,7 @@ mail.report.scoutedText = {0} meninjau pangkalan anda. Berjaga-jaga, serangan mu
 mail.report.moved = Sasaran berpindah; tiada pertempuran, tentera anda pulang.
 mail.report.gone = Sasaran pergi; tiada pertempuran, tentera anda pulang.
 mail.report.goThere = Tunjuk di peta
+table.level = Tahap
+table.batch = Kelompok
+table.tier = Peringkat
+table.beds = Katil

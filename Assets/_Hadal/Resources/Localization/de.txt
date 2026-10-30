@@ -1594,3 +1594,7 @@ mail.report.scoutedText = {0} hat deine Basis ausgespäht. Sei wachsam, ein Angr
 mail.report.moved = Das Ziel ist umgezogen; kein Kampf, deine Armee kam zurück.
 mail.report.gone = Das Ziel ist weg; kein Kampf, deine Armee kam zurück.
 mail.report.goThere = Auf Karte zeigen
+table.level = Stufe
+table.batch = Charge
+table.tier = Rang
+table.beds = Betten

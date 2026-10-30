@@ -1594,3 +1594,7 @@ mail.report.scoutedText = {0}이(가) 기지를 정찰했습니다. 공격에 �
 mail.report.moved = 목표가 이동했습니다. 전투 없이 군대가 귀환했습니다.
 mail.report.gone = 목표가 떠났습니다. 전투 없이 군대가 귀환했습니다.
 mail.report.goThere = 지도에서 보기
+table.level = Lv
+table.batch = 1회 훈련
+table.tier = 티어
+table.beds = 병상

@@ -1594,3 +1594,7 @@ mail.report.scoutedText = {0} heeft je basis verkend. Blijf alert, er kan een aa
 mail.report.moved = Het doel is verhuisd; geen gevecht, je leger kwam terug.
 mail.report.gone = Het doel is vertrokken; geen gevecht, je leger kwam terug.
 mail.report.goThere = Op kaart tonen
+table.level = Nv
+table.batch = Partij
+table.tier = Rang
+table.beds = Bedden

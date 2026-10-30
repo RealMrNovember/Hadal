@@ -1594,3 +1594,7 @@ mail.report.scoutedText = {0}があなたの基地を偵察しました。攻撃
 mail.report.moved = 目標が移動しました。戦闘はなく、軍は帰還しました。
 mail.report.gone = 目標が去りました。戦闘はなく、軍は帰還しました。
 mail.report.goThere = マップで表示
+table.level = Lv
+table.batch = 一括数
+table.tier = ティア
+table.beds = 病床

@@ -1594,3 +1594,7 @@ mail.report.scoutedText = {0} สอดแนมฐานของคุณ ร�
 mail.report.moved = เป้าหมายย้ายไปแล้ว ไม่มีการรบ กองทัพกลับฐาน
 mail.report.gone = เป้าหมายออกไปแล้ว ไม่มีการรบ กองทัพกลับฐาน
 mail.report.goThere = แสดงบนแผนที่
+table.level = ระดับ
+table.batch = ชุด
+table.tier = ขั้น
+table.beds = เตียง

@@ -1595,3 +1595,7 @@ mail.report.scoutedText = {0} üssünü keşfetti. Tetikte ol, saldırı gelebil
 mail.report.moved = Hedef taşındı; savaş olmadı, ordun geri döndü.
 mail.report.gone = Hedef ayrıldı; savaş olmadı, ordun geri döndü.
 mail.report.goThere = Haritada göster
+table.level = Sv
+table.batch = Parti
+table.tier = Kademe
+table.beds = Yatak

@@ -1594,3 +1594,7 @@ mail.report.scoutedText = {0} разведал вашу базу. Будьте �
 mail.report.moved = Цель переместилась; боя не было, армия вернулась.
 mail.report.gone = Цель ушла; боя не было, армия вернулась.
 mail.report.goThere = Показать на карте
+table.level = Ур.
+table.batch = Партия
+table.tier = Ранг
+table.beds = Койки

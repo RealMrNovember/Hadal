@@ -1594,3 +1594,7 @@ mail.report.scoutedText = {0} استطلع قاعدتك. ابقَ متيقظًا
 mail.report.moved = انتقل الهدف؛ لا معركة، وعاد جيشك.
 mail.report.gone = غادر الهدف؛ لا معركة، وعاد جيشك.
 mail.report.goThere = عرض على الخريطة
+table.level = المستوى
+table.batch = الدفعة
+table.tier = الرتبة
+table.beds = الأسرّة

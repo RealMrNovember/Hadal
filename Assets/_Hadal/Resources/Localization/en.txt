@@ -1595,3 +1595,7 @@ mail.report.scoutedText = {0} scouted your base. Stay alert, an attack may follo
 mail.report.moved = The target moved; no battle, your army came home.
 mail.report.gone = The target left; no battle, your army came home.
 mail.report.goThere = Show on map
+table.level = Lv
+table.batch = Batch
+table.tier = Tier
+table.beds = Beds
