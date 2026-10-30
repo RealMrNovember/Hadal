@@ -1,6 +1,6 @@
 # 29 — Events, Alliance Operations, Alliance Buildings and Voting
 
-Status: design, not built. Sources: Last Asylum on the test phone (2026-10-28: event centre, Survival War, Canyon
+Status: partly built (E1, E2, E6; see the "as built" notes). Sources: Last Asylum on the test phone (2026-10-28: event centre, Survival War, Canyon
 Conquest rules, Cheese Trap rules) and a survey of Whiteout Survival, Last War, State of Survival and Rise of
 Kingdoms (fan wikis and guides, numbers are typical ranges). Everything here is retold in HADAL's world: the
 abyss, the Pressure, creatures, Hadalite.
@@ -44,6 +44,22 @@ until claimed. Battle reports move here too.
 - **Scheduler**: one-off or recurring (weekly rotation), server-time windows, brackets by reactor level.
 - **Leaderboards**: personal and alliance, in memory with periodic Postgres snapshots; frozen at the end.
 - **Payout**: at the end, a job mails rank rewards; thresholds are claimed in the event page. Idempotent and audited.
+- **Payout as built (E6)** (`EventService.Payout`, called from the world tick): stages, sign-in days and duel chests are
+  claimed on the page **only while the event runs**. When a published event ends, everything still owed goes out by mail
+  in the **Events** tab (kind `event`, attachments claimed into the bag): the rank reward (`mail.event.rank.*`; in
+  alliance rankings every member who scored at least `MinRankPoints` gets the alliance's band, `mail.event.allianceRank.body`),
+  one mail with all reached but unclaimed stages / sign-in days / duel daily chests (`mail.event.stages.*`,
+  `mail.duel.chests.body`) and the duel's week result (§4.3). Before E6 a stage not claimed by the end of the claim
+  window was simply lost and rank rewards had to be claimed by hand; the old `ClaimEventRank` command now only answers
+  `AlreadyClaimed` / `NoRank` / `SentByMail`. Hero cards travel too (`MailAttachments.Shards`; a random-rarity card is
+  drawn when the mail is made). Event names are localisation keys for the default schedules (`event.name.depth-race`),
+  otherwise the English (else Turkish) title.
+  **Exactly once**: every mail has a fixed key (`ev:{event}:{player}:rank|stages|duel`) stored with the mail in one
+  transaction in `hadal.mail_keys` (never purged with the mails). The event is marked paid (`PaidOutAt`, `PaidOutMails`
+  in its JSON; shown on the panel) only after the mails are stored; a failed send retries a minute later, a crash
+  between sending and marking resends nothing, and a mail claimed, deleted and purged never comes back. A paid event
+  cannot be extended. Events that ended before the deploy and still have their scores in memory are paid on the first
+  tick (only what was never claimed).
 
 ### 2.3 Alliance roles and permissions (built, E2)
 Ranks R1–R5 exist, and so do duties (war, logistics, diplomacy, scout). Duties get permissions:
@@ -87,6 +103,12 @@ heroes bring all their skills, joiners only their lead hero's. Needed by the Lur
   | `alliance-week` Alliance Week | Monday 00:00, 7 days | alliance contest on every main score kind (+ help) | stages 3k/12k/30k: 15k Titanium, silver chest, gold chest; alliance ranks 1: 200 Hadalite + gold, 2–3: 100 + silver, 4–10: 40 + 2 bronze (min 1,000 member pts) |
   | `login-week` Dive Log | Monday 00:00, 7 days | 7-day sign-in | 5k Titanium, 3× 5-min speed-up, 10k Food, bronze chest, 1-h speed-up, 5k Biomass, 50 Hadalite + silver chest |
 
+  | `mobilization` Mobilization (§4.5) | Thursday 00:00, 72 h | alliance task pool (15+ members), 8 cards, 8 tasks and 3 refreshes a day | personal stages 400/1,200/2,500/5,000: 10k Titanium + 2× 5-min speed-up, bronze chest + 10k Food, silver chest, silver chest + 30 Hadalite; alliance ranks 1: 150 Hadalite + gold, 2–3: 80 + silver, 4–10: 30 + 2 bronze (min 300 member pts) |
+  | `alliance-duel` Alliance Duel (§4.3) | Monday 00:00, 144 h (Mon–Sat) | six themed days, pairs by power per kingdom | daily chests 1,000/4,000/10,000 day pts: 5k Titanium + 5-min speed-up, bronze chest, silver chest; week: win 100 Hadalite + gold chest, loss silver chest, draw 50 Hadalite + silver chest (min 500 pts) |
+
+  The last two came after the first seed: a calendar seeded before them gets each **once** at start-up (ledger marker
+  `seed:mobilization`, `seed:alliance-duel`), next to whatever it holds; an existing schedule is never touched, and one
+  the Overseer deletes later stays deleted. A brand-new calendar gets all five and both markers.
   No weekend bonus window: the engine has no bonus template yet (§4.8); it comes with that template.
 - **Panel**: the Events page opens with the Calendar — a 7-day grid (UTC days × kingdoms; created, planned, disabled and
   deleted occurrences), the schedule list (on/off, edit days/time/duration/lead/brackets/kingdoms, "create the next
@@ -137,6 +159,29 @@ Matched 1-v-1 by alliance power. Day themes: 1 Gathering, 2 Base Growth, 3 Resea
 Mobilisation, 6 Hunt (monster kills). Day wins are worth 1/2/2/2/2/4; first to 7 wins the week. Personal daily
 chests at thresholds.
 
+**As built (E6)** — template `alliance_duel`, rules in `AllianceDuelRules` (HADAL.Shared), server `EventService.Duel`:
+- **Days** are the event's six phases, back to back from the start (validated, no cycling); each day's actions table is
+  the Overseer's. The default themes: gathering; building power + speed-ups; research + speed-ups; hero levels, pulls,
+  recruits; total mobilisation (training, gathering, building, research, healing at lower rates); creature hunting.
+- **Pairing** happens on the first tick after the event goes live: alliances of each kingdom (the leader's kingdom)
+  with at least `Duel.MinMembers` (default 3) members, by power (members' sum; ties by id), strongest with the next.
+  **Odd one out**: the weakest meets the **Abyss Echo** (`~echo`), whose score each day is the average of every real
+  alliance's score in that kingdom that day — a fair race instead of a free win or a bye. Alliances founded after
+  the pairing wait for next week. The panel can pair again ("Şimdi eşleştir") only before anyone scored.
+- **Scoring**: only members of a paired alliance score; points count for the player (week and day) and the alliance
+  (day points, `hadal.event_alliance_state`). A day goes to the side with more points; a tie wins nothing. The week:
+  whoever reaches 7 (only one side can, 13 exist); otherwise more week points, then more duel points, else a draw.
+- **Daily chests** are the event's stages, by the player's own points on one day; today's and earlier days' can be
+  taken while the duel runs (`ClaimEventStage.Day`), the rest is mailed at the end.
+- **End**: each pairing's result is written into the event (`DuelState`), every member who scored gets a result mail
+  (`mail.duel.won|lost|draw.title`, `mail.duel.result.body`: rival, score, points) with `Duel.Win/Loss/Draw` rewards
+  when they scored at least `MinRankPoints`.
+- **Alliance Week overlap**: Monday's Alliance Week keeps running beside the duel. Each event keeps its own scores, so
+  one action counts in both (the genre does the same); nothing is shared or double-paid between them.
+- **Client**: the duel page (event centre tab, alliance hub "Düello" tile): both banners face to face with the week score,
+  six day cells (won green, lost red, tie grey, today gold, worth +1…+4), today's points of both sides on one bar, the
+  day's ways to score, the daily chests and the last five duels.
+
 ### 4.4 Depth Race (Derinlik Yarışı) — server, solo
 LA's Survival War: a 4-hour theme rotation (shown in a calendar), brackets by reactor level, stage chests at point
 thresholds, a bracket ranking. The first event to build: it only needs the engine.
@@ -144,6 +189,29 @@ thresholds, a bracket ranking. The first event to build: it only needs the engin
 ### 4.5 Mobilization (Seferberlik) — server, alliance
 A shared pool of tasks; each member takes one at a time, drops or refreshes it; colour-coded value. Points go to
 the player and the alliance; alliance rank rewards + personal thresholds. 15+ members.
+
+**As built (E6)** — template `mobilization`, rules in `MobilizationRules` (HADAL.Shared), server `EventService.Mobilization`:
+- **Pool**: each alliance gets `Slots` cards (default 8) once it has `MinMembers` (default 15) members. A card is a task
+  kind from the existing score hooks — gather, train (any tier), research levels, building power, creature kills,
+  healing, speed-up minutes, hero levels, alliance help, Depth Map stages — in four colours: green ×1 target / 100 pts
+  (45 %), blue ×2 / 200 (30 %), purple ×3 / 340 (17 %), gold ×5 / 560 (8 %). Cards are dealt from a stable hash of event,
+  alliance, slot and draw number, so a restart deals the same. A taken card's slot deals a new one after
+  `RefillMinutes` (5).
+- **A member** holds one task at a time (`MobilizationTask` command, number 77: take / drop / refresh / view).
+  `TasksPerDay` takes (8) per UTC day. Drop throws the task away. Refresh rerolls the held task (progress lost),
+  `RefreshesPerDay` (3) with `RefreshCooldownMinutes` (10) between. Playing moves the task; when it is done its points
+  go to the player and the alliance they are in, and the hand is free. Targets scale with `TargetPercent`; the kinds can
+  be limited per event.
+- **Rewards**: the stages are personal point chests; rank bands are by alliance (like the alliance contest); at the end
+  everything goes out by mail (§2.2).
+- **State**: the pool in `hadal.event_alliance_state` (JSON per event and alliance), the held task in the player's score.
+- **Client**: the Mobilization page (event centre tab, alliance hub "Seferberlik" tile): my task as a coloured card with
+  its bar, Drop and Refresh (count or cooldown); today's takes and finished tasks; the pool as a two-column grid of
+  colour-coded cards with Take (a refilling slot counts down); stage and alliance rank rewards. An open page asks for a
+  fresh view every 20 s (mates' takes change the pool).
+- **Panel**: the event form has a Mobilization card (all settings, kinds) and a Duel card (members, the six days, the
+  win/loss/draw rewards); an event's page shows the live pools per alliance or the pairings per kingdom with their days
+  and week points; end and extend are the usual audited buttons.
 
 ### 4.6 Trench Conquest (Hendek Fethi) — server, alliance league
 LA's Canyon Conquest, and it fits our combat rules today:
@@ -230,7 +298,7 @@ appear on the Alliance page with schedule buttons for officers, and as map objec
 | E3 | Trench Conquest (3 lanes, league, exchange shop) | E1, E2 |
 | E4 | Rallies (D5); Alliance Hub on the map; Lure Trap | E2 |
 | E5 | Abyss Siege (waves, reinforcement) | E4 |
-| E6 | Alliance Duel; Mobilization | E1 |
+| E6 | Alliance Duel; Mobilization; event rewards by mail (built: §2.2, §4.3, §4.5) | E1 |
 | E7 | Beacons, territory bonuses, Rig, Depot; Vent War | E4, PvP |
 
 Open: alliance buildings and the voting screen were not visible in Last Asylum because the test account has no
