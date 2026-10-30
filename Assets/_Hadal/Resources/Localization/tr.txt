@@ -1599,3 +1599,7 @@ rank.col.rank = Sıra
 rank.col.name = İsim
 rank.col.points = Puan
 alliance.announcement.edit = Düzenle
+table.level = Sv
+table.batch = Parti
+table.tier = Kademe
+table.beds = Yatak

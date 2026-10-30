@@ -1598,3 +1598,7 @@ rank.col.rank = الترتيب
 rank.col.name = الاسم
 rank.col.points = النقاط
 alliance.announcement.edit = تعديل
+table.level = المستوى
+table.batch = الدفعة
+table.tier = الرتبة
+table.beds = الأسرّة

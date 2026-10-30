@@ -1598,3 +1598,7 @@ rank.col.rank = Positie
 rank.col.name = Naam
 rank.col.points = Punten
 alliance.announcement.edit = Bewerken
+table.level = Nv
+table.batch = Partij
+table.tier = Rang
+table.beds = Bedden

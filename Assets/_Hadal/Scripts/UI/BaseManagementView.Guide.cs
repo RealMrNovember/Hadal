@@ -62,6 +62,7 @@ namespace Hadal.UI
 
                     _ring = ring;
                     _sector = sector;
+                    _buildPick = definitionId;
                     _buildingKey = string.Empty;
                     _expandOpen = false;
                     _researchOpen = false;

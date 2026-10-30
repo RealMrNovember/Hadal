@@ -1598,3 +1598,7 @@ rank.col.rank = Rang
 rank.col.name = Nom
 rank.col.points = Points
 alliance.announcement.edit = Modifier
+table.level = Niv
+table.batch = Lot
+table.tier = Rang
+table.beds = Lits

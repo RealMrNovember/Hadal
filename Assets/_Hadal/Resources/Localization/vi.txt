@@ -1598,3 +1598,7 @@ rank.col.rank = Hạng
 rank.col.name = Tên
 rank.col.points = Điểm
 alliance.announcement.edit = Sửa
+table.level = Cấp
+table.batch = Lô
+table.tier = Bậc
+table.beds = Giường

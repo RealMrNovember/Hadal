@@ -1598,3 +1598,7 @@ rank.col.rank = 순위
 rank.col.name = 이름
 rank.col.points = 포인트
 alliance.announcement.edit = 편집
+table.level = Lv
+table.batch = 1회 훈련
+table.tier = 티어
+table.beds = 병상

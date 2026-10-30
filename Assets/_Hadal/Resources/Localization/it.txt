@@ -1598,3 +1598,7 @@ rank.col.rank = Posizione
 rank.col.name = Nome
 rank.col.points = Punti
 alliance.announcement.edit = Modifica
+table.level = Liv
+table.batch = Lotto
+table.tier = Grado
+table.beds = Letti

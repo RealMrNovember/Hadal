@@ -1598,3 +1598,7 @@ rank.col.rank = Rang
 rank.col.name = Name
 rank.col.points = Punkte
 alliance.announcement.edit = Bearbeiten
+table.level = Stufe
+table.batch = Charge
+table.tier = Rang
+table.beds = Betten

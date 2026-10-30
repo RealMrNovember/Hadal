@@ -1598,3 +1598,7 @@ rank.col.rank = Posição
 rank.col.name = Nome
 rank.col.points = Pontos
 alliance.announcement.edit = Editar
+table.level = Nv
+table.batch = Lote
+table.tier = Escalão
+table.beds = Leitos

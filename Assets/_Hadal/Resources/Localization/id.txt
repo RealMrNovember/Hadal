@@ -1598,3 +1598,7 @@ rank.col.rank = Peringkat
 rank.col.name = Nama
 rank.col.points = Poin
 alliance.announcement.edit = Ubah
+table.level = Lv
+table.batch = Kelompok
+table.tier = Tingkat
+table.beds = Ranjang

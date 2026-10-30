@@ -1598,3 +1598,7 @@ rank.col.rank = อันดับ
 rank.col.name = ชื่อ
 rank.col.points = คะแนน
 alliance.announcement.edit = แก้ไข
+table.level = ระดับ
+table.batch = ชุด
+table.tier = ขั้น
+table.beds = เตียง

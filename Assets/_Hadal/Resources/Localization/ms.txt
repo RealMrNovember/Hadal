@@ -1598,3 +1598,7 @@ rank.col.rank = Kedudukan
 rank.col.name = Nama
 rank.col.points = Mata
 alliance.announcement.edit = Sunting
+table.level = Tahap
+table.batch = Kelompok
+table.tier = Peringkat
+table.beds = Katil

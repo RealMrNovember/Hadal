@@ -1598,3 +1598,7 @@ rank.col.rank = 順位
 rank.col.name = 名前
 rank.col.points = ポイント
 alliance.announcement.edit = 編集
+table.level = Lv
+table.batch = 一括数
+table.tier = ティア
+table.beds = 病床

@@ -44,6 +44,7 @@ namespace Hadal.UI
         private TMP_Text _title;
         private TMP_Text _subtitle;
         private RectTransform _list;
+        private RectTransform _footer;
         private TMP_Text _toast;
         private float _toastUntil;
         private Button _expand;
@@ -114,19 +115,14 @@ namespace Hadal.UI
             labels.transform.SetParent(transform, false);
             _overlay = UiKit.Rect("Timers", labels.transform).Place(0, 0, 1, 1);
 
-            // Building details, the build list, expand and research: the genre's centred dialog over the blurred base.
-            var dim = UiFrames.Dim(_canvas.transform, Close);
-            _sheet = dim.gameObject.AddComponent<CanvasGroup>();
-            var sheetImage = UiKit.Box("Sheet", dim, UiFrames.Navy);
-            sheetImage.rectTransform.Place(0.03f, 0.13f, 0.97f, 0.86f);
-            sheetImage.gameObject.AddComponent<CanvasGroup>();
-            sheetImage.gameObject.AddComponent<PopIn>().From = 0.94f;
-            var parts = UiFrames.Dialog(sheetImage.rectTransform, Close);
-            _title = parts.Title;
-            _subtitle = parts.Subtitle;
-
-            _list = UiKit.ScrollList("List", parts.Body);
-            ((RectTransform)_list.parent).Place(0.02f, 0.02f, 0.98f, 0.95f);
+            // Building details, the build list, expand and research: the genre's centred dialog over the blurred base,
+            // as tall as its content, with the page's main button pinned in the footer.
+            var sheet = UiFrames.SizedDialog(_canvas.transform, Close, 0.78f, footer: true);
+            _sheet = sheet.Root.gameObject.AddComponent<CanvasGroup>();
+            _title = sheet.Parts.Title;
+            _subtitle = sheet.Parts.Subtitle;
+            _list = sheet.List;
+            _footer = sheet.Footer;
 
             _expand = UiKit.Button("Expand", _canvas.transform, Loc.T("base.expand"), OpenExpand, new Color(0.03f, 0.10f, 0.14f, 0.85f), 36);
             _expand.GetComponentInChildren<TMP_Text>().color = UiKit.Accent;
@@ -331,8 +327,12 @@ namespace Hadal.UI
             if (!Input.GetKeyDown(KeyCode.Escape))
                 return;
             var account = FindFirstObjectByType<AccountPanelView>();
-            if (_upgrade != null)
+            if (SpeedupWindow.Instance != null && SpeedupWindow.Instance.IsOpen)
+                SpeedupWindow.Instance.Close();
+            else if (_upgrade != null)
                 CloseUpgrade();
+            else if (_training != null)
+                CloseTraining();
             else if (TargetMenu.IsOpen)
                 TargetMenu.Hide();
             else if (account != null && account.IsOpen)
@@ -498,8 +498,8 @@ namespace Hadal.UI
             var scroll = page == _renderedPage ? _list.anchoredPosition : Vector2.zero;
             _renderedPage = page;
 
-            for (var i = _list.childCount - 1; i >= 0; i--)
-                Destroy(_list.GetChild(i).gameObject);
+            UiFrames.Clear(_list);
+            UiFrames.Clear(_footer);
 
             RenderPage();
             _list.anchoredPosition = scroll;
@@ -526,6 +526,10 @@ namespace Hadal.UI
                 RenderBuildMenu();
         }
 
+        /// <summary>
+        /// The next ring (Last Asylum's expand): the ring as a picture card, what it needs as ticked lines, and the
+        /// price with Open in the footer.
+        /// </summary>
         private void RenderExpand()
         {
             _title.text = Loc.T("base.expand");
@@ -535,7 +539,7 @@ namespace Hadal.UI
 
             if (ring > maxRings || !_catalog.TryGetRingUnlock(ring, out var unlock))
             {
-                UiKit.Label("All", _list, Loc.T("base.expand.all"), 34, UiKit.Muted, TextAnchor.MiddleCenter).Row(160);
+                UiFrames.Note(_list, Loc.T("base.expand.all"), UiFrames.Ink).Row(140);
                 return;
             }
 
@@ -543,24 +547,31 @@ namespace Hadal.UI
             var finished = new HashSet<string>(Buildings().Where(b => b.level > 0).Select(b => b.definitionId));
             var verdict = BaseRules.ValidateUnlock(_catalog, ring, _grid.UnlockedRingCount, ReactorLevel(), finished, wallet);
 
-            var needs = new StringBuilder();
-            needs.Append(Check(ReactorLevel() >= unlock.ReactorLevel)).Append(Loc.F("base.needs.reactor", unlock.ReactorLevel));
-            if (!string.IsNullOrEmpty(unlock.RequiresBuilding))
-                needs.Append("\n").Append(Check(finished.Contains(unlock.RequiresBuilding))).Append(Loc.Building(unlock.RequiresBuilding));
+            var card = UiKit.Box("Ring", _list, UiFrames.Card);
+            card.sprite = UiKit.Rounded;
+            card.raycastTarget = false;
+            card.Row(190);
+            Hud.HudIcons.Image(card.transform, "left_expand", 0.03f, 0.1f, 0.22f, 0.9f);
+            UiKit.Label("Name", card.transform, Loc.F("base.expand.ring", ring), UiKit.TypeScale.Title, UiFrames.Ink, TextAnchor.MiddleLeft, FontStyle.Bold)
+                .rectTransform.Place(0.26f, 0.5f, 0.97f, 0.95f);
+            UiKit.Label("Text", card.transform, Loc.F("base.expand.body", _catalog.GetSectorCount(ring)), UiKit.TypeScale.Body, UiFrames.InkSoft)
+                .rectTransform.Place(0.26f, 0.06f, 0.97f, 0.5f);
 
-            AddCard(
-                Loc.F("base.expand.ring", ring),
-                $"{Loc.F("base.expand.body", _catalog.GetSectorCount(ring))}\n{needs}",
-                string.Empty,
-                verdict == RingRejectReason.None ? string.Empty : Loc.Reason(verdict.ToString()),
-                Loc.T("base.expand.open"),
-                verdict == RingRejectReason.None,
-                () => UnlockRing(ring),
-                costs: unlock.Cost, wallet: wallet);
+            UiFrames.Section(_list, Loc.T("upgrade.spend")).Row(60);
+            UiFrames.NeedRow(_list, "power", Loc.F("base.needs.reactor", unlock.ReactorLevel), ReactorLevel() >= unlock.ReactorLevel).Row(84);
+            if (!string.IsNullOrEmpty(unlock.RequiresBuilding) && _catalog.TryGetBuilding(unlock.RequiresBuilding, out var required))
+                UiFrames.NeedRow(_list, BuildingIcon(required), Loc.Building(required.Id), finished.Contains(required.Id)).Row(84);
+
+            AddFooter(null, null, unlock.Cost, wallet, -1f, verdict == RingRejectReason.None ? string.Empty : Loc.Reason(verdict.ToString()),
+                Loc.T("base.expand.open"), null, verdict == RingRejectReason.None, () => UnlockRing(ring));
         }
 
-        private static string Check(bool ok) => ok ? "<color=#5BE37A>●</color> " : "<color=#FF7369>●</color> ";
+        private string _buildPick = string.Empty;
 
+        /// <summary>
+        /// The build list for a free slot (Last Asylum's): a grid of building cards with their icon, name and time, or
+        /// why they are locked; the chosen card's description, price and Build button sit in the footer.
+        /// </summary>
         private void RenderBuildMenu()
         {
             _title.text = Loc.F("base.build.title", _ring);
@@ -572,7 +583,7 @@ namespace Hadal.UI
             var builderBusy = ActiveConstructions() >= Math.Max(1, _catalog.Progression.builderSlots) + modifiers.ExtraBuilders;
             var owned = OwnedCounts();
             var reactor = ReactorLevel();
-            var any = false;
+            var entries = new List<(BuildingDefinition Definition, PlacementRejectReason Verdict, string Reason, int Count)>();
 
             // Buildable first, then by the reactor level that unlocks them, then by price.
             foreach (var definition in _catalog.Buildings.OrderBy(b => b.RequiredReactorLevel).ThenBy(b => b.BuildCost.Sum(c => c.Value)))
@@ -583,7 +594,6 @@ namespace Hadal.UI
                     or PlacementRejectReason.SectorRestricted or PlacementRejectReason.SlotDoesNotExist or PlacementRejectReason.UnknownBuilding)
                     continue;
 
-                any = true;
                 owned.TryGetValue(definition.Id, out var count);
                 var reason = verdict switch
                 {
@@ -592,107 +602,202 @@ namespace Hadal.UI
                     PlacementRejectReason.LimitReached => Loc.F("base.limit", count, modifiers.MaxCount(definition)),
                     _ => Loc.Reason(verdict.ToString())
                 };
-                var id = definition.Id;
-                AddCard(
-                    definition.MaxCount > 0 ? $"{Loc.Building(id)}  <size=30>{count}/{modifiers.MaxCount(definition)}</size>" : Loc.Building(id),
-                    $"{Loc.T("desc." + id)}\n{Rates(definition, 1)}",
-                    string.Empty,
-                    reason,
-                    Loc.T("base.build"),
-                    reason.Length == 0,
-                    () => Place(id),
-                    costs: BuildingProgression.Cost(definition, 1, _catalog.Progression), wallet: wallet,
-                    seconds: modifiers.BuildSeconds(BuildingProgression.Seconds(definition, 1, _catalog.Progression)));
+                entries.Add((definition, verdict, reason, count));
             }
 
-            if (!any)
-                UiKit.Label("Empty", _list, Loc.T("base.nothing"), 34, UiKit.Muted, TextAnchor.MiddleCenter).Row(160);
+            if (entries.Count == 0)
+            {
+                UiFrames.Note(_list, Loc.T("base.nothing"), UiFrames.Ink).Row(140);
+                return;
+            }
+
+            if (!entries.Any(e => e.Definition.Id == _buildPick))
+                _buildPick = (entries.FirstOrDefault(e => e.Reason.Length == 0).Definition ?? entries[0].Definition).Id;
+
+            var grid = UiFrames.Grid(_list, 3, 0.8f, 12f);
+            grid.GetComponent<GridLayoutGroup>().padding = new RectOffset(0, 0, 4, 4);
+            foreach (var (definition, verdict, reason, count) in entries)
+            {
+                var id = definition.Id;
+                var locked = verdict is PlacementRejectReason.ReactorLevelTooLow or PlacementRejectReason.LimitReached;
+                var seconds = modifiers.BuildSeconds(BuildingProgression.Seconds(definition, 1, _catalog.Progression));
+                UiFrames.Tile(grid, BuildingIcon(definition), Loc.Building(id),
+                    reason.Length == 0 ? Loc.Duration(seconds) : reason, reason.Length == 0 ? UiFrames.InkSoft : UiFrames.InkBad,
+                    () =>
+                    {
+                        _buildPick = id;
+                        Render();
+                    }, id == _buildPick, locked, definition.MaxCount > 0 ? $"{count}/{modifiers.MaxCount(definition)}" : null);
+            }
+
+            var pick = entries.First(e => e.Definition.Id == _buildPick);
+            var pickId = pick.Definition.Id;
+            var rates = Rates(pick.Definition, 1);
+            AddFooter(Loc.Building(pickId), rates.Length > 0 ? $"{Loc.T("desc." + pickId)}\n{rates}" : Loc.T("desc." + pickId),
+                BuildingProgression.Cost(pick.Definition, 1, _catalog.Progression), wallet,
+                modifiers.BuildSeconds(BuildingProgression.Seconds(pick.Definition, 1, _catalog.Progression)),
+                pick.Reason, Loc.T("base.build"), null, pick.Reason.Length == 0, () => Place(pickId));
         }
 
+        /// <summary>
+        /// A building's details (Last Asylum's): the description card, the running job with its buttons, the level table
+        /// with the current level in gold, the building's own functions, Remove at the bottom and Upgrade in the footer.
+        /// </summary>
         private void RenderBuilding(BuildingSaveEntry building)
         {
             if (!_catalog.TryGetBuilding(building.definitionId, out var definition))
                 return;
 
-            var rules = _catalog.Progression;
-            var remaining = building.constructionEndsAt - Time.realtimeSinceStartup;
             _title.text = Loc.Building(definition.Id);
             _subtitle.text = building.level == 0
-                ? Loc.F("base.constructing", Loc.Duration(remaining))
-                : building.IsUnderConstruction
-                    ? Loc.F("base.upgrading", building.level + 1, Loc.Duration(remaining))
-                    : Loc.F("base.level", building.level) + (building.level >= definition.MaxLevel ? $" · {Loc.T("base.level.max")}" : string.Empty);
+                ? Loc.T("base.build")
+                : Loc.F("base.level", building.level) + (building.level >= definition.MaxLevel ? $" · {Loc.T("base.level.max")}" : string.Empty);
 
-            var current = building.level > 0 ? Rates(definition, building.level) : string.Empty;
-            UiKit.Label("Desc", _list, Loc.T("desc." + definition.Id), 30, UiKit.Muted).Row(80);
-            if (current.Length > 0)
-                UiKit.Label("Now", _list, current, 30, UiKit.Accent, TextAnchor.MiddleLeft, FontStyle.Bold).Row(60);
+            UiFrames.Note(_list, Loc.T("desc." + definition.Id), UiFrames.Ink).Row(130);
+
+            if (building.IsUnderConstruction)
+                AddConstructionJob(building, definition);
+
+            AddLevelTable(definition, building.level);
 
             // The building's own function (research, boost, overdrive, salvage) once it works.
             if (building.level > 0)
                 AddFunctionCards(building, definition);
 
-            if (building.IsUnderConstruction)
-            {
-                var progress = building.constructionSeconds > 0 ? 1f - remaining / building.constructionSeconds : 1f;
-                AddProgress(Mathf.Clamp01(progress));
-                var free = remaining <= rules.freeFinishSeconds;
-                var key = building.instanceKey;
-                AddCard(Loc.T("base.finish"), string.Empty, string.Empty,
-                    free ? string.Empty : Loc.Reason(nameof(ConstructionRejectReason.NotYetFree)),
-                    Loc.T("base.finish"), free, () => Finish(key));
-
-                // Alliance mates can shave time off a running construction (docs/25).
-                if (_stateSync.View.MyAlliance != null && !free)
-                {
-                    var asked = _helpRequested.Contains(key + ":" + building.level);
-                    var level = building.level;
-                    AddCard(Loc.T("alliance.help.ask.title"), string.Empty, string.Empty, string.Empty,
-                        asked ? Loc.T("alliance.help.asked") : Loc.T("alliance.help.ask"), !asked, () => AskHelp(key, level));
-                }
-
-                // A first construction can be called off for everything back; upgrades must finish.
-                if (building.level == 0)
-                    AddRemoveCard(building, definition);
-                return;
-            }
-
-            if (building.level >= definition.MaxLevel)
-            {
-                AddRemoveCard(building, definition);
-                return;
-            }
-
-            var target = building.level + 1;
-            var wallet = Wallet();
-            var modifiers = Modifiers();
-            var verdict = BuildingProgression.ValidateUpgrade(_catalog, definition.Id, building.level, false,
-                ActiveConstructions(), ReactorLevel(), wallet, modifiers.ExtraBuilders, HighestLevel);
-            var instanceKey = building.instanceKey;
-
-            // The reactor's next level lists the buildings it needs (docs/rehber 02), met ones in cyan.
-            var body = Rates(definition, target);
-            var needs = definition.Id == BuildingProgression.ReactorId ? _catalog.ReactorRequirements(target) : Array.Empty<KeyValuePair<string, int>>();
-            if (needs.Count > 0)
-                body += "\n" + Loc.T("base.needs.title") + " " + string.Join(", ", needs.Select(n =>
-                    $"{Check(HighestLevel(n.Key) >= n.Value)}{Loc.Building(n.Key)} {Loc.F("base.level", n.Value)}"));
-            else if (definition.Id != BuildingProgression.ReactorId && BuildingProgression.ReactorFor(definition, target) > ReactorLevel())
-                body += "\n" + Loc.F("base.needs.reactor", BuildingProgression.ReactorFor(definition, target));
-
-            AddCard(
-                $"{Loc.F("base.level", building.level)}  →  <color=#38D6F2>{Loc.F("base.level", target)}</color>",
-                body,
-                string.Empty,
-                verdict == ConstructionRejectReason.None ? string.Empty : Loc.Reason(verdict.ToString()),
-                Loc.T("base.upgrade"),
-                verdict == ConstructionRejectReason.None,
-                () => Upgrade(instanceKey),
-                costs: BuildingProgression.Cost(definition, target, rules), wallet: wallet,
-                seconds: modifiers.BuildSeconds(BuildingProgression.Seconds(definition, target, rules)));
-
             AddRemoveCard(building, definition);
+
+            // Upgrade opens the upgrade window (what the level brings, what it needs, Go buttons).
+            if (!building.IsUnderConstruction && building.level < definition.MaxLevel)
+            {
+                var key = building.instanceKey;
+                AddFooter(null, null, null, null, -1f, string.Empty, Loc.T("base.upgrade"), Loc.F("base.level", building.level + 1), true,
+                    () => OpenUpgrade(key));
+            }
         }
 
+        /// <summary>The construction or upgrade under way: the bar with the time left, Ask help, Speed up or Finish Free.</summary>
+        private void AddConstructionJob(BuildingSaveEntry building, BuildingDefinition definition)
+        {
+            var remaining = building.constructionEndsAt - Time.realtimeSinceStartup;
+            var progress = building.constructionSeconds > 0 ? Mathf.Clamp01(1f - remaining / building.constructionSeconds) : 1f;
+            var free = remaining <= _catalog.Progression.freeFinishSeconds;
+            var key = building.instanceKey;
+            var title = building.level == 0 ? Loc.T("base.build") : $"{Loc.T("base.upgrade")} → {Loc.F("base.level", building.level + 1)}";
+            var job = UiFrames.Job(_list, title, progress, Loc.Duration(remaining));
+
+            // Alliance mates can shave time off a running construction (docs/25).
+            if (_stateSync.View.MyAlliance != null && !free)
+            {
+                var asked = _helpRequested.Contains(key + ":" + building.level);
+                var level = building.level;
+                var help = UiKit.Button("Help", job.Buttons, asked ? Loc.T("alliance.help.asked") : Loc.T("alliance.help.ask"), () => AskHelp(key, level), UiKit.Ok, 32);
+                help.interactable = !asked;
+            }
+
+            if (free)
+                UiKit.Button("Finish", job.Buttons, Loc.T("base.finish"), () => Finish(key), UiKit.Ok, 32);
+            else
+                UiKit.Button("Speed", job.Buttons, Loc.T("base.speedup"), () => SpeedUpBuilding(key, definition.Id), UiKit.Primary, 32);
+        }
+
+        /// <summary>
+        /// The level table (Last Asylum's details): level, the stats that matter for this building and its power, a few
+        /// levels around the current one, which is gold.
+        /// </summary>
+        private void AddLevelTable(BuildingDefinition definition, int level)
+        {
+            var columns = LevelColumns(definition);
+            var table = UiKit.Column("Table", _list, 0f);
+            var head = new List<string> { Loc.T("table.level") };
+            head.AddRange(columns.Select(c => c.Head));
+            head.Add(Loc.T("upgrade.power"));
+            UiFrames.TableRow(table, head.ToArray(), header: true).Row(80);
+
+            var first = Mathf.Clamp(level - 2, 1, Math.Max(1, definition.MaxLevel - 8));
+            var last = Math.Min(definition.MaxLevel, first + 8);
+            for (var l = first; l <= last; l++)
+            {
+                var cells = new List<string> { l.ToString() };
+                var at = l;
+                cells.AddRange(columns.Select(c => c.Value(at)));
+                cells.Add(CostChips.Compact(BuildingProgression.Power(definition, l)));
+                UiFrames.TableRow(table, cells.ToArray(), highlight: l == level, index: l - first).Row(64);
+            }
+        }
+
+        /// <summary>The columns between level and power: troops for military buildings, otherwise the hourly output (or upkeep).</summary>
+        private List<(string Head, Func<int, string> Value)> LevelColumns(BuildingDefinition definition)
+        {
+            var columns = new List<(string Head, Func<int, string> Value)>();
+            if (TroopRules.IsTrainingBuilding(Troops, definition.Id))
+            {
+                columns.Add((Loc.T("table.batch"), l => CostChips.Compact(TroopRules.BatchSize(Troops, l))));
+                columns.Add((Loc.T("table.tier"), l => $"T{TroopRules.MaxTier(Troops, l)}"));
+                return columns;
+            }
+
+            if (definition.Id == Troops.capacityBuilding)
+            {
+                columns.Add((Loc.T("army.capacity"), l => CostChips.Compact(TroopRules.Interpolate(Troops.capacity, l))));
+                return columns;
+            }
+
+            if (definition.Id == Troops.infirmary.building)
+            {
+                columns.Add((Loc.T("table.beds"), l => CostChips.Compact(TroopRules.Interpolate(Troops.infirmary.capacity, l))));
+                return columns;
+            }
+
+            var production = HourlyRates(definition, 1, true).Count > 0;
+            foreach (var resource in HourlyRates(definition, 1, production).Keys)
+            {
+                var r = resource;
+                columns.Add(($"{Loc.Resource(r.ToString())}{Loc.T("base.perhour")}",
+                    l => (production ? string.Empty : "-") + CostChips.Compact(HourlyRates(definition, l, production).TryGetValue(r, out var v) ? v : 0)));
+            }
+
+            return columns;
+        }
+
+        /// <summary>A level's hourly output (or upkeep), from the balance table or the base rate scaled by level.</summary>
+        private static Dictionary<ResourceType, long> HourlyRates(BuildingDefinition definition, int level, bool production)
+        {
+            var row = definition.Level(level);
+            if (row != null)
+                return (production ? row.ProductionMilliPerTick : row.ConsumptionMilliPerTick)
+                    .ToDictionary(p => p.Key, p => p.Value * SimulationTick.TicksPerHour / ProductionFormulas.Milli);
+            return (production ? definition.Production : definition.Consumption)
+                .ToDictionary(p => p.Key, p => ProductionFormulas.ScaleByLevelMilli(p.Value, level) * SimulationTick.TicksPerHour / ProductionFormulas.Milli);
+        }
+
+        /// <summary>The icon a building's card shows (no building portraits yet: what it makes or what it is for).</summary>
+        private string BuildingIcon(BuildingDefinition definition)
+        {
+            var troop = TroopRules.TypeOfBuilding(Troops, definition.Id);
+            if (troop != null)
+                return "item_troops_" + troop.id;
+            if (definition.Id == BuildingProgression.ReactorId)
+                return "power";
+            if (definition.Id == ResearchRules.CenterId)
+                return "left_research";
+            if (definition.Id == Troops.capacityBuilding)
+                return "event_war";
+            if (definition.Id == Troops.infirmary.building)
+                return "left_help";
+            if (definition.Production.Count > 0)
+                return Hud.HudIcons.Resource(definition.Production[0].Key);
+            return definition.Id switch
+            {
+                "submarine_dock" => "nav_world",
+                "radar_center" => "left_search",
+                "shield_generator" => "item_shield_24h",
+                "alliance_hub" => "side_alliance",
+                "decoration_spire" => "vip",
+                _ => "queue_build"
+            };
+        }
+
+        /// <summary>Remove (or cancel a first construction) as a quiet line at the bottom; the first tap asks to confirm.</summary>
         private void AddRemoveCard(BuildingSaveEntry building, BuildingDefinition definition)
         {
             if (BaseRules.ValidateRemove(definition.Id, building.level, building.IsUnderConstruction) != RemoveRejectReason.None)
@@ -703,58 +808,59 @@ namespace Hadal.UI
             var confirming = _confirmRemove == building.instanceKey;
             var key = building.instanceKey;
 
-            // A quiet row at the bottom: removing is rare and must not compete with Upgrade.
-            var row = UiKit.Box("Remove", _list, new Color(0.03f, 0.08f, 0.11f, 0.9f)).Row(confirming ? 150 : 120);
+            var row = UiKit.Box("Remove", _list, UiFrames.CardAlt);
+            row.sprite = UiKit.Rounded;
+            row.raycastTarget = false;
+            row.Row(120);
+            var small = Mathf.RoundToInt(UiKit.TypeScale.Caption * UiKit.Scale);
             var text = confirming
-                ? $"<color=#FF7369>{Loc.T("base.confirm")}</color>"
-                : $"{Loc.T(cancel ? "base.cancel.title" : "base.remove.title")}\n<size=22>{Loc.F("base.refund", string.Join("  ", refund.Select(c => $"{CostChips.Compact(c.Value)} {Loc.Resource(c.Key.ToString())}")))}</size>";
-            UiKit.Label("Text", row.transform, text, 28, UiKit.Muted, TextAnchor.MiddleLeft).rectTransform.Place(0.04f, 0.05f, 0.68f, 0.95f);
+                ? $"<color=#{ColorUtility.ToHtmlStringRGB(UiFrames.InkBad)}>{Loc.T("base.confirm")}</color>"
+                : $"{Loc.T(cancel ? "base.cancel.title" : "base.remove.title")}\n<size={small}>{Loc.F("base.refund", string.Join("  ", refund.Select(c => $"{CostChips.Compact(c.Value)} {Loc.Resource(c.Key.ToString())}")))}</size>";
+            UiKit.Label("Text", row.transform, text, UiKit.TypeScale.Body, UiFrames.InkSoft, TextAnchor.MiddleLeft).Fit(14, UiKit.TypeScale.Body)
+                .rectTransform.Place(0.04f, 0.05f, 0.68f, 0.95f);
             var button = UiKit.Button("Action", row.transform, confirming ? Loc.T("base.confirm.yes") : Loc.T(cancel ? "base.cancel" : "base.remove"),
-                () => Remove(key), confirming ? UiKit.Danger : UiKit.Field, 30);
+                () => Remove(key), confirming ? UiKit.Danger : new Color(0.95f, 0.97f, 1f, 1f), 30);
             if (!confirming)
-                button.GetComponentInChildren<TMP_Text>().color = UiKit.Danger;
-            ((RectTransform)button.transform).Place(0.71f, 0.18f, 0.97f, 0.82f);
+                button.GetComponentInChildren<TMP_Text>().color = UiFrames.InkBad;
+            ((RectTransform)button.transform).Place(0.71f, 0.16f, 0.97f, 0.84f);
         }
+
+        /// <summary>One action card in the list (boost, overdrive, salvage…): <see cref="UiFrames.ActionCard"/>.</summary>
+        private void AddCard(string title, string body, string cost, string reason, string action, bool enabled, Action onClick, Color? fill = null,
+            IReadOnlyList<KeyValuePair<ResourceType, long>> costs = null, IReadOnlyDictionary<ResourceType, long> wallet = null, float seconds = -1f) =>
+            UiFrames.ActionCard(_list, title, body, reason, action, enabled, onClick, fill, costs, wallet, seconds, cost);
 
         /// <summary>
-        /// One action card: title, a muted body, the blocking reason in red, then the cost as resource chips
-        /// (red when short) and the time; the action button sits on the right (genre layout, docs/26).
+        /// The page's call to action in the pinned footer (Last Asylum's bottom button): an optional heading and line,
+        /// the price with the time, why it is blocked in red, then the button with its detail (a time, a level) and an
+        /// optional light secondary button on its left.
         /// </summary>
-        private void AddCard(string title, string body, string cost, string reason, string action, bool enabled, Action onClick, Color? fill = null,
-            IReadOnlyList<KeyValuePair<ResourceType, long>> costs = null, IReadOnlyDictionary<ResourceType, long> wallet = null, float seconds = -1f)
+        private void AddFooter(string heading, string body, IReadOnlyList<KeyValuePair<ResourceType, long>> costs, IReadOnlyDictionary<ResourceType, long> wallet,
+            float seconds, string reason, string action, string detail, bool enabled, Action onClick, Color? fill = null, string secondary = null,
+            Action onSecondary = null)
         {
-            var hasBody = !string.IsNullOrEmpty(body) || !string.IsNullOrEmpty(reason);
-            var hasCost = costs != null || !string.IsNullOrEmpty(cost);
-            var height = 130f + (hasBody ? 100f : 0f) + (hasCost ? 70f : 0f);
-            var card = UiKit.Box("Card", _list, UiKit.Field).Row(height);
+            if (!string.IsNullOrEmpty(heading))
+                UiKit.Label("Heading", _footer, heading, UiKit.TypeScale.Body + 2, UiFrames.Ink, TextAnchor.MiddleLeft, FontStyle.Bold)
+                    .Fit(18, UiKit.TypeScale.Body + 2).Row(48);
+            if (!string.IsNullOrEmpty(body))
+                UiKit.Label("Body", _footer, body, UiKit.TypeScale.Caption + 2, UiFrames.InkSoft, TextAnchor.UpperLeft)
+                    .Fit(14, UiKit.TypeScale.Caption + 2).Row(92);
+            if (costs != null && (costs.Count > 0 || seconds >= 0f))
+                UiFrames.Costs(_footer, costs, wallet, seconds).Row(54);
+            if (!string.IsNullOrEmpty(reason))
+                UiKit.Label("Reason", _footer, reason, UiKit.TypeScale.Caption + 2, UiFrames.InkBad, TextAnchor.MiddleCenter, FontStyle.Bold)
+                    .Fit(14, UiKit.TypeScale.Caption + 2).Row(44);
 
-            var top = 1f - 70f / height;
-            UiKit.Label("Title", card.transform, title, 38, UiKit.Text, TextAnchor.MiddleLeft, FontStyle.Bold).rectTransform.Place(0.04f, top, 0.68f, 0.97f);
-            if (hasBody)
-            {
-                var text = string.IsNullOrEmpty(reason) ? body : $"{body}{(string.IsNullOrEmpty(body) ? string.Empty : "\n")}<color=#FF7369>{reason}</color>";
-                UiKit.Label("Body", card.transform, text, 26, UiKit.Muted, TextAnchor.UpperLeft).rectTransform.Place(0.04f, hasCost ? 70f / height + 0.02f : 0.06f, 0.68f, top);
-            }
-
-            if (costs != null)
-                CostChips.Row(card.transform, costs, wallet ?? new Dictionary<ResourceType, long>(), seconds).Place(0.04f, 0.04f, 0.7f, 0.04f + 56f / height);
-            else if (!string.IsNullOrEmpty(cost))
-                UiKit.Label("Cost", card.transform, cost, 26, UiKit.Amber, TextAnchor.MiddleLeft).rectTransform.Place(0.04f, 0.04f, 0.7f, 0.04f + 56f / height);
-
-            var button = UiKit.Button("Action", card.transform, action, () => onClick(), enabled ? fill ?? UiKit.Accent : UiKit.Panel, 36);
+            var strip = UiFrames.ButtonStrip(_footer, 26f);
+            strip.Row(116);
+            var side = onSecondary == null ? 150 : 20;
+            strip.GetComponent<HorizontalLayoutGroup>().padding = new RectOffset(side, side, 0, 0);
+            if (onSecondary != null)
+                UiKit.Button("Secondary", strip, secondary, () => onSecondary(), new Color(0.95f, 0.97f, 1f, 1f), 34);
+            var size = Mathf.RoundToInt(UiKit.TypeScale.Caption * UiKit.Scale);
+            var text = string.IsNullOrEmpty(detail) ? action : $"{action}\n<size={size}>{detail}</size>";
+            var button = UiKit.Button("Action", strip, text, () => onClick(), enabled ? fill ?? UiKit.Ok : UiKit.Panel, 36);
             button.interactable = enabled;
-            if (!enabled)
-                button.GetComponentInChildren<TMP_Text>().color = UiKit.Muted; // a dark label on a dark button would vanish
-            var mid = 0.5f;
-            var half = Mathf.Min(0.3f, 50f / height);
-            ((RectTransform)button.transform).Place(0.71f, mid - half, 0.97f, mid + half);
-        }
-
-        private void AddProgress(float progress)
-        {
-            var bar = UiKit.Box("Progress", _list, UiKit.Panel).Row(36);
-            var fill = UiKit.Box("Fill", bar.transform, UiKit.Accent);
-            fill.rectTransform.Place(0, 0, Mathf.Max(0.02f, progress), 1);
         }
 
         // --- Timers over buildings ----------------------------------------------------------
@@ -998,12 +1104,5 @@ namespace Hadal.UI
             Append(Loc.T("base.consumes"), definition.Consumption, "-");
             return text.ToString();
         }
-
-        private static string Cost(IReadOnlyList<KeyValuePair<ResourceType, long>> cost, IReadOnlyDictionary<ResourceType, long> wallet) =>
-            cost.Count == 0 ? "-" : string.Join("  ", cost.Select(c =>
-            {
-                var enough = wallet.TryGetValue(c.Key, out var have) && have >= c.Value;
-                return enough ? $"{c.Value} {Loc.T("resource." + c.Key)}" : $"<color=#FF7369>{c.Value} {Loc.T("resource." + c.Key)}</color>";
-            }));
     }
 }
