@@ -26,7 +26,20 @@ namespace Hadal.UI
             Open(Page.Vip);
         }
 
-        public void OpenShop() => Open(Page.Shop);
+        public void OpenShop()
+        {
+            _shopFromVip = false;
+            Open(Page.Shop);
+        }
+
+        /// <summary>The shop opened from the VIP page: its back arrow returns there.</summary>
+        private bool _shopFromVip;
+
+        private void ShopFromVip()
+        {
+            _shopFromVip = true;
+            Open(Page.Shop);
+        }
 
         private string VipKey() => $"{View.VipVersion}";
 
@@ -34,7 +47,7 @@ namespace Hadal.UI
         {
             BeginPage();
             _title.text = Loc.T("vip.title");
-            BarChips(new[] { (Hud.HudIcons.Resource(ResourceType.Hadalite), WalletChip(ResourceType.Hadalite)) }, "shop", OpenShop);
+            BarChips(new[] { (Hud.HudIcons.Resource(ResourceType.Hadalite), WalletChip(ResourceType.Hadalite)) }, "shop", ShopFromVip);
             var vip = View.Vip ?? new VipStateDto();
             var level = vip.Level;
             var next = Math.Min(VipRules.MaxLevel, level + 1);
@@ -74,7 +87,7 @@ namespace Hadal.UI
             RenderPerkCard(level);
             RenderVipPack(vip, level);
             NoteRow(Loc.T("vip.howToEarn"), 120);
-            BottomButton(Loc.T("shop.title"), UiKit.Primary, OpenShop);
+            BottomButton(Loc.T("shop.title"), UiKit.Primary, ShopFromVip);
         }
 
         /// <summary>One level's perks with ‹ › to the others; the player's level reads as active, the others say what they need.</summary>

@@ -118,6 +118,9 @@ namespace Hadal.UI
                 case Page.Reward:
                     LeaveReward();
                     break;
+                case Page.Shop when _shopFromVip:
+                    Open(Page.Vip);
+                    break;
                 default:
                     Close();
                     break;
