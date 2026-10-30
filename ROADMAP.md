@@ -1,7 +1,7 @@
 # HADAL — Proje Yol Haritası
 
-**Güncelleme:** 2026-10-29
-**Yayındaki sürüm:** istemci **0.9.4** (Android, `hadal.cicibyte.com/download/hadal.apk`); sunucu `main` @ `87191e0` (CT 160), katalog v13 (canlı v60).
+**Güncelleme:** 2026-10-30
+**Yayındaki sürüm:** istemci **0.9.5** (Android, `hadal.cicibyte.com/download/hadal.apk`); sunucu `main` @ `6ce09af` (CT 160), katalog v13 (canlı v60). 0.9.5: bütün arayüz Last Asylum pencere düzeninde (`docs/41`), krallıklar (`docs/39`), sekmeli posta (`docs/37`), telefon bildirimleri (`docs/36`).
 **Sürüm kuralı:** Oyun 1.0'a kadar **0.x** ile ilerler. Android sürüm kodu `1.000.000 + major·10000 + minor·100 + patch`.
 
 **Kaynaklar:**
@@ -40,7 +40,7 @@ Sıralama araştırmanın ana önerisine göre yapıldı (§16): önce **kaynak 
 | **4** | Yeni deniz yaratıkları ve etkinlik boss'ları | Tamamlandı; boss hasar tablosu ve katkı ödülü sonra. | ✅ |
 | **5** | İlk oturum akışı ve öğretici | 0.9.3 ile yayında; ödüller ilk huni verisiyle ayarlanacak (docs/34). | ✅ |
 | **6** | Hayatta kalma döngüsü (oksijen, enerji, acil durum) | Yayında: 0.9.4 ve katalog v13 (`7a5b926`, docs/35). | ✅ |
-| **7** | Etkinlik takvimi ve ittifak etkinlikleri | Günlük geri dönüş ve ortak hedef (§6.2, docs/29 E2–E6). | ⬜ |
+| **7** | Etkinlik takvimi ve ittifak etkinlikleri | Günlük geri dönüş ve ortak hedef (§6.2, docs/29 E2–E6). | 🟡 |
 | **8** | Asenkron arena ve düello | Kısa oturumlu, adil PvP (§5.1, §13.1). | ⬜ |
 | **9** | Gerçek ödeme ve mağaza | Play Billing ve makbuz doğrulama (§7). | ⬜ |
 | **10** | Seferler, basınç ve sonar; denizaltı filosu | Derin keşif fantezisi (docs/07, 08). | ⬜ |
@@ -172,7 +172,7 @@ Ayrıntılar aşağıda, aynı sırayla.
 
 ---
 
-## 7. Etkinlik takvimi ve ittifak etkinlikleri ⬜
+## 7. Etkinlik takvimi ve ittifak etkinlikleri 🟡
 
 **Hedef:** Araştırma §6.2 ve `docs/29` E2–E6.
 
@@ -180,7 +180,7 @@ Ayrıntılar aşağıda, aynı sırayla.
 - ⬜ Haftalık döngü takvimi ve hazır etkinlik şablonları
 - ⬜ Görev izinleri, oylama ve zaman dilimi seçimi (E2)
 - ⬜ Hendek Fethi, Derinlik Kuşatması, İttifak Düellosu, Seferberlik (E3–E6)
-- ⬜ Savaş raporlarının ve etkinlik ödüllerinin postayla gelmesi
+- 🟡 Savaş raporlarının ve etkinlik ödüllerinin postayla gelmesi (savaş raporları sekmeli postada: 0.9.5)
 
 **Çıkış kriteri:** Her gün yapılacak süreli bir etkinlik ve haftada bir ittifak hedefi var.
 
