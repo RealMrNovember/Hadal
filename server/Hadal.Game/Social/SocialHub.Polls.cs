@@ -309,8 +309,15 @@ namespace Hadal.Game.Social
         {
             var leaderId = alliance.Record.LeaderId;
             var leader = alliance.Members.FirstOrDefault(m => m.PlayerId == leaderId);
-            if (leader == null || _online.ContainsKey(leaderId) || alliance.Members.Count < 2)
+            if (leader == null || alliance.Members.Count < 2)
                 return;
+            if (_online.ContainsKey(leaderId))
+            {
+                // An online leader's visit is kept fresh, so a restart (no disconnect) cannot make them look long gone.
+                if (leader.LastSeen is not { } last || now - last > TimeSpan.FromHours(1))
+                    SetMember(alliance, leader with { LastSeen = now });
+                return;
+            }
             if (leader.LastSeen is not { } seen)
             {
                 SetMember(alliance, leader with { LastSeen = now });
