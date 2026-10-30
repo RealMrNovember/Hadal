@@ -141,6 +141,10 @@ namespace Hadal.UI
             {
                 DuelBody(e);
             }
+            else if (!preview && e.Template == EventTemplates.TrenchConquest && e.Trench != null)
+            {
+                TrenchBody(e);
+            }
             else
             {
                 if (!preview)

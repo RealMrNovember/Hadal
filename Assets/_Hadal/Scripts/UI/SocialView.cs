@@ -57,7 +57,7 @@ namespace Hadal.UI
             CommandType.ClaimVipLogin, CommandType.ClaimVipChest, CommandType.ReadMail, CommandType.ClaimMail, CommandType.DeleteMail,
             CommandType.SendMail, CommandType.SetAllianceInfo, CommandType.BuyAllianceItem, CommandType.CollectAllianceGift,
             CommandType.DonateAllianceResearch, CommandType.SetResearchFocus, CommandType.CreateAlliancePoll, CommandType.VoteAlliancePoll,
-            CommandType.CloseAlliancePoll, CommandType.MobilizationTask
+            CommandType.CloseAlliancePoll, CommandType.MobilizationTask, CommandType.TrenchConquest
         };
 
         private IStateSyncService _stateSync;

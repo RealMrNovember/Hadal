@@ -32,14 +32,18 @@ namespace Hadal.UI
         /// <summary>Asks for a fresh view of a Mobilization or Duel page now and then while it is open.</summary>
         private void TickAllianceEvent(EventDto e)
         {
-            if (e == null || (e.Template != EventTemplates.Mobilization && e.Template != EventTemplates.AllianceDuel)
+            if (e == null || (e.Template != EventTemplates.Mobilization && e.Template != EventTemplates.AllianceDuel
+                    && e.Template != EventTemplates.TrenchConquest)
                 || EventRules.Phase(e, NowMs) != EventPhase.Live)
                 return;
             if (_allianceEventAskedFor == e.Id && Time.unscaledTime - _allianceEventAskedAt < AllianceEventRefreshSeconds)
                 return;
             _allianceEventAskedFor = e.Id;
             _allianceEventAskedAt = Time.unscaledTime;
-            _commands.Dispatch(new MobilizationTaskCommand { CommandId = NewId(), ClientSequence = NextSequence(), EventId = e.Id, Action = MobilizationActions.View });
+            if (e.Template == EventTemplates.TrenchConquest)
+                TrenchMove(e.Id, TrenchActions.View);
+            else
+                _commands.Dispatch(new MobilizationTaskCommand { CommandId = NewId(), ClientSequence = NextSequence(), EventId = e.Id, Action = MobilizationActions.View });
         }
 
         /// <summary>Opens the event centre on the running event of a template (the alliance hub's tiles); else the calendar.</summary>

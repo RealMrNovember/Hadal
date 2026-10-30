@@ -180,6 +180,7 @@ namespace Hadal.Core.Network
                 VoteAlliancePollCommand => CommandType.VoteAlliancePoll,
                 CloseAlliancePollCommand => CommandType.CloseAlliancePoll,
                 MobilizationTaskCommand => CommandType.MobilizationTask,
+                TrenchCommand => CommandType.TrenchConquest,
                 MarchAttackCommand => CommandType.MarchAttack,
                 MarchPvpCommand => CommandType.MarchPvp,
                 ViewWarCommand => CommandType.ViewWar,
