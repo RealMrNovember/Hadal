@@ -441,7 +441,7 @@ namespace Hadal.UI
             {
                 var height = _card.rect.height;
                 var x = Mathf.Clamp(local.x, -half.x + CardWidth / 2f + 16f, half.x - CardWidth / 2f - 16f);
-                var y = Mathf.Min(local.y + 120f, half.y - height - 40f);
+                var y = Mathf.Min(local.y + 190f, half.y - height - 40f);
                 _card.anchoredPosition = new Vector2(x, y);
             }
         }

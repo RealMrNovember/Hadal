@@ -243,7 +243,10 @@ namespace Hadal.UI
             {
                 var best = Buildings().Where(b => b.definitionId == definitionId).OrderByDescending(b => b.level).FirstOrDefault();
                 CloseUpgrade();
-                if (!string.IsNullOrEmpty(best.instanceKey))
+                // Not built yet: the build list on a free slot that takes it (the genre's Go to an empty plot).
+                if (string.IsNullOrEmpty(best.instanceKey))
+                    OpenBuildFor(definitionId);
+                else
                     StartCoroutine(ShowActionsAfterTap(best));
             });
         }
