@@ -44,7 +44,8 @@ namespace Hadal.UI
                     Render(force: true);
                     return;
                 default:
-                    Close();
+                    // Page-to-page steps (hero detail to the list, results back to their page) live in Back (PageParts).
+                    Back();
                     return;
             }
         }

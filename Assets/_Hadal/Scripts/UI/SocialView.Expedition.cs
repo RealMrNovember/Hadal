@@ -8,7 +8,10 @@ using UnityEngine;
 
 namespace Hadal.UI
 {
-    /// <summary>The Depth Map campaign (docs/rehber 08 §5): chapters, their ten stages and the dive result.</summary>
+    /// <summary>
+    /// The Depth Map campaign (docs/rehber 08 §5) as a Last Asylum page: power, oxygen and today's rewarded dives in the
+    /// bar, the chapters as rows that open onto their ten stages, and the dive result with its reward tiles.
+    /// </summary>
     public sealed partial class SocialView
     {
         private int _chapter;
@@ -25,6 +28,7 @@ namespace Hadal.UI
 
         private void RenderExpedition()
         {
+            BeginPage();
             var expedition = _catalog.Expedition;
             var state = View.Expedition ?? new ExpeditionStateDto { DailyRewarded = expedition.dailyRewarded };
             var reactor = ReactorLevel();
@@ -34,12 +38,16 @@ namespace Hadal.UI
                 _chapter = Math.Max(1, current);
 
             _title.text = Loc.T("exp.title");
-            _subtitle.text = Loc.F("exp.subtitle", state.Power.ToString("N0"),
-                Math.Max(0, state.DailyRewarded - state.RewardedToday), state.DailyRewarded, oxygen.ToString("N0"));
+            BarChips(new[]
+            {
+                ("power", (Func<string>)(() => CostChips.Compact(state.Power))),
+                (Hud.HudIcons.Resource(ResourceType.Oxygen), WalletChip(ResourceType.Oxygen)),
+                ("event_gift", (Func<string>)(() => $"{Math.Max(0, state.DailyRewarded - state.RewardedToday)}/{state.DailyRewarded}"))
+            });
 
             if (expedition.chapters.Length == 0)
             {
-                Note(Loc.T("exp.none"));
+                NoteRow(Loc.T("exp.none"));
                 return;
             }
 
@@ -47,27 +55,33 @@ namespace Hadal.UI
             {
                 var open = reactor >= chapter.reactor && chapter.chapter <= current;
                 var done = Mathf.Clamp(state.Cleared - (chapter.chapter - 1) * expedition.stages, 0, expedition.stages);
-                var card = Card(130);
-                card.color = chapter.chapter == _chapter ? new Color(0.62f, 0.8f, 1f, 1f) : Color.white;
-                CardText(card.transform, Loc.F("exp.chapter", chapter.chapter, Loc.T("exp.ch." + chapter.id)), 34,
-                    open ? UiKit.Text : UiKit.Muted, 0.04f, 0.5f, 0.75f, 0.95f, TextAnchor.MiddleLeft, FontStyle.Bold);
+                var chosen = chapter.chapter == _chapter;
+                var row = UiFrames.Plate(_list, chosen ? UiFrames.Highlight : UiFrames.Card).Row(150);
+                UiKit.Label("Name", row.transform, Loc.F("exp.chapter", chapter.chapter, Loc.T("exp.ch." + chapter.id)), UiKit.TypeScale.Body + 2,
+                    open ? UiFrames.Ink : UiFrames.InkSoft, TextAnchor.MiddleLeft, FontStyle.Bold).rectTransform.Place(0.04f, 0.5f, 0.78f, 0.94f);
                 var status = reactor < chapter.reactor ? Loc.F("exp.locked.reactor", chapter.reactor)
                     : !open ? Loc.T("exp.locked")
                     : Loc.F("exp.progress", done, expedition.stages);
-                CardText(card.transform, status, 26, done == expedition.stages ? UiKit.Accent : UiKit.Muted, 0.04f, 0.05f, 0.75f, 0.5f,
-                    TextAnchor.MiddleLeft);
+                UiKit.Label("Status", row.transform, status, UiKit.TypeScale.Caption + 2, done == expedition.stages ? UiFrames.InkGood : !open ? UiFrames.InkBad : UiFrames.InkSoft,
+                    TextAnchor.MiddleLeft).rectTransform.Place(0.04f, 0.08f, 0.78f, 0.5f);
+                if (open)
+                    UiFrames.Progress(row.transform, done, expedition.stages, done == expedition.stages ? "gold" : "green").Place(0.42f, 0.16f, 0.78f, 0.4f);
+
                 var number = chapter.chapter;
-                CardButton(card.transform, chapter.chapter == _chapter ? "▼" : "▶", open, () =>
+                var toggle = UiKit.Button("Open", row.transform, chosen ? "▼" : "▶", () =>
                 {
                     _chapter = number;
                     Render(force: false);
-                }, UiKit.Field, 0.8f, 0.2f, 0.97f, 0.8f);
+                }, open ? UiKit.Primary : UiKit.Panel, UiKit.TypeScale.Body);
+                toggle.interactable = open;
+                ((RectTransform)toggle.transform).Place(0.82f, 0.2f, 0.97f, 0.8f);
 
-                if (chapter.chapter == _chapter && open)
+                if (chosen && open)
                     RenderStages(chapter, state, oxygen);
             }
         }
 
+        /// <summary>The chosen chapter's stages: name, recommended power (green when the team is strong enough), O₂ and Dive.</summary>
         private void RenderStages(HADAL.Shared.Catalog.ExpeditionChapterData chapter, ExpeditionStateDto state, long oxygen)
         {
             var expedition = _catalog.Expedition;
@@ -79,66 +93,67 @@ namespace Hadal.UI
                 var recommended = ExpeditionRules.RecommendedPower(expedition, chapter, stage);
                 var boss = ExpeditionRules.IsBoss(expedition, stage);
 
-                var card = Card(120);
-                card.color = next ? new Color(0.04f, 0.16f, 0.2f, 1f) : new Color(0.03f, 0.08f, 0.11f, 1f);
+                var row = UiFrames.Plate(_list, next ? UiFrames.Card : UiFrames.CardAlt).Row(130);
+                Hud.HudIcons.Image(row.transform, boss ? "event_war" : cleared ? "g_star" : "nav_world", 0.04f, 0.18f, 0.12f, 0.82f).color =
+                    cleared || next ? Color.white : new Color(1, 1, 1, 0.45f);
                 var name = boss ? Loc.T("exp.boss") : Loc.F("exp.stage", stage);
-                CardText(card.transform, (cleared ? "✓ " : string.Empty) + name, 30, boss ? UiKit.Amber : cleared ? UiKit.Accent : UiKit.Text,
-                    0.06f, 0.5f, 0.68f, 0.95f, TextAnchor.MiddleLeft, FontStyle.Bold);
+                UiKit.Label("Name", row.transform, (cleared ? "✓ " : string.Empty) + name, UiKit.TypeScale.Body,
+                    boss ? UiFrames.InkBad : cleared ? UiFrames.InkGood : UiFrames.Ink, TextAnchor.MiddleLeft, FontStyle.Bold).rectTransform.Place(0.15f, 0.5f, 0.7f, 0.95f);
                 var strong = state.Power >= recommended;
-                var info = $"<color={(strong ? "#5BE37A" : "#FF7369")}>{Loc.F("exp.recommended", recommended.ToString("N0"))}</color>   " +
+                var info = $"<color=#{ColorUtility.ToHtmlStringRGB(strong ? UiFrames.InkGood : UiFrames.InkBad)}>{Loc.F("exp.recommended", recommended.ToString("N0"))}</color>   " +
                            Loc.F("exp.oxygen", chapter.oxygen.ToString("N0"));
-                CardText(card.transform, info, 24, UiKit.Muted, 0.06f, 0.05f, 0.7f, 0.5f, TextAnchor.MiddleLeft);
+                UiKit.Label("Info", row.transform, info, UiKit.TypeScale.Caption + 2, UiFrames.InkSoft, TextAnchor.MiddleLeft).rectTransform.Place(0.15f, 0.06f, 0.7f, 0.5f);
 
                 var s = stage;
                 var can = (cleared || next) && oxygen >= chapter.oxygen;
-                CardButton(card.transform, cleared ? Loc.T("exp.replay") : next ? Loc.T("exp.dive") : Loc.T("exp.locked"), can,
-                    () => Dive(chapter.chapter, s), cleared ? UiKit.Field : (Color?)null, 0.71f, 0.18f, 0.97f, 0.82f);
+                var button = UiKit.Button("Dive", row.transform, cleared ? Loc.T("exp.replay") : next ? Loc.T("exp.dive") : Loc.T("exp.locked"),
+                    () => Dive(chapter.chapter, s), can ? cleared ? UiKit.Ok : UiKit.Primary : UiKit.Panel, UiKit.TypeScale.Body);
+                button.interactable = can;
+                ((RectTransform)button.transform).Place(0.72f, 0.16f, 0.97f, 0.84f);
             }
         }
 
         private void Dive(int chapter, int stage) =>
             _commands.Dispatch(new DiveStageCommand { CommandId = NewId(), ClientSequence = NextSequence(), Chapter = chapter, Stage = stage });
 
+        /// <summary>The dive's outcome: a Victory or Defeat banner, the numbers, a hint, the rewards as tiles, and Done.</summary>
         private void RenderDiveResult()
         {
+            BeginPage();
             var dive = _dive ?? new DiveReportDto();
             var chapter = ExpeditionRules.Chapter(_catalog.Expedition, dive.Chapter);
             _title.text = dive.Won ? Loc.T("exp.won") : Loc.T("exp.lost");
-            _title.color = dive.Won ? Color.white : UiKit.Danger;
-            _subtitle.text = chapter == null ? string.Empty
-                : $"{Loc.F("exp.chapter", dive.Chapter, Loc.T("exp.ch." + chapter.id))} · " +
-                  (ExpeditionRules.IsBoss(_catalog.Expedition, dive.Stage) ? Loc.T("exp.boss") : Loc.F("exp.stage", dive.Stage));
 
-            var card = Card(150);
-            CardText(card.transform, Loc.F("exp.result", dive.Power.ToString("N0"), dive.Recommended.ToString("N0"), dive.OxygenSpent.ToString("N0")),
-                30, UiKit.Text, 0.05f, 0.1f, 0.95f, 0.9f, TextAnchor.MiddleLeft);
+            var banner = UiKit.Box("Result", _list, dive.Won ? new Color(0.13f, 0.42f, 0.24f, 1f) : new Color(0.5f, 0.14f, 0.13f, 1f)).Row(220);
+            banner.sprite = UiKit.Rounded;
+            banner.raycastTarget = false;
+            ArtText(banner.transform, dive.Won ? Loc.T("exp.won") : Loc.T("exp.lost"), UiKit.TypeScale.Display, dive.Won ? UiKit.Gold : Color.white,
+                0.04f, 0.45f, 0.96f, 0.95f);
+            if (chapter != null)
+                ArtText(banner.transform, $"{Loc.F("exp.chapter", dive.Chapter, Loc.T("exp.ch." + chapter.id))} · " +
+                                          (ExpeditionRules.IsBoss(_catalog.Expedition, dive.Stage) ? Loc.T("exp.boss") : Loc.F("exp.stage", dive.Stage)),
+                    UiKit.TypeScale.Body, Color.white, 0.04f, 0.08f, 0.96f, 0.45f, TextAnchor.MiddleCenter, FontStyle.Normal);
+
+            NoteRow(Loc.F("exp.result", dive.Power.ToString("N0"), dive.Recommended.ToString("N0"), dive.OxygenSpent.ToString("N0")), 120);
             if (dive.FirstClear)
-                Header(Loc.T("exp.first"));
+                SectionRow(Loc.T("exp.first"));
             if (dive.Won && !dive.Rewarded)
-                Note(Loc.T("exp.norewards"));
+                NoteRow(Loc.T("exp.norewards"), 130);
             if (!dive.Won)
-                Note(Loc.T("exp.lost.hint"));
+                NoteRow(Loc.T("exp.lost.hint"), 150);
 
-            foreach (var group in (dive.Rewards ?? Array.Empty<RewardEntryDto>()).GroupBy(r => (r.Type, r.Id)))
-            {
-                var row = Card(120);
-                var (type, id) = group.Key;
-                var total = group.Sum(r => r.Amount);
-                if (type == "shards" && _catalog.TryGetHero(id, out var hero))
-                    Portrait(row.transform, hero, true, 0.01f, 0.04f, 0.15f, 0.96f);
-                else
-                    HudIconImage(row.transform, type == "item" ? QuestText.ItemIcon(id, string.Empty)
-                        : HADAL.Shared.Catalog.GameCatalog.TryParseResource(id, out var resource) ? Hud.HudIcons.Resource(resource) : "event_gift",
-                        0.02f, 0.1f, 0.15f, 0.9f);
-                CardText(row.transform, QuestText.Reward(type, id, total), 30, UiKit.Text, 0.2f, 0.1f, 0.97f, 0.9f, TextAnchor.MiddleLeft, FontStyle.Bold);
-            }
+            var rewards = (dive.Rewards ?? Array.Empty<RewardEntryDto>())
+                .GroupBy(r => (r.Type, r.Id))
+                .Select(g => (g.Key.Type, g.Key.Id, Amount: g.Sum(r => r.Amount)))
+                .ToArray();
+            if (rewards.Length > 0)
+                RewardGrid(_list, rewards);
 
-            var done = Card(110);
-            CardButton(done.transform, Loc.T("hero.pod.done"), true, () =>
+            BottomButton(Loc.T("hero.pod.done"), UiKit.Primary, () =>
             {
                 _title.color = Color.white;
                 Open(Page.Expedition);
-            }, null, 0.25f, 0.1f, 0.75f, 0.9f);
+            });
         }
     }
 }

@@ -1,4 +1,5 @@
-using HADAL.Shared.Commands;
+using System;
+using System.Linq;
 using HADAL.Shared.DTOs;
 using HADAL.Shared.Simulation;
 using UnityEngine;
@@ -6,8 +7,8 @@ using UnityEngine;
 namespace Hadal.UI
 {
     /// <summary>
-    /// The quest panel's part of the first-session guide (docs/34): the current guide step with its reward, the switch
-    /// that brings a closed guide back, and "Coming up": what the next reactor levels open.
+    /// The quest page's part of the first-session guide (docs/34): the current guide step as a task row with its reward,
+    /// the switch that brings a closed guide back, and "Coming up": what the next reactor levels open.
     /// </summary>
     public sealed partial class SocialView
     {
@@ -21,69 +22,54 @@ namespace Hadal.UI
         private void RenderGuide(QuestStateDto state)
         {
             var guide = state.Guide;
-            if (guide != null && _catalog.TryGetOnboarding(guide.Id, out var step, out _))
+            if (guide == null || !_catalog.TryGetOnboarding(guide.Id, out var step, out _))
+                return;
+
+            SectionRow(Loc.F("guide.title", state.GuideNumber, state.GuideTotal));
+            var done = guide.Progress >= guide.Target;
+            var id = step.id;
+            Action click = done
+                ? () => ClaimQuest(id)
+                : () =>
+                {
+                    Close();
+                    OnboardingGuide.Instance?.Go();
+                };
+            UiFrames.QuestRow(_list, TaskTitle(step, guide.Progress, guide.Target), RewardTiles(step.rewards).Take(5).ToArray(),
+                done ? Loc.T("quest.claim") : Loc.T("guide.go"), done, click).Row(QuestRowHeight);
+
+            // A guide the player closed comes back from here; it picks up at the server's step.
+            var guideView = OnboardingGuide.Instance;
+            if (guideView == null)
+                return;
+            var row = PlateRow(120);
+            UiKit.Label("Text", row.transform, Loc.T(guideView.Off ? "guide.off.note" : "guide.on.note"), UiKit.TypeScale.Caption + 2, UiFrames.InkSoft, TextAnchor.MiddleLeft)
+                .rectTransform.Place(0.04f, 0.06f, 0.68f, 0.94f);
+            var toggle = UiKit.Button("Toggle", row.transform, Loc.T(guideView.Off ? "guide.show" : "guide.off"), () =>
             {
-                Header(Loc.F("guide.title", state.GuideNumber, state.GuideTotal));
-                var done = guide.Progress >= guide.Target;
-                var card = Card(330);
-                HudIconImage(card.transform, "quest", 0.02f, 0.55f, 0.18f, 0.95f);
-                CardText(card.transform, QuestText.Task(step), 36, UiKit.Text, 0.21f, 0.6f, 0.97f, 0.95f, TextAnchor.UpperLeft, FontStyle.Bold);
-                ProgressBar(card.transform, guide.Progress, guide.Target, 0.21f, 0.47f, 0.97f, 0.57f);
-                CardText(card.transform, $"{Loc.T("quest.reward")}: {QuestText.Rewards(step.rewards)}", 26, UiKit.Amber, 0.04f, 0.05f, 0.68f, 0.42f, TextAnchor.MiddleLeft);
-                var id = step.id;
-                if (done)
-                {
-                    CardButton(card.transform, Loc.T("quest.claim"), true, () => _commands.Dispatch(new ClaimQuestCommand
-                    {
-                        CommandId = NewId(), ClientSequence = NextSequence(), QuestId = id
-                    }), UiKit.Amber, 0.71f, 0.08f, 0.97f, 0.42f);
-                }
-                else
-                {
-                    CardButton(card.transform, Loc.T("guide.go"), true, () =>
-                    {
-                        Close();
-                        OnboardingGuide.Instance?.Go();
-                    }, UiKit.Primary, 0.71f, 0.08f, 0.97f, 0.42f);
-                }
-
-                // A guide the player closed comes back from here; it picks up at the server's step.
-                var guideView = OnboardingGuide.Instance;
-                if (guideView != null)
-                {
-                    var toggle = Card(110);
-                    CardText(toggle.transform, Loc.T(guideView.Off ? "guide.off.note" : "guide.on.note"), 26, UiKit.Muted, 0.04f, 0.1f, 0.68f, 0.9f, TextAnchor.MiddleLeft);
-                    CardButton(toggle.transform, Loc.T(guideView.Off ? "guide.show" : "guide.off"), true, () =>
-                    {
-                        guideView.Off = !guideView.Off;
-                        Render(force: true);
-                    }, UiKit.Field, 0.71f, 0.15f, 0.97f, 0.85f);
-                }
-            }
-
-            RenderUpcoming();
+                guideView.Off = !guideView.Off;
+                Render(force: true);
+            }, UiKit.Primary, UiKit.TypeScale.Body);
+            ((RectTransform)toggle.transform).Place(0.71f, 0.14f, 0.97f, 0.86f);
         }
 
         /// <summary>"Coming up": features the next reactor levels open, so locked things have a date (docs/34 §3).</summary>
         private void RenderUpcoming()
         {
-            var reactor = ReactorLevel();
-            var upcoming = OnboardingRules.Upcoming(_catalog, reactor, 4);
+            var upcoming = OnboardingRules.Upcoming(_catalog, ReactorLevel(), 4);
             if (upcoming.Count == 0)
                 return;
 
-            Header(Loc.T("unlock.title"));
+            SectionRow(Loc.T("unlock.title"));
             foreach (var feature in upcoming)
             {
-                var row = Card(100);
                 var name = feature.Key switch
                 {
                     "building" => Loc.Building(feature.Id),
                     "ring" => Loc.F("unlock.ring", feature.Id),
                     _ => Loc.T("unlock." + feature.Key)
                 };
-                CardText(row.transform, name, 30, UiKit.Text, 0.04f, 0.1f, 0.6f, 0.9f, TextAnchor.MiddleLeft, FontStyle.Bold);
-                CardText(row.transform, Loc.F("unlock.at", feature.ReactorLevel), 26, UiKit.Amber, 0.6f, 0.1f, 0.97f, 0.9f, TextAnchor.MiddleRight);
+                UiFrames.BonusRow(_list, name, Loc.F("unlock.at", feature.ReactorLevel)).Row(96);
             }
         }
     }

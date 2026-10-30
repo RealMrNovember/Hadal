@@ -119,7 +119,7 @@ namespace Hadal.UI
             // Every page is the genre's full screen (docs/41): the navy bar with the back arrow and title over a light body.
             var page = UiKit.Rect("Page", _canvas.transform).Place(0, 0, 1, 1);
             page.gameObject.AddComponent<Hud.SafeArea>();
-            var parts = UiFrames.Page(page, PageBack); // steps back inside a page first (SocialView.SocialFrames)
+            var parts = UiFrames.Page(page, PageBack); // one step back inside a page, then one page back, then closed
             _sheet = page.gameObject;
             _sheet.AddComponent<CanvasGroup>();
             _sheet.AddComponent<PopIn>().From = 0.97f;
