@@ -43,10 +43,34 @@ namespace Hadal.UI
             if (BuildingFunctions.CanBoost(definition))
                 AddBoostCard(building, definition);
 
+            // Military buildings open their own dialog from here too (the round menu has the same buttons).
+            if (AddMilitaryCard(building, definition))
+                return;
+
             if (definition.Id != ResearchRules.CenterId && !BuildingFunctions.CanOverdrive(definition)
                 && !BuildingFunctions.CanSalvage(definition) && !BuildingFunctions.CanBoost(definition))
                 AddCard(Loc.T("func.soon.title"), Loc.Has("func.soon." + definition.Id) ? Loc.T("func.soon." + definition.Id) : string.Empty,
                     string.Empty, string.Empty, Loc.T("func.soon.button"), false, () => { });
+        }
+
+        /// <summary>Train on a yard, Army on the Military Dome, Heal on the Med Bay; false for other buildings.</summary>
+        private bool AddMilitaryCard(BuildingSaveEntry building, BuildingDefinition definition)
+        {
+            var key = building.instanceKey;
+            var army = Army;
+            var type = TroopRules.TypeOfBuilding(Troops, definition.Id);
+            if (type != null)
+                AddCard(Loc.T("troop." + type.id), Loc.T("troop.role." + type.id), string.Empty, string.Empty, Loc.T("train.action"), true,
+                    () => OpenTraining(key), UiKit.Ok);
+            else if (definition.Id == Troops.capacityBuilding)
+                AddCard(Loc.T("army.title"), Loc.F("train.army", CostChips.Compact(army.Troops.Sum(t => t.Count) + army.Training.Sum(t => (long)t.Count)),
+                    CostChips.Compact(army.Capacity)), string.Empty, string.Empty, Loc.T("army.action"), true, () => OpenTraining(key, army: true));
+            else if (definition.Id == Troops.infirmary.building)
+                AddCard(Loc.T("heal.title"), Loc.F("heal.capacity", (army.Wounded ?? Array.Empty<TroopStackDto>()).Sum(t => t.Count).ToString("N0"),
+                    army.InfirmaryCapacity.ToString("N0")), string.Empty, string.Empty, Loc.T("heal.action"), true, () => OpenTraining(key, heal: true), UiKit.Ok);
+            else
+                return false;
+            return true;
         }
 
         // --- Boost -------------------------------------------------------------------------------
