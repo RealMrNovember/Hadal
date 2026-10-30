@@ -6,6 +6,7 @@ using HADAL.Shared.Simulation;
 using Hadal.Core.Events;
 using Hadal.Core.Network;
 using Hadal.Core.StateSync;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -31,7 +32,7 @@ namespace Hadal.UI
         private SpeedupKind _kind;
         private string _title = string.Empty;
         private Func<(long StartMs, long EndMs)?> _timer;
-        private Text _left;
+        private TMP_Text _left;
         private Image _bar;
         private int _itemsVersion = -1;
 
@@ -134,7 +135,7 @@ namespace Hadal.UI
             _bar = UiKit.Box("Bar", track.transform, UiKit.Ok);
             _left = UiKit.Label("Left", track.transform, string.Empty, 26, Color.white, TextAnchor.MiddleCenter, FontStyle.Bold);
             _left.rectTransform.Place(0, 0, 1, 1);
-            _left.gameObject.AddComponent<Outline>().effectColor = new Color(0, 0, 0, 0.7f);
+            UiText.Outline(_left, new Color(0, 0, 0, 0.7f));
 
             var list = UiKit.ScrollList("List", card.transform, 10f);
             ((RectTransform)list.parent).Place(0.04f, 0.03f, 0.96f, 0.76f);

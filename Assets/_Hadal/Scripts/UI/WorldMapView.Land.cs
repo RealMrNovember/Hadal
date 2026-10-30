@@ -4,6 +4,7 @@ using System.Linq;
 using HADAL.Shared.Commands;
 using HADAL.Shared.DTOs;
 using HADAL.Shared.Simulation;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -81,7 +82,7 @@ namespace Hadal.UI
                 var flag = plate.Find("Flag").GetComponent<Image>();
                 flag.sprite = Hud.HudIcons.Get(BuildingIcon(s.Kind));
                 flag.color = s.Cut || s.UnderConstruction || (AllianceLandRules.IsBuilding(s.Kind) && s.Durability <= 0) ? new Color(0.5f, 0.5f, 0.5f, 0.9f) : color;
-                var label = plate.Find("Name").GetComponent<Text>();
+                var label = plate.Find("Name").GetComponent<TMP_Text>();
                 var tag = string.IsNullOrEmpty(s.AllianceTag) ? string.Empty : $"[{s.AllianceTag}] ";
                 label.text = hub ? $"{tag}{Loc.T("land.hub")} {Loc.F("base.level", s.Level)}"
                     : AllianceLandRules.IsBuilding(s.Kind) ? $"{tag}{Loc.T("bld." + s.Kind)} {Loc.F("base.level", s.Level)}"
@@ -113,7 +114,7 @@ namespace Hadal.UI
             flag.raycastTarget = false;
             var label = UiKit.Label("Name", root, string.Empty, 22, Color.white, TextAnchor.MiddleCenter, FontStyle.Bold);
             label.rectTransform.Place(0, 0, 1, 0.38f);
-            label.gameObject.AddComponent<Outline>().effectColor = new Color(0, 0, 0, 0.8f);
+            UiText.Outline(label, new Color(0, 0, 0, 0.8f));
             root.SetAsFirstSibling();
             return root;
         }

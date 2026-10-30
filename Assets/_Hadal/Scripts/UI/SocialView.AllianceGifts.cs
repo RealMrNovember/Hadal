@@ -54,7 +54,7 @@ namespace Hadal.UI
                     card.color = new Color(0.04f, 0.09f, 0.12f, 0.9f);
                 RewardIcon(card.transform, chest, 0.02f, 0.12f, 0.14f, 0.88f);
                 var text = CardText(card.transform, GiftText(g), 24, g.Collected ? UiKit.Muted : UiKit.Text, 0.16f, 0.4f, 0.7f, 0.95f, TextAnchor.MiddleLeft);
-                text.supportRichText = false;
+                text.richText = false;
                 CardText(card.transform, $"+{g.Points:N0} · {Loc.F("alliance.gifts.expires", Span(g.ExpiresAtMs - NowMs))}", 20, UiKit.Muted,
                     0.16f, 0.05f, 0.7f, 0.4f, TextAnchor.MiddleLeft);
                 var id = g.Id;

@@ -3,6 +3,7 @@ using HADAL.Shared.DTOs;
 using HADAL.Shared.Simulation;
 using Hadal.Core.Services;
 using Hadal.Core.Services.Notifications;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -21,10 +22,10 @@ namespace Hadal.UI
         private RectTransform _support;
         private RectTransform _about;
 
-        private Text _homeProfile;
-        private Text _supportId;
+        private TMP_Text _homeProfile;
+        private TMP_Text _supportId;
         private Button _supportCopy;
-        private Text _aboutAccount;
+        private TMP_Text _aboutAccount;
 
         private void BuildSettings(Transform card)
         {
@@ -61,7 +62,7 @@ namespace Hadal.UI
                     var tile = tiles[i + j];
                     var label = tile.Key == "settings.language" ? $"{Loc.T(tile.Key)}\n<size=28>{Loc.DisplayName(Loc.Current)}</size>" : Loc.T(tile.Key);
                     var button = UiKit.Button(tile.Name, row, label, () => Show(tile.Target()), UiKit.Field, 38);
-                    button.GetComponentInChildren<Text>().color = tile.Key == "settings.gift" ? UiKit.Accent : UiKit.Text;
+                    button.GetComponentInChildren<TMP_Text>().color = tile.Key == "settings.gift" ? UiKit.Accent : UiKit.Text;
                     ((RectTransform)button.transform).Place(j * 0.5f, 0, j * 0.5f + 0.5f, 1, 8);
                 }
             }
@@ -79,9 +80,9 @@ namespace Hadal.UI
             {
                 var selected = code == Loc.Current;
                 var button = UiKit.Button(code, list, name, () => ChooseLanguage(code), selected ? UiKit.Accent : UiKit.Field, 38).Row(100);
-                var text = button.GetComponentInChildren<Text>();
+                var text = button.GetComponentInChildren<TMP_Text>();
                 text.color = selected ? UiKit.Abyss : UiKit.Text;
-                text.font = UiKit.FontFor(code);
+                UiText.SetFont(text, UiKit.FontFor(code));
                 text.text = Loc.DisplayName(code);
             }
 
@@ -212,9 +213,9 @@ namespace Hadal.UI
         private static void Soon(Button row)
         {
             row.interactable = false;
-            row.transform.Find("Label").GetComponent<Text>().color = UiKit.Muted;
+            row.transform.Find("Label").GetComponent<TMP_Text>().color = UiKit.Muted;
             row.transform.Find("Pill").GetComponent<Image>().color = new Color(0.12f, 0.24f, 0.3f, 1f);
-            var state = row.transform.Find("Pill/State").GetComponent<Text>();
+            var state = row.transform.Find("Pill/State").GetComponent<TMP_Text>();
             state.text = Loc.T("notify.soon");
             state.color = UiKit.Muted;
         }
@@ -224,7 +225,7 @@ namespace Hadal.UI
             UiKit.Label("Hint", column, Loc.T("support.hint"), 34, UiKit.Muted).Row(140);
             _supportId = UiKit.Label("AccountId", column, string.Empty, 40, UiKit.Amber, TextAnchor.MiddleCenter, FontStyle.Bold).Row(90);
             _supportCopy = UiKit.Button("Copy", column, Loc.T("support.copy"), CopyAccountId, UiKit.Field);
-            _supportCopy.Row(110).GetComponentInChildren<Text>().color = UiKit.Text;
+            _supportCopy.Row(110).GetComponentInChildren<TMP_Text>().color = UiKit.Text;
             UiKit.Button("Website", column, Loc.T("support.website"), () => Application.OpenURL(WebsiteUrl)).Row(110);
             UiKit.Rect("Spacer", column).Row(40);
             Back(column, () => Show(_home));
@@ -243,7 +244,7 @@ namespace Hadal.UI
         }
 
         private static void Back(Transform column, UnityEngine.Events.UnityAction action, string key = "account.back") =>
-            UiKit.Button("Back", column, Loc.T(key), action, UiKit.Field).Row(100).GetComponentInChildren<Text>().color = UiKit.Text;
+            UiKit.Button("Back", column, Loc.T(key), action, UiKit.Field).Row(100).GetComponentInChildren<TMP_Text>().color = UiKit.Text;
 
         private string AccountId => _account.Profile?.accountId ?? string.Empty;
 
@@ -252,7 +253,7 @@ namespace Hadal.UI
         private void CopyAccountId()
         {
             GUIUtility.systemCopyBuffer = AccountId;
-            _supportCopy.GetComponentInChildren<Text>().text = Loc.T("support.copied");
+            _supportCopy.GetComponentInChildren<TMP_Text>().text = Loc.T("support.copied");
         }
 
         /// <summary>Refreshes the texts that depend on the profile when a settings page opens.</summary>
@@ -266,7 +267,7 @@ namespace Hadal.UI
             else if (page == _support)
             {
                 _supportId.text = ShortAccountId;
-                _supportCopy.GetComponentInChildren<Text>().text = Loc.T("support.copy");
+                _supportCopy.GetComponentInChildren<TMP_Text>().text = Loc.T("support.copy");
             }
             else if (page == _notifications)
             {

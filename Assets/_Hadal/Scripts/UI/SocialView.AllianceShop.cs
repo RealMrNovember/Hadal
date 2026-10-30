@@ -3,6 +3,7 @@ using System.Linq;
 using HADAL.Shared.Commands;
 using HADAL.Shared.DTOs;
 using HADAL.Shared.Simulation;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -51,7 +52,7 @@ namespace Hadal.UI
                     var buy = CardButton(tile.transform, Loc.F("alliance.shop.price", offer.Price.ToString("N0")), affordable,
                         () => _commands.Dispatch(new BuyAllianceItemCommand { CommandId = NewId(), ClientSequence = NextSequence(), ItemId = id, Count = 1 }),
                         UiKit.Gold, 0.08f, 0.05f, 0.92f, 0.36f);
-                    buy.GetComponentInChildren<Text>().fontSize = 28;
+                    buy.GetComponentInChildren<TMP_Text>().fontSize = 28;
                 }
             }
 

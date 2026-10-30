@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using HADAL.Shared.Enums;
 using Hadal.Core.Services;
+using TMPro;
 using UnityEngine;
 using UnityEngine.EventSystems;
 using UnityEngine.UI;
@@ -140,7 +141,7 @@ namespace Hadal.UI
                 GameAudio.Play(Sfx.Error);
 
             // The same notice twice in a row just refreshes the first one.
-            if (Entries.Count > 0 && Entries[^1].Rect.GetComponentInChildren<Text>().text == text)
+            if (Entries.Count > 0 && Entries[^1].Rect.GetComponentInChildren<TMP_Text>().text == text)
             {
                 Entries[^1].Born = Time.unscaledTime;
                 return;
@@ -159,7 +160,7 @@ namespace Hadal.UI
             label.rectTransform.Place(0f, 0f, 1f, 1f);
             label.rectTransform.offsetMin = new Vector2(34f, 10f);
             label.rectTransform.offsetMax = new Vector2(-26f, -10f);
-            label.horizontalOverflow = HorizontalWrapMode.Wrap;
+            label.textWrappingMode = TextWrappingModes.Normal;
 
             // Width follows the text, up to 88% of the reference width.
             var width = Mathf.Clamp(label.preferredWidth + 70f, 320f, 950f);
@@ -265,7 +266,7 @@ namespace Hadal.UI
             element.preferredWidth = element.minWidth = 40f;
 
             var label = UiKit.Label("Value", chip, text, 30, color, TextAnchor.MiddleLeft, FontStyle.Bold);
-            label.horizontalOverflow = HorizontalWrapMode.Overflow;
+            label.textWrappingMode = TextWrappingModes.NoWrap;
         }
 
         public static string Compact(long value) =>

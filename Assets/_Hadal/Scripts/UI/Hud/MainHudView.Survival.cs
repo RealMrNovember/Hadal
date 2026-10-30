@@ -4,6 +4,7 @@ using HADAL.Shared.DTOs;
 using HADAL.Shared.Enums;
 using HADAL.Shared.Simulation;
 using Hadal.Data.Models;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -24,9 +25,9 @@ namespace Hadal.UI.Hud
         private readonly Dictionary<ResourceType, (Image Fill, Color Base)> _chipFills = new();
         private RectTransform _alarm;
         private Image _alarmFill;
-        private Text _alarmText;
+        private TMP_Text _alarmText;
         private GameObject _survivalCard;
-        private Text _survivalTimer;
+        private TMP_Text _survivalTimer;
         private int _survivalCardVersion = -1;
         private string _knownEmergency;
         private bool _repairAsked;
@@ -44,10 +45,10 @@ namespace Hadal.UI.Hud
             _alarmFill.gameObject.AddComponent<PressFeedback>();
             _alarmText = Outlined(UiKit.Label("Text", _alarm, string.Empty, 22, Color.white, TextAnchor.MiddleCenter, FontStyle.Bold));
             _alarmText.rectTransform.Place(0.03f, 0f, 0.97f, 1f);
-            _alarmText.horizontalOverflow = HorizontalWrapMode.Wrap;
-            _alarmText.resizeTextForBestFit = true;
-            _alarmText.resizeTextMinSize = 14;
-            _alarmText.resizeTextMaxSize = 22;
+            _alarmText.textWrappingMode = TextWrappingModes.Normal;
+            _alarmText.enableAutoSizing = true;
+            _alarmText.fontSizeMin = 14;
+            _alarmText.fontSizeMax = 22;
             _alarm.gameObject.SetActive(false);
         }
 

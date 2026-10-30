@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using HADAL.Shared.Simulation;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -15,9 +16,9 @@ namespace Hadal.UI.Hud
 
         private bool _taskGuide;
         private GameObject _researchLock;
-        private Text _researchLockText;
+        private TMP_Text _researchLockText;
         private GameObject _pvpLock;
-        private Text _pvpLockText;
+        private TMP_Text _pvpLockText;
 
         private void RegisterGuideTargets()
         {
@@ -64,7 +65,7 @@ namespace Hadal.UI.Hud
         }
 
         /// <summary>A small amber "Lv.6" pill on a button whose feature is still closed.</summary>
-        private static (GameObject, Text) LockBadge(RectTransform button)
+        private static (GameObject, TMP_Text) LockBadge(RectTransform button)
         {
             var badge = UiKit.Box("Lock", button, new Color(0.08f, 0.06f, 0.02f, 0.92f));
             badge.rectTransform.Place(0.02f, 0.66f, 0.98f, 0.98f);

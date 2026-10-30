@@ -5,7 +5,6 @@ using HADAL.Shared.Simulation;
 using Hadal.UI;
 using NUnit.Framework;
 using UnityEngine;
-using UnityEngine.UI;
 using Object = UnityEngine.Object;
 
 namespace Hadal.Tests.EditMode
@@ -87,33 +86,36 @@ namespace Hadal.Tests.EditMode
                 Assert.IsNotNull(font, path);
                 CollectionAssert.Contains(font.fontNames, "Hadal Emoji", path);
             }
+
+            // The TextMeshPro fonts (Fredoka and the Noto merge) end their fallback chain with the emoji font.
+            foreach (var language in new[] { "en", "ar", "ru", "ja" })
+            {
+                var font = UiText.FontFor(language);
+                Assert.IsNotNull(font, language);
+                Assert.IsTrue(font.HasCharacter(glyph, searchFallbacks: true, tryAddCharacter: true), language);
+            }
         }
 
         [Test]
         public void Emoji_text_lays_out_an_emoji_as_a_visible_character()
         {
-            var go = new GameObject("EmojiTextTest", typeof(RectTransform));
+            var go = new GameObject("EmojiTextTest", typeof(RectTransform), typeof(Canvas)); // UGUI text builds its mesh under a canvas
             try
             {
-                var label = go.AddComponent<EmojiText>();
-                label.font = Resources.Load<Font>("Fonts/Fredoka-SemiBold");
-                label.fontSize = 40;
-                label.text = "a" + Smiley + "b";
+                var label = UiKit.EmojiLabel("Label", go.transform, "a" + Smiley + "b", 40, Color.white);
+                Assert.IsInstanceOf<EmojiText>(label);
                 Assert.AreEqual("a" + Smiley + "b", label.text, "the real characters stay in the text");
 
-                var settings = label.GetGenerationSettings(new Vector2(1000, 200));
-                var generator = new TextGenerator();
-                generator.Populate(Emoji.ToGlyphs(label.text), settings);
-                var chars = generator.characters;
-                Assert.GreaterOrEqual(chars.Count, 4);
-                // The emoji advances the pen (it is drawn); its filler does not.
-                Assert.Greater(chars[1].charWidth, 10f, "emoji glyph width");
-                Assert.AreEqual(0f, chars[2].charWidth, 0.01f, "filler width");
-
-                // Without the mapping, legacy Text has nothing to draw for a surrogate pair.
-                var raw = new TextGenerator();
-                raw.Populate("a" + Smiley + "b", settings);
-                Debug.Log($"[Hadal] raw surrogate widths: {raw.characters[1].charWidth} {raw.characters[2].charWidth}; mapped: {chars[1].charWidth}");
+                label.ForceMeshUpdate();
+                var chars = label.textInfo.characterInfo;
+                Assert.AreEqual(4, label.textInfo.characterCount, "a, the emoji glyph, its filler, b");
+                // The emoji comes from the emoji font in the fallback chain and advances the pen; its filler does not.
+                Assert.AreEqual(Emoji.ToGlyphs(Smiley)[0], chars[1].character);
+                Assert.IsTrue(chars[1].isVisible, "emoji glyph drawn");
+                StringAssert.Contains("emoji", chars[1].fontAsset.name);
+                Assert.Greater(chars[1].xAdvance - chars[1].origin, 10f, "emoji glyph width");
+                Assert.AreEqual(chars[2].origin, chars[2].xAdvance, 0.01f, "filler width");
+                Assert.AreEqual(chars[2].xAdvance, chars[3].origin, 0.5f, "b follows the emoji");
             }
             finally
             {

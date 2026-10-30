@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Hadal.Core.Services;
+using TMPro;
 using UnityEngine;
 using UnityEngine.Rendering;
 using UnityEngine.UI;
@@ -274,7 +275,7 @@ namespace Hadal.UI
     /// </summary>
     public sealed class TabularClock : MonoBehaviour
     {
-        private readonly List<Text> _cells = new();
+        private readonly List<TMP_Text> _cells = new();
         private RectTransform _rect;
         private int _size;
         private Color _color;
@@ -313,7 +314,7 @@ namespace Hadal.UI
                 {
                     var cell = UiKit.Label("Cell" + _cells.Count, _rect, string.Empty, 10, _color, TextAnchor.MiddleCenter, FontStyle.Bold);
                     cell.fontSize = _size;
-                    cell.horizontalOverflow = HorizontalWrapMode.Overflow;
+                    cell.textWrappingMode = TextWrappingModes.NoWrap;
                     var shadow = cell.gameObject.AddComponent<Shadow>();
                     shadow.effectColor = new Color(0f, 0f, 0f, 0.55f);
                     shadow.effectDistance = new Vector2(0f, -3f);
@@ -449,10 +450,10 @@ namespace Hadal.UI
         private Image _shieldIcon;
         private readonly Image[] _rings = new Image[2];
         private Image _bar;
-        private Text _title;
-        private Text _who;
-        private Text _more;
-        private Text _caption;
+        private TMP_Text _title;
+        private TMP_Text _who;
+        private TMP_Text _more;
+        private TMP_Text _caption;
         private TabularClock _clock;
 
         private bool _showing;
@@ -528,14 +529,15 @@ namespace Hadal.UI
 
             _title = UiKit.Label("Title", card.transform, string.Empty, UiKit.TypeScale.Body, Color.white, TextAnchor.LowerLeft, FontStyle.Bold);
             _title.rectTransform.Place(0.2f, 0.56f, 0.68f, 0.92f);
-            _title.horizontalOverflow = HorizontalWrapMode.Overflow;
+            _title.textWrappingMode = TextWrappingModes.NoWrap;
             _who = UiKit.Label("Who", card.transform, string.Empty, UiKit.TypeScale.Subtitle, Color.white, TextAnchor.UpperLeft, FontStyle.Bold);
             _who.rectTransform.Place(0.2f, 0.1f, 0.68f, 0.54f);
-            _who.resizeTextForBestFit = true;
-            _who.resizeTextMinSize = 18;
-            _who.resizeTextMaxSize = _who.fontSize;
-            _who.verticalOverflow = VerticalWrapMode.Truncate;
-            UiKit.Stroked(_who).GetComponent<Outline>().effectColor = new Color(0f, 0f, 0f, 0.6f);
+            _who.enableAutoSizing = true;
+            _who.fontSizeMin = 18;
+            _who.fontSizeMax = _who.fontSize;
+            _who.overflowMode = TextOverflowModes.Truncate;
+            _who.color = Color.white;
+            UiText.Outline(_who, new Color(0f, 0f, 0f, 0.6f));
 
             _clock = TabularClock.Create(card.transform, UiKit.TypeScale.Display, Color.white);
             ((RectTransform)_clock.transform).Place(0.66f, 0.36f, 0.965f, 0.95f);

@@ -86,12 +86,12 @@ namespace Hadal.UI
                 var name = row?.amountLabel != null ? row.amountLabel.transform.parent.Find("Name") : null;
                 if (name != null && name.TryGetComponent<Text>(out var label))
                 {
-                    label.font = UiKit.Font;
+                    label.font = UiKit.LegacyFont;
                     label.text = Loc.Resource(row.type.ToString());
                 }
 
                 if (row?.rateLabel != null)
-                    row.rateLabel.font = UiKit.Font;
+                    row.rateLabel.font = UiKit.LegacyFont;
             }
         }
 

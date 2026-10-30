@@ -1,6 +1,7 @@
 using System.Linq;
 using HADAL.Shared.DTOs;
 using HADAL.Shared.Simulation;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -16,7 +17,7 @@ namespace Hadal.UI.Hud
         private sealed class HelpBubble
         {
             public GameObject Root;
-            public Text Count;
+            public TMP_Text Count;
             public string Kind;
 
             /// <summary>Hidden after a tap until the help list next changes (the server's answer).</summary>

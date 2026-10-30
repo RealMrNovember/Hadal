@@ -6,6 +6,7 @@ using Hadal.Core.Network;
 using Hadal.Managers.Bootstrap;
 using Hadal.UI;
 using NUnit.Framework;
+using TMPro;
 using UnityEditor.SceneManagement;
 using UnityEngine;
 using UnityEngine.SceneManagement;
@@ -165,7 +166,7 @@ namespace Hadal.Tests.PlayMode
 
         private static void Type(Transform root, string path, string value)
         {
-            var field = Find(root, path).GetComponent<InputField>();
+            var field = Find(root, path).GetComponent<TMP_InputField>();
             Assert.IsNotNull(field, $"{path} is not an input field");
             field.text = value;
         }
@@ -173,7 +174,7 @@ namespace Hadal.Tests.PlayMode
         private static string Text(Transform root, string path)
         {
             var target = Find(root, path);
-            return target.gameObject.activeInHierarchy ? target.GetComponent<UnityEngine.UI.Text>().text : string.Empty;
+            return target.gameObject.activeInHierarchy ? target.GetComponent<TMP_Text>().text : string.Empty;
         }
 
         private static IEnumerator WaitUntil(Func<bool> condition, float timeoutSeconds, string failure)

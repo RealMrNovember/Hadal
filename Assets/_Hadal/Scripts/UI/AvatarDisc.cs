@@ -44,9 +44,9 @@ namespace Hadal.UI
             {
                 var initial = UiKit.Label("Initial", root, string.IsNullOrEmpty(name) ? "?" : name.Substring(0, 1).ToUpperInvariant(), 40, Color.white,
                     TextAnchor.MiddleCenter, FontStyle.Bold);
-                initial.resizeTextForBestFit = true;
-                initial.resizeTextMinSize = 12;
-                initial.resizeTextMaxSize = 96;
+                initial.enableAutoSizing = true;
+                initial.fontSizeMin = 12;
+                initial.fontSizeMax = 96;
                 initial.raycastTarget = false;
                 initial.rectTransform.Place(0.15f, 0.15f, 0.85f, 0.85f);
             }

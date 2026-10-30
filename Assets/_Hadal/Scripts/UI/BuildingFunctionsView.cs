@@ -7,6 +7,7 @@ using HADAL.Shared.DTOs;
 using HADAL.Shared.Enums;
 using HADAL.Shared.Simulation;
 using Hadal.Data.Models;
+using TMPro;
 using UnityEngine;
 
 namespace Hadal.UI
@@ -230,7 +231,7 @@ namespace Hadal.UI
             }
 
             UiKit.Button("Back", _list, Loc.T("account.back"), () => { _researchOpen = false; Render(); }, UiKit.Field).Row(100)
-                .GetComponentInChildren<UnityEngine.UI.Text>().color = UiKit.Text;
+                .GetComponentInChildren<TMP_Text>().color = UiKit.Text;
         }
 
         /// <summary>"Construction time -6% → -9%" style line for a node.</summary>

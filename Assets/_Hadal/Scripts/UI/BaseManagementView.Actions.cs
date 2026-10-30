@@ -6,6 +6,7 @@ using HADAL.Shared.Enums;
 using HADAL.Shared.Simulation;
 using Hadal.Core.State;
 using Hadal.Data.Models;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -164,7 +165,7 @@ namespace Hadal.UI
             UiKit.Label("Level", header.transform, Loc.F("base.level", building.level), 30, UiKit.Accent, TextAnchor.MiddleLeft, FontStyle.Bold)
                 .rectTransform.Place(0.05f, 0.02f, 0.8f, 0.45f);
             var close = UiKit.Button("Close", header.transform, "X", CloseUpgrade, UiKit.Field, 40);
-            close.GetComponentInChildren<Text>().color = UiKit.Text;
+            close.GetComponentInChildren<TMP_Text>().color = UiKit.Text;
             ((RectTransform)close.transform).Place(0.84f, 0.18f, 0.96f, 0.82f);
 
             var list = UiKit.ScrollList("List", card.transform, 10f);
@@ -222,7 +223,7 @@ namespace Hadal.UI
             }, verdict == ConstructionRejectReason.None ? UiKit.Ok : UiKit.Panel, 40);
             go.interactable = verdict == ConstructionRejectReason.None;
             if (!go.interactable)
-                go.GetComponentInChildren<Text>().color = UiKit.Muted;
+                go.GetComponentInChildren<TMP_Text>().color = UiKit.Muted;
             ((RectTransform)go.transform).Place(0.2f, 0.025f, 0.8f, 0.13f);
         }
 

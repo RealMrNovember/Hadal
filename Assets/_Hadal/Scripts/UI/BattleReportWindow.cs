@@ -61,7 +61,7 @@ namespace Hadal.UI
             banner.rectTransform.Place(0, 0.87f, 1, 1);
             var title = UiKit.Label("Title", banner.transform, Loc.T(r.Won ? "battle.won" : "battle.lost"), 52, Color.white, TextAnchor.MiddleCenter, FontStyle.Bold);
             title.rectTransform.Place(0, 0.3f, 1, 1);
-            title.gameObject.AddComponent<Outline>().effectColor = new Color(0, 0, 0, 0.6f);
+            UiText.Outline(title, new Color(0, 0, 0, 0.6f));
             UiKit.Label("Where", banner.transform, $"{Loc.F("base.level", r.MonsterLevel)} {WorldMapView.MonsterName(r.MonsterType)}  ·  X:{r.X} Y:{r.Y}  ·  {Loc.F("battle.rounds", r.Rounds)}",
                 24, Color.white, TextAnchor.MiddleCenter).rectTransform.Place(0, 0.02f, 1, 0.34f);
             var close = UiKit.Button("Close", banner.transform, "X", Close, UiKit.Field, 36);

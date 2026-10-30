@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using HADAL.Shared.DTOs;
 using HADAL.Shared.Simulation;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -16,7 +17,7 @@ namespace Hadal.UI
     {
         private const float DomeRadius = 6f;
         private readonly Dictionary<string, ShieldDome> _domes = new();
-        private readonly Dictionary<string, Text> _shieldLabels = new();
+        private readonly Dictionary<string, TMP_Text> _shieldLabels = new();
         private float _nextShieldTick;
 
         /// <summary>The kind of protection a base has now: a shield, the recovery shield or newbie protection.</summary>
@@ -44,7 +45,7 @@ namespace Hadal.UI
                     label = UiKit.Label("Shield", entry.Plate, string.Empty, 22, Color.white, TextAnchor.MiddleCenter, FontStyle.Bold);
                     label.rectTransform.Place(0f, -0.6f, 1f, 0f);
                     label.raycastTarget = false;
-                    label.gameObject.AddComponent<Outline>().effectColor = new Color(0, 0, 0, 0.85f);
+                    UiText.Outline(label, new Color(0, 0, 0, 0.85f));
                     _shieldLabels[b.PlayerId] = label;
                 }
 

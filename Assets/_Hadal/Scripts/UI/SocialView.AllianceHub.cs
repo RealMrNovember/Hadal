@@ -3,6 +3,7 @@ using System.Linq;
 using HADAL.Shared.Commands;
 using HADAL.Shared.DTOs;
 using HADAL.Shared.Simulation;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -49,7 +50,7 @@ namespace Hadal.UI
             head.color = new Color(0.06f, 0.16f, 0.24f, 1f);
             AvatarDisc.Emblem(UiKit.Rect("Banner", head.transform).Place(0.02f, 0.1f, 0.2f, 0.9f), alliance.Emblem);
             var name = CardText(head.transform, $"[{alliance.Tag}] {alliance.Name}", 38, UiKit.Accent, 0.23f, 0.7f, 0.98f, 0.96f, TextAnchor.MiddleLeft, FontStyle.Bold);
-            name.supportRichText = false;
+            name.richText = false;
             var language = string.IsNullOrEmpty(alliance.Language) ? "-" : Loc.NameOf(alliance.Language);
             CardText(head.transform,
                 $"{Loc.F("alliance.leader", leader)}\n{Loc.F("hero.power", alliance.Members.Sum(m => m.Power).ToString("N0"))}\n" +
@@ -62,7 +63,7 @@ namespace Hadal.UI
             var note = Card(Mathf.Clamp(70 + lines * 34, 120, 520));
             CardText(note.transform, Loc.T("alliance.announcement"), 24, UiKit.Amber, 0.04f, 0.8f, 0.96f, 0.98f, TextAnchor.UpperLeft, FontStyle.Bold);
             var body = CardText(note.transform, text, 26, string.IsNullOrEmpty(alliance.Announcement) ? UiKit.Muted : UiKit.Text, 0.04f, 0.04f, 0.96f, 0.8f);
-            body.supportRichText = false;
+            body.richText = false;
 
             // Nine tiles, two a row; a red dot where something waits.
             var waiting = View.HelpRequests.Count(r => !r.HelpedByMe);
@@ -118,7 +119,7 @@ namespace Hadal.UI
             {
                 var entry = bar[i];
                 var button = CardButton(strip, entry.Label, true, () => entry.Open(), UiKit.Field, i * width + 0.005f, 0.08f, (i + 1) * width - 0.005f, 0.92f);
-                button.GetComponentInChildren<Text>().fontSize = 26;
+                button.GetComponentInChildren<TMP_Text>().fontSize = 26;
                 if (entry.Dot)
                     RedDot(button.transform);
             }
@@ -144,11 +145,11 @@ namespace Hadal.UI
             Header(Loc.T("alliance.announcement"));
             _editAnnouncement ??= alliance.Announcement ?? string.Empty;
             var input = UiKit.Input("Announcement", _list, Loc.T("alliance.announcement.hint"), characterLimit: SocialRules.MaxAnnouncement).Row(260);
-            input.lineType = InputField.LineType.MultiLineNewline;
-            input.textComponent.alignment = TextAnchor.UpperLeft;
+            input.lineType = TMP_InputField.LineType.MultiLineNewline;
+            input.textComponent.alignment = TextAlignmentOptions.TopLeft;
             input.textComponent.fontSize = 30;
-            input.textComponent.horizontalOverflow = HorizontalWrapMode.Wrap;
-            ((Text)input.placeholder).alignment = TextAnchor.UpperLeft;
+            input.textComponent.textWrappingMode = TextWrappingModes.Normal;
+            ((TMP_Text)input.placeholder).alignment = TextAlignmentOptions.TopLeft;
             input.text = _editAnnouncement;
             input.onValueChanged.AddListener(v => _editAnnouncement = v);
 

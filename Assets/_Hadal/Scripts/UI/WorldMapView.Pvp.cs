@@ -5,6 +5,7 @@ using HADAL.Shared.Commands;
 using HADAL.Shared.DTOs;
 using HADAL.Shared.Simulation;
 using Hadal.Core.Catalog;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -254,7 +255,7 @@ namespace Hadal.UI
                 plate.anchoredPosition = top;
                 var owner = string.IsNullOrEmpty(s.AllianceTag) ? string.Empty : $"[{s.AllianceTag}] ";
                 var name = s.Level >= TerritoryRules.ThroneLevel ? Loc.T("pvp.throne") : Loc.T("city.name");
-                var text = plate.Find("Name").GetComponent<Text>();
+                var text = plate.Find("Name").GetComponent<TMP_Text>();
                 text.text = $"{owner}{name} {Loc.F("base.level", s.Level)}{(s.UnderAttack ? " ⚔" : string.Empty)}";
                 text.fontSize = Strategic ? 22 : 24;
                 plate.GetComponent<Image>().color = s.Color >= 0 ? AllianceColor(s.Color, 0.9f) : new Color(0.08f, 0.1f, 0.14f, 0.85f);

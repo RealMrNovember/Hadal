@@ -1,5 +1,6 @@
 using System.Collections;
 using Hadal.Core.Services;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -29,10 +30,10 @@ namespace Hadal.UI
         private CanvasGroup _group;
         private RectTransform _logo;
         private Image _logoImage;
-        private Text _status;
-        private Text _tap;
-        private Text _announcement;
-        private Text _depth;
+        private TMP_Text _status;
+        private TMP_Text _tap;
+        private TMP_Text _announcement;
+        private TMP_Text _depth;
         private Image _gaugeFill;
         private RectTransform _bubbles;
         private string _detail = string.Empty;

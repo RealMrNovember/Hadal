@@ -5,6 +5,7 @@ using HADAL.Shared.Commands;
 using HADAL.Shared.DTOs;
 using HADAL.Shared.Simulation;
 using Hadal.UI.Hud;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -31,7 +32,7 @@ namespace Hadal.UI
         /// <summary>The other player of a private line, from the viewer's side.</summary>
         private (string Id, string Name) Peer(ChatMessageDto line) =>
             line.SenderId == View.PlayerId ? (line.TargetId, line.TargetName) : (line.SenderId, line.SenderName);
-        private InputField _chatInput;
+        private TMP_InputField _chatInput;
         private RectTransform _chatTabs;
 
         private void RenderChat(bool force)
@@ -115,7 +116,7 @@ namespace Hadal.UI
             if (pin != null)
                 text = new string(' ', 60);
             // Bubble width follows the text (about 28 characters a line at full width), height the wrapped lines.
-            // Text elements, not UTF-16 units: an emoji is one character on screen (a little wider than a letter).
+            // TMP_Text elements, not UTF-16 units: an emoji is one character on screen (a little wider than a letter).
             var length = pin != null ? text.Length : SocialRules.TextLength(text) + (Emoji.Has(text) ? 1 : 0);
             var lines = Math.Max(1, (int)Math.Ceiling(length / 28f));
             var width = lines > 1 ? 0.66f : Mathf.Clamp(0.12f + length * 0.021f, 0.16f, 0.66f);
@@ -150,7 +151,7 @@ namespace Hadal.UI
             }
 
             var body = UiKit.EmojiLabel("Text", bubble.transform, text, 28, mine ? Color.white : new Color(0.08f, 0.14f, 0.2f, 1f), TextAnchor.MiddleLeft);
-            body.supportRichText = false;
+            body.richText = false;
             body.rectTransform.Place(0, 0, 1, 1);
             body.rectTransform.offsetMin = new Vector2(18f, 6f);
             body.rectTransform.offsetMax = new Vector2(-18f, -6f);
@@ -177,7 +178,7 @@ namespace Hadal.UI
                 var card = Card(130);
                 CardText(card.transform, name, 32, UiKit.Text, 0.04f, 0.5f, 0.7f, 0.95f, TextAnchor.UpperLeft, FontStyle.Bold);
                 var preview = UiKit.EmojiLabel("Text", card.transform, PinPreview(last.Text) ?? last.Text, 26, UiKit.Muted, TextAnchor.UpperLeft);
-                preview.supportRichText = false;
+                preview.richText = false;
                 preview.rectTransform.Place(0.04f, 0.05f, 0.7f, 0.5f);
                 CardButton(card.transform, Loc.T("chat.open"), true, () => OpenPrivateChat(id, name), UiKit.Accent);
             }
@@ -214,7 +215,7 @@ namespace Hadal.UI
                 if (frame != _chatInput.image)
                     frame.enabled = false;
             _chatInput.textComponent.color = new Color(0.08f, 0.14f, 0.2f, 1f);
-            ((Text)_chatInput.placeholder).color = new Color(0.45f, 0.52f, 0.58f, 1f);
+            ((TMP_Text)_chatInput.placeholder).color = new Color(0.45f, 0.52f, 0.58f, 1f);
             // Typed inside the white field with its caret (UiKit.Input hides Android's edit box); the page lifts
             // above the keyboard (KeyboardLift). The keyboard's "Done" sends (onSubmit), Return on a hardware keyboard too.
             _chatInput.onSubmit.AddListener(_ => SendChat());
@@ -374,13 +375,13 @@ namespace Hadal.UI
                 _newMessages = UiKit.Button("NewMessages", _sheet.transform, string.Empty, () => ScrollChatToBottom(),
                     new Color(0.13f, 0.52f, 0.86f, 0.95f), 26);
                 ((RectTransform)_newMessages.transform).Place(0.3f, 0.105f, 0.7f, 0.145f);
-                _newMessages.GetComponentInChildren<Text>().color = Color.white;
+                _newMessages.GetComponentInChildren<TMP_Text>().color = Color.white;
             }
 
             _newMessages.gameObject.SetActive(count > 0);
             if (count > 0)
             {
-                _newMessages.GetComponentInChildren<Text>().text = "↓ " + Loc.F("chat.new", count);
+                _newMessages.GetComponentInChildren<TMP_Text>().text = "↓ " + Loc.F("chat.new", count);
                 _newMessages.transform.SetAsLastSibling();
             }
         }
@@ -396,7 +397,7 @@ namespace Hadal.UI
             // Other pages (mail, alliance forms) lift while one of their fields is selected: the text is typed in
             // the field itself now (no system edit box over the keyboard), so it must stay visible.
             var selected = UnityEngine.EventSystems.EventSystem.current?.currentSelectedGameObject;
-            if (_page is not (Page.Chat or Page.Alliance) && (selected == null || selected.GetComponent<InputField>() == null))
+            if (_page is not (Page.Chat or Page.Alliance) && (selected == null || selected.GetComponent<TMP_InputField>() == null))
                 return 0f;
             var pixels = TouchScreenKeyboard.area.height;
 #if UNITY_ANDROID && !UNITY_EDITOR
@@ -515,7 +516,7 @@ namespace Hadal.UI
             UiKit.Label("Kind", bubble.transform, Loc.T("share.kind." + pin.Kind), 22, mine ? new Color(0.85f, 0.93f, 1f, 1f) : new Color(0.3f, 0.4f, 0.47f, 1f),
                 TextAnchor.UpperLeft, FontStyle.Bold).rectTransform.Place(0.24f, 0.62f, 0.97f, 0.92f);
             var title = UiKit.Label("Title", bubble.transform, pin.Title(), 26, ink, TextAnchor.MiddleLeft, FontStyle.Bold);
-            title.supportRichText = false;
+            title.richText = false;
             title.rectTransform.Place(0.24f, 0.32f, 0.97f, 0.66f);
             UiKit.Label("Coords", bubble.transform, $"{Loc.F("world.coords", pin.X, pin.Y)}  ›", 22, mine ? Color.white : new Color(0.1f, 0.45f, 0.7f, 1f),
                 TextAnchor.LowerLeft, FontStyle.Bold).rectTransform.Place(0.24f, 0.06f, 0.97f, 0.34f);
@@ -599,7 +600,7 @@ namespace Hadal.UI
             card.gameObject.AddComponent<CanvasGroup>();
             card.gameObject.AddComponent<PopIn>();
             var heading = UiKit.Label("Title", card.transform, $"{Loc.T("share.title")}: {pin.Title()}  ({pin.X}, {pin.Y})", 30, UiKit.Text, TextAnchor.MiddleCenter, FontStyle.Bold);
-            heading.supportRichText = false;
+            heading.richText = false;
             heading.rectTransform.Place(0.04f, 1f - 0.085f / height, 0.96f, 1f - 0.01f / height);
             for (var i = 0; i < targets.Count; i++)
             {
@@ -613,7 +614,7 @@ namespace Hadal.UI
                 ((RectTransform)button.transform).Place(0.06f, top - 0.065f / height, 0.94f, top);
                 button.interactable = target.Enabled;
                 if (i > 0)
-                    button.GetComponentInChildren<Text>().color = UiKit.Text;
+                    button.GetComponentInChildren<TMP_Text>().color = UiKit.Text;
             }
         }
 

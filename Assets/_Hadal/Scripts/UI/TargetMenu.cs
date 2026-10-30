@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -34,11 +35,11 @@ namespace Hadal.UI
         private RectTransform _root;
         private RectTransform _ring;
         private RectTransform _bubble;
-        private Text _title;
-        private Text _info;
+        private TMP_Text _title;
+        private TMP_Text _info;
         private RectTransform _bar;
         private Image _barFill;
-        private Text _barText;
+        private TMP_Text _barText;
         private readonly List<RectTransform> _buttons = new();
 
         private Func<Camera> _camera;
@@ -181,9 +182,7 @@ namespace Hadal.UI
                 icon.color = new Color(1f, 1f, 1f, 0.45f);
             var label = UiKit.Label("Label", rect, item.Label, 28, Color.white, TextAnchor.UpperCenter, FontStyle.Bold);
             label.rectTransform.Place(-0.4f, -0.42f, 1.4f, 0f);
-            var outline = label.gameObject.AddComponent<Outline>();
-            outline.effectColor = new Color(0, 0, 0, 0.85f);
-            outline.effectDistance = new Vector2(2, -2);
+            UiText.Outline(label, new Color(0, 0, 0, 0.85f));
             return rect;
         }
 

@@ -5,6 +5,7 @@ using HADAL.Shared.Commands;
 using HADAL.Shared.DTOs;
 using HADAL.Shared.Enums;
 using HADAL.Shared.Simulation;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -83,9 +84,9 @@ namespace Hadal.UI
         private static bool Claimable(MailDto m) => m.Attachments.Length > 0 && !m.Claimed;
 
         /// <summary>Player-written text shows as typed: no rich-text tags.</summary>
-        private static Text Plain(Text label, MailDto m)
+        private static TMP_Text Plain(TMP_Text label, MailDto m)
         {
-            label.supportRichText = m.Kind != "player";
+            label.richText = m.Kind != "player";
             return label;
         }
 
@@ -182,8 +183,8 @@ namespace Hadal.UI
             CardButton(bar, Loc.T("mail.readAll"), unread > 0, () => ReadAllMail(tab), UiKit.Accent, 0.3375f, 0.08f, 0.6625f, 0.92f);
             CardButton(bar, Loc.T("mail.deleteRead"), mails.Any(m => m.Read && !Claimable(m)), () => DeleteMail(string.Empty, tab), UiKit.Field,
                 0.675f, 0.08f, 1f, 0.92f);
-            foreach (var label in bar.GetComponentsInChildren<Text>())
-                label.resizeTextMaxSize = Math.Min(label.resizeTextMaxSize, 28);
+            foreach (var label in bar.GetComponentsInChildren<TMP_Text>())
+                label.fontSizeMax = Math.Min(label.fontSizeMax, 28);
 
             if (mails.Length == 0)
             {
@@ -218,9 +219,9 @@ namespace Hadal.UI
                 var name = UiKit.Label("Name", button.transform, Loc.T("mail.tab." + tab), 22, on ? new Color(0.06f, 0.1f, 0.14f) : Color.white,
                     TextAnchor.MiddleCenter, FontStyle.Bold);
                 name.rectTransform.Place(0.02f, 0.06f, 0.98f, 0.44f);
-                name.resizeTextForBestFit = true;
-                name.resizeTextMinSize = 14;
-                name.resizeTextMaxSize = 22;
+                name.enableAutoSizing = true;
+                name.fontSizeMin = 14;
+                name.fontSizeMax = 22;
                 name.raycastTarget = false;
                 if (!on)
                     UiKit.Stroked(name);
@@ -295,8 +296,8 @@ namespace Hadal.UI
             var titleText = Plain(CardText(card.transform, title, 30, titleColor, 0.19f, 0.56f, 0.8f, 0.94f, TextAnchor.MiddleLeft, FontStyle.Bold), m);
             titleText.raycastTarget = false;
             var summaryText = CardText(card.transform, summary, 23, UiKit.Muted, 0.19f, 0.3f, 0.97f, 0.58f, TextAnchor.MiddleLeft);
-            summaryText.supportRichText = m.Report != null || m.Kind != "player";
-            summaryText.horizontalOverflow = HorizontalWrapMode.Overflow;
+            summaryText.richText = m.Report != null || m.Kind != "player";
+            summaryText.textWrappingMode = TextWrappingModes.NoWrap;
             summaryText.raycastTarget = false;
             var ageLine = m.Kind == "player" ? MailAge(m) : $"{MailAge(m)} · {MailSender(m)}";
             CardText(card.transform, ageLine, 20, UiKit.Muted, 0.19f, 0.04f, 0.75f, 0.3f, TextAnchor.MiddleLeft).raycastTarget = false;
@@ -359,7 +360,7 @@ namespace Hadal.UI
             var daysLeft = (int)Math.Floor(TimeSpan.FromMilliseconds(Math.Max(0, m.ExpiresAtMs - NowMs)).TotalDays);
             var expiry = daysLeft >= 1 ? Loc.F("mail.expires", daysLeft) : Loc.T("mail.expiresToday");
             var from = CardText(head.transform, $"{MailSender(m)} · {MailAge(m)} · {expiry}", 22, UiKit.Muted, 0.17f, 0.06f, 0.97f, 0.42f, TextAnchor.MiddleLeft);
-            from.supportRichText = false;
+            from.richText = false;
 
             if (m.Body.Length > 0)
             {
@@ -547,15 +548,15 @@ namespace Hadal.UI
                 var title = UiKit.Stroked(UiKit.Label("Result", half.transform, result, 40, won ? UiKit.Gold : new Color(0.85f, 0.88f, 0.92f),
                     TextAnchor.MiddleCenter, FontStyle.Bold));
                 title.rectTransform.Place(inner.Item1, 0.66f, inner.Item2, 0.96f);
-                title.resizeTextForBestFit = true;
-                title.resizeTextMinSize = 20;
-                title.resizeTextMaxSize = 40;
+                title.enableAutoSizing = true;
+                title.fontSizeMin = 20;
+                title.fontSizeMax = 40;
                 var who = UiKit.Label("Name", half.transform, name, 28, Color.white, TextAnchor.MiddleCenter, FontStyle.Bold);
                 who.rectTransform.Place(0.04f, 0.38f, 0.96f, 0.64f);
-                who.supportRichText = false;
-                who.resizeTextForBestFit = true;
-                who.resizeTextMinSize = 16;
-                who.resizeTextMaxSize = 28;
+                who.richText = false;
+                who.enableAutoSizing = true;
+                who.fontSizeMin = 16;
+                who.fontSizeMax = 28;
                 var where = x != 0 || y != 0 ? Loc.F("world.coords", x, y) : string.Empty;
                 UiKit.Label("Where", half.transform, where, 22, new Color(0.6f, 0.95f, 0.6f), TextAnchor.MiddleCenter).rectTransform.Place(0.04f, 0.2f, 0.96f, 0.38f);
                 if (power > 0)
@@ -613,9 +614,9 @@ namespace Hadal.UI
                 var y0 = y1 - step;
                 HudIconImage(table.transform, "item_troops_" + s.Type, 0.02f, y0 + step * 0.12f, 0.1f, y1 - step * 0.12f);
                 var name = CardText(table.transform, $"T{s.Tier} {Loc.T("troop." + s.Type)}", 24, UiKit.Text, 0.12f, y0, 0.52f, y1, TextAnchor.MiddleLeft, FontStyle.Bold);
-                name.resizeTextForBestFit = true;
-                name.resizeTextMinSize = 16;
-                name.resizeTextMaxSize = 24;
+                name.enableAutoSizing = true;
+                name.fontSizeMin = 16;
+                name.fontSizeMax = 24;
                 if (startOnly)
                 {
                     CardText(table.transform, s.Start.ToString("N0"), 24, UiKit.Text, 0.7f, y0, 0.98f, y1, TextAnchor.MiddleCenter);
@@ -632,9 +633,9 @@ namespace Hadal.UI
             {
                 var label = UiKit.Label("Col", bar, text, 20, Color.white, TextAnchor.MiddleCenter, FontStyle.Bold);
                 label.rectTransform.Place(x0, 0, x1, 1);
-                label.resizeTextForBestFit = true;
-                label.resizeTextMinSize = 12;
-                label.resizeTextMaxSize = 20;
+                label.enableAutoSizing = true;
+                label.fontSizeMin = 12;
+                label.fontSizeMax = 20;
             }
         }
 
@@ -772,7 +773,7 @@ namespace Hadal.UI
             var to = Card(120);
             HudIconImage(to.transform, mate ? "side_alliance" : "side_mail", 0.02f, 0.15f, 0.12f, 0.85f);
             var name = CardText(to.transform, _composeName, 32, UiKit.Text, 0.15f, 0.45f, 0.97f, 0.95f, TextAnchor.MiddleLeft, FontStyle.Bold);
-            name.supportRichText = false;
+            name.richText = false;
             CardText(to.transform, Loc.F("mail.left", mailsLeft, MailRules.MailsPerDay), 22, mailsLeft > 0 ? UiKit.Muted : UiKit.Danger,
                 0.15f, 0.05f, 0.97f, 0.45f, TextAnchor.MiddleLeft);
 
@@ -781,12 +782,12 @@ namespace Hadal.UI
             title.onValueChanged.AddListener(v => _composeTitle = v);
 
             var body = UiKit.Input("Body", _list, Loc.T("mail.bodyHint"), characterLimit: MailRules.MaxPlayerBody).Row(320);
-            body.lineType = InputField.LineType.MultiLineNewline;
-            body.textComponent.alignment = TextAnchor.UpperLeft;
+            body.lineType = TMP_InputField.LineType.MultiLineNewline;
+            body.textComponent.alignment = TextAlignmentOptions.TopLeft;
             body.textComponent.fontSize = 32;
-            body.textComponent.horizontalOverflow = HorizontalWrapMode.Wrap;
-            ((Text)body.placeholder).alignment = TextAnchor.UpperLeft;
-            body.textComponent.rectTransform.Place(0, 0, 1, 1, 20);
+            body.textComponent.textWrappingMode = TextWrappingModes.Normal;
+            ((TMP_Text)body.placeholder).alignment = TextAlignmentOptions.TopLeft;
+            body.textComponent.rectTransform.Place(0, 0, 1, 1);
             body.text = _composeBody;
             body.onValueChanged.AddListener(v => _composeBody = v);
 
@@ -806,7 +807,7 @@ namespace Hadal.UI
                         0.13f, 0.05f, 0.6f, 0.5f, TextAnchor.MiddleLeft);
                     var input = UiKit.Input("Amount", row.transform, "0", characterLimit: 9);
                     ((RectTransform)input.transform).Place(0.62f, 0.12f, 0.97f, 0.88f);
-                    input.contentType = InputField.ContentType.IntegerNumber;
+                    input.contentType = TMP_InputField.ContentType.IntegerNumber;
                     input.text = _composeAmounts.TryGetValue(type, out var typed) ? typed : string.Empty;
                     var resource = type;
                     input.onValueChanged.AddListener(v => _composeAmounts[resource] = v);
