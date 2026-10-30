@@ -240,8 +240,22 @@ namespace Hadal.UI
                     _header.text = Loc.T(titleKey);
             }
 
-            // Content-sized like Last Asylum's: the tile grid in a short dialog, the inner pages taller.
-            var share = page == _home ? 0.38f : 0.8f;
+            // Content-sized like Last Asylum's: the tile grid in a short dialog, a form page as tall as its rows, the
+            // scrolling pages (language, game settings, notifications) tall.
+            var share = 0.8f;
+            if (page == _home)
+            {
+                share = 0.42f;
+            }
+            else if (page != _language && page != _game && page != _notifications)
+            {
+                LayoutRebuilder.ForceRebuildLayoutImmediate(page);
+                var screen = ((RectTransform)_panel.transform).rect.height;
+                if (screen <= 1f)
+                    screen = 1920f;
+                share = Mathf.Clamp((LayoutUtility.GetPreferredHeight(page) + 180f) / screen, 0.3f, 0.86f);
+            }
+
             _card.Place(0.03f, 0.5f - share / 2f, 0.97f, 0.5f + share / 2f);
             OnPageShown(page);
 

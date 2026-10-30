@@ -475,6 +475,7 @@ namespace Hadal.UI
         public void Open(int tab)
         {
             _tab = Mathf.Clamp(tab, TabShield, TabWar);
+            CloseBoost();
             if (_room is not { IsOpen: true })
                 _room = UiFrames.OpenSheet(_windowCanvas.transform, Loc.T("pvp.title"), Close, height: 0.74f, top: 100f);
             _renderedLog = _renderedWar = -1;

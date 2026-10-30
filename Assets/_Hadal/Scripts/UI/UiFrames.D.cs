@@ -143,6 +143,22 @@ namespace Hadal.UI
                 return;
             Canvas.ForceUpdateCanvases();
             LayoutRebuilder.ForceRebuildLayoutImmediate(sheet.Content);
+            // Grids size their cells from their width only in LateUpdate (FlexGrid): size them now, so they measure right.
+            var resized = false;
+            foreach (var grid in sheet.Content.GetComponentsInChildren<GridLayoutGroup>())
+            {
+                var flex = grid.GetComponent<FlexGrid>();
+                var width = ((RectTransform)grid.transform).rect.width;
+                if (flex == null || width <= 0f)
+                    continue;
+                var columns = Mathf.Max(1, grid.constraintCount);
+                var cell = (width - grid.padding.left - grid.padding.right - grid.spacing.x * (columns - 1)) / columns;
+                grid.cellSize = new Vector2(cell, cell / Mathf.Max(0.1f, flex.Aspect));
+                resized = true;
+            }
+
+            if (resized)
+                LayoutRebuilder.ForceRebuildLayoutImmediate(sheet.Content);
             var content = LayoutUtility.GetPreferredHeight(sheet.Content);
             var screen = ((RectTransform)sheet.Root.parent).rect.height;
             if (screen <= 1f)
