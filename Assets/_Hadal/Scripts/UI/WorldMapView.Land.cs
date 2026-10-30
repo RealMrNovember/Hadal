@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using HADAL.Shared.Commands;
 using HADAL.Shared.DTOs;
+using HADAL.Shared.Enums;
 using HADAL.Shared.Simulation;
 using TMPro;
 using UnityEngine;
@@ -154,41 +155,40 @@ namespace Hadal.UI
             TargetMenu.Show(() => IsOpen ? _camera : null, () => TileToWorld(x, y) + Vector3.up * 2f, title, string.Join("\n", lines), items);
         }
 
-        /// <summary>Donating to the hub or a building: three resources, three amounts each.</summary>
+        /// <summary>Donating to the hub or a building as a dialog: the points, then a row per resource with three amounts.</summary>
         private void OpenDonate(StructureDto hub)
         {
             TargetMenu.Hide();
-            ClosePopup();
-            var dim = UiKit.Box("Popup", _popupCanvas.transform, new Color(0, 0, 0, 0.6f));
-            dim.rectTransform.Place(0, 0, 1, 1);
-            dim.gameObject.AddComponent<Button>().onClick.AddListener(ClosePopup);
-            _popup = dim.gameObject;
-            var card = UiKit.Box("Card", dim.transform, UiKit.Panel);
-            card.rectTransform.Place(0.06f, 0.3f, 0.94f, 0.7f);
-            card.gameObject.AddComponent<Button>();
-            UiKit.Label("Title", card.transform, Loc.T("land.donate"), 38, UiKit.Text, TextAnchor.MiddleCenter, FontStyle.Bold).rectTransform.Place(0.05f, 0.84f, 0.95f, 0.97f);
-            UiKit.Label("Points", card.transform, Loc.F("land.points", hub.Points.ToString("N0"), hub.PointsNext.ToString("N0")), 24, UiKit.Muted, TextAnchor.MiddleCenter)
-                .rectTransform.Place(0.05f, 0.74f, 0.95f, 0.84f);
-            var resources = new[] { "Titanium", "Biomass", "Food" };
+            var sheet = MapDialog("donate", Loc.T("land.donate"));
+            var content = sheet.Content;
+            var next = Math.Max(1, hub.PointsNext);
+            ShareBar(UiKit.Rect("Points", content).Row(56), hub.Points / (float)next, Loc.F("land.points", hub.Points.ToString("N0"), hub.PointsNext.ToString("N0")),
+                UiKit.Gold);
+            var resources = new[] { ResourceType.Titanium, ResourceType.Biomass, ResourceType.Food };
             var amounts = new long[] { 10_000, 50_000, 200_000 };
-            for (var r = 0; r < resources.Length; r++)
+            foreach (var type in resources)
             {
-                var y1 = 0.7f - r * 0.22f;
-                UiKit.Label("Res" + r, card.transform, Loc.T("resource." + resources[r]), 26, UiKit.Text, TextAnchor.MiddleLeft, FontStyle.Bold)
-                    .rectTransform.Place(0.05f, y1 - 0.18f, 0.3f, y1);
+                var row = UiFrames.SheetBlock(content, UiFrames.Card, "Res" + type);
+                row.Row(120);
+                Hud.HudIcons.Image(row.transform, Hud.HudIcons.Resource(type), 0.02f, 0.12f, 0.12f, 0.88f);
+                var name = UiKit.Label("Name", row.transform, Loc.T("resource." + type), UiKit.TypeScale.Body, UiFrames.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
+                name.rectTransform.Place(0.13f, 0f, 0.34f, 1f);
+                name.Fit(14, UiKit.TypeScale.Body);
                 for (var a = 0; a < amounts.Length; a++)
                 {
-                    var resource = resources[r];
+                    var resource = type.ToString();
                     var amount = amounts[a];
-                    var x0 = 0.32f + a * 0.22f;
-                    var button = UiKit.Button($"Give{r}{a}", card.transform, CostChips.Compact(amount), () =>
+                    var x0 = 0.35f + a * 0.215f;
+                    var button = UiKit.Button($"Give{a}", row.transform, CostChips.Compact(amount), () =>
                     {
                         ClosePopup();
                         LandCommand(AllianceLandRules.Donate, hub.Id, resource: resource, amount: amount);
-                    }, UiKit.Primary, 26);
-                    ((RectTransform)button.transform).Place(x0, y1 - 0.18f, x0 + 0.2f, y1);
+                    }, UiKit.Primary, UiKit.TypeScale.Body);
+                    ((RectTransform)button.transform).Place(x0, 0.14f, x0 + 0.2f, 0.86f);
                 }
             }
+
+            UiFrames.FitSheet(sheet);
         }
     }
 }

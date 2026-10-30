@@ -8,7 +8,7 @@ using UnityEngine.UI;
 namespace Hadal.UI
 {
     /// <summary>
-    /// "A new version is available" card over everything else. Optional updates can be skipped
+    /// "A new version is available" dialog over everything else. Optional updates can be skipped
     /// ("Later", once per session); a required one (below the server's minimum) cannot.
     /// Update downloads the APK in the app and opens the Android installer (OTA, see AppUpdater).
     /// </summary>
@@ -19,6 +19,7 @@ namespace Hadal.UI
         private TMP_Text _status;
         private Button _update;
         private Button _later;
+        private GameObject _cross;
         private string _url = string.Empty;
         private bool _busy;
         private bool _skipped;
@@ -39,23 +40,37 @@ namespace Hadal.UI
             return view;
         }
 
+        /// <summary>
+        /// Last Asylum's dialog over the blurred game: the navy frame titled HADAL, the message and the download status
+        /// on the light body, Update over Later. A required update hides the cross and Later, and a tap outside does
+        /// nothing.
+        /// </summary>
         private void Build(Transform root)
         {
-            var dim = UiKit.Box("Dim", root, new Color(0f, 0.01f, 0.02f, 0.75f));
-            dim.rectTransform.Place(0, 0, 1, 1);
+            var dim = UiFrames.Dim(root, () =>
+            {
+                if (!IsRequired)
+                    Hide();
+            });
             _root = dim.gameObject;
 
-            var card = UiKit.Box("Card", dim.transform, UiKit.Panel);
-            card.rectTransform.Place(0.07f, 0.32f, 0.93f, 0.68f);
-            var column = UiKit.Column("Column", card.transform, 20f);
-            column.Place(0.07f, 0.06f, 0.93f, 0.94f);
+            var card = UiKit.Box("Card", dim, UiFrames.Navy);
+            card.rectTransform.Place(0.05f, 0.32f, 0.95f, 0.68f);
+            card.gameObject.AddComponent<CanvasGroup>();
+            card.gameObject.AddComponent<PopIn>().From = 0.94f;
+            UiFrames.Dialog(card.rectTransform, Hide).Title.text = "HADAL";
+            _cross = card.transform.Find("Close").gameObject;
 
-            UiKit.Label("Title", column, "HADAL", 64, UiKit.Accent, TextAnchor.MiddleCenter, FontStyle.Bold).Row(90);
-            _message = UiKit.Label("Message", column, string.Empty, 38, UiKit.Text, TextAnchor.MiddleCenter).Row(150);
-            _status = UiKit.Label("Status", column, string.Empty, 32, UiKit.Muted, TextAnchor.MiddleCenter).Row(60);
-            _update = UiKit.Button("Update", column, Loc.T("update.button"), () => _ = RunUpdate()).Row(110);
-            _later = UiKit.Button("Later", column, Loc.T("update.later"), Hide, UiKit.Field).Row(100);
-            _later.GetComponentInChildren<TMP_Text>().color = UiKit.Text;
+            var column = UiKit.Column("Column", card.transform, 16f);
+            column.anchorMin = Vector2.zero;
+            column.anchorMax = Vector2.one;
+            column.offsetMin = new Vector2(40f, 36f);
+            column.offsetMax = new Vector2(-40f, -130f);
+
+            _message = UiKit.Label("Message", column, string.Empty, UiKit.TypeScale.Subtitle, UiFrames.Ink, TextAnchor.MiddleCenter, FontStyle.Bold).Row(160);
+            _status = UiKit.Label("Status", column, string.Empty, UiKit.TypeScale.Body, UiFrames.InkSoft, TextAnchor.MiddleCenter).Row(60);
+            _update = UiKit.Button("Update", column, Loc.T("update.button"), () => _ = RunUpdate(), UiKit.Ok, UiKit.TypeScale.Subtitle + 4).Row(112);
+            _later = UiKit.Button("Later", column, Loc.T("update.later"), Hide, UiKit.Field, UiKit.TypeScale.Subtitle).Row(100);
 
             _root.SetActive(false);
         }
@@ -78,6 +93,7 @@ namespace Hadal.UI
             _status.text = string.Empty;
             _update.gameObject.SetActive(_url.Length > 0);
             _later.gameObject.SetActive(!required);
+            _cross.SetActive(!required);
             _root.SetActive(true);
         }
 
@@ -94,12 +110,12 @@ namespace Hadal.UI
 
             _busy = true;
             _update.interactable = false;
-            _status.color = UiKit.Muted;
+            _status.color = UiFrames.InkSoft;
             // Synchronous on purpose: Progress<T> posts to the next frame and could overwrite the final status.
             var progress = new Immediate(p => _status.text = Loc.F("update.downloading", Mathf.RoundToInt(p * 100f)));
             var outcome = await Updater(_url, progress);
 
-            _status.color = outcome == UpdateOutcome.Failed ? UiKit.Danger : UiKit.Muted;
+            _status.color = outcome == UpdateOutcome.Failed ? UiFrames.InkBad : UiFrames.InkSoft;
             _status.text = outcome switch
             {
                 UpdateOutcome.Failed => Loc.T("update.failed"),

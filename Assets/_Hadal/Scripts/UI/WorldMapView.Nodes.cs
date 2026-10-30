@@ -7,6 +7,7 @@ using HADAL.Shared.Enums;
 using HADAL.Shared.Simulation;
 using Hadal.Core.Catalog;
 using Hadal.Core.Events;
+using Hadal.Core.Services;
 using Hadal.Data.Models;
 using TMPro;
 using UnityEngine;
@@ -258,10 +259,6 @@ namespace Hadal.UI
             return more > 0 ? $"{hero} +{more}" : hero;
         }
 
-        /// <summary>
-        /// The genre's march setup (Last Asylum): up to five heroes, each leading their command of troops from home; the
-        /// troop count under every portrait, the team's load, trip and gathering time, then send.
-        /// </summary>
         /// <summary>The same setup in attack mode: the swarm's power against the team's, the Sonar it costs.</summary>
         private void OpenAttackSetup(WorldMonsterDto monster) => OpenMarchSetup(null, null, monster);
 
@@ -271,12 +268,16 @@ namespace Hadal.UI
         /// <summary>A trip time in the march setup with the team's speed bonus beside it.</summary>
         private string TripText(int trip) => Loc.Duration(trip) + _tripTag;
 
+        /// <summary>
+        /// The genre's march setup (Last Asylum's troop and hero selection): up to five heroes, each leading their command
+        /// of troops from home; the troops under every portrait and type by type, the team's load, trip and gathering
+        /// time, then March with the travel time.
+        /// </summary>
         private void OpenMarchSetup(WorldNodeDto n, List<string> team = null, WorldMonsterDto monster = null)
         {
-            var fresh = team == null;
             // Neither a node nor a monster: a PvP target (WorldMapView.Pvp).
             var pvp = n == null && monster == null ? _pvpPlan : null;
-            ClosePopup();
+            TargetMenu.Hide();
             var catalog = ClientCatalog.Catalog;
             var troops = catalog.Troops;
             var world = catalog.World;
@@ -314,65 +315,7 @@ namespace Hadal.UI
             var troopCount = aboard.Values.Sum();
             var capacity = members.Sum(m => (long)m.Command);
 
-            var dim = UiKit.Box("Popup", _popupCanvas.transform, new Color(0, 0, 0, 0.6f));
-            dim.rectTransform.Place(0, 0, 1, 1);
-            dim.gameObject.AddComponent<Button>().onClick.AddListener(ClosePopup);
-            _popup = dim.gameObject;
-
-            var card = UiKit.Box("Card", dim.transform, UiKit.Panel);
-            card.rectTransform.Place(0.03f, 0.12f, 0.97f, 0.88f);
-            card.gameObject.AddComponent<Button>();
-            if (fresh)
-            {
-                card.gameObject.AddComponent<CanvasGroup>();
-                card.gameObject.AddComponent<PopIn>();
-            }
-
-            var header = UiKit.Box("Header", card.transform, new Color(0.05f, 0.16f, 0.22f, 1f));
-            header.rectTransform.Place(0, 0.91f, 1, 1);
-            UiKit.Label("Title", header.transform, Loc.T("march.setup"), 42, UiKit.Text, TextAnchor.MiddleLeft, FontStyle.Bold).rectTransform.Place(0.05f, 0.45f, 0.8f, 1f);
-            UiKit.Label("Target", header.transform, pvp != null ? pvp.Title : monster != null ? $"{Loc.F("base.level", monster.Level)}  {MonsterName(monster.Type)}" : $"{Loc.F("base.level", n.Level)}  {NodeName(n.Type)}", 28, UiKit.Accent, TextAnchor.MiddleLeft, FontStyle.Bold)
-                .rectTransform.Place(0.05f, 0.02f, 0.8f, 0.5f);
-            var close = UiKit.Button("Close", header.transform, "X", ClosePopup, UiKit.Field, 40);
-            close.GetComponentInChildren<TMP_Text>().color = UiKit.Text;
-            ((RectTransform)close.transform).Place(0.84f, 0.18f, 0.96f, 0.82f);
-
-            // The team: five seats, each with the troops that hero leads (Last Asylum's 320 · 320 · 293 …).
-            UiKit.Label("Team", card.transform, Loc.T("march.team"), 28, UiKit.Muted, TextAnchor.MiddleLeft, FontStyle.Bold).rectTransform.Place(0.04f, 0.86f, 0.96f, 0.905f);
-            for (var i = 0; i < maxHeroes; i++)
-            {
-                var x0 = 0.03f + i * 0.19f;
-                var seat = UiKit.Box("Seat", card.transform, new Color(0, 0, 0, 0.35f));
-                seat.rectTransform.Place(x0, 0.7f, x0 + 0.18f, 0.86f);
-                if (i >= members.Count)
-                {
-                    UiKit.Label("Plus", seat.transform, "+", 64, UiKit.Muted, TextAnchor.MiddleCenter, FontStyle.Bold).rectTransform.Place(0, 0, 1, 1);
-                    continue;
-                }
-
-                var m = members[i];
-                SocialView.Portrait(seat.transform, m.Def, true, 0.04f, 0.22f, 0.96f, 0.97f);
-                var chip = UiKit.Box("Troops", seat.transform, new Color(0.17f, 0.6f, 0.3f, 1f));
-                chip.rectTransform.Place(0.04f, 0.02f, 0.96f, 0.2f);
-                UiKit.Label("Count", chip.transform, CostChips.Compact(shares[i].Values.Sum()), 22, Color.white, TextAnchor.MiddleCenter, FontStyle.Bold)
-                    .rectTransform.Place(0, 0, 1, 1);
-                var drop = m.View.HeroId;
-                seat.gameObject.AddComponent<Button>().onClick.AddListener(() =>
-                {
-                    var next = _setupTeam.Where(id => id != drop).ToList();
-                    OpenMarchSetup(n, next, monster);
-                });
-            }
-
-            // Troops aboard against the team's command.
-            var bar = UiKit.Box("Bar", card.transform, UiKit.Field);
-            bar.rectTransform.Place(0.04f, 0.655f, 0.96f, 0.69f);
-            UiKit.Box("Fill", bar.transform, troopCount >= capacity && capacity > 0 ? UiKit.Ok : UiKit.Amber).rectTransform
-                .Place(0, 0, capacity > 0 ? Mathf.Clamp01(troopCount / (float)capacity) : 0f, 1);
-            UiKit.Label("Text", bar.transform, Loc.F("march.troops", troopCount.ToString("N0"), capacity.ToString("N0")), 22, Color.white, TextAnchor.MiddleCenter, FontStyle.Bold)
-                .rectTransform.Place(0, 0, 1, 1);
-
-            // Load, trip and gathering time for this team; in attack mode the two powers and the Sonar cost.
+            // Load, trip and gathering time for this team; in attack mode the two powers and the Sonar it costs.
             var speed = TroopRules.MarchSpeed(troops, aboard.Keys);
             var tx = pvp?.X ?? monster?.X ?? n.X;
             var ty = pvp?.Y ?? monster?.Y ?? n.Y;
@@ -380,8 +323,6 @@ namespace Hadal.UI
             var bonuses = PlayerBonuses.Of(View, catalog);
             var trip = view == null ? 0 : bonuses.MarchSeconds((int)Math.Ceiling(GatherRules.TravelSeconds(world, view.MyX, view.MyY, tx, ty) * 100.0 / speed));
             _tripTag = bonuses.MarchSpeedPercent > 0 ? $"  <color=#5BE37A>{Loc.F("march.speedbonus", bonuses.MarchSpeedPercent)}</color>" : string.Empty;
-            var info = UiKit.Box("Info", card.transform, new Color(0.04f, 0.11f, 0.15f, 1f));
-            info.rectTransform.Place(0.04f, 0.53f, 0.96f, 0.645f);
             string text;
             var sonarShort = false;
             if (troopCount <= 0)
@@ -396,43 +337,88 @@ namespace Hadal.UI
                 var load = Math.Min(TroopRules.MarchLoad(troops, aboard), n.Remaining);
                 text = $"{Loc.F("march.load", CostChips.Compact(load))}\n{Loc.F("march.trip", TripText(trip), Loc.Duration(GatherRules.GatherSeconds(world, rates, load)))}";
             }
-            UiKit.Label("Text", info.transform, text, 28, UiKit.Text, TextAnchor.MiddleLeft).rectTransform.Place(0.04f, 0.05f, 0.96f, 0.95f);
 
-            // Every hero: tap to put in or take out (at most five); heroes already out are dimmed.
-            UiKit.Label("Pick", card.transform, Loc.F("march.pick", maxHeroes), 24, UiKit.Muted, TextAnchor.MiddleLeft).rectTransform.Place(0.04f, 0.485f, 0.96f, 0.525f);
-            const int columns = 5;
-            const float top = 0.48f, rowHeight = 0.15f;
-            for (var i = 0; i < Math.Min(heroes.Count, 10); i++)
+            // Last Asylum's troop and hero selection: the team's seats on top, the troops aboard type by type, what the
+            // march will do, the heroes to pick from, and March with its travel time at the bottom.
+            var sheet = MapDialog("march", Loc.T("march.setup"), 150f);
+            var content = sheet.Content;
+            var target = pvp != null ? pvp.Title : monster != null ? $"{Loc.F("base.level", monster.Level)}  {MonsterName(monster.Type)}" : $"{Loc.F("base.level", n.Level)}  {NodeName(n.Type)}";
+            var head = UiFrames.SheetText(content, $"{target}   <color=#5A6B87>{Loc.F("world.coords", tx, ty)}</color>", UiKit.TypeScale.Body + 2, UiFrames.Ink,
+                TextAnchor.MiddleCenter, FontStyle.Bold);
+            head.Row(56);
+
+            // The team: five seats, each with the troops that hero leads (Last Asylum's 320 · 320 · 293 …); a tap frees it.
+            UiFrames.Section(content, Loc.T("march.team")).Row(56);
+            var seats = UiKit.Rect("Seats", content).Row(220);
+            for (var i = 0; i < maxHeroes; i++)
             {
-                var h = heroes[i];
-                var col = i % columns;
-                var row = i / columns;
-                var x0 = 0.03f + col * 0.19f;
-                var y1 = top - row * (rowHeight + 0.01f);
-                var picked = _setupTeam.Contains(h.View.HeroId);
-                var slot = UiKit.Box("Hero", card.transform, picked ? UiKit.Accent : new Color(0, 0, 0, 0.35f));
-                slot.rectTransform.Place(x0, y1 - rowHeight, x0 + 0.18f, y1);
-                SocialView.Portrait(slot.transform, h.Def, !h.Busy, 0.05f, 0.24f, 0.95f, 0.96f);
-                UiKit.Label("Cmd", slot.transform, h.Busy ? Loc.T("march.busy") : $"⚔ {h.Command}", 20, h.Busy ? UiKit.Amber : UiKit.Text,
-                    TextAnchor.MiddleCenter, FontStyle.Bold).rectTransform.Place(0, 0.02f, 1, 0.22f);
-                var pick = h.View.HeroId;
-                if (!h.Busy)
-                    slot.gameObject.AddComponent<Button>().onClick.AddListener(() =>
-                    {
-                        var next = _setupTeam.ToList();
-                        if (next.Contains(pick))
-                            next.Remove(pick);
-                        else if (next.Count < maxHeroes)
-                            next.Add(pick);
-                        OpenMarchSetup(n, next, monster);
-                    });
+                var cell = UiKit.Rect("Cell", seats).Place((float)i / maxHeroes, 0f, (float)(i + 1) / maxHeroes, 1f, 5f);
+                if (i >= members.Count)
+                {
+                    Seat(cell, null, 0, null).Place(0, 0, 1, 1);
+                    continue;
+                }
+
+                var drop = members[i].View.HeroId;
+                Seat(cell, members[i].Def, shares[i].Values.Sum(), () => OpenMarchSetup(n, _setupTeam.Where(id => id != drop).ToList(), monster)).Place(0, 0, 1, 1);
             }
 
-            if (heroes.Count == 0)
-                UiKit.Label("None", card.transform, Loc.T("march.noheroes"), 28, UiKit.Muted, TextAnchor.MiddleCenter).rectTransform.Place(0.05f, 0.2f, 0.95f, 0.45f);
+            // Troops aboard against the team's command, then each type aboard out of what is home (the server fills the
+            // team from the heroes' own types, highest tier first).
+            ShareBar(UiKit.Rect("Command", content).Row(52), capacity > 0 ? troopCount / (float)capacity : 0f,
+                Loc.F("march.troops", troopCount.ToString("N0"), capacity.ToString("N0")), troopCount >= capacity && capacity > 0 ? UiKit.Ok : UiKit.Gold);
+            foreach (var stack in home.Where(p => p.Value > 0).OrderByDescending(p => aboard.TryGetValue(p.Key, out var sent) ? sent : 0).ThenByDescending(p => p.Key))
+            {
+                if (!TroopRules.TryParseKey(stack.Key, out var type, out var tier))
+                    continue;
+                var going = aboard.TryGetValue(stack.Key, out var a) ? a : 0;
+                var row = UiFrames.SheetBlock(content, going > 0 ? UiFrames.Card : UiFrames.CardAlt, "Troop");
+                row.Row(92);
+                Hud.HudIcons.Image(row.transform, "item_troops_" + type, 0.02f, 0.08f, 0.12f, 0.92f);
+                var name = UiKit.Label("Name", row.transform, $"T{tier} {Loc.T("troop." + type)}", UiKit.TypeScale.Body, UiFrames.Ink, TextAnchor.MiddleLeft, FontStyle.Bold);
+                name.rectTransform.Place(0.14f, 0f, 0.46f, 1f);
+                name.Fit(14, UiKit.TypeScale.Body);
+                ShareBar(UiKit.Rect("Share", row.transform).Place(0.47f, 0.3f, 0.76f, 0.7f), going / (float)Math.Max(1, stack.Value), null, UiKit.Primary);
+                UiKit.Label("Count", row.transform, $"{CostChips.Compact(going)} / {CostChips.Compact(stack.Value)}", UiKit.TypeScale.Body, going > 0 ? UiFrames.Ink : UiFrames.InkSoft,
+                    TextAnchor.MiddleRight, FontStyle.Bold).rectTransform.Place(0.76f, 0f, 0.97f, 1f);
+            }
 
+            InfoBlock(content, text);
+
+            // Every hero: tap to put in or take out (at most five); heroes already out are dimmed.
+            UiFrames.Section(content, Loc.F("march.pick", maxHeroes)).Row(70);
+            if (heroes.Count == 0)
+                UiFrames.Note(content, Loc.T("march.noheroes")).Row(110);
+            var grid = UiFrames.Grid(content, 5, 0.78f, 10f);
+            foreach (var h in heroes.Take(15))
+            {
+                var picked = _setupTeam.Contains(h.View.HeroId);
+                var slot = UiFrames.SheetBlock(grid, picked ? UiFrames.Highlight : UiFrames.CardAlt, "Hero");
+                SocialView.Portrait(slot.transform, h.Def, !h.Busy, 0.06f, 0.24f, 0.94f, 0.96f);
+                UiKit.Label("Cmd", slot.transform, h.Busy ? Loc.T("march.busy") : $"⚔ {h.Command}", UiKit.TypeScale.Caption, h.Busy ? UiFrames.InkBad : UiFrames.Ink,
+                    TextAnchor.MiddleCenter, FontStyle.Bold).rectTransform.Place(0, 0.02f, 1, 0.24f);
+                if (picked)
+                    UiFrames.Dot(slot.transform);
+                var pick = h.View.HeroId;
+                if (h.Busy)
+                    continue;
+                slot.raycastTarget = true;
+                slot.gameObject.AddComponent<Button>().onClick.AddListener(() =>
+                {
+                    GameAudio.Play(Sfx.UiTap);
+                    var next = _setupTeam.ToList();
+                    if (next.Contains(pick))
+                        next.Remove(pick);
+                    else if (next.Count < maxHeroes)
+                        next.Add(pick);
+                    OpenMarchSetup(n, next, monster);
+                });
+            }
+
+            // March, with the travel time under its name.
             var can = _setupTeam.Count > 0 && troopCount > 0 && !sonarShort;
-            var go = UiKit.Button("Go", card.transform, pvp != null ? pvp.GoLabel : monster != null ? Loc.T("world.attack") : Loc.T("march.go"), () =>
+            var label = pvp != null ? pvp.GoLabel : monster != null ? Loc.T("world.attack") : Loc.T("march.go");
+            var go = UiKit.Button("Go", sheet.Footer, $"{label}\n<size={Mathf.RoundToInt(UiKit.TypeScale.Body * UiKit.Scale)}>⏱ {Loc.Duration(trip)}</size>", () =>
             {
                 if (pvp != null)
                     pvp.Send(_setupTeam.ToArray());
@@ -441,9 +427,10 @@ namespace Hadal.UI
                 else
                     Gather(n.Id, _setupTeam.ToArray());
                 ClosePopup();
-            }, can ? (pvp != null ? pvp.GoColor : monster != null ? new Color(0.86f, 0.3f, 0.27f, 1f) : UiKit.Ok) : UiKit.Panel, 40);
+            }, can ? (pvp != null ? pvp.GoColor : monster != null ? new Color(0.86f, 0.3f, 0.27f, 1f) : UiKit.Ok) : UiKit.Panel, UiKit.TypeScale.Subtitle + 4);
             go.interactable = can;
-            ((RectTransform)go.transform).Place(0.2f, 0.02f, 0.8f, 0.12f);
+            ((RectTransform)go.transform).Place(0.2f, 0f, 0.8f, 1f, 4f);
+            UiFrames.FitSheet(sheet);
         }
 
         /// <summary>Where a march is now, in tiles (outbound, at the node, or on the way back).</summary>

@@ -53,43 +53,39 @@ namespace Hadal.UI
             items.Add(new TargetMenu.Item("power", Loc.T("bld.place"), () => OpenBuildingPicker(x, y), View.MyRank() >= AlliancePermissions.Officer));
         }
 
+        /// <summary>The picker as a dialog: a row per building with its icon, bonus, what unlocks it, and Build.</summary>
         private void OpenBuildingPicker(int x, int y)
         {
             TargetMenu.Hide();
-            ClosePopup();
             var t = View.Territory;
-            var dim = UiKit.Box("Popup", _popupCanvas.transform, new Color(0, 0, 0, 0.6f));
-            dim.rectTransform.Place(0, 0, 1, 1);
-            dim.gameObject.AddComponent<Button>().onClick.AddListener(ClosePopup);
-            _popup = dim.gameObject;
-            var card = UiKit.Box("Card", dim.transform, UiKit.Panel);
-            card.rectTransform.Place(0.04f, 0.26f, 0.96f, 0.74f);
-            card.gameObject.AddComponent<Button>();
-            UiKit.Label("Title", card.transform, Loc.T("bld.place"), 38, UiKit.Text, TextAnchor.MiddleCenter, FontStyle.Bold).rectTransform.Place(0.05f, 0.87f, 0.95f, 0.98f);
+            var sheet = MapDialog("buildings", Loc.T("bld.place"));
             var kinds = AllianceLandRules.Buildings;
-            for (var i = 0; i < kinds.Length; i++)
+            foreach (var kind in kinds)
             {
-                var kind = kinds[i];
-                var y1 = 0.85f - i * 0.28f;
-                var row = UiKit.Box("Row" + kind, card.transform, new Color(0, 0, 0, 0.3f));
-                row.rectTransform.Place(0.03f, y1 - 0.26f, 0.97f, y1);
-                Hud.HudIcons.Image(row.rectTransform, BuildingIcon(kind), 0.02f, 0.2f, 0.14f, 0.8f).raycastTarget = false;
+                var row = UiFrames.SheetBlock(sheet.Content, UiFrames.Card, "Row" + kind);
+                row.Row(190);
+                var icon = UiFrames.SheetBlock(row.transform, UiFrames.CardAlt, "Icon");
+                icon.rectTransform.Place(0.02f, 0.1f, 0.16f, 0.9f);
+                Hud.HudIcons.Image(icon.transform, BuildingIcon(kind), 0.1f, 0.1f, 0.9f, 0.9f);
                 var (members, power) = AllianceLandRules.Unlock(kind);
                 var built = (t?.Structures ?? Array.Empty<StructureDto>()).Any(s => s.AllianceId == t.MyAllianceId && s.Kind == kind);
                 var unlocked = t != null && t.Members >= members && t.AlliancePower >= power;
-                UiKit.Label("Name", row.transform, Loc.T("bld." + kind), 28, UiKit.Text, TextAnchor.MiddleLeft, FontStyle.Bold).rectTransform.Place(0.17f, 0.55f, 0.7f, 0.95f);
+                UiKit.Label("Name", row.transform, Loc.T("bld." + kind), UiKit.TypeScale.Body + 2, UiFrames.Ink, TextAnchor.MiddleLeft, FontStyle.Bold)
+                    .rectTransform.Place(0.19f, 0.6f, 0.7f, 0.95f);
                 UiKit.Label("Desc", row.transform, Loc.F("bld." + kind + ".desc", AllianceLandRules.BonusPercent(kind, 1)) +
-                    (unlocked ? string.Empty : "\n" + Loc.F("bld.unlock", members, CostChips.Compact(power))), 20, unlocked ? UiKit.Muted : UiKit.Amber, TextAnchor.UpperLeft)
-                    .rectTransform.Place(0.17f, 0.04f, 0.7f, 0.55f);
+                    (unlocked ? string.Empty : "\n" + Loc.F("bld.unlock", members, CostChips.Compact(power))), UiKit.TypeScale.Caption,
+                    unlocked ? UiFrames.InkSoft : UiFrames.InkBad, TextAnchor.UpperLeft).rectTransform.Place(0.19f, 0.04f, 0.7f, 0.6f);
                 var can = unlocked && !built;
                 var go = UiKit.Button("Go", row.transform, built ? Loc.T("bld.built") : Loc.T("bld.build"), () =>
                 {
                     ClosePopup();
                     LandCommand(AllianceLandRules.PlaceBuilding, x: x, y: y, resource: kind);
-                }, can ? UiKit.Ok : UiKit.Panel, 26);
+                }, can ? UiKit.Ok : UiKit.Panel, UiKit.TypeScale.Body);
                 go.interactable = can;
-                ((RectTransform)go.transform).Place(0.72f, 0.2f, 0.97f, 0.8f);
+                ((RectTransform)go.transform).Place(0.72f, 0.22f, 0.97f, 0.78f);
             }
+
+            UiFrames.FitSheet(sheet);
         }
 
         /// <summary>The building lines and buttons of a structure's menu (buildings and beacons).</summary>

@@ -216,87 +216,70 @@ namespace Hadal.UI
             var m = View.Marches?.Marches?.FirstOrDefault(x => x.Id == marchId);
             if (m == null)
                 return;
-            ClosePopup();
             TargetMenu.Hide();
             var catalog = ClientCatalog.Catalog;
-
-            var dim = UiKit.Box("Popup", _popupCanvas.transform, new Color(0, 0, 0, 0.6f));
-            dim.rectTransform.Place(0, 0, 1, 1);
-            dim.gameObject.AddComponent<Button>().onClick.AddListener(ClosePopup);
-            _popup = dim.gameObject;
-            var card = UiKit.Box("Card", dim.transform, UiKit.Panel);
-            card.rectTransform.Place(0.03f, 0.14f, 0.97f, 0.86f);
-            card.gameObject.AddComponent<Button>();
-            card.gameObject.AddComponent<CanvasGroup>();
-            card.gameObject.AddComponent<PopIn>();
-
-            UiKit.TitleBar(card.transform, 0.91f);
-            UiKit.Stroked(UiKit.Label("Title", card.transform, TeamName(m), 38, UiKit.Text, TextAnchor.MiddleLeft, FontStyle.Bold)).rectTransform.Place(0.05f, 0.92f, 0.8f, 0.985f);
-            var close = UiKit.Button("Close", card.transform, "X", ClosePopup, UiKit.Field, 36);
-            ((RectTransform)close.transform).Place(0.86f, 0.925f, 0.96f, 0.985f);
+            var sheet = MapDialog("team", TeamName(m), 128f);
+            var content = sheet.Content;
 
             // Status: phase, countdown and the bar of the leg it is on.
-            var status = UiKit.Box("Status", card.transform, new Color(0.03f, 0.09f, 0.13f, 0.9f));
-            status.rectTransform.Place(0.04f, 0.79f, 0.96f, 0.895f);
-            var phase = UiKit.Label("Phase", status.transform, string.Empty, 28, UiKit.Amber, TextAnchor.MiddleLeft, FontStyle.Bold);
-            phase.rectTransform.Place(0.04f, 0.45f, 0.96f, 0.95f);
-            var track = UiKit.Box("Track", status.transform, new Color(0, 0, 0, 0.55f));
-            track.rectTransform.Place(0.04f, 0.14f, 0.96f, 0.36f);
-            var fill = UiKit.Box("Fill", track.transform, UiKit.Ok);
-            fill.rectTransform.Place(0, 0, 0, 1);
+            var status = UiFrames.SheetBlock(content, UiFrames.Card, "Status");
+            status.Row(130);
+            var phase = UiKit.Label("Phase", status.transform, string.Empty, UiKit.TypeScale.Body + 2, new Color(0.72f, 0.42f, 0.04f, 1f), TextAnchor.MiddleLeft, FontStyle.Bold);
+            phase.rectTransform.Place(0.04f, 0.5f, 0.96f, 0.95f);
+            var fill = ShareBar(UiKit.Rect("Leg", status.transform).Place(0.04f, 0.14f, 0.96f, 0.42f), 0f, null, UiKit.Ok);
 
             // Target.
             var gather = m.Kind != "attack";
-            var target = UiKit.Box("Target", card.transform, new Color(0.03f, 0.09f, 0.13f, 0.9f));
-            target.rectTransform.Place(0.04f, 0.63f, 0.96f, 0.775f);
-            UiKit.Label("Head", target.transform, Loc.T("march.details.target"), 22, UiKit.Muted, TextAnchor.UpperLeft).rectTransform.Place(0.04f, 0.66f, 0.6f, 0.95f);
+            UiFrames.Section(content, Loc.T("march.details.target")).Row(56);
+            var target = UiFrames.SheetBlock(content, UiFrames.Card, "Target");
+            target.Row(130);
             var name = gather ? NodeName(m.NodeType) : MonsterName(m.NodeType);
-            UiKit.Label("Node", target.transform, Loc.F("march.details.node", name, m.NodeLevel), 30, UiKit.Text, TextAnchor.MiddleLeft, FontStyle.Bold)
-                .rectTransform.Place(0.04f, 0.33f, 0.7f, 0.7f);
+            UiKit.Label("Node", target.transform, Loc.F("march.details.node", name, m.NodeLevel), UiKit.TypeScale.Body + 2, UiFrames.Ink, TextAnchor.MiddleLeft, FontStyle.Bold)
+                .rectTransform.Place(0.04f, 0.5f, 0.7f, 0.95f);
             var km = GatherRules.Km(m.FromX, m.FromY, m.X, m.Y);
-            UiKit.Label("Where", target.transform, Loc.F("march.details.coords", m.X, m.Y, km.ToString("0.#")), 22, UiKit.Accent, TextAnchor.MiddleLeft)
-                .rectTransform.Place(0.04f, 0.04f, 0.7f, 0.34f);
+            UiKit.Label("Where", target.transform, Loc.F("march.details.coords", m.X, m.Y, km.ToString("0.#")), UiKit.TypeScale.Caption + 2, UiFrames.InkGood, TextAnchor.MiddleLeft)
+                .rectTransform.Place(0.04f, 0.06f, 0.7f, 0.5f);
             var go = UiKit.Button("Go", target.transform, Loc.T("march.details.go"), () =>
             {
                 ClosePopup();
                 GlideTo(m.X, m.Y);
-            }, UiKit.Primary, 24);
-            ((RectTransform)go.transform).Place(0.72f, 0.2f, 0.97f, 0.8f);
+            }, UiKit.Primary, UiKit.TypeScale.Body);
+            ((RectTransform)go.transform).Place(0.72f, 0.16f, 0.97f, 0.84f);
 
             // Cargo: gathered so far / what it will carry, and the rate.
-            var cargoBox = UiKit.Box("Cargo", card.transform, new Color(0.03f, 0.09f, 0.13f, 0.9f));
-            cargoBox.rectTransform.Place(0.04f, 0.43f, 0.96f, 0.615f);
-            UiKit.Label("Head", cargoBox.transform, Loc.T(gather ? "march.details.gather" : "march.details.loot"), 22, UiKit.Muted, TextAnchor.UpperLeft)
-                .rectTransform.Place(0.04f, 0.76f, 0.96f, 0.96f);
-            var cargo = UiKit.Label("Lines", cargoBox.transform, string.Empty, 25, UiKit.Text, TextAnchor.UpperLeft);
-            cargo.rectTransform.Place(0.04f, 0.04f, 0.96f, 0.76f);
+            UiFrames.Section(content, Loc.T(gather ? "march.details.gather" : "march.details.loot")).Row(56);
+            var cargoBox = UiFrames.SheetBlock(content, UiFrames.Card, "Cargo");
+            cargoBox.Row(60 + 46 * (2 + (m.Cargo?.Length ?? 0)));
+            var cargo = UiKit.Label("Lines", cargoBox.transform, string.Empty, UiKit.TypeScale.Body, UiFrames.Ink, TextAnchor.MiddleLeft);
+            cargo.rectTransform.Place(0.04f, 0.04f, 0.96f, 0.96f);
             cargo.richText = true;
 
             // The team: heroes with the troops they lead, then troops by type.
+            UiFrames.Section(content, Loc.T("march.team")).Row(56);
             var heroes = m.HeroIds != null && m.HeroIds.Length > 0 ? m.HeroIds : new[] { m.HeroId };
-            for (var i = 0; i < Math.Min(5, heroes.Length); i++)
+            var seats = UiKit.Rect("Seats", content).Row(220);
+            for (var i = 0; i < 5; i++)
             {
-                var x0 = 0.04f + i * 0.185f;
-                var seat = UiKit.Box("Seat", card.transform, new Color(0, 0, 0, 0.35f));
-                seat.rectTransform.Place(x0, 0.2f, x0 + 0.175f, 0.415f);
-                if (catalog.TryGetHero(heroes[i], out var def))
-                    SocialView.Portrait(seat.transform, def, true, 0.04f, 0.22f, 0.96f, 0.97f);
+                var cell = UiKit.Rect("Cell", seats).Place(i / 5f, 0f, (i + 1) / 5f, 1f, 5f);
+                if (i >= heroes.Length || !catalog.TryGetHero(heroes[i], out var def))
+                {
+                    if (i >= heroes.Length)
+                        Seat(cell, null, 0, null).Place(0, 0, 1, 1);
+                    continue;
+                }
+
                 // Marches sent before teams carried only a crew count under their one hero.
                 var count = m.HeroTroops != null && i < m.HeroTroops.Length ? m.HeroTroops[i] : heroes.Length == 1 ? m.Crew : 0;
-                var chip = UiKit.Box("Troops", seat.transform, new Color(0.17f, 0.6f, 0.3f, 1f));
-                chip.rectTransform.Place(0.04f, 0.02f, 0.96f, 0.2f);
-                UiKit.Label("Count", chip.transform, CostChips.Compact(count), 20, Color.white, TextAnchor.MiddleCenter, FontStyle.Bold).rectTransform.Place(0, 0, 1, 1);
+                Seat(cell, def, count, null).Place(0, 0, 1, 1);
             }
 
             var troops = string.Join("   ", (m.Troops ?? Array.Empty<TroopStackDto>()).Select(t => $"T{t.Tier} {Loc.T("troop." + t.Type)} ×{t.Count:N0}"));
-            UiKit.Label("Troops", card.transform, $"{Loc.F("march.crew", m.Crew.ToString("N0"))}   {troops}", 22, UiKit.Muted, TextAnchor.MiddleLeft)
-                .rectTransform.Place(0.05f, 0.13f, 0.95f, 0.19f);
+            UiFrames.SheetText(content, $"{Loc.F("march.crew", m.Crew.ToString("N0"))}   {troops}", UiKit.TypeScale.Caption + 2).Row(70);
 
             // Actions.
-            var speed = UiKit.Button("Speed", card.transform, Loc.T("march.speedup"), () => { ClosePopup(); SpeedUpMarch(marchId); }, UiKit.Gold, 28);
-            ((RectTransform)speed.transform).Place(0.06f, 0.025f, 0.48f, 0.11f);
-            var recall = UiKit.Button("Recall", card.transform, Loc.T("world.recall"), () => { ClosePopup(); Recall(marchId); }, UiKit.Danger, 28);
-            ((RectTransform)recall.transform).Place(0.52f, 0.025f, 0.94f, 0.11f);
+            var speed = UiFrames.FooterButton(sheet.Footer, Loc.T("march.speedup"), () => { ClosePopup(); SpeedUpMarch(marchId); }, UiKit.Gold, 0f, 0.5f);
+            var recall = UiFrames.FooterButton(sheet.Footer, Loc.T("world.recall"), () => { ClosePopup(); Recall(marchId); }, UiKit.Danger, 0.5f, 1f);
+            UiFrames.FitSheet(sheet);
 
             _teamDetailsTick = () =>
             {
@@ -315,6 +298,7 @@ namespace Hadal.UI
                 var until = outbound ? live.ArrivesAtMs : working ? live.GatheredAtMs : live.HomeAtMs;
                 phase.text = Loc.F(key, Loc.Duration(Math.Max(0, (until - now) / 1000f)));
                 fill.rectTransform.anchorMax = new Vector2(Mathf.Clamp01((now - from) / (float)Math.Max(1, until - from)), 1f);
+                fill.enabled = fill.rectTransform.anchorMax.x > 0.005f;
 
                 // What it has gathered by now: the cargo grows evenly while it works on the node.
                 var span = Math.Max(1, live.GatheredAtMs - live.ArrivesAtMs);
@@ -326,7 +310,7 @@ namespace Hadal.UI
                     var got = (long)Math.Floor(c.Value * share);
                     var line = $"<b>{Loc.Resource(c.Key.ToString())}</b>  {got:N0} / {c.Value:N0}";
                     if (gather)
-                        line += $"   <color=#8FD3FF>{Loc.F("march.details.rate", CostChips.Compact((long)(c.Value / Math.Max(0.01, hours))))}</color>";
+                        line += $"   <color=#1C6FB0>{Loc.F("march.details.rate", CostChips.Compact((long)(c.Value / Math.Max(0.01, hours))))}</color>";
                     lines.Add(line);
                 }
 
@@ -346,7 +330,7 @@ namespace Hadal.UI
         /// <summary>Called every frame: keeps the open team sheet live.</summary>
         private void TickTeamDetails()
         {
-            if (_popup == null)
+            if (_popup == null || _sheetKind != "team")
                 _teamDetailsTick = null;
             _teamDetailsTick?.Invoke();
         }

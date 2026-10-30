@@ -5,20 +5,20 @@ using HADAL.Shared.Simulation;
 using Hadal.Core.Catalog;
 using Hadal.Core.StateSync;
 using UnityEngine;
-using UnityEngine.UI;
 
 namespace Hadal.UI
 {
     /// <summary>
-    /// The battle report (genre mail report): Victory or Defeat over the two sides — our heroes and troops by stack
-    /// with what each lost (wounded, PvE never kills), the swarm with what it lost — the rounds and the spoils that
-    /// travel home with the team. Pops up when a team reaches its target, over any screen.
+    /// The battle result against a swarm, as Last Asylum's result dialog over the blurred game: our team (blue) and the
+    /// swarm (red) face to face with Victory or Defeat over each, where and in how many rounds, then our heroes and
+    /// troops stack by stack with what each lost (wounded, PvE never kills), the swarm's losses, and the spoils as
+    /// item tiles that travel home with the team. Pops up when a team reaches its target, over any screen.
     /// </summary>
     public sealed class BattleReportWindow : MonoBehaviour
     {
         private IStateSyncService _stateSync;
         private Canvas _canvas;
-        private GameObject _window;
+        private UiFrames.Sheet _window;
 
         public void Initialize(IStateSyncService stateSync)
         {
@@ -29,7 +29,7 @@ namespace Hadal.UI
 
         private void Update()
         {
-            if (_stateSync == null || _window != null)
+            if (_stateSync == null || _window is { IsOpen: true })
                 return;
             if (_stateSync.View.TryTakeBattleReport(out var report))
                 Show(report);
@@ -37,84 +37,83 @@ namespace Hadal.UI
 
         private void Close()
         {
-            if (_window != null)
-                Destroy(_window);
+            _window?.Close();
             _window = null;
         }
 
         private void Show(BattleReportDto r)
         {
             AudioDirector.BattleResolved(r.Won);
-            var dim = UiKit.Box("Report", _canvas.transform, new Color(0, 0, 0, 0.65f));
-            dim.rectTransform.Place(0, 0, 1, 1);
-            dim.gameObject.AddComponent<Button>().onClick.AddListener(Close);
-            _window = dim.gameObject;
+            var monster = WorldMapView.MonsterName(r.MonsterType);
+            var sheet = UiFrames.OpenSheet(_canvas.transform, $"{Loc.F("base.level", r.MonsterLevel)} {monster}", Close, footer: 128f);
+            _window = sheet;
+            var content = sheet.Content;
 
-            var card = UiKit.Box("Card", dim.transform, UiKit.Panel);
-            card.rectTransform.Place(0.04f, 0.14f, 0.96f, 0.86f);
-            card.gameObject.AddComponent<Button>();
-            card.gameObject.AddComponent<CanvasGroup>();
-            card.gameObject.AddComponent<PopIn>();
+            // Who fought whom and how it ended.
+            UiFrames.Versus(content,
+                (Loc.T("battle.us"), Loc.T(r.Won ? "battle.won" : "battle.lost"), r.Won, Loc.F("hero.power", r.AttackerPower.ToString("N0"))),
+                (monster, Loc.T(r.Won ? "battle.lost" : "battle.won"), !r.Won, Loc.F("hero.power", r.DefenderPower.ToString("N0")))).Row(230);
+            UiFrames.SheetText(content, $"X:{r.X} Y:{r.Y}   ·   {Loc.F("battle.rounds", r.Rounds)}", UiKit.TypeScale.Caption + 2).Row(48);
 
-            // Banner: gold for a win, red for a loss.
-            var banner = UiKit.Box("Banner", card.transform, r.Won ? new Color(0.85f, 0.62f, 0.18f, 1f) : new Color(0.62f, 0.18f, 0.18f, 1f));
-            banner.rectTransform.Place(0, 0.87f, 1, 1);
-            var title = UiKit.Label("Title", banner.transform, Loc.T(r.Won ? "battle.won" : "battle.lost"), 52, Color.white, TextAnchor.MiddleCenter, FontStyle.Bold);
-            title.rectTransform.Place(0, 0.3f, 1, 1);
-            UiText.Outline(title, new Color(0, 0, 0, 0.6f));
-            UiKit.Label("Where", banner.transform, $"{Loc.F("base.level", r.MonsterLevel)} {WorldMapView.MonsterName(r.MonsterType)}  ·  X:{r.X} Y:{r.Y}  ·  {Loc.F("battle.rounds", r.Rounds)}",
-                24, Color.white, TextAnchor.MiddleCenter).rectTransform.Place(0, 0.02f, 1, 0.34f);
-            var close = UiKit.Button("Close", banner.transform, "X", Close, UiKit.Field, 36);
-            ((RectTransform)close.transform).Place(0.87f, 0.55f, 0.98f, 0.95f);
-
-            // Our side and theirs, face to face.
-            Side(card.transform, 0.02f, 0.49f, Loc.T("battle.us"), r.AttackerPower, r.Attacker, r.HeroIds, true);
-            Side(card.transform, 0.51f, 0.98f, WorldMapView.MonsterName(r.MonsterType), r.DefenderPower, r.Defender, null, false, WorldMapView.MonsterName(r.MonsterType));
-
-            // Spoils.
-            UiKit.Label("SpoilsTitle", card.transform, Loc.T("battle.spoils"), 28, UiKit.Amber, TextAnchor.MiddleLeft, FontStyle.Bold).rectTransform.Place(0.05f, 0.21f, 0.95f, 0.26f);
-            var spoils = r.Rewards ?? Array.Empty<ItemCountDto>();
-            if (spoils.Length == 0)
-                UiKit.Label("None", card.transform, Loc.T("battle.nospoils"), 24, UiKit.Muted, TextAnchor.MiddleLeft).rectTransform.Place(0.05f, 0.13f, 0.95f, 0.2f);
-            for (var i = 0; i < Math.Min(4, spoils.Length); i++)
+            // Our side: the heroes in a row, then the troops with what they lost (wounded).
+            UiFrames.Section(content, Loc.T("battle.us")).Row(60);
+            var heroes = (r.HeroIds ?? Array.Empty<string>()).Where(id => ClientCatalog.Catalog.TryGetHero(id, out _)).Take(5).ToList();
+            if (heroes.Count > 0)
             {
-                var x0 = 0.05f + i * 0.23f;
-                var tile = UiKit.Box("Spoil", card.transform, new Color(0.04f, 0.11f, 0.15f, 1f));
-                tile.rectTransform.Place(x0, 0.09f, x0 + 0.21f, 0.2f);
-                Hud.HudIcons.Image(tile.transform, QuestText.ItemIcon(spoils[i].Id, null), 0.05f, 0.15f, 0.35f, 0.85f).raycastTarget = false;
-                UiKit.Label("Name", tile.transform, $"{QuestText.Item(spoils[i].Id)} ×{spoils[i].Count}", 18, UiKit.Text, TextAnchor.MiddleLeft).rectTransform.Place(0.38f, 0, 0.98f, 1);
-            }
-
-            UiKit.Label("Home", card.transform, Loc.T("battle.home"), 20, UiKit.Muted, TextAnchor.MiddleCenter).rectTransform.Place(0.04f, 0.01f, 0.96f, 0.08f);
-        }
-
-        /// <param name="unitName">The swarm's own name for its stacks (they fight as a troop type but are not troops).</param>
-        private static void Side(Transform card, float x0, float x1, string title, long power, BattleStackDto[] stacks, string[] heroes, bool ours,
-            string unitName = null)
-        {
-            var panel = UiKit.Box("Side", card, ours ? new Color(0.05f, 0.18f, 0.26f, 1f) : new Color(0.24f, 0.07f, 0.08f, 1f));
-            panel.rectTransform.Place(x0, 0.28f, x1, 0.85f);
-            UiKit.Label("Title", panel.transform, title, 28, Color.white, TextAnchor.MiddleCenter, FontStyle.Bold).rectTransform.Place(0.04f, 0.88f, 0.96f, 0.98f);
-            UiKit.Label("Power", panel.transform, Loc.F("hero.power", power.ToString("N0")), 22, UiKit.Amber, TextAnchor.MiddleCenter).rectTransform.Place(0.04f, 0.8f, 0.96f, 0.88f);
-
-            var top = 0.78f;
-            if (heroes != null && heroes.Length > 0)
-            {
-                var catalog = ClientCatalog.Catalog;
-                for (var i = 0; i < Math.Min(5, heroes.Length); i++)
+                var row = UiKit.Rect("Heroes", content).Row(150);
+                for (var i = 0; i < heroes.Count; i++)
                 {
-                    if (!catalog.TryGetHero(heroes[i], out var hero))
-                        continue;
-                    var face = UiKit.Rect("Hero", panel.transform).Place(0.04f + i * 0.19f, 0.6f, 0.21f + i * 0.19f, 0.78f);
+                    ClientCatalog.Catalog.TryGetHero(heroes[i], out var hero);
+                    var face = UiKit.Rect("Hero", row).Place(0.02f + i * 0.196f, 0f, 0.186f + i * 0.196f, 1f);
                     SocialView.Portrait(face, hero, true, 0, 0, 1, 1);
                 }
-
-                top = 0.58f;
             }
 
-            var lines = string.Join("\n", (stacks ?? Array.Empty<BattleStackDto>()).Select(s =>
-                $"{unitName ?? $"T{s.Tier} {Loc.T("troop." + s.Type)}"}\n<size=20>{s.Start:N0}  <color={(ours ? "#FFB347" : "#FF8A80")}>-{s.Lost:N0}</color>{(ours ? " " + Loc.T("battle.wounded") : string.Empty)}</size>"));
-            UiKit.Label("Stacks", panel.transform, lines, 24, UiKit.Text, TextAnchor.UpperCenter).rectTransform.Place(0.04f, 0.04f, 0.96f, top);
+            Table(r.Attacker, true, null);
+
+            // The swarm: its stacks fight as troop types but go by the swarm's name.
+            UiFrames.Section(content, monster).Row(60);
+            Table(r.Defender, false, monster);
+
+            // Spoils, as reward tiles.
+            UiFrames.Section(content, Loc.T("battle.spoils")).Row(60);
+            var spoils = r.Rewards ?? Array.Empty<ItemCountDto>();
+            if (spoils.Length == 0)
+            {
+                UiFrames.Note(content, Loc.T("battle.nospoils")).Row(90);
+            }
+            else
+            {
+                var grid = UiFrames.Grid(content, 5);
+                foreach (var s in spoils)
+                    UiFrames.ItemTile(grid, QuestText.ItemIcon(s.Id, null), "rare", "×" + CostChips.Compact(s.Count));
+            }
+
+            UiFrames.SheetText(content, Loc.T("battle.home"), UiKit.TypeScale.Caption + 2).Row(52);
+            UiFrames.FooterButton(sheet.Footer, Loc.T("pvp.result.ok"), Close, UiKit.Primary, 0.25f, 0.75f);
+            UiFrames.FitSheet(sheet);
+
+            void Table(BattleStackDto[] stacks, bool ours, string unitName)
+            {
+                var all = (stacks ?? Array.Empty<BattleStackDto>()).OrderByDescending(s => s.Start).ToList();
+                if (all.Count == 0)
+                {
+                    UiFrames.TableRow(content, new[] { "—" }).Row(64);
+                    return;
+                }
+
+                UiFrames.TableRow(content, new[] { string.Empty, Loc.T("mail.report.start"), ours ? Loc.T("battle.wounded") : Loc.T("mail.report.lost") }, header: true)
+                    .Row(52);
+                for (var i = 0; i < all.Count; i++)
+                {
+                    var s = all[i];
+                    UiFrames.TableRow(content, new[]
+                    {
+                        unitName ?? $"T{s.Tier} {Loc.T("troop." + s.Type)}", s.Start.ToString("N0"),
+                        s.Lost > 0 ? $"<color={(ours ? "#B86A0C" : "#C8352B")}>−{s.Lost:N0}</color>" : "0"
+                    }, index: i).Row(64);
+                }
+            }
         }
     }
 }

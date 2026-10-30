@@ -678,21 +678,23 @@ namespace Hadal.UI.Hud
         private void ShowPowerInfo() =>
             Popup(Loc.T("hud.power"), "power", $"{Power():N0}\n\n{Loc.T("hud.power.hint")}");
 
+        /// <summary>A small dialog over the blurred game (Last Asylum's info popups): the item's icon, then its text.</summary>
         private void Popup(string title, string icon, string body)
         {
             if (_popup != null)
                 Destroy(_popup);
 
-            var dim = UiKit.Box("Popup", _canvas.transform, new Color(0, 0, 0, 0.55f));
-            dim.rectTransform.Place(0, 0, 1, 1);
-            dim.gameObject.AddComponent<Button>().onClick.AddListener(() => Destroy(dim.gameObject));
-            _popup = dim.gameObject;
-
-            var card = UiKit.Box("Card", dim.transform, UiKit.Panel);
-            card.rectTransform.Place(0.1f, 0.38f, 0.9f, 0.62f);
-            HudIcons.Image(card.transform, icon, 0.04f, 0.62f, 0.22f, 0.95f);
-            UiKit.Label("Title", card.transform, title, 44, UiKit.Accent, TextAnchor.MiddleLeft, FontStyle.Bold).rectTransform.Place(0.25f, 0.68f, 0.96f, 0.95f);
-            UiKit.Label("Body", card.transform, body, 32, UiKit.Text, TextAnchor.UpperLeft).rectTransform.Place(0.06f, 0.06f, 0.94f, 0.62f);
+            UiFrames.Sheet sheet = null;
+            sheet = UiFrames.OpenSheet(_canvas.transform, title, () =>
+            {
+                sheet.Close();
+                _popup = null;
+            });
+            _popup = sheet.Root.gameObject;
+            HudIcons.Image(UiKit.Rect("Icon", sheet.Content).Row(170), icon, 0.38f, 0.04f, 0.62f, 0.96f);
+            var lines = body.Split('\n').Sum(l => 1 + l.Length / 38);
+            UiFrames.Note(sheet.Content, body, UiFrames.Ink).Row(Mathf.Clamp(40 + lines * 42, 110, 600));
+            UiFrames.FitSheet(sheet);
         }
 
         private void Soon(string key) => _actions.Toast?.Invoke(Loc.F("hud.soon", Loc.T(key)), UiKit.Amber);
