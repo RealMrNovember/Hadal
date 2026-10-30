@@ -9,7 +9,8 @@ roster height (metres), put the origin at the bottom centre (decor, crawlers) or
 Assets/_Hadal/Art/Props/<id>.fbx + <id>_albedo.png and render a preview.
 
 Map creatures (art/gpu/creatures.json) go to their own folder and are turned so the head points +Z in Unity
-(the shader and CreatureMotion assume it); a roster entry may set its own "budget" (triangles) and "texture" (px):
+(the shader and CreatureMotion assume it); a roster entry may set its own "budget" (triangles) and "texture" (px), and
+"footprint" (metres): the widest the model may be, so a tall building tier never spills into the next slot:
 
     blender -b --factory-startup --python art/blender/props.py -- --project /opt/hadal         --source /opt/hadal-thirdparty/trellis/creatures --roster art/gpu/creatures.json         --out-dir Assets/_Hadal/Art/Creatures --bake-yaw
 """
@@ -71,9 +72,11 @@ def bounds(obj):
     return lo, hi
 
 
-def normalise(obj, height, swimmer):
+def normalise(obj, height, swimmer, footprint=None):
     lo, hi = bounds(obj)
     scale = height / max(1e-4, hi.z - lo.z)
+    if footprint:
+        scale = min(scale, footprint / max(1e-4, hi.x - lo.x, hi.y - lo.y))
     centre = (lo + hi) / 2
     pivot = Vector((centre.x, centre.y, centre.z if swimmer else lo.z))
     for v in obj.data.vertices:
@@ -165,7 +168,7 @@ def main():
 
         swimmer = asset["motion"] in SWIMMERS
         obj = import_mesh(source, asset_id)
-        normalise(obj, asset["height"], swimmer)
+        normalise(obj, asset["height"], swimmer, asset.get("footprint"))
         if args.bake_yaw:
             bake_yaw(obj, asset.get("yaw", 0))
         budget = asset.get("budget") or (BIG_BUDGET if asset["height"] > 3.5 else BUDGET[asset["kind"]])

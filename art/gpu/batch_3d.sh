@@ -50,5 +50,11 @@ for id in $ids; do
   echo "[batch] $(date +%T) trellis $id"
   "$HOME/hadal-gpu/repo/art/gpu/run_3d.sh" hadal-3d-trellis --model trellis --texture \
     --image "/work/out/$SET/concept/${id}_rgba.png" --out "/work/out/$SET/3d/$id" --name "$id" | tail -2
+  # A dense concept can run the 8 GB card out of memory in the mesh decoder: once more, coarser.
+  if [ ! -f "$HOST_OUT/3d/$id/${id}_textured.glb" ]; then
+    echo "[batch] $(date +%T) trellis $id again with --max-voxels 9000"
+    "$HOME/hadal-gpu/repo/art/gpu/run_3d.sh" hadal-3d-trellis --model trellis --texture --max-voxels 9000 \
+      --image "/work/out/$SET/concept/${id}_rgba.png" --out "/work/out/$SET/3d/$id" --name "$id" | tail -2
+  fi
 done
 echo "[batch] $(date +%T) done"
