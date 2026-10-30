@@ -19,7 +19,7 @@ namespace Hadal.UI
     /// <see cref="Feature"/> buttons, <see cref="QuestRow"/>s with reward tiles and a Claim/Go button,
     /// <see cref="BonusRow"/>s, <see cref="Banner"/>s and table rows with a highlighted current row.
     /// </summary>
-    public static class UiFrames
+    public static partial class UiFrames
     {
         // Palette (sampled from the references).
         public static readonly Color Navy = new(0.15f, 0.21f, 0.32f, 1f);
