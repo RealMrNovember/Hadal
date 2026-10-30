@@ -53,7 +53,7 @@ namespace Hadal.UI
             if (result.Result == CommandResultCode.Rejected)
             {
                 // Silent background requests (map views, profiles, rankings) are not the player's doing.
-                if (result.Type is not (CommandType.ViewWorld or CommandType.ViewProfile or CommandType.ViewEventRanking
+                if (result.Type is not (CommandType.ViewWorld or CommandType.ViewProfile or CommandType.ViewEventRanking or CommandType.ViewEventCalendar
                     or CommandType.BrowseAlliances or CommandType.ClientAuth))
                     GameAudio.Play(Sfx.Error);
                 return;

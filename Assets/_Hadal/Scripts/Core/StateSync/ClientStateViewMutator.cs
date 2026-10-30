@@ -302,6 +302,13 @@ namespace Hadal.Core.StateSync
                 return true;
             }
 
+            if (id == EntityIds.EventCalendar)
+            {
+                if (TryDeserializePayload(change.Payload, serialization, out EventCalendarDto calendar))
+                    view.ApplyEventCalendar(calendar);
+                return true;
+            }
+
             if (id.StartsWith(EntityIds.EventRanking, StringComparison.Ordinal))
             {
                 if (TryDeserializePayload(change.Payload, serialization, out EventRankingDto ranking))

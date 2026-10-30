@@ -70,6 +70,18 @@ const EVENT_ERRORS = {
   AlreadyOver: "Etkinliğin süresi geçmiş.",
   NotLive: "Etkinlik şu an canlı değil.",
   CancelFirst: "Yayındaki etkinliği silmeden önce iptal et.",
+  InvalidKingdoms: "Krallık listesi geçersiz.",
+  InvalidSchedule: "Program geçersiz.",
+  InvalidId: "Program kimliği 3–32 küçük harf, rakam ya da '-' olmalı.",
+  InvalidWeekdays: "En az bir gün seç.",
+  InvalidStartTime: "Başlangıç saati geçersiz.",
+  InvalidDuration: "Süre 1–168 saat olmalı.",
+  InvalidLead: "Önceden oluşturma 0–72 saat olmalı.",
+  InvalidBrackets: "Reaktör aralıkları geçersiz (en çok 5; en yüksek ≥ en düşük ya da 0).",
+  InvalidBlueprint: "Programın etkinlik şablonu geçersiz.",
+  InvalidNote: "Not en fazla 200 karakter olabilir.",
+  UnknownSchedule: "Program bulunamadı.",
+  NoOccurrence: "Önümüzdeki 8 günde oluşturulacak bir tekrar yok; hepsi zaten var.",
 };
 
 // ---------------------------------------------------------------- Ready-made deep-sea scenarios
@@ -234,13 +246,16 @@ async function events(root, arg) {
   Object.assign(ERRORS, EVENT_ERRORS);
   if (arg === "new") return eventEditor(root, null);
   if (arg && arg.startsWith("edit-")) return eventEditor(root, arg.slice(5));
+  if (arg && arg.startsWith("schedule-")) return scheduleEditor(root, arg.slice(9));
   if (arg) return eventDetail(root, arg);
 
-  const rows = await api("events");
+  const [rows, schedules, calendar] = await Promise.all([api("events"), api("schedules"), api("calendar")]);
   render(root,
     el("div", { class: "row spread" }, el("h1", {}, "Etkinlikler"),
       can("gm") ? el("button", { class: "primary", onclick: () => (location.hash = "#/events/new") }, "+ Yeni etkinlik") : null),
     el("p", { class: "muted" }, "Puan yarışmaları, ittifak yarışmaları ve giriş ödülleri. Yayınlanan etkinlik oyunculara anında görünür; başlangıçtan 7 gün önce \"yaklaşan\" olarak listelenir."),
+    calendarSection(schedules, calendar),
+    el("h2", {}, "Tüm etkinlikler"),
     rows.length === 0 ? el("div", { class: "card muted" }, "Henüz etkinlik yok. Sağ üstten yeni bir etkinlik oluştur ya da hazır şablonlardan birini kullan.") :
     el("table", {},
       el("thead", {}, el("tr", {}, ["", "Etkinlik", "Tür", "Durum", "Zaman", "Katılımcı", "En yüksek", ""].map((h) => el("th", {}, h)))),
@@ -269,6 +284,8 @@ async function eventDetail(root, id) {
     d.status === "draft" ? el("button", { class: "primary", onclick: () => confirm("Etkinlik yayınlansın mı? Oyuncular hemen görecek.") && act("publish", null, "Yayınlandı.") }, "Yayınla") : null,
     r.phase !== "closed" && r.phase !== "cancelled" ? el("button", { onclick: () => (location.hash = "#/events/edit-" + id) }, "Düzenle") : null,
     el("button", { onclick: () => api(`events/${id}/duplicate`, { method: "POST" }).then((c) => { toast("Kopyalandı (taslak)."); location.hash = "#/events/" + c.id; }, (e) => toast(e.message, true)) }, "Kopyala"),
+    el("button", { title: "Bu etkinliği şablon alan, kapalı bir haftalık program oluşturur", onclick: () => api(`schedules/from-event/${encodeURIComponent(id)}`, { method: "POST" })
+      .then((r) => { toast("Program oluşturuldu (kapalı). Gün ve saati kontrol edip aç."); location.hash = "#/events/schedule-" + r.schedule.id; }, (e) => toast(e.message, true)) }, "Takvime ekle"),
     r.phase === "live" ? el("button", { onclick: () => confirm("Etkinlik şimdi bitirilsin mi? Sıralama ödülleri açılır.") && act("end", null, "Etkinlik bitirildi.") }, "Şimdi bitir") : null,
     r.phase === "live" || r.phase === "upcoming" || r.phase === "ended" ? el("span", { class: "inline" }, hours, el("button", { onclick: () => act("extend", { hours: Number(hours.value) }, "Süre uzatıldı.") }, "saat uzat")) : null,
     d.status === "published" ? el("button", { class: "danger", onclick: () => confirm("Etkinlik iptal edilsin mi? Oyunculardan gizlenir, ödül alınamaz.") && act("cancel", null, "İptal edildi.") }, "İptal et") : null,
@@ -282,6 +299,7 @@ async function eventDetail(root, id) {
     el("p", {}, el("a", { href: "#/events" }, "‹ Etkinlikler")),
     el("div", { class: "card banner", style: `border-left:6px solid ${(EVENT_BANNERS[d.banner] || ["", "#333"])[1]}` },
       el("div", { class: "row spread" }, el("h1", {}, textOf(d.title), " ", phasePill(r.phase)), el("span", { class: "muted mono" }, d.id)),
+      d.scheduleId ? el("p", {}, el("span", { class: "pill" }, "takvim"), " ", el("a", { href: "#/events/schedule-" + d.scheduleId }, "Programı aç: " + d.scheduleId)) : null,
       el("p", { class: "muted" }, `${EVENT_TEMPLATES[d.template]} · ${fmtDate(d.startsAt)} → ${fmtDate(d.endsAt)}` +
         (d.template !== "login" ? ` · ödül dönemi ${d.claimDays} gün` : "") +
         (d.minLevel || d.maxLevel ? ` · Reaktör ${d.minLevel || 1}–${d.maxLevel || "∞"}` : "") +
@@ -500,6 +518,140 @@ async function eventEditor(root, id) {
       el("div", { class: "row" },
         el("button", { class: "primary", onclick: () => save().catch((e) => toast(e.message, true)) }, id ? "Kaydet" : "Taslak olarak kaydet"),
         el("span", { class: "muted" }, id ? "Canlı bir etkinlikte tür ve başlangıç değişmez; kazanılmış puanlar korunur." : "Taslaklar oyunculara görünmez; ayrıntı sayfasından yayınlarsın.")),
+    ];
+  }
+
+  draw();
+}
+
+// ---------------------------------------------------------------- Weekly calendar (docs/29 §2.2, roadmap §7)
+const WEEKDAYS_TR = ["Paz", "Pzt", "Sal", "Çar", "Per", "Cum", "Cmt"]; // System.DayOfWeek order
+const CAL_STATES = {
+  planned: ["Planlı", ""], disabled: ["Kapalı program", "off"], skipped: ["Silinmiş", "off"], draft: ["Taslak", ""], cancelled: ["İptal", "off"],
+  upcoming: ["Yaklaşan", ""], live: ["Canlı", "on"], ended: ["Ödül dönemi", ""], closed: ["Bitti", "off"],
+};
+const pad2 = (n) => String(n).padStart(2, "0");
+const utcTime = (iso) => { const d = new Date(iso); return `${pad2(d.getUTCHours())}:${pad2(d.getUTCMinutes())}`; };
+const utcDay = (iso) => { const d = new Date(iso); return `${WEEKDAYS_TR[d.getUTCDay()]} ${pad2(d.getUTCDate())}.${pad2(d.getUTCMonth() + 1)}`; };
+const minuteText = (m) => `${pad2(Math.floor(m / 60))}:${pad2(m % 60)}`;
+const calPill = (state) => { const [label, cls] = CAL_STATES[state] || [state, ""]; return el("span", { class: "pill " + cls }, label); };
+const daysText = (days) => (days.length === 7 ? "Her gün" : days.slice().sort((a, b) => ((a + 6) % 7) - ((b + 6) % 7)).map((d) => WEEKDAYS_TR[d]).join(", "));
+
+function calendarSection(schedules, calendar) {
+  const runNow = (id) => api(`schedules/${id}/run`, { method: "POST" })
+    .then((r) => { toast(`Oluşturuldu: ${r.created.join(", ")}`); route(); }, (e) => toast(e.message, true));
+  const setEnabled = (id, enabled) => api(`schedules/${id}/enabled`, { method: "POST", body: { enabled } })
+    .then(() => { toast(enabled ? "Program açıldı." : "Program kapatıldı."); route(); }, (e) => toast(e.message, true));
+
+  // The week grid: a column per UTC day, a row per kingdom; an occurrence shows on every day it covers.
+  const kingdoms = calendar.kingdoms.length ? calendar.kingdoms : [{ id: "w1", number: 1, name: "" }];
+  const dayStart = (iso) => new Date(iso).getTime();
+  const DAY = 24 * HOUR;
+  const cell = (kingdom, day) => {
+    const from = dayStart(day), to = from + DAY;
+    const items = calendar.entries.filter((e) => (e.kingdom === kingdom || e.kingdom === "") && dayStart(e.startsAt) < to && dayStart(e.endsAt) > from);
+    return el("td", { class: "cal-cell" }, items.length === 0 ? el("span", { class: "muted" }, "—") : items.map((e) => {
+      const starts = dayStart(e.startsAt) >= from;
+      const link = e.state === "planned" || e.state === "disabled" || e.state === "skipped" ? "#/events/schedule-" + e.scheduleId : "#/events/" + e.id;
+      return el("a", { class: "cal-item", href: link, style: `border-left-color:${(EVENT_BANNERS[e.banner] || ["", "#333"])[1]}`,
+        title: `${e.id}\n${utcDay(e.startsAt)} ${utcTime(e.startsAt)} → ${utcDay(e.endsAt)} ${utcTime(e.endsAt)} UTC` + (e.minLevel || e.maxLevel ? `\nReaktör ${e.minLevel || 1}–${e.maxLevel || "∞"}` : "") },
+        el("b", {}, textOf(e.title)), " ", calPill(e.state),
+        el("div", { class: "muted small" }, starts ? `${utcTime(e.startsAt)} UTC · ${EVENT_TEMPLATES[e.template] || e.template}` : "← devam ediyor"));
+    }));
+  };
+
+  return el("div", { class: "card" },
+    el("div", { class: "row spread" }, el("h2", {}, "Takvim"), el("span", { class: "muted" }, "Saatler sunucu saati (UTC). Programlar her krallık için etkinliği başlangıçtan önce kendisi oluşturur.")),
+    el("div", { class: "cal-scroll" }, el("table", { class: "cal" },
+      el("thead", {}, el("tr", {}, el("th", {}, "Krallık"), calendar.days.map((d, i) => el("th", { class: i === 0 ? "today" : "" }, i === 0 ? "Bugün · " + utcDay(d) : utcDay(d))))),
+      el("tbody", {}, kingdoms.map((k) => el("tr", {}, el("td", { class: "mono" }, `#${k.number} ${k.name || ""}`.trim()), calendar.days.map((d) => cell(k.id, d))))))),
+    el("h2", {}, "Haftalık programlar"),
+    schedules.length === 0 ? el("p", { class: "muted" }, "Program yok. Bir etkinliğin sayfasında \"Takvime ekle\" ile oluştur.") :
+    el("table", {},
+      el("thead", {}, el("tr", {}, ["Program", "Tür", "Günler", "Başlangıç (UTC)", "Süre", "Önceden", "Sonraki", "Durum", ""].map((h) => el("th", {}, h)))),
+      el("tbody", {}, schedules.map(({ schedule: s, nextStart }) => el("tr", {},
+        el("td", {}, el("a", { href: "#/events/schedule-" + s.id }, el("b", {}, textOf(s.blueprint.title))), el("div", { class: "muted mono" }, s.id)),
+        el("td", {}, EVENT_TEMPLATES[s.blueprint.template] || s.blueprint.template),
+        el("td", {}, daysText(s.weekdays)),
+        el("td", { class: "mono" }, minuteText(s.startMinute)),
+        el("td", {}, `${fmtNum(s.durationHours)} sa`),
+        el("td", {}, `${fmtNum(s.leadHours)} sa`),
+        el("td", { class: "mono" }, nextStart ? `${utcDay(nextStart)} ${utcTime(nextStart)}` : "—"),
+        el("td", {}, el("span", { class: "pill " + (s.enabled ? "on" : "off") }, s.enabled ? "Açık" : "Kapalı")),
+        el("td", {}, can("gm") ? el("span", { class: "inline" },
+          el("button", { class: "small", onclick: () => setEnabled(s.id, !s.enabled) }, s.enabled ? "Kapat" : "Aç"),
+          el("button", { class: "small", onclick: () => (location.hash = "#/events/schedule-" + s.id) }, "Düzenle"),
+          el("button", { class: "small", title: "Sıradaki tekrarı (eksik krallıklar için) beklemeden şimdi oluşturur", onclick: () => confirm("Sıradaki tekrar şimdi oluşturulsun mu? Oyuncular \"yaklaşan\" olarak görür.") && runNow(s.id) }, "Şimdi oluştur")) : null))))));
+}
+
+async function scheduleEditor(root, id) {
+  const { schedule: model, nextStart } = await api("schedules/" + id);
+  model.brackets = model.brackets || [];
+  const b = model.blueprint;
+  const draw = () => render(root, form());
+
+  async function save() {
+    const saved = await api("schedules", { method: "POST", body: model });
+    toast("Program kaydedildi. Yeni ayarlar bundan sonra oluşturulan tekrarlara uygulanır.");
+    location.hash = "#/events/schedule-" + saved.schedule.id;
+    route();
+  }
+
+  function form() {
+    const time = el("input", { type: "time", value: minuteText(model.startMinute), onchange: (e) => {
+      const [h, m] = e.target.value.split(":").map(Number);
+      model.startMinute = (h || 0) * 60 + (m || 0);
+    } });
+    return [
+      el("p", {}, el("a", { href: "#/events" }, "‹ Etkinlikler")),
+      el("div", { class: "card banner", style: `border-left:6px solid ${(EVENT_BANNERS[b.banner] || ["", "#333"])[1]}` },
+        el("div", { class: "row spread" }, el("h1", {}, textOf(b.title), " ", el("span", { class: "pill " + (model.enabled ? "on" : "off") }, model.enabled ? "Açık" : "Kapalı")),
+          el("span", { class: "muted mono" }, model.id)),
+        el("p", { class: "muted" }, `${EVENT_TEMPLATES[b.template] || b.template} · ${daysText(model.weekdays)} ${minuteText(model.startMinute)} UTC · ${fmtNum(model.durationHours)} saat` +
+          (nextStart ? ` · sonraki başlangıç ${utcDay(nextStart)} ${utcTime(nextStart)} UTC` : "")),
+        el("p", {}, (b.description && (b.description.tr || b.description.en)) || ""),
+        el("p", { class: "muted" }, `Şablon: ${(b.phases || []).length} tema, ${(b.actions || []).length} puan yolu, ${(b.stages || []).length} ${b.template === "login" ? "gün" : "aşama"}, ${(b.rankBands || []).length} sıralama aralığı` +
+          ` · ödül dönemi ${b.claimDays} gün. Şablonu değiştirmek için bir etkinliği düzenle ve onun sayfasından "Takvime ekle" de.`)),
+
+      el("div", { class: "card" },
+        el("h2", {}, "Zaman"),
+        el("label", {}, "Günler"),
+        el("div", { class: "row" }, [1, 2, 3, 4, 5, 6, 0].map((d) => el("label", { class: "check" },
+          el("input", { type: "checkbox", checked: model.weekdays.includes(d), onchange: (e) => {
+            model.weekdays = e.target.checked ? model.weekdays.concat(d) : model.weekdays.filter((x) => x !== d);
+          } }), " " + WEEKDAYS_TR[d]))),
+        el("div", { class: "row" },
+          el("label", {}, "Başlangıç saati (UTC)", time),
+          el("label", {}, "Süre (saat, 1–168)", el("input", { type: "number", min: "1", max: "168", step: "0.5", value: model.durationHours, onchange: (e) => (model.durationHours = Number(e.target.value)) })),
+          el("label", {}, "Kaç saat önce oluşturulsun (0–72)", el("input", { type: "number", min: "0", max: "72", value: model.leadHours, onchange: (e) => (model.leadHours = Number(e.target.value)) }))),
+        (b.phases || []).length > 1 ? el("label", { class: "check" }, el("input", { type: "checkbox", checked: model.rotatePhases, onchange: (e) => (model.rotatePhases = e.target.checked) }),
+          " Temalar her gün bir sıra kaysın (aynı saatte oynayan her temayı görür)") : null,
+        el("label", { class: "check" }, el("input", { type: "checkbox", checked: model.enabled, onchange: (e) => (model.enabled = e.target.checked) }), " Program açık")),
+
+      el("div", { class: "card" },
+        el("h2", {}, "Kitle"),
+        el("label", {}, "Krallıklar (virgülle; boş = hepsi)", el("input", { value: (b.kingdoms || []).join(", "),
+          onchange: (e) => (b.kingdoms = e.target.value.split(/[,\s]+/).filter(Boolean)) })),
+        el("p", { class: "muted" }, "Reaktör aralıkları: her aralık ve krallık için ayrı etkinlik ve ayrı sıralama. Boşsa tek etkinlik" +
+          (b.minLevel || b.maxLevel ? ` (Reaktör ${b.minLevel || 1}–${b.maxLevel || "∞"})` : "") + "."),
+        el("table", { class: "compact" }, el("tbody", {}, model.brackets.map((r, i) => el("tr", {},
+          el("td", {}, "Reaktör ", el("input", { type: "number", min: "0", value: r.minLevel, onchange: (e) => (r.minLevel = Number(e.target.value)) }), " – ",
+            el("input", { type: "number", min: "0", value: r.maxLevel, onchange: (e) => (r.maxLevel = Number(e.target.value)) }), " (0 = sınırsız)"),
+          el("td", {}, el("button", { class: "ghost", onclick: () => { model.brackets.splice(i, 1); draw(); } }, "×")))))),
+        model.brackets.length >= 5 ? null : el("button", { class: "ghost small", onclick: () => {
+          const last = model.brackets[model.brackets.length - 1];
+          const from = last && last.maxLevel ? last.maxLevel + 1 : 1;
+          model.brackets.push({ minLevel: from, maxLevel: 0 });
+          draw(); } }, "+ reaktör aralığı"),
+        el("label", {}, "İç not", el("input", { value: model.note || "", onchange: (e) => (model.note = e.target.value) }))),
+
+      can("gm") ? el("div", { class: "row" },
+        el("button", { class: "primary", onclick: () => save().catch((e) => toast(e.message, true)) }, "Kaydet"),
+        el("button", { onclick: () => confirm("Sıradaki tekrar şimdi oluşturulsun mu?") && api(`schedules/${model.id}/run`, { method: "POST" })
+          .then((r) => toast(`Oluşturuldu: ${r.created.join(", ")}`), (e) => toast(e.message, true)) }, "Sıradakini şimdi oluştur"),
+        el("button", { class: "danger", onclick: () => confirm("Program silinsin mi? Oluşturduğu etkinlikler kalır.") &&
+          api("schedules/" + model.id, { method: "DELETE" }).then(() => { toast("Silindi."); location.hash = "#/events"; }, (e) => toast(e.message, true)) }, "Sil"),
+        el("span", { class: "muted" }, "Değişiklikler önceden oluşturulmuş tekrarları değiştirmez.")) : null,
     ];
   }
 

@@ -206,6 +206,18 @@ namespace Hadal.Core.StateSync
 
         public EventRankingDto EventRanking(string eventId) => _eventRankings.TryGetValue(eventId ?? string.Empty, out var r) ? r : null;
 
+        /// <summary>The coming week's events with the recurring ones not created yet (docs/29 §2.2); null until asked for.</summary>
+        public EventCalendarDto EventCalendar { get; private set; }
+        public int EventCalendarVersion { get; private set; }
+
+        public void ApplyEventCalendar(EventCalendarDto calendar)
+        {
+            if (calendar == null)
+                return;
+            EventCalendar = calendar;
+            EventCalendarVersion++;
+        }
+
         private readonly Queue<BattleReportDto> _battleReports = new();
 
         public bool TryTakeBattleReport(out BattleReportDto report) => _battleReports.TryDequeue(out report);

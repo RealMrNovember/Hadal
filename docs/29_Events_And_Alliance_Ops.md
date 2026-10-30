@@ -54,6 +54,34 @@ diplomacy → polls and announcements; scout → mark targets. R5 can do everyth
 A rally leader opens a rally on a target with a 1/3/5-minute muster; members join with one team each; the leader's
 heroes bring all their skills, joiners only their lead hero's. Needed by the Lure Trap and Vent War.
 
+### 2.5 Weekly calendar and default schedules (built, roadmap §7)
+- **Schedule** = an event blueprint (template, texts in every language, actions/phases, stages, rank bands, claim days,
+  reactor range, kingdoms) + a weekly rule: weekdays, start time (server time, UTC), duration (1–168 h), lead time
+  (0–72 h), optional reactor brackets, enabled flag. Stored in `hadal.event_schedules` (one JSON document each).
+- **Scheduler** (`EventService.Calendar`, every 30 s in the game tick): every occurrence that is running or starts within
+  its lead time becomes an ordinary published event for **every kingdom** (or the blueprint's kingdoms) and every
+  bracket, so the engine scores, ranks and pays it unchanged. The id is fixed — `depth-race:2026-11-02:w1`
+  (`:b2` for the second bracket) — and every id created goes to the insert-only ledger `hadal.event_occurrences`:
+  a restart, a second pass or an occurrence the Overseer deleted never makes it again. Editing a schedule changes only
+  the occurrences created afterwards. Themed phases can rotate one slot a day (`rotatePhases`).
+- **Defaults**, seeded once into an empty calendar (marker `seed:defaults` in the ledger), all editable and switchable:
+
+  | Schedule | When (UTC) | What | Rewards (modest) |
+  |---|---|---|---|
+  | `depth-race` Depth Race (§4.4) | every day 00:00, 24 h | six 4-h themes: gathering, building power, research, training, creature hunting, hero growth; rotated daily; personal ranking per kingdom | stages 600/2,500/7,000 pts: 5k Titanium + 2× 5-min speed-up, 15k Titanium + bronze chest, silver chest + 1-h speed-up; ranks 1: 100 Hadalite + gold chest, 2–3: 50 + silver, 4–10: 20 + 2 bronze, 11–30: bronze (min 600 pts) |
+  | `alliance-week` Alliance Week | Monday 00:00, 7 days | alliance contest on every main score kind (+ help) | stages 3k/12k/30k: 15k Titanium, silver chest, gold chest; alliance ranks 1: 200 Hadalite + gold, 2–3: 100 + silver, 4–10: 40 + 2 bronze (min 1,000 member pts) |
+  | `login-week` Dive Log | Monday 00:00, 7 days | 7-day sign-in | 5k Titanium, 3× 5-min speed-up, 10k Food, bronze chest, 1-h speed-up, 5k Biomass, 50 Hadalite + silver chest |
+
+  No weekend bonus window: the engine has no bonus template yet (§4.8); it comes with that template.
+- **Panel**: the Events page opens with the Calendar — a 7-day grid (UTC days × kingdoms; created, planned, disabled and
+  deleted occurrences), the schedule list (on/off, edit days/time/duration/lead/brackets/kingdoms, "create the next
+  occurrence now", delete) and "Add to calendar" on any event (a disabled schedule with that event as blueprint). All
+  changes are audited (`schedule.*`).
+- **Client**: the event centre's first tab is the Calendar: a week strip from today (today gold), the chosen day's events
+  with their windows in the phone's time and the template icon; a running event opens its tab, one not open yet shows
+  its rules and rewards. Data: `ViewEventCalendar` → `EventCalendarDto` (texts in the asked language only); recurring
+  events that have not started get no tab of their own.
+
 ## 3. Alliance buildings and territory
 
 | Building | Who | Cost / rule | What it does |

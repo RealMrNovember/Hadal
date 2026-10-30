@@ -73,3 +73,12 @@ button.small { padding: 4px 10px; font-size: 12px; }
 label.check { display: flex; flex-direction: row; align-items: center; gap: 8px; text-transform: none; letter-spacing: 0; font-size: 13px; color: var(--text); margin: 6px 0 10px; }
 .inline { display: inline-flex; gap: 6px; align-items: center; }
 details summary { cursor: pointer; margin: 6px 0; }
+
+/* Event calendar */
+.cal-scroll { overflow-x: auto; }
+table.cal { table-layout: fixed; min-width: 900px; }
+table.cal th.today { color: var(--accent); }
+td.cal-cell { padding: 6px; }
+a.cal-item { display: block; color: var(--text); border-left: 4px solid #333; background: var(--panel2); border-radius: 6px; padding: 4px 6px; margin-bottom: 6px; font-size: 12px; }
+a.cal-item:hover { outline: 1px solid var(--accent); }
+.small { font-size: 11px; }

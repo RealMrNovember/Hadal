@@ -28,6 +28,10 @@ namespace Hadal.UI
                 case Page.EventRanking:
                     Open(Page.Events);
                     return;
+                case Page.Events when CalendarShown && _previewId.Length > 0:
+                    _previewId = string.Empty;
+                    Render(force: true);
+                    return;
                 case Page.MailDetail:
                     _mailId = string.Empty;
                     Open(Page.Mail);

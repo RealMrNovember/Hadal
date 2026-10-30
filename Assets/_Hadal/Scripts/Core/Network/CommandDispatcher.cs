@@ -161,6 +161,7 @@ namespace Hadal.Core.Network
                 ClaimEventStageCommand => CommandType.ClaimEventStage,
                 ClaimEventRankCommand => CommandType.ClaimEventRank,
                 ViewEventRankingCommand => CommandType.ViewEventRanking,
+                ViewEventCalendarCommand => CommandType.ViewEventCalendar,
                 ClaimVipLoginCommand => CommandType.ClaimVipLogin,
                 ClaimVipChestCommand => CommandType.ClaimVipChest,
                 TeleportCommand => CommandType.Teleport,

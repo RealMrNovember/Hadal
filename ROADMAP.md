@@ -177,7 +177,7 @@ Ayrıntılar aşağıda, aynı sırayla.
 **Hedef:** Araştırma §6.2 ve `docs/29` E2–E6.
 
 - ✅ Etkinlik motoru ve admin sayfası: bireysel ve ittifak yarışmaları, giriş ödülleri, aşamalar, sıralama (`docs/29` E1)
-- ⬜ Haftalık döngü takvimi ve hazır etkinlik şablonları
+- ✅ Haftalık döngü takvimi ve hazır etkinlik şablonları: haftalık programlar her krallık için etkinliği başlangıçtan önce kendisi oluşturur (sabit kimlik, kayıt defteri; yeniden başlatmada çift oluşmaz). Hazır programlar: her gün Derinlik Yarışı (4 saatlik 6 tema, her gün kayar), pazartesi başlayan İttifak Haftası ve 7 günlük Dalış Günlüğü. Admin'de takvim (7 günlük ızgara, aç/kapat, gün/saat/süre, etkinlikten program, sıradakini şimdi oluştur); oyunda etkinlik merkezinde Takvim sekmesi (`docs/29` §2.5). Hafta sonu bonus penceresi bonus şablonuyla gelecek.
 - ⬜ Görev izinleri, oylama ve zaman dilimi seçimi (E2)
 - ⬜ Hendek Fethi, Derinlik Kuşatması, İttifak Düellosu, Seferberlik (E3–E6)
 - 🟡 Savaş raporlarının ve etkinlik ödüllerinin postayla gelmesi (savaş raporları sekmeli postada: 0.9.5)

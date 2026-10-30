@@ -15,7 +15,8 @@ namespace Hadal.UI
     /// The event centre (docs/29) in Last Asylum's layout: the running events as a strip of picture tabs fixed under the
     /// top bar; under it the event's banner with its title and countdown, the player's points and rank with the ranking
     /// button, the running theme, the ways to score, the stage goals as quest rows (reward tiles, Claim), the rank
-    /// rewards as tile rows, and for sign-in events a calendar of daily rewards. The ranking is the genre's table.
+    /// rewards as tile rows, and for sign-in events a calendar of daily rewards. The ranking is the genre's table. The
+    /// strip's first tab is the week calendar (SocialView.EventCalendar).
     /// </summary>
     public sealed partial class SocialView
     {
@@ -33,16 +34,24 @@ namespace Hadal.UI
             Open(Page.Events);
         }
 
-        private string EventsKey() => $"{View.EventsVersion}|{View.EventRankingVersion}|{_eventId}";
+        private string EventsKey() => $"{View.EventsVersion}|{View.EventRankingVersion}|{_eventId}|{View.EventCalendarVersion}|{_calendarDay}|{_previewId}";
 
         private long NowMs => View.ServerNowMs;
 
         private static string EventTitle(EventDto e) => EventRules.Text(e.Title, Loc.Current);
 
+        /// <summary>
+        /// The events that get a tab: all the player sees, except recurring ones that have not started (the calendar
+        /// shows those, so a daily event does not add a tab a day ahead).
+        /// </summary>
+        private EventDto[] TabEvents() =>
+            (View.Events.Events ?? Array.Empty<EventDto>())
+            .Where(e => string.IsNullOrEmpty(e.ScheduleId) || EventRules.Phase(e, NowMs) != EventPhase.Upcoming).ToArray();
+
         /// <summary>The selected event, or the first one asking for a claim, or the first one.</summary>
         private EventDto SelectedEvent()
         {
-            var events = View.Events.Events ?? Array.Empty<EventDto>();
+            var events = TabEvents();
             var chosen = Array.Find(events, e => e.Id == _eventId)
                          ?? Array.Find(events, e => EventRules.HasClaim(e, NowMs))
                          ?? Array.Find(events, e => EventRules.Phase(e, NowMs) == EventPhase.Live)
@@ -91,24 +100,42 @@ namespace Hadal.UI
             _eventClock = null;
             _eventClockFor = null;
 
-            var events = View.Events.Events ?? Array.Empty<EventDto>();
-            if (events.Length == 0)
+            // With nothing running the calendar shows what is coming.
+            var events = TabEvents();
+            if (events.Length == 0 && !CalendarShown)
             {
-                InkNote(Loc.T("event.none"));
+                _eventId = CalendarTabId;
+                _calendarDay = 0;
+            }
+
+            var e = CalendarShown ? null : SelectedEvent();
+            EventTabs(events, e);
+            if (e == null)
+            {
+                if (events.Length == 0)
+                    InkNote(Loc.T("event.none"));
+                RenderCalendar();
                 return;
             }
 
-            var e = SelectedEvent();
-            EventTabs(events, e);
             EventBanner(e);
+            EventBody(e, preview: false);
+        }
 
+        /// <summary>
+        /// Everything under the banner. A <paramref name="preview"/> (a calendar entry not open yet) shows the rules and
+        /// rewards without the player's points, rank or ranking button.
+        /// </summary>
+        private void EventBody(EventDto e, bool preview)
+        {
             if (e.Template == EventTemplates.Login)
             {
                 LoginCalendar(e);
             }
             else
             {
-                EventStats(e);
+                if (!preview)
+                    EventStats(e);
                 EventThemes(e);
                 EventActionsList(e);
                 EventStages(e);
@@ -137,12 +164,14 @@ namespace Hadal.UI
             shade.color = UiFrames.Band;
             var content = UiFrames.IconStrip(holder, out var strip);
             strip.Place(0, 0, 1, 1, 6);
+            UiFrames.IconTab(content, null, "quest", Loc.T("event.calendar"), selected == null, OpenCalendar, false, 186f);
             foreach (var e in events)
             {
                 var id = e.Id;
-                UiFrames.IconTab(content, EventArt(e), "event_gift", EventTitle(e), e.Id == selected.Id, () =>
+                UiFrames.IconTab(content, EventArt(e), "event_gift", EventTitle(e), e.Id == selected?.Id, () =>
                 {
                     _eventId = id;
+                    _previewId = string.Empty;
                     Render(force: true);
                 }, EventRules.HasClaim(e, NowMs), 186f);
             }
