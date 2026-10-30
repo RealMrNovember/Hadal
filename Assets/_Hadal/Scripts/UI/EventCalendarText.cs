@@ -60,13 +60,15 @@ namespace Hadal.UI
         {
             EventTemplates.Alliance => "side_alliance",
             EventTemplates.Login => "event_gift",
+            EventTemplates.Mobilization => "g_army",
+            EventTemplates.AllianceDuel => "g_attack",
             _ => "event_war"
         };
 
         /// <summary>The frame colour of a template's icon tile.</summary>
         public static string Frame(string template) => template switch
         {
-            EventTemplates.Alliance => "rare",
+            EventTemplates.Alliance or EventTemplates.Mobilization => "rare",
             EventTemplates.Login => "legendary",
             _ => "epic"
         };

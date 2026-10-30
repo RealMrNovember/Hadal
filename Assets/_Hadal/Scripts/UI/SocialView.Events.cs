@@ -66,6 +66,7 @@ namespace Hadal.UI
             if (_page != Page.Events || _eventClock == null || _eventClockFor == null)
                 return;
             _eventClock.text = ClockText(_eventClockFor);
+            TickAllianceEvent(_eventClockFor);
         }
 
         private string ClockText(EventDto e)
@@ -131,6 +132,14 @@ namespace Hadal.UI
             if (e.Template == EventTemplates.Login)
             {
                 LoginCalendar(e);
+            }
+            else if (!preview && e.Template == EventTemplates.Mobilization && e.Mobilization != null)
+            {
+                MobilizationBody(e);
+            }
+            else if (!preview && e.Template == EventTemplates.AllianceDuel && e.Duel != null)
+            {
+                DuelBody(e);
             }
             else
             {
@@ -230,7 +239,7 @@ namespace Hadal.UI
 
         private void EventStats(EventDto e)
         {
-            var alliance = e.Template == EventTemplates.Alliance;
+            var alliance = EventTemplates.RanksAlliances(e.Template);
             var card = InkCard(150);
             Stat(card.transform, 0.02f, 0.3f, Loc.T("event.myPoints"), e.MyPoints.ToString("N0"));
             if (alliance)
@@ -326,7 +335,8 @@ namespace Hadal.UI
                 return;
             Band(Loc.T("event.stages"));
             var claimed = new HashSet<int>(e.Claimed);
-            var open = EventRules.Phase(e, NowMs) is EventPhase.Live or EventPhase.Ended;
+            // Claimed on the page while the event runs; what is left at the end comes by mail.
+            var open = EventRules.Phase(e, NowMs) == EventPhase.Live;
             for (var i = 0; i < e.Stages.Length; i++)
             {
                 var stage = e.Stages[i];
@@ -334,7 +344,8 @@ namespace Hadal.UI
                 var done = claimed.Contains(i);
                 var reached = e.MyPoints >= stage.Points;
                 var title = $"{Loc.F("event.stage", i + 1)}  ({Math.Min(e.MyPoints, stage.Points):N0}/{stage.Points:N0})";
-                var action = done ? Loc.T("event.claimed") : reached ? Loc.T("quest.claim") : Loc.F("event.pointsLeft", (stage.Points - e.MyPoints).ToString("N0"));
+                var action = done ? Loc.T(e.PaidOut ? "event.byMail" : "event.claimed") : reached ? Loc.T(open ? "quest.claim" : "event.byMail")
+                    : Loc.F("event.pointsLeft", (stage.Points - e.MyPoints).ToString("N0"));
                 var row = UiFrames.QuestRow(_list, title, RewardTiles(stage.Rewards), action, true, () => ClaimStage(e.Id, index), open && reached && !done).Row(200);
                 if (done)
                     row.GetComponent<Image>().color = UiFrames.CardAlt;
@@ -347,7 +358,7 @@ namespace Hadal.UI
         {
             if (e.RankBands.Length == 0)
                 return;
-            var alliance = e.Template == EventTemplates.Alliance;
+            var alliance = EventTemplates.RanksAlliances(e.Template);
             Band(Loc.T(alliance ? "event.rankRewards.alliance" : "event.rankRewards"));
             var rank = alliance ? e.AllianceRank : e.MyRank;
             var mine = EventRules.Band(e, rank);
@@ -360,22 +371,8 @@ namespace Hadal.UI
                 RewardsHint(row, band.Rewards);
             }
 
-            var phase = EventRules.Phase(e, NowMs);
-            var eligible = mine != null && e.MyPoints > 0 && e.MyPoints >= e.MinRankPoints;
-            if (phase == EventPhase.Ended && eligible && !e.RankClaimed)
-            {
-                var id = e.Id;
-                WideButton(Loc.T("event.claimRank"), true, () =>
-                    _commands.Dispatch(new ClaimEventRankCommand { CommandId = NewId(), ClientSequence = NextSequence(), EventId = id }), UiKit.Ok, 0.6f);
-            }
-            else
-            {
-                var note = e.RankClaimed ? Loc.T("event.rankClaimed")
-                    : phase == EventPhase.Ended ? Loc.T("event.rankNone")
-                    : e.MinRankPoints > 0 ? Loc.F("event.rankAtEndMin", e.MinRankPoints.ToString("N0"))
-                    : Loc.T("event.rankAtEnd");
-                InkNote(note);
-            }
+            // Rank rewards go out by mail when the event ends (docs/29 §2.2): the page only says so.
+            InkNote(AllianceEventText.RankNote(e, EventRules.Phase(e, NowMs)));
         }
 
         /// <summary>The first five rewards as quest-row tiles (icon, rarity, amount).</summary>
@@ -404,7 +401,7 @@ namespace Hadal.UI
                 TextAnchor.MiddleCenter, FontStyle.Bold);
 
             var claimed = new HashSet<int>(e.Claimed);
-            var open = EventRules.Phase(e, NowMs) is EventPhase.Live or EventPhase.Ended;
+            var open = EventRules.Phase(e, NowMs) == EventPhase.Live; // the days left at the end come by mail
             var grid = UiFrames.Grid(_list, 4, 0.8f, 12f);
             grid.GetComponent<GridLayoutGroup>().padding = new RectOffset(0, 0, 6, 6);
             for (var index = 0; index < e.Stages.Length; index++)

@@ -85,6 +85,8 @@ namespace Hadal.UI
                 (Loc.T("alliance.tile.research"), "left_research", false, () => OpenAllianceTab(AllianceTabResearch)),
                 (Loc.T("alliance.tile.rankings"), "power", false, () => OpenAllianceRankings(0)),
                 (Loc.T("alliance.tile.polls"), "g_info", PollsWaiting() > 0, () => OpenAllianceTab(AllianceTabPolls)),
+                (Loc.T("alliance.tile.duel"), "g_attack", AllianceEventWaiting(EventTemplates.AllianceDuel), () => OpenAllianceEvent(EventTemplates.AllianceDuel)),
+                (Loc.T("alliance.tile.mobilization"), "g_army", AllianceEventWaiting(EventTemplates.Mobilization), () => OpenAllianceEvent(EventTemplates.Mobilization)),
                 (Loc.T("alliance.tile.rally"), "g_rally", false, () => { Close(); RallyPointPrompt.Instance?.OpenRallyPoint(); }),
                 (Loc.T("city.list"), "left_home", false, () => { Close(); CityList.Instance?.Open(); })
             };
