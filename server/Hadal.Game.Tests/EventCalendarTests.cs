@@ -138,7 +138,7 @@ namespace Hadal.Game.Tests
             }
 
             var world = await StartedWorld();
-            Assert.Equal(new[] { DefaultSchedules.AllianceWeek, DefaultSchedules.DepthRace, DefaultSchedules.LoginWeek },
+            Assert.Equal(new[] { DefaultSchedules.AllianceDuel, DefaultSchedules.AllianceWeek, DefaultSchedules.DepthRace, DefaultSchedules.LoginWeek, DefaultSchedules.Mobilization },
                 world.Events.Schedules().Select(s => s.Id).OrderBy(i => i, StringComparer.Ordinal));
             var depth = world.Events.Schedule(DefaultSchedules.DepthRace)!;
             Assert.Equal(7, depth.Weekdays.Count);
@@ -150,11 +150,47 @@ namespace Hadal.Game.Tests
 
             // A restart does not seed again, and an Overseer who deleted every schedule does not get them back.
             var again = await StartedWorld();
-            Assert.Equal(3, again.Events.Schedules().Count);
+            Assert.Equal(5, again.Events.Schedules().Count);
             foreach (var s in again.Events.Schedules())
                 Assert.Equal(string.Empty, again.Events.DeleteSchedule(s.Id));
             await again.Events.DrainAsync();
             Assert.Empty((await StartedWorld()).Events.Schedules());
+        }
+
+        [Fact]
+        public async Task New_defaults_are_added_once_to_a_calendar_seeded_before_them()
+        {
+            // A live calendar from before Mobilization and the duel: seeded (marker), one default edited, one deleted,
+            // and a schedule of the Overseer's own.
+            var old = DefaultSchedules.All(_clock.UtcNow).Where(s => s.Id is DefaultSchedules.DepthRace or DefaultSchedules.AllianceWeek).ToList();
+            old[0].StartMinute = 7 * 60; // the Overseer moved the race to 07:00
+            foreach (var s in old)
+                await _store.SaveScheduleAsync(s, default);
+            await _store.SaveScheduleAsync(Daily("own-hunt", 6), default);
+            await _store.SaveOccurrencesAsync(new[] { (EventScheduleRules.SeedMarker, string.Empty, _clock.UtcNow.AddDays(-30)) }, default);
+
+            var world = await StartedWorld();
+            Assert.Equal(new[] { DefaultSchedules.AllianceDuel, DefaultSchedules.AllianceWeek, DefaultSchedules.DepthRace, DefaultSchedules.Mobilization, "own-hunt" },
+                world.Events.Schedules().Select(s => s.Id).OrderBy(i => i, StringComparer.Ordinal));
+            Assert.Equal(7 * 60, world.Events.Schedule(DefaultSchedules.DepthRace)!.StartMinute); // untouched
+            Assert.Null(world.Events.Schedule(DefaultSchedules.LoginWeek)); // deleted before: stays deleted
+            var mobilization = world.Events.Schedule(DefaultSchedules.Mobilization)!;
+            Assert.Equal(new[] { (int)DayOfWeek.Thursday }, mobilization.Weekdays);
+            Assert.Equal(72d, mobilization.DurationHours);
+            Assert.Equal(EventTemplates.Mobilization, mobilization.Blueprint.Template);
+            var duel = world.Events.Schedule(DefaultSchedules.AllianceDuel)!;
+            Assert.Equal(new[] { (int)DayOfWeek.Monday }, duel.Weekdays);
+            Assert.Equal(144d, duel.DurationHours);
+            Assert.Equal(AllianceDuelRules.Days, duel.Blueprint.Phases.Count);
+            await world.Events.DrainAsync();
+
+            // Once added they are ordinary schedules: deleting one keeps it gone after a restart.
+            Assert.Equal(string.Empty, world.Events.DeleteSchedule(DefaultSchedules.Mobilization));
+            await world.Events.DrainAsync();
+            var again = await StartedWorld();
+            Assert.Null(again.Events.Schedule(DefaultSchedules.Mobilization));
+            Assert.NotNull(again.Events.Schedule(DefaultSchedules.AllianceDuel));
+            Assert.Equal(4, again.Events.Schedules().Count);
         }
 
         [Fact]

@@ -19,6 +19,12 @@ namespace Hadal.Game.Mailbox
 
         /// <summary>Drops expired and deleted mails; returns how many.</summary>
         Task<int> PurgeAsync(DateTimeOffset now, CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Stores the mails whose key was never used, in one transaction with their keys (hadal.mail_keys, never purged
+        /// with the mails), and returns those keys. A key used before stores nothing, however long ago.
+        /// </summary>
+        Task<HashSet<string>> InsertOnceAsync(IReadOnlyList<(string Key, Mail Mail)> mails, CancellationToken cancellationToken);
     }
 
     public sealed class InMemoryMailStore : IMailStore
@@ -72,6 +78,25 @@ namespace Hadal.Game.Mailbox
                 return Task.FromResult(gone.Count);
             }
         }
+
+        private readonly Dictionary<string, string> _keys = new(StringComparer.Ordinal);
+
+        public Task<HashSet<string>> InsertOnceAsync(IReadOnlyList<(string Key, Mail Mail)> mails, CancellationToken cancellationToken)
+        {
+            lock (_gate)
+            {
+                var sent = new HashSet<string>(StringComparer.Ordinal);
+                foreach (var (key, mail) in mails)
+                {
+                    if (!_keys.TryAdd(key, mail.Id))
+                        continue;
+                    _mails[mail.Id] = mail.Copy();
+                    sent.Add(key);
+                }
+
+                return Task.FromResult(sent);
+            }
+        }
     }
 
     public sealed class PostgresMailStore : IMailStore
@@ -96,7 +121,15 @@ CREATE TABLE IF NOT EXISTS hadal.mails (
 CREATE INDEX IF NOT EXISTS mails_player ON hadal.mails (player_id, created_at DESC);
 CREATE INDEX IF NOT EXISTS mails_expiry ON hadal.mails (expires_at);
 ALTER TABLE hadal.mails ADD COLUMN IF NOT EXISTS sender_id text NOT NULL DEFAULT '';
-ALTER TABLE hadal.mails ADD COLUMN IF NOT EXISTS report text NOT NULL DEFAULT '';";
+ALTER TABLE hadal.mails ADD COLUMN IF NOT EXISTS report text NOT NULL DEFAULT '';
+
+-- Mails that go out exactly once (event payouts): the key stays when the mail itself is claimed, deleted and purged.
+CREATE TABLE IF NOT EXISTS hadal.mail_keys (
+    mail_key    text        PRIMARY KEY,
+    mail_id     text        NOT NULL,
+    player_id   text        NOT NULL,
+    created_at  timestamptz NOT NULL DEFAULT now()
+);";
 
         private readonly NpgsqlDataSource _dataSource;
 
@@ -193,6 +226,54 @@ UPDATE hadal.mails SET read_at = COALESCE(read_at, @r), claimed_at = COALESCE(cl
             await using var command = new NpgsqlCommand("DELETE FROM hadal.mails WHERE deleted OR expires_at <= @now", connection);
             command.Parameters.AddWithValue("now", now);
             return await command.ExecuteNonQueryAsync(cancellationToken);
+        }
+
+        public async Task<HashSet<string>> InsertOnceAsync(IReadOnlyList<(string Key, Mail Mail)> mails, CancellationToken cancellationToken)
+        {
+            var sent = new HashSet<string>(StringComparer.Ordinal);
+            if (mails.Count == 0)
+                return sent;
+            await using var connection = await _dataSource.OpenConnectionAsync(cancellationToken);
+            foreach (var chunk in mails.Chunk(200))
+            {
+                // One transaction per chunk: a key is taken together with its mail, or neither is stored.
+                await using var transaction = await connection.BeginTransactionAsync(cancellationToken);
+                var fresh = new List<(string Key, Mail Mail)>();
+                foreach (var (key, mail) in chunk)
+                {
+                    await using var claim = new NpgsqlCommand(
+                        "INSERT INTO hadal.mail_keys (mail_key, mail_id, player_id) VALUES (@k, @m, @p) ON CONFLICT (mail_key) DO NOTHING", connection, transaction);
+                    claim.Parameters.AddWithValue("k", key);
+                    claim.Parameters.AddWithValue("m", mail.Id);
+                    claim.Parameters.AddWithValue("p", mail.PlayerId);
+                    if (await claim.ExecuteNonQueryAsync(cancellationToken) == 1)
+                        fresh.Add((key, mail));
+                }
+
+                foreach (var (key, m) in fresh)
+                {
+                    await using var command = new NpgsqlCommand(@"
+INSERT INTO hadal.mails (mail_id, player_id, kind, sender, sender_id, title, body, attachments, created_at, expires_at, report)
+VALUES (@id, @p, @k, @s, @si, @t, @b, @a::jsonb, @c, @e, @r) ON CONFLICT (mail_id) DO NOTHING", connection, transaction);
+                    command.Parameters.AddWithValue("id", m.Id);
+                    command.Parameters.AddWithValue("p", m.PlayerId);
+                    command.Parameters.AddWithValue("k", m.Kind);
+                    command.Parameters.AddWithValue("s", m.Sender);
+                    command.Parameters.AddWithValue("si", m.SenderId);
+                    command.Parameters.AddWithValue("t", m.Title);
+                    command.Parameters.AddWithValue("b", m.Body);
+                    command.Parameters.AddWithValue("a", m.Attachments.ToJson());
+                    command.Parameters.AddWithValue("c", m.CreatedAt);
+                    command.Parameters.AddWithValue("e", m.ExpiresAt);
+                    command.Parameters.AddWithValue("r", MailReports.ToJson(m.Report));
+                    await command.ExecuteNonQueryAsync(cancellationToken);
+                    sent.Add(key);
+                }
+
+                await transaction.CommitAsync(cancellationToken);
+            }
+
+            return sent;
         }
     }
 }

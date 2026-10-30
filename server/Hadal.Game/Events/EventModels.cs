@@ -73,6 +73,22 @@ namespace Hadal.Game.Events
         /// <summary>The weekly schedule that created this event (EventSchedule), empty for a one-off event.</summary>
         public string ScheduleId { get; set; } = string.Empty;
 
+        /// <summary>Mobilization settings (template "mobilization", docs/29 §4.5).</summary>
+        public MobilizationConfig Mobilization { get; set; } = new();
+
+        /// <summary>Alliance Duel settings (template "alliance_duel", docs/29 §4.3).</summary>
+        public DuelConfig Duel { get; set; } = new();
+
+        /// <summary>The duel's pairings and final results, written by the server (never by the Overseer's form).</summary>
+        public DuelState DuelState { get; set; } = new();
+
+        /// <summary>
+        /// When the end-of-event payout was mailed (rank rewards, unclaimed stages, duel results; EventService.Payout), and
+        /// how many mails it sent. Null until then; a paid event never pays again.
+        /// </summary>
+        public DateTimeOffset? PaidOutAt { get; set; }
+        public int PaidOutMails { get; set; }
+
         public string Note { get; set; } = string.Empty;
         public string CreatedBy { get; set; } = string.Empty;
         public DateTimeOffset CreatedAt { get; set; }
@@ -160,6 +176,123 @@ namespace Hadal.Game.Events
         public string Rarity { get; set; } = string.Empty;
     }
 
+    /// <summary>Mobilization rules an event can change (MobilizationRules has the defaults and the card table).</summary>
+    public sealed class MobilizationConfig
+    {
+        /// <summary>Members an alliance needs before its members may take tasks.</summary>
+        public int MinMembers { get; set; } = HADAL.Shared.Simulation.MobilizationRules.DefaultMinMembers;
+
+        /// <summary>Cards in each alliance's pool.</summary>
+        public int Slots { get; set; } = HADAL.Shared.Simulation.MobilizationRules.DefaultSlots;
+
+        /// <summary>Minutes before a taken card's slot deals a new one.</summary>
+        public int RefillMinutes { get; set; } = HADAL.Shared.Simulation.MobilizationRules.DefaultRefillMinutes;
+
+        /// <summary>Tasks one member may take per UTC day.</summary>
+        public int TasksPerDay { get; set; } = HADAL.Shared.Simulation.MobilizationRules.DefaultTasksPerDay;
+
+        /// <summary>Rerolls of a held task per UTC day, and the minutes between two.</summary>
+        public int RefreshesPerDay { get; set; } = HADAL.Shared.Simulation.MobilizationRules.DefaultRefreshesPerDay;
+        public int RefreshCooldownMinutes { get; set; } = HADAL.Shared.Simulation.MobilizationRules.DefaultRefreshCooldownMinutes;
+
+        /// <summary>Task kinds the pool deals (MobilizationRules.Kinds ids); empty = all.</summary>
+        public List<string> Kinds { get; set; } = new();
+
+        /// <summary>Targets in percent of the card table (50 = half as much to do).</summary>
+        public int TargetPercent { get; set; } = 100;
+    }
+
+    /// <summary>Alliance Duel rules an event can change.</summary>
+    public sealed class DuelConfig
+    {
+        /// <summary>Members an alliance needs to be paired.</summary>
+        public int MinMembers { get; set; } = HADAL.Shared.Simulation.AllianceDuelRules.DefaultMinMembers;
+
+        /// <summary>
+        /// Mailed at the end to every member who scored at least the event's MinRankPoints for the alliance: the week's
+        /// winners, losers, or both sides of a draw.
+        /// </summary>
+        public List<EventRewardConfig> Win { get; set; } = new();
+        public List<EventRewardConfig> Loss { get; set; } = new();
+        public List<EventRewardConfig> Draw { get; set; } = new();
+    }
+
+    /// <summary>The duel's pairing (made when the event goes live) and, once over, each pairing's result.</summary>
+    public sealed class DuelState
+    {
+        public DateTimeOffset? PairedAt { get; set; }
+        public List<DuelPairing> Pairings { get; set; } = new();
+    }
+
+    public sealed class DuelPairing
+    {
+        /// <summary>The kingdom both sides are in (docs/39): duels never cross kingdoms.</summary>
+        public string Kingdom { get; set; } = string.Empty;
+
+        /// <summary>The stronger alliance first; B may be AllianceDuelRules.Echo.</summary>
+        public string A { get; set; } = string.Empty;
+        public string B { get; set; } = string.Empty;
+        public long APower { get; set; }
+        public long BPower { get; set; }
+
+        /// <summary>Tag and name at pairing time (kept for the history after an alliance is gone).</summary>
+        public string ATag { get; set; } = string.Empty;
+        public string AName { get; set; } = string.Empty;
+        public string BTag { get; set; } = string.Empty;
+        public string BName { get; set; } = string.Empty;
+
+        /// <summary>Filled at the end: week points of both sides and A's result (AllianceDuelRules.Won/Lost/Draw).</summary>
+        public int AWins { get; set; }
+        public int BWins { get; set; }
+        public int AResult { get; set; }
+    }
+
+    /// <summary>
+    /// What an event keeps per alliance besides its total: the Mobilization pool and the duel's points per day. Stored as
+    /// one JSON document per event and alliance (hadal.event_alliance_state).
+    /// </summary>
+    public sealed class EventAllianceState
+    {
+        /// <summary>Mobilization: the cards on the table, by slot (null = refilling).</summary>
+        public List<MobilizationCard?> Pool { get; set; } = new();
+
+        /// <summary>Mobilization: per slot, how many cards it has dealt, and when its next card appears.</summary>
+        public List<int> Draws { get; set; } = new();
+        public List<DateTimeOffset> ReadyAt { get; set; } = new();
+
+        /// <summary>Alliance Duel: the alliance's points on each day.</summary>
+        public long[] DayPoints { get; set; } = new long[HADAL.Shared.Simulation.AllianceDuelRules.Days];
+
+        public string ToJson() => JsonSerializer.Serialize(this, EventDefinition.Json);
+
+        public static EventAllianceState FromJson(string? json)
+        {
+            var state = string.IsNullOrWhiteSpace(json) ? new EventAllianceState() : JsonSerializer.Deserialize<EventAllianceState>(json, EventDefinition.Json) ?? new EventAllianceState();
+            state.Pool ??= new List<MobilizationCard?>();
+            state.Draws ??= new List<int>();
+            state.ReadyAt ??= new List<DateTimeOffset>();
+            if (state.DayPoints == null || state.DayPoints.Length < HADAL.Shared.Simulation.AllianceDuelRules.Days)
+            {
+                var days = new long[HADAL.Shared.Simulation.AllianceDuelRules.Days];
+                Array.Copy(state.DayPoints ?? Array.Empty<long>(), days, Math.Min(days.Length, state.DayPoints?.Length ?? 0));
+                state.DayPoints = days;
+            }
+
+            return state;
+        }
+
+        public EventAllianceState Clone() => FromJson(ToJson());
+    }
+
+    /// <summary>A Mobilization task card (on the table or held by a member).</summary>
+    public sealed class MobilizationCard
+    {
+        public string Kind { get; set; } = string.Empty;
+        public int Tier { get; set; } = 1;
+        public long Target { get; set; }
+        public long Points { get; set; }
+    }
+
     /// <summary>One player's progress in one event.</summary>
     public sealed class EventScore
     {
@@ -180,7 +313,25 @@ namespace Hadal.Game.Events
         public Dictionary<string, long> Carry { get; set; } = new();
         public DateTimeOffset UpdatedAt { get; set; }
 
-        public string StateJson() => JsonSerializer.Serialize(new ScoreState(Claimed.ToList(), RankClaimed, LoginDays, LastLoginDay, Carry), EventDefinition.Json);
+        /// <summary>Mobilization: the held task, its progress, today's takes and refreshes, tasks finished.</summary>
+        public MobilizationCard? Task { get; set; }
+        public long TaskProgress { get; set; }
+        public long TaskDay { get; set; }
+        public int TakenToday { get; set; }
+        public int RefreshesToday { get; set; }
+        public int Refreshes { get; set; }
+        public DateTimeOffset? LastRefresh { get; set; }
+        public int Completed { get; set; }
+
+        /// <summary>Alliance Duel: the player's points on each day (daily chests).</summary>
+        public long[] DayPoints { get; set; } = new long[HADAL.Shared.Simulation.AllianceDuelRules.Days];
+
+        public string StateJson() => JsonSerializer.Serialize(new ScoreState(Claimed.ToList(), RankClaimed, LoginDays, LastLoginDay, Carry)
+        {
+            Task = Task, TaskProgress = TaskProgress, TaskDay = TaskDay, TakenToday = TakenToday, RefreshesToday = RefreshesToday,
+            Refreshes = Refreshes, LastRefresh = LastRefresh, Completed = Completed,
+            DayPoints = DayPoints.Any(p => p != 0) ? DayPoints : null
+        }, EventDefinition.Json);
 
         public void ApplyState(string json)
         {
@@ -192,8 +343,38 @@ namespace Hadal.Game.Events
             LoginDays = state.LoginDays;
             LastLoginDay = state.LastLoginDay;
             Carry = state.Carry ?? new Dictionary<string, long>();
+            Task = state.Task;
+            TaskProgress = state.TaskProgress;
+            TaskDay = state.TaskDay;
+            TakenToday = state.TakenToday;
+            RefreshesToday = state.RefreshesToday;
+            Refreshes = state.Refreshes;
+            LastRefresh = state.LastRefresh;
+            Completed = state.Completed;
+            DayPoints = new long[HADAL.Shared.Simulation.AllianceDuelRules.Days];
+            if (state.DayPoints != null)
+                Array.Copy(state.DayPoints, DayPoints, Math.Min(DayPoints.Length, state.DayPoints.Length));
         }
 
-        private sealed record ScoreState(List<int>? Claimed, bool RankClaimed, int LoginDays, long LastLoginDay, Dictionary<string, long>? Carry);
+        /// <summary>A detached copy for the write-behind queue.</summary>
+        public EventScore Copy()
+        {
+            var copy = new EventScore { EventId = EventId, PlayerId = PlayerId, AllianceId = AllianceId, Points = Points, UpdatedAt = UpdatedAt };
+            copy.ApplyState(StateJson());
+            return copy;
+        }
+
+        private sealed record ScoreState(List<int>? Claimed, bool RankClaimed, int LoginDays, long LastLoginDay, Dictionary<string, long>? Carry)
+        {
+            [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] public MobilizationCard? Task { get; init; }
+            [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] public long TaskProgress { get; init; }
+            [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] public long TaskDay { get; init; }
+            [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] public int TakenToday { get; init; }
+            [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] public int RefreshesToday { get; init; }
+            [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] public int Refreshes { get; init; }
+            [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] public DateTimeOffset? LastRefresh { get; init; }
+            [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] public int Completed { get; init; }
+            [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)] public long[]? DayPoints { get; init; }
+        }
     }
 }

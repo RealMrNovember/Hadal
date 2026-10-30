@@ -32,7 +32,10 @@ namespace Hadal.Game.Mailbox
         public Dictionary<string, long> Amounts { get; set; } = new(StringComparer.Ordinal);
         public Dictionary<string, int> Items { get; set; } = new(StringComparer.Ordinal);
 
-        public bool IsEmpty => Amounts.All(p => p.Value <= 0) && Items.All(p => p.Value <= 0);
+        /// <summary>Hero cards by hero id (event rewards; a random-rarity card is drawn when the mail is made).</summary>
+        public Dictionary<string, long> Shards { get; set; } = new(StringComparer.Ordinal);
+
+        public bool IsEmpty => Amounts.All(p => p.Value <= 0) && Items.All(p => p.Value <= 0) && (Shards == null || Shards.All(p => p.Value <= 0));
 
         public static MailAttachments From(IReadOnlyDictionary<ResourceType, long>? amounts, IReadOnlyDictionary<string, int>? items) => new()
         {
@@ -51,9 +54,16 @@ namespace Hadal.Game.Mailbox
             var parsed = JsonSerializer.Deserialize<MailAttachments>(json, Json) ?? new MailAttachments();
             parsed.Amounts ??= new Dictionary<string, long>(StringComparer.Ordinal);
             parsed.Items ??= new Dictionary<string, int>(StringComparer.Ordinal);
+            parsed.Shards ??= new Dictionary<string, long>(StringComparer.Ordinal);
             return parsed;
         }
     }
+
+    /// <summary>
+    /// A mail that must go out exactly once: <paramref name="Key"/> names it for good ("ev:{event}:{player}:rank"), and a
+    /// key already used sends nothing, also after a restart and after the first mail was claimed and deleted.
+    /// </summary>
+    public sealed record KeyedMail(string Key, string PlayerId, MailDraft Draft);
 
     /// <summary>
     /// The text and attachments of a mail before it is addressed; <paramref name="SenderId"/> for player mails,

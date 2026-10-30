@@ -225,9 +225,11 @@ namespace Hadal.Game.Tests
 
             _clock.Advance(TimeSpan.FromHours(3));
             _world.Tick();
+            // The rank reward is mailed once at the end; claiming on the page afterwards has nothing left.
+            Assert.Single(_world.Mail.MailsOf(session.PublicId, _clock.UtcNow), m => m.Body.StartsWith("loc:mail.event.rank.body|", StringComparison.Ordinal));
             var claim = new ClaimEventRankCommand { CommandId = Id(), EventId = saved.Id };
             _world.HandleCommand(session, Envelope(claim, CommandType.ClaimEventRank));
-            Assert.Equal(CommandResultCode.Accepted, Ack(connection, claim.CommandId).Result);
+            Assert.Equal("AlreadyClaimed", Ack(connection, claim.CommandId).Reason);
 
             // A clock step back into the running event does not reopen the claim.
             _clock.Advance(TimeSpan.FromHours(-2));
@@ -240,6 +242,7 @@ namespace Hadal.Game.Tests
             var late = new ClaimEventRankCommand { CommandId = Id(), EventId = saved.Id };
             _world.HandleCommand(session, Envelope(late, CommandType.ClaimEventRank));
             Assert.Equal("AlreadyClaimed", Ack(connection, late.CommandId).Reason);
+            Assert.Single(_world.Mail.MailsOf(session.PublicId, _clock.UtcNow), m => m.Body.StartsWith("loc:mail.event.rank.body|", StringComparison.Ordinal));
         }
     }
 }

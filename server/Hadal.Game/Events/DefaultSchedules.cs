@@ -13,11 +13,24 @@ namespace Hadal.Game.Events
         public const string DepthRace = "depth-race";
         public const string AllianceWeek = "alliance-week";
         public const string LoginWeek = "login-week";
+        public const string Mobilization = "mobilization";
+        public const string AllianceDuel = "alliance-duel";
+
+        /// <summary>Every default schedule's id (mails name their events by a localisation key "event.name.{id}").</summary>
+        public static readonly string[] Ids = { DepthRace, AllianceWeek, LoginWeek, Mobilization, AllianceDuel };
 
         private static readonly int[] EveryDay = { 0, 1, 2, 3, 4, 5, 6 };
         private const int Monday = (int)DayOfWeek.Monday;
+        private const int Thursday = (int)DayOfWeek.Thursday;
 
-        public static List<EventSchedule> All(DateTimeOffset now) => new() { Depth(now), Alliance(now), Login(now) };
+        /// <summary>Every default schedule: what a new, empty calendar is seeded with.</summary>
+        public static List<EventSchedule> All(DateTimeOffset now) => new() { Depth(now), Alliance(now), Login(now), Mobilize(now), Duel(now) };
+
+        /// <summary>
+        /// Defaults that came after the first seed (roadmap §7, E6). A calendar seeded before them gets each once
+        /// (EventService.Calendar, marker "seed:{id}"), without touching the schedules it has.
+        /// </summary>
+        public static List<EventSchedule> Added(DateTimeOffset now) => new() { Mobilize(now), Duel(now) };
 
         /// <summary>
         /// Depth Race (docs/29 §4.4): every day 00:00–24:00 UTC, six 4-hour themes from the existing score kinds (gathering,
@@ -220,6 +233,154 @@ namespace Hadal.Game.Events
                 }
             }
         };
+
+        /// <summary>
+        /// Mobilization (docs/29 §4.5): Thursday 00:00 UTC for three days. Each alliance of 15+ members gets a pool of 8
+        /// task cards; members take one at a time. Personal point chests and an alliance ranking per kingdom.
+        /// </summary>
+        private static EventSchedule Mobilize(DateTimeOffset now) => new()
+        {
+            Id = Mobilization,
+            Weekdays = new List<int> { Thursday },
+            StartMinute = 0,
+            DurationHours = 72,
+            LeadHours = 24,
+            Note = "Default: alliance task pool, Thursday to Saturday",
+            CreatedBy = EventService.CalendarAuthor,
+            CreatedAt = now,
+            UpdatedAt = now,
+            Blueprint = new EventDefinition
+            {
+                Template = EventTemplates.Mobilization,
+                Banner = "trench",
+                ClaimDays = 1,
+                MinRankPoints = 300,
+                Title = T("Seferberlik", "Mobilization", "Mobilmachung", "Mobilisation", "Movilización", "Mobilitazione", "Mobilização", "Mobilisatie",
+                    "Мобилизация", "التعبئة", "総動員", "총동원", "总动员", "總動員", "การระดมพล", "Tổng động viên", "Mobilisasi", "Mobilisasi"),
+                Description = T(
+                    "İttifakının ortak bir görev havuzu var. Bir seferde bir görev al, oynayarak bitir; puanı hem sana hem ittifakına yazılır. Beğenmediğin görevi bırak ya da yenile. Katılmak için ittifakın en az 15 üyesi olmalı.",
+                    "Your alliance shares a pool of tasks. Take one at a time and finish it by playing: its points count for you and for your alliance. Drop or refresh a task you do not like. An alliance needs at least 15 members to take part.",
+                    "Deine Allianz teilt sich einen Aufgabenpool. Nimm jeweils eine Aufgabe und erledige sie beim Spielen: Ihre Punkte zählen für dich und deine Allianz. Wirf eine Aufgabe ab oder erneuere sie, wenn sie dir nicht gefällt. Eine Allianz braucht mindestens 15 Mitglieder.",
+                    "Votre alliance partage une réserve de missions. Prenez-en une à la fois et accomplissez-la en jouant : ses points comptent pour vous et pour l'alliance. Abandonnez ou renouvelez une mission qui ne vous plaît pas. Une alliance doit compter au moins 15 membres.",
+                    "Tu alianza comparte una reserva de tareas. Toma una cada vez y complétala jugando: sus puntos cuentan para ti y para tu alianza. Abandona o renueva una tarea que no te guste. La alianza necesita al menos 15 miembros.",
+                    "La tua alleanza condivide una riserva di compiti. Prendine uno alla volta e completalo giocando: i punti valgono per te e per l'alleanza. Abbandona o rinnova un compito che non ti piace. Servono almeno 15 membri.",
+                    "Sua aliança compartilha um conjunto de tarefas. Pegue uma por vez e conclua jogando: os pontos contam para você e para a aliança. Descarte ou renove uma tarefa de que não goste. A aliança precisa de pelo menos 15 membros.",
+                    "Je alliantie deelt een pool met taken. Neem er één tegelijk en voltooi die door te spelen: de punten tellen voor jou en je alliantie. Laat een taak vallen of vernieuw hem als hij je niet bevalt. Een alliantie heeft minstens 15 leden nodig.",
+                    "У вашего альянса общий набор заданий. Берите по одному и выполняйте в игре: очки идут вам и альянсу. Неподходящее задание можно сбросить или обновить. Для участия в альянсе должно быть не меньше 15 участников.",
+                    "لدى تحالفك مجموعة مهام مشتركة. خذ مهمة واحدة في كل مرة وأنجزها أثناء اللعب: تُحتسب نقاطها لك ولتحالفك. يمكنك ترك المهمة أو تجديدها إن لم تعجبك. يحتاج التحالف إلى 15 عضوًا على الأقل للمشاركة.",
+                    "同盟には共有のタスクプールがあります。一度に1つ受けてプレイで達成すると、ポイントが自分と同盟に入ります。気に入らないタスクは破棄または更新できます。参加には同盟メンバー15人以上が必要です。",
+                    "연맹은 공동 임무 풀을 공유합니다. 한 번에 하나씩 받아 플레이로 완료하면 점수가 나와 연맹 모두에게 쌓입니다. 마음에 들지 않는 임무는 포기하거나 새로 고칠 수 있습니다. 참가하려면 연맹원이 15명 이상이어야 합니다.",
+                    "你的联盟共享一个任务池。每次领取一个任务，通过游戏完成，积分同时计入你和联盟。不喜欢的任务可以放弃或刷新。联盟至少需要15名成员才能参加。",
+                    "你的聯盟共享一個任務池。每次領取一個任務，透過遊戲完成，積分同時計入你和聯盟。不喜歡的任務可以放棄或刷新。聯盟至少需要15名成員才能參加。",
+                    "พันธมิตรของคุณมีกองภารกิจร่วมกัน รับได้ครั้งละหนึ่งภารกิจและทำให้สำเร็จด้วยการเล่น แต้มจะนับให้ทั้งคุณและพันธมิตร ทิ้งหรือรีเฟรชภารกิจที่ไม่ชอบได้ พันธมิตรต้องมีสมาชิกอย่างน้อย 15 คน",
+                    "Liên minh của bạn có chung một kho nhiệm vụ. Mỗi lần nhận một nhiệm vụ và hoàn thành khi chơi: điểm được tính cho bạn và liên minh. Có thể bỏ hoặc làm mới nhiệm vụ không ưng ý. Liên minh cần ít nhất 15 thành viên.",
+                    "Aliansimu berbagi kumpulan tugas. Ambil satu per satu dan selesaikan sambil bermain: poinnya untukmu dan aliansimu. Buang atau segarkan tugas yang tidak kamu suka. Aliansi perlu minimal 15 anggota.",
+                    "Pakatan anda berkongsi satu kumpulan tugasan. Ambil satu demi satu dan siapkan sambil bermain: mata dikira untuk anda dan pakatan. Buang atau segarkan tugasan yang tidak disukai. Pakatan perlu sekurang-kurangnya 15 ahli."),
+                Mobilization = new MobilizationConfig(),
+                Stages =
+                {
+                    Stage(400, Res("Titanium", 10000), Item("speed_any_5", 2)),
+                    Stage(1200, Item("chest_bronze", 1), Res("Food", 10000)),
+                    Stage(2500, Item("chest_silver", 1)),
+                    Stage(5000, Item("chest_silver", 1), Res("Hadalite", 30))
+                },
+                RankBands =
+                {
+                    Band(1, 1, Res("Hadalite", 150), Item("chest_gold", 1)),
+                    Band(2, 3, Res("Hadalite", 80), Item("chest_silver", 1)),
+                    Band(4, 10, Res("Hadalite", 30), Item("chest_bronze", 2))
+                }
+            }
+        };
+
+        /// <summary>
+        /// Alliance Duel (docs/29 §4.3): Monday 00:00 UTC, six themed days to Saturday 24:00. Alliances of a kingdom are
+        /// paired by power when it starts; day wins 1/2/2/2/2/4, first to 7 wins. Daily personal chests; result mails.
+        /// </summary>
+        private static EventSchedule Duel(DateTimeOffset now) => new()
+        {
+            Id = AllianceDuel,
+            Weekdays = new List<int> { Monday },
+            StartMinute = 0,
+            DurationHours = 6 * 24,
+            LeadHours = 24,
+            Note = "Default: weekly 1-v-1 alliance duel, Monday to Saturday",
+            CreatedBy = EventService.CalendarAuthor,
+            CreatedAt = now,
+            UpdatedAt = now,
+            Blueprint = new EventDefinition
+            {
+                Template = EventTemplates.AllianceDuel,
+                Banner = "leviathan",
+                ClaimDays = 1,
+                MinRankPoints = 500,
+                Title = T("İttifak Düellosu", "Alliance Duel", "Allianzduell", "Duel d'alliances", "Duelo de alianzas", "Duello tra alleanze",
+                    "Duelo de alianças", "Alliantieduel", "Дуэль альянсов", "مبارزة التحالفات", "同盟デュエル", "연맹 결투", "联盟对决", "聯盟對決",
+                    "ศึกดวลพันธมิตร", "Đấu tay đôi liên minh", "Duel Aliansi", "Duel Pakatan"),
+                Description = T(
+                    "Her hafta ittifakın, krallığındaki güce yakın bir ittifakla karşılaşır. Altı temalı gün var; günü kazanmak sırasıyla 1, 2, 2, 2, 2 ve 4 puan getirir, 7'ye ilk ulaşan haftayı kazanır. Her gün kendi puanınla günlük sandıkları açarsın.",
+                    "Every week your alliance meets an alliance of similar power in your kingdom. There are six themed days; winning a day is worth 1, 2, 2, 2, 2 and 4 points, and the first to 7 wins the week. Your own points each day open daily chests.",
+                    "Jede Woche trifft deine Allianz auf eine ähnlich starke Allianz deines Königreichs. Es gibt sechs Thementage; ein gewonnener Tag bringt 1, 2, 2, 2, 2 und 4 Punkte, wer zuerst 7 hat, gewinnt die Woche. Deine eigenen Tagespunkte öffnen Tagestruhen.",
+                    "Chaque semaine, votre alliance affronte une alliance de puissance proche dans votre royaume. Six journées à thème : gagner une journée rapporte 1, 2, 2, 2, 2 puis 4 points, et la première à 7 remporte la semaine. Vos propres points du jour ouvrent des coffres quotidiens.",
+                    "Cada semana tu alianza se enfrenta a una alianza de poder similar en tu reino. Hay seis días temáticos; ganar un día vale 1, 2, 2, 2, 2 y 4 puntos, y la primera en llegar a 7 gana la semana. Tus propios puntos de cada día abren cofres diarios.",
+                    "Ogni settimana la tua alleanza sfida un'alleanza di potere simile nel tuo regno. Sei giornate a tema: vincere una giornata vale 1, 2, 2, 2, 2 e 4 punti, e chi arriva prima a 7 vince la settimana. I tuoi punti del giorno aprono i forzieri giornalieri.",
+                    "Toda semana sua aliança enfrenta uma aliança de poder parecido no seu reino. São seis dias temáticos; vencer um dia vale 1, 2, 2, 2, 2 e 4 pontos, e quem chegar primeiro a 7 vence a semana. Seus próprios pontos de cada dia abrem baús diários.",
+                    "Elke week neemt je alliantie het op tegen een even sterke alliantie in je koninkrijk. Zes themadagen; een dag winnen levert 1, 2, 2, 2, 2 en 4 punten op, en wie eerst 7 heeft wint de week. Je eigen dagpunten openen dagkisten.",
+                    "Каждую неделю ваш альянс встречается с альянсом схожей силы из вашего королевства. Шесть тематических дней: победа в дне приносит 1, 2, 2, 2, 2 и 4 очка, кто первым наберёт 7 — выигрывает неделю. Ваши личные очки за день открывают ежедневные сундуки.",
+                    "كل أسبوع يواجه تحالفك تحالفًا بقوة مقاربة في مملكتك. هناك ستة أيام ذات مواضيع؛ الفوز بيوم يمنح 1 و2 و2 و2 و2 و4 نقاط، وأول من يصل إلى 7 يفوز بالأسبوع. نقاطك الخاصة في كل يوم تفتح صناديق يومية.",
+                    "毎週、同盟は王国内の近い戦力の同盟と対戦します。テーマのある6日間で、勝った日はそれぞれ1・2・2・2・2・4ポイント。先に7ポイントに達した側が週の勝者です。毎日の自分のポイントでデイリー宝箱が開きます。",
+                    "매주 연맹은 같은 왕국에서 전투력이 비슷한 연맹과 맞붙습니다. 테마가 있는 6일 동안 하루를 이기면 1, 2, 2, 2, 2, 4점을 얻고 먼저 7점에 도달한 쪽이 주간 승리합니다. 매일 내 점수로 일일 상자를 엽니다.",
+                    "每周你的联盟会与本王国实力相近的联盟对决。共六个主题日，赢下一天分别得1、2、2、2、2、4分，先到7分者赢得本周。你每天的个人积分可开启每日宝箱。",
+                    "每週你的聯盟會與本王國實力相近的聯盟對決。共六個主題日，贏下一天分別得1、2、2、2、2、4分，先到7分者贏得本週。你每天的個人積分可開啟每日寶箱。",
+                    "ทุกสัปดาห์พันธมิตรของคุณจะพบกับพันธมิตรที่มีพลังใกล้เคียงกันในอาณาจักร มีหกวันตามธีม ชนะแต่ละวันได้ 1, 2, 2, 2, 2 และ 4 แต้ม ใครถึง 7 ก่อนชนะสัปดาห์นั้น แต้มของคุณเองในแต่ละวันเปิดหีบรายวันได้",
+                    "Mỗi tuần liên minh của bạn đối đầu một liên minh có sức mạnh tương đương trong vương quốc. Có sáu ngày theo chủ đề; thắng một ngày được 1, 2, 2, 2, 2 và 4 điểm, ai đạt 7 trước thắng cả tuần. Điểm riêng mỗi ngày của bạn mở rương hằng ngày.",
+                    "Setiap minggu aliansimu bertemu aliansi dengan kekuatan serupa di kerajaanmu. Ada enam hari bertema; menang satu hari bernilai 1, 2, 2, 2, 2, dan 4 poin, dan yang pertama mencapai 7 memenangkan minggu itu. Poinmu sendiri tiap hari membuka peti harian.",
+                    "Setiap minggu pakatan anda berdepan pakatan yang hampir sama kuat dalam kerajaan anda. Ada enam hari bertema; menang satu hari bernilai 1, 2, 2, 2, 2 dan 4 mata, dan yang pertama mencapai 7 memenangi minggu itu. Mata anda sendiri setiap hari membuka peti harian."),
+                Phases =
+                {
+                    Day(0, T("Toplama Günü", "Gathering Day", "Sammeltag", "Journée de récolte", "Día de recolección", "Giornata di raccolta",
+                            "Dia de coleta", "Verzameldag", "День добычи", "يوم الجمع", "採集の日", "채집의 날", "采集日", "採集日",
+                            "วันเก็บทรัพยากร", "Ngày thu thập", "Hari Pengumpulan", "Hari Mengumpul"),
+                        A(EventActions.Gather, 1, 1000)),
+                    Day(1, T("Üs Büyütme", "Base Growth", "Basisausbau", "Croissance de la base", "Crecimiento de la base", "Crescita della base",
+                            "Crescimento da base", "Basisgroei", "Рост базы", "نمو القاعدة", "基地発展", "기지 성장", "基地发展", "基地發展",
+                            "พัฒนาฐาน", "Phát triển căn cứ", "Pertumbuhan Markas", "Pertumbuhan Pangkalan"),
+                        A(EventActions.BuildPower, 2), A(EventActions.SpeedupMinutes, 1)),
+                    Day(2, T("Araştırma", "Research", "Forschung", "Recherche", "Investigación", "Ricerca",
+                            "Pesquisa", "Onderzoek", "Исследования", "البحث", "研究", "연구", "研究", "研究",
+                            "วิจัย", "Nghiên cứu", "Riset", "Penyelidikan"),
+                        A(EventActions.Research, 300), A(EventActions.SpeedupMinutes, 1)),
+                    Day(3, T("Kahramanlar", "Heroes", "Helden", "Héros", "Héroes", "Eroi",
+                            "Heróis", "Helden", "Герои", "الأبطال", "英雄", "영웅", "英雄", "英雄",
+                            "ฮีโร่", "Anh hùng", "Pahlawan", "Wira"),
+                        A(EventActions.HeroLevel, 50), A(EventActions.HeroPull, 200), A(EventActions.HeroRecruit, 300)),
+                    Day(4, T("Topyekûn Seferberlik", "Total Mobilisation", "Totale Mobilmachung", "Mobilisation générale", "Movilización total", "Mobilitazione totale",
+                            "Mobilização total", "Totale mobilisatie", "Всеобщая мобилизация", "التعبئة الشاملة", "総力戦", "총력전", "全面动员", "全面動員",
+                            "ระดมพลเต็มกำลัง", "Tổng lực", "Mobilisasi Total", "Mobilisasi Penuh"),
+                        A(EventActions.Train(1), 1), A(EventActions.Train(2), 2), A(EventActions.Train(3), 4), A(EventActions.Train(4), 8), A(EventActions.Train(5), 16),
+                        A(EventActions.Gather, 1, 2000), A(EventActions.BuildPower, 1), A(EventActions.Research, 150), A(EventActions.Heal, 1, 10)),
+                    Day(5, T("Av", "The Hunt", "Die Jagd", "La chasse", "La caza", "La caccia",
+                            "A caçada", "De jacht", "Охота", "الصيد", "狩り", "사냥", "狩猎", "狩獵",
+                            "การล่า", "Cuộc săn", "Perburuan", "Perburuan"),
+                        A(EventActions.MonsterKill, 100), A(EventActions.MonsterLevels, 20))
+                },
+                Stages =
+                {
+                    Stage(1000, Res("Titanium", 5000), Item("speed_any_5", 1)),
+                    Stage(4000, Item("chest_bronze", 1)),
+                    Stage(10000, Item("chest_silver", 1))
+                },
+                Duel = new DuelConfig
+                {
+                    Win = { Res("Hadalite", 100), Item("chest_gold", 1) },
+                    Loss = { Item("chest_silver", 1) },
+                    Draw = { Res("Hadalite", 50), Item("chest_silver", 1) }
+                }
+            }
+        };
+
+        private static EventPhaseConfig Day(int day, Dictionary<string, string> title, params EventActionConfig[] actions) =>
+            new() { StartHour = day * 24, Hours = 24, Title = title, Actions = actions.ToList() };
 
         // --- Helpers ------------------------------------------------------------------------------
 

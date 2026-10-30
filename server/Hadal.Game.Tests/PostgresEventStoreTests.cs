@@ -49,9 +49,28 @@ namespace Hadal.Game.Tests
             Assert.Equal(250, back.Carry["gather"]);
             Assert.Equal(99, Assert.Single(alliances).Points);
 
-            // Deleting the event takes its scores with it (this may run against a live database).
+            // An alliance's Mobilization pool and duel day points, and a player's held task and day points.
+            var state = new EventAllianceState { Pool = { new MobilizationCard { Kind = "gather", Tier = 2, Target = 300_000, Points = 200 }, null } };
+            state.Draws.AddRange(new[] { 1, 2 });
+            state.ReadyAt.AddRange(new[] { now, now.AddMinutes(5) });
+            state.DayPoints[3] = 777;
+            await store.SaveAllianceStatesAsync(new[] { (id, "a1", state.ToJson()) }, default);
+            state.DayPoints[4] = 5;
+            await store.SaveAllianceStatesAsync(new[] { (id, "a1", state.ToJson()) }, default); // upsert
+            var back2 = EventAllianceState.FromJson(Assert.Single(await store.LoadAllianceStatesAsync(new[] { id }, default)).Json);
+            Assert.Equal(("gather", 2, 777L, 5L), (back2.Pool[0]!.Kind, back2.Pool[0]!.Tier, back2.DayPoints[3], back2.DayPoints[4]));
+            Assert.Null(back2.Pool[1]);
+            score.Task = new MobilizationCard { Kind = "train", Tier = 4, Target = 300, Points = 560 };
+            score.TaskProgress = 12;
+            score.DayPoints[1] = 44;
+            await store.SaveScoresAsync(new[] { score }, default);
+            var held = Assert.Single((await store.LoadProgressAsync(new[] { id }, default)).Scores);
+            Assert.Equal(("train", 12L, 44L), (held.Task!.Kind, held.TaskProgress, held.DayPoints[1]));
+
+            // Deleting the event takes its scores and states with it (this may run against a live database).
             await store.DeleteEventAsync(id, default);
             Assert.Empty((await store.LoadProgressAsync(new[] { id }, default)).Scores);
+            Assert.Empty(await store.LoadAllianceStatesAsync(new[] { id }, default));
         }
 
         [Fact]

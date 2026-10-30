@@ -5,7 +5,29 @@ const EVENT_TEMPLATES = {
   points: "Puan yarışması (bireysel)",
   alliance: "İttifak yarışması",
   login: "Giriş ödülü (günlük)",
+  mobilization: "Seferberlik (ittifak görev havuzu)",
+  alliance_duel: "İttifak Düellosu (haftalık 1'e 1)",
 };
+
+// Mobilization task kinds (MobilizationRules.Kinds) and the duel's six day themes (AllianceDuelRules).
+const MOBILIZATION_KINDS = {
+  gather: "Kaynak toplama", train: "Asker eğitimi (her kademe)", research: "Araştırma seviyesi", build_power: "İnşaat gücü",
+  monster_kill: "Yaratık yenme", heal: "Asker iyileştirme", speedup_minutes: "Hızlandırma (dakika)", hero_level: "Kahraman seviyesi",
+  help: "İttifak yardımı", dive: "Derinlik Haritası aşaması",
+};
+const MOBILIZATION_TIERS = ["", "yeşil", "mavi", "mor", "altın"];
+const DUEL_DAYS = [
+  [{ tr: "Toplama Günü", en: "Gathering Day" }, [{ action: "gather", points: 1, per: 1000 }]],
+  [{ tr: "Üs Büyütme", en: "Base Growth" }, [{ action: "build_power", points: 2, per: 1 }, { action: "speedup_minutes", points: 1, per: 1 }]],
+  [{ tr: "Araştırma", en: "Research" }, [{ action: "research", points: 300, per: 1 }, { action: "speedup_minutes", points: 1, per: 1 }]],
+  [{ tr: "Kahramanlar", en: "Heroes" }, [{ action: "hero_level", points: 50, per: 1 }, { action: "hero_pull", points: 200, per: 1 }, { action: "hero_recruit", points: 300, per: 1 }]],
+  [{ tr: "Topyekûn Seferberlik", en: "Total Mobilisation" }, [{ action: "train_t1", points: 1, per: 1 }, { action: "train_t2", points: 2, per: 1 }, { action: "train_t3", points: 4, per: 1 },
+    { action: "train_t4", points: 8, per: 1 }, { action: "train_t5", points: 16, per: 1 }, { action: "gather", points: 1, per: 2000 }, { action: "build_power", points: 1, per: 1 },
+    { action: "research", points: 150, per: 1 }, { action: "heal", points: 1, per: 10 }]],
+  [{ tr: "Av", en: "The Hunt" }, [{ action: "monster_kill", points: 100, per: 1 }, { action: "monster_levels", points: 20, per: 1 }]],
+];
+const duelPhases = (hours) => DUEL_DAYS.map(([title, actions], i) => ({ title: Object.assign({}, title), startHour: i * hours, hours, actions: actions.map((a) => Object.assign({}, a)) }));
+const DUEL_RESULT = ["sürüyor", "kazandı", "kaybetti", "berabere"];
 
 const EVENT_ACTIONS = {
   gather: "Kaynak toplama (birim)",
@@ -82,6 +104,11 @@ const EVENT_ERRORS = {
   InvalidNote: "Not en fazla 200 karakter olabilir.",
   UnknownSchedule: "Program bulunamadı.",
   NoOccurrence: "Önümüzdeki 8 günde oluşturulacak bir tekrar yok; hepsi zaten var.",
+  InvalidMobilization: "Seferberlik ayarları geçersiz (üye 1–200, kart 1–16, yenilenme 0–1440 dk, günlük görev 1–100, yenileme 0–50, hedef %10–1000).",
+  InvalidDuelDays: "Düelloda arka arkaya 6 tema günü olmalı (0. saatten başlar, döngü yok).",
+  InvalidDuelRewards: "Düello sonuç ödülleri geçersiz (her biri en çok 10 ödül) ya da en az üye sayısı 1–200 değil.",
+  AlreadyPaid: "Ödüller postayla gönderildi; süre artık uzatılamaz.",
+  AlreadyScoring: "Düelloda puan kazanılmaya başlandı; yeniden eşleştirilemez.",
 };
 
 // ---------------------------------------------------------------- Ready-made deep-sea scenarios
@@ -277,6 +304,8 @@ async function eventDetail(root, id) {
   const data = await api("events/" + id);
   const r = data.event;
   const d = r.definition;
+  const team = d.template === "mobilization" || d.template === "alliance_duel";
+  const live = team ? await api(`events/${id}/live`) : null;
   const act = (path, body, done) => api(`events/${id}/${path}`, { method: "POST", body }).then(() => { toast(done); route(); }, (e) => toast(e.message, true));
   const hours = el("input", { type: "number", min: "1", value: "24", style: "width:80px" });
 
@@ -286,8 +315,10 @@ async function eventDetail(root, id) {
     el("button", { onclick: () => api(`events/${id}/duplicate`, { method: "POST" }).then((c) => { toast("Kopyalandı (taslak)."); location.hash = "#/events/" + c.id; }, (e) => toast(e.message, true)) }, "Kopyala"),
     el("button", { title: "Bu etkinliği şablon alan, kapalı bir haftalık program oluşturur", onclick: () => api(`schedules/from-event/${encodeURIComponent(id)}`, { method: "POST" })
       .then((r) => { toast("Program oluşturuldu (kapalı). Gün ve saati kontrol edip aç."); location.hash = "#/events/schedule-" + r.schedule.id; }, (e) => toast(e.message, true)) }, "Takvime ekle"),
-    r.phase === "live" ? el("button", { onclick: () => confirm("Etkinlik şimdi bitirilsin mi? Sıralama ödülleri açılır.") && act("end", null, "Etkinlik bitirildi.") }, "Şimdi bitir") : null,
-    r.phase === "live" || r.phase === "upcoming" || r.phase === "ended" ? el("span", { class: "inline" }, hours, el("button", { onclick: () => act("extend", { hours: Number(hours.value) }, "Süre uzatıldı.") }, "saat uzat")) : null,
+    r.phase === "live" ? el("button", { onclick: () => confirm("Etkinlik şimdi bitirilsin mi? Sıralama ödülleri ve alınmamış aşama ödülleri postayla gider.") && act("end", null, "Etkinlik bitirildi.") }, "Şimdi bitir") : null,
+    (r.phase === "live" || r.phase === "upcoming" || r.phase === "ended") && !d.paidOutAt ? el("span", { class: "inline" }, hours, el("button", { onclick: () => act("extend", { hours: Number(hours.value) }, "Süre uzatıldı.") }, "saat uzat")) : null,
+    d.template === "alliance_duel" && r.phase === "live" ? el("button", { title: "Henüz kimse puan kazanmadıysa eşleşmeyi bugünkü güçlere göre yeniden yapar",
+      onclick: () => confirm("Düello şimdi yeniden eşleştirilsin mi?") && act("pair", null, "Eşleştirildi.") }, "Şimdi eşleştir") : null,
     d.status === "published" ? el("button", { class: "danger", onclick: () => confirm("Etkinlik iptal edilsin mi? Oyunculardan gizlenir, ödül alınamaz.") && act("cancel", null, "İptal edildi.") }, "İptal et") : null,
     d.status !== "published" ? el("button", { class: "danger", onclick: () => confirm("Etkinlik ve tüm puanları silinsin mi?") &&
       api("events/" + id, { method: "DELETE" }).then(() => { toast("Silindi."); location.hash = "#/events"; }, (e) => toast(e.message, true)) }, "Sil") : null) : null;
@@ -307,18 +338,27 @@ async function eventDetail(root, id) {
       el("p", {}, (d.description && (d.description.tr || d.description.en)) || ""),
       el("div", { class: "tiles" },
         el("div", { class: "tile" }, el("div", { class: "k" }, "Katılımcı"), el("div", { class: "v" }, fmtNum(r.participants))),
-        el("div", { class: "tile" }, el("div", { class: "k" }, data.alliance ? "Lider ittifak puanı" : "En yüksek puan"), el("div", { class: "v" }, fmtNum(r.topPoints)))),
+        el("div", { class: "tile" }, el("div", { class: "k" }, data.alliance ? "Lider ittifak puanı" : "En yüksek puan"), el("div", { class: "v" }, fmtNum(r.topPoints))),
+        el("div", { class: "tile" }, el("div", { class: "k" }, "Bitiş ödemesi (posta)"),
+          el("div", { class: "v small" }, d.paidOutAt ? `${fmtDate(d.paidOutAt)} · ${fmtNum(d.paidOutMails)} posta` : r.phase === "ended" ? "gönderiliyor…" : "bitişte"))),
       buttons),
+    live ? liveSection(d, live) : null,
     d.template !== "login" ? [
       el("h2", {}, "Puan kazanma"),
       d.phases && d.phases.length
         ? el("div", { class: "grid2" }, d.phases.map((p) => el("div", { class: "card" },
             el("b", {}, textOf(p.title)), el("span", { class: "muted" }, ` · ${p.startHour}. saatten ${p.hours} saat` + (d.cyclePhases ? " (döngü)" : "")), actionsTable(p.actions))))
         : actionsTable(d.actions)] : null,
-    el("h2", {}, d.template === "login" ? "Günlük ödüller" : "Aşama ödülleri"),
+    el("h2", {}, d.template === "login" ? "Günlük ödüller" : d.template === "alliance_duel" ? "Günlük sandıklar (oyuncunun o günkü puanı)" : "Aşama ödülleri"),
     el("table", {}, el("tbody", {}, (d.stages || []).map((s, i) =>
       el("tr", {}, el("td", {}, d.template === "login" ? `${i + 1}. gün` : `${fmtNum(s.points)} puan`), el("td", {}, rewardsText(s.rewards)))))),
-    d.template !== "login" ? [
+    d.template === "alliance_duel" ? [
+      el("h2", {}, "Hafta sonucu ödülleri (postayla; ittifak için en az puan kazanan üyelere)"),
+      el("table", {}, el("tbody", {},
+        el("tr", {}, el("td", {}, "Kazanan"), el("td", {}, rewardsText((d.duel || {}).win))),
+        el("tr", {}, el("td", {}, "Kaybeden"), el("td", {}, rewardsText((d.duel || {}).loss))),
+        el("tr", {}, el("td", {}, "Berabere"), el("td", {}, rewardsText((d.duel || {}).draw)))))] : null,
+    d.template !== "login" && d.template !== "alliance_duel" ? [
       el("h2", {}, "Sıralama ödülleri"),
       el("table", {}, el("tbody", {}, (d.rankBands || []).length === 0 ? el("tr", {}, el("td", { class: "muted" }, "Sıralama ödülü yok.")) :
         d.rankBands.map((b) => el("tr", {}, el("td", {}, b.from === b.to ? `${b.from}.` : `${b.from}–${b.to}.`), el("td", {}, rewardsText(b.rewards)))))),
@@ -327,6 +367,38 @@ async function eventDetail(root, id) {
         el("thead", {}, el("tr", {}, ["Sıra", data.alliance ? "İttifak" : "Oyuncu", "Etiket", "Puan"].map((h) => el("th", {}, h)))),
         el("tbody", {}, data.ranking.length === 0 ? el("tr", {}, el("td", { class: "muted", colspan: "4" }, "Henüz puan yok.")) :
           data.ranking.map((e) => el("tr", {}, el("td", {}, e.rank), el("td", {}, e.name), el("td", { class: "mono" }, e.tag), el("td", { class: "mono" }, fmtNum(e.points))))))] : null);
+}
+
+/** Live state of Mobilization (each alliance's task table) and the duel (pairings per kingdom, days, week points). */
+function liveSection(d, live) {
+  const tier = (c) => (c.kind ? `${MOBILIZATION_KINDS[c.kind] || c.kind} ${fmtNum(c.target)} · ${MOBILIZATION_TIERS[c.tier] || c.tier} · ${fmtNum(c.points)} p`
+    : `yenileniyor ${c.readyAtMs ? new Date(c.readyAtMs).toLocaleTimeString() : ""}`);
+  if (d.template === "mobilization") {
+    const m = d.mobilization || {};
+    return el("div", { class: "card" },
+      el("h2", {}, "Seferberlik — canlı görev havuzları"),
+      el("p", { class: "muted" }, `En az ${m.minMembers} üye · ${m.slots} kart · kart ${m.refillMinutes} dk'da yenilenir · günde ${m.tasksPerDay} görev, ${m.refreshesPerDay} yenileme (${m.refreshCooldownMinutes} dk ara) · hedef %${m.targetPercent}`),
+      live.mobilization.length === 0 ? el("p", { class: "muted" }, "Henüz görev havuzu açan ittifak yok.") :
+      el("table", {},
+        el("thead", {}, el("tr", {}, ["İttifak", "Üye", "Puan", "Görev tutan", "Kartlar"].map((h) => el("th", {}, h)))),
+        el("tbody", {}, live.mobilization.map((p) => el("tr", {},
+          el("td", {}, `[${p.tag}] ${p.name}`), el("td", {}, fmtNum(p.members)), el("td", { class: "mono" }, fmtNum(p.points)), el("td", {}, fmtNum(p.holding)),
+          el("td", { class: "small" }, p.cards.map((c) => el("div", {}, `${c.slot + 1}. ${tier(c)}`))))))));
+  }
+  const side = (s) => s.allianceId === "~echo" ? "Derinlik Yankısı (bot)" : `[${s.tag}] ${s.name}`;
+  const day = (w) => ["·", "A", "B", "="][w] || "·";
+  return el("div", { class: "card" },
+    el("h2", {}, "İttifak Düellosu — eşleşmeler"),
+    el("p", { class: "muted" }, live.pairedAt ? `Eşleştirme: ${fmtDate(live.pairedAt)} · tek kalan ittifak, krallığındaki ittifakların günlük ortalamasıyla oynayan Derinlik Yankısı'yla eşleşir.` : "Etkinlik başlayınca eşleştirilir."),
+    live.duel.length === 0 ? el("p", { class: "muted" }, "Eşleşme yok.") :
+    el("table", {},
+      el("thead", {}, el("tr", {}, ["Krallık", "A", "B", "Günler (A/B/=)", "Hafta puanı", "Gün puanları A", "Gün puanları B"].map((h) => el("th", {}, h)))),
+      el("tbody", {}, live.duel.map((p) => el("tr", {},
+        el("td", { class: "mono" }, p.kingdom), el("td", {}, side(p.a)), el("td", {}, side(p.b)),
+        el("td", { class: "mono" }, p.dayWinners.map(day).join(" ")),
+        el("td", { class: "mono" }, `${p.a.wins} – ${p.b.wins}`),
+        el("td", { class: "mono small" }, p.a.dayPoints.map(fmtNum).join(" / ")),
+        el("td", { class: "mono small" }, p.b.dayPoints.map(fmtNum).join(" / ")))))));
 }
 
 // ---------------------------------------------------------------- Editor
@@ -344,6 +416,8 @@ async function eventEditor(root, id) {
   model.bosses = model.bosses || [];
   model.bossRanks = model.bossRanks || [];
   model.bossParticipation = model.bossParticipation || [];
+  model.mobilization = Object.assign({ minMembers: 15, slots: 8, refillMinutes: 5, tasksPerDay: 8, refreshesPerDay: 3, refreshCooldownMinutes: 10, kinds: [], targetPercent: 100 }, model.mobilization || {});
+  model.duel = Object.assign({ minMembers: 3, win: [], loss: [], draw: [] }, model.duel || {});
 
   const draw = () => render(root, form());
 
@@ -400,10 +474,12 @@ async function eventEditor(root, id) {
   }
 
   async function save() {
+    const noScoring = model.template === "login" || model.template === "mobilization";
     const body = Object.assign({}, model, {
       startsAt: new Date(model.startsAt).toISOString(), endsAt: new Date(model.endsAt).toISOString(),
-      phases: model.template === "login" ? [] : model.phases, actions: model.template === "login" ? [] : model.actions,
-      rankBands: model.template === "login" ? [] : model.rankBands,
+      phases: noScoring ? [] : model.phases, actions: noScoring || model.template === "alliance_duel" ? [] : model.actions,
+      rankBands: model.template === "login" || model.template === "alliance_duel" ? [] : model.rankBands,
+      cyclePhases: model.template === "alliance_duel" ? false : model.cyclePhases,
     });
     if (model.template === "login") body.stages = model.stages.map((s, i) => Object.assign({}, s, { points: i + 1 }));
     const saved = await api("events", { method: "POST", body });
@@ -425,7 +501,15 @@ async function eventEditor(root, id) {
       el("div", { class: "card" },
         el("h2", {}, "Temel"),
         el("div", { class: "row" },
-          el("label", {}, "Tür", el("select", { onchange: (e) => { model.template = e.target.value; draw(); } },
+          el("label", {}, "Tür", el("select", { onchange: (e) => {
+            model.template = e.target.value;
+            // A duel is six back-to-back themed days: fill them in (editable), and the window to match.
+            if (model.template === "alliance_duel" && model.phases.length !== 6) {
+              model.phases = duelPhases(24);
+              model.cyclePhases = false;
+              model.endsAt = new Date(new Date(model.startsAt).getTime() + 6 * 24 * HOUR);
+            }
+            draw(); } },
             Object.entries(EVENT_TEMPLATES).map(([k, v]) => el("option", { value: k, selected: model.template === k }, v)))),
           el("label", {}, "Afiş", banner),
           el("span", { class: "swatch big", style: `background:${(EVENT_BANNERS[model.banner] || ["", "#333"])[1]}` })),
@@ -444,7 +528,31 @@ async function eventEditor(root, id) {
       el("div", { class: "card" }, el("h2", {}, "Başlık"), textInputs(model.title, false, "Etkinlik adı"),
         el("h2", {}, "Açıklama"), textInputs(model.description, true, "Oyuncunun göreceği hikâye ve kurallar")),
 
-      login ? null : el("div", { class: "card" },
+      model.template === "mobilization" ? el("div", { class: "card" },
+        el("h2", {}, "Seferberlik ayarları"),
+        el("p", { class: "muted" }, "Her ittifakın kendi görev kartları olur; üye bir seferde bir görev alır, oynayarak bitirir, puan hem kendisine hem ittifaka yazılır. Kart renkleri: yeşil (×1, 100 p), mavi (×2, 200 p), mor (×3, 340 p), altın (×5, 560 p). Aşama ödülleri kişisel puan eşikleri, sıralama ödülleri ittifak sırasıdır."),
+        el("div", { class: "row" },
+          ...[["minMembers", "En az üye"], ["slots", "Kart sayısı (1–16)"], ["refillMinutes", "Alınan kartın yenilenmesi (dk)"], ["tasksPerDay", "Günlük görev hakkı"],
+            ["refreshesPerDay", "Günlük yenileme hakkı"], ["refreshCooldownMinutes", "Yenileme arası (dk)"], ["targetPercent", "Hedef büyüklüğü (%)"]]
+            .map(([k, label]) => el("label", {}, label, el("input", { type: "number", min: "0", value: model.mobilization[k], onchange: (e) => (model.mobilization[k] = Number(e.target.value)) })))),
+        el("label", {}, "Görev türleri (hiçbiri seçili değilse hepsi)"),
+        el("div", { class: "row" }, Object.entries(MOBILIZATION_KINDS).map(([k, label]) => el("label", { class: "check" },
+          el("input", { type: "checkbox", checked: model.mobilization.kinds.includes(k), onchange: (e) => {
+            model.mobilization.kinds = e.target.checked ? model.mobilization.kinds.concat(k) : model.mobilization.kinds.filter((x) => x !== k);
+          } }), " " + label)))) : null,
+
+      model.template === "alliance_duel" ? el("div", { class: "card" },
+        el("h2", {}, "Düello ayarları"),
+        el("p", { class: "muted" }, "Etkinlik canlı olunca her krallığın ittifakları güce göre ikişer eşleşir; tek kalan, krallığın günlük ortalamasıyla oynayan Derinlik Yankısı'yla eşleşir. 6 gün = 6 tema (aşağıda); gün kazanmak 1/2/2/2/2/4 puan, 7'ye ulaşan kazanır. Aşama ödülleri her günün kişisel puanıyla açılan günlük sandıklardır."),
+        el("div", { class: "row" },
+          el("label", {}, "Eşleşmek için en az üye", el("input", { type: "number", min: "1", value: model.duel.minMembers, onchange: (e) => (model.duel.minMembers = Number(e.target.value)) })),
+          el("button", { onclick: () => { const h = model.phases.length ? model.phases[0].hours : 24; model.phases = duelPhases(h); draw(); } }, "6 temayı varsayılana döndür")),
+        el("p", {}, el("b", {}, "Kazanan ittifakın üyelerine")), rewardsEditor(model.duel.win),
+        el("p", {}, el("b", {}, "Kaybeden ittifakın üyelerine")), rewardsEditor(model.duel.loss),
+        el("p", {}, el("b", {}, "Beraberlikte iki tarafa")), rewardsEditor(model.duel.draw),
+        el("p", { class: "muted" }, "Sonuç postası, ittifakı için en az \"sıralama ödülü için en az puan\" kadar kazanan her üyeye gider.")) : null,
+
+      login || model.template === "mobilization" ? null : el("div", { class: "card" },
         el("h2", {}, "Puan kazanma yolları"),
         el("label", { class: "check" }, el("input", { type: "checkbox", checked: model.phases.length > 0, onchange: (e) => {
           model.phases = e.target.checked ? [{ title: { tr: "1. tema", en: "Theme 1" }, startHour: 0, hours: 4, actions: model.actions.length ? model.actions : [{ action: "gather", points: 1, per: 1000 }] }] : [];
@@ -465,7 +573,7 @@ async function eventEditor(root, id) {
             draw(); } }, "+ dönem")]),
 
       el("div", { class: "card" },
-        el("h2", {}, login ? "Günlük ödüller" : "Aşama ödülleri (puan eşikleri)"),
+        el("h2", {}, login ? "Günlük ödüller" : model.template === "alliance_duel" ? "Günlük sandıklar (oyuncunun o günkü puanı)" : "Aşama ödülleri (puan eşikleri)"),
         el("table", {}, el("tbody", {}, model.stages.map((s, i) => el("tr", {},
           el("td", {}, login ? `${i + 1}. gün` : el("span", {}, el("input", { type: "number", min: "1", value: s.points, onchange: (e) => (s.points = Number(e.target.value)) }), " puan")),
           el("td", {}, rewardsEditor(s.rewards)),
@@ -475,8 +583,8 @@ async function eventEditor(root, id) {
           model.stages.push({ points: login ? model.stages.length + 1 : (last ? last.points * 2 : 1000), rewards: [{ type: "resource", id: "Titanium", amount: 10000 }] });
           draw(); } }, login ? "+ gün" : "+ aşama")),
 
-      login ? null : el("div", { class: "card" },
-        el("h2", {}, model.template === "alliance" ? "Sıralama ödülleri (ittifak sırası; ödülü puan kazanan her üye alır)" : "Sıralama ödülleri"),
+      login || model.template === "alliance_duel" ? null : el("div", { class: "card" },
+        el("h2", {}, model.template === "alliance" || model.template === "mobilization" ? "Sıralama ödülleri (ittifak sırası; ödülü puan kazanan her üye postayla alır)" : "Sıralama ödülleri (bitişte postayla)"),
         el("table", {}, el("tbody", {}, model.rankBands.map((b, i) => el("tr", {},
           el("td", {}, el("input", { type: "number", min: "1", value: b.from, onchange: (e) => (b.from = Number(e.target.value)) }), " – ",
             el("input", { type: "number", min: "1", value: b.to, onchange: (e) => (b.to = Number(e.target.value)) }), ". sıra"),

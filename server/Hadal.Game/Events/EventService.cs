@@ -34,6 +34,12 @@ namespace Hadal.Game.Events
             public bool Dirty = true;
             public DateTimeOffset SortedAt;
             public EventPhase Phase;
+
+            /// <summary>Per alliance: the Mobilization pool and the duel's day points (EventAllianceState).</summary>
+            public readonly Dictionary<string, EventAllianceState> States = new(StringComparer.Ordinal);
+
+            /// <summary>The end-of-event payout is on its way to the mailbox (EventService.Payout).</summary>
+            public bool Paying;
         }
 
         private static readonly TimeSpan HousekeepingEvery = TimeSpan.FromSeconds(5);
@@ -48,6 +54,7 @@ namespace Hadal.Game.Events
         private readonly Dictionary<string, PlayerSession> _online = new(StringComparer.Ordinal);
         private readonly HashSet<EventScore> _dirtyScores = new();
         private readonly HashSet<(string EventId, string AllianceId)> _dirtyAlliances = new();
+        private readonly HashSet<(string EventId, string AllianceId)> _dirtyStates = new();
         private readonly Channel<Func<CancellationToken, Task>> _writes = Channel.CreateUnbounded<Func<CancellationToken, Task>>(new UnboundedChannelOptions { SingleReader = true });
         private DateTimeOffset _nextHousekeeping;
 
@@ -159,7 +166,7 @@ namespace Hadal.Game.Events
         }
 
         public static bool Handles(CommandType type) => type is CommandType.ClaimEventStage or CommandType.ClaimEventRank or CommandType.ViewEventRanking
-            or CommandType.ViewEventCalendar;
+            or CommandType.ViewEventCalendar or CommandType.MobilizationTask;
 
         public async Task InitializeAsync(DateTimeOffset now, CancellationToken cancellationToken)
         {
@@ -168,6 +175,7 @@ namespace Hadal.Game.Events
             // Progress is kept in memory for events that can still change or pay out.
             var open = definitions.Where(d => d.ClaimUntil > now.AddDays(-1)).Select(d => d.Id).ToList();
             var (scores, alliances) = await _store.LoadProgressAsync(open, cancellationToken);
+            var states = await _store.LoadAllianceStatesAsync(open, cancellationToken);
 
             lock (_gate)
             {
@@ -183,6 +191,12 @@ namespace Hadal.Game.Events
                 {
                     if (_events.TryGetValue(eventId, out var live))
                         live.Alliances[allianceId] = points;
+                }
+
+                foreach (var (eventId, allianceId, json) in states)
+                {
+                    if (_events.TryGetValue(eventId, out var live))
+                        live.States[allianceId] = EventAllianceState.FromJson(json);
                 }
 
                 RefreshBosses(now);
@@ -227,6 +241,19 @@ namespace Hadal.Game.Events
                 {
                     if (live.Def.Template == EventTemplates.Login || PhaseOf(live.Def, now) != EventPhase.Live || !Sees(live.Def, session))
                         continue;
+                    // Mobilization scores tasks, the duel scores days for paired alliances (their own files).
+                    if (live.Def.Template == EventTemplates.Mobilization)
+                    {
+                        changed |= RecordMobilization(live, session.PublicId, allianceId, actions, now);
+                        continue;
+                    }
+
+                    if (live.Def.Template == EventTemplates.AllianceDuel)
+                    {
+                        changed |= RecordDuel(live, session.PublicId, allianceId, actions, now);
+                        continue;
+                    }
+
                     var active = EventRules.ActiveActions(live.Shape, nowMs);
                     if (active.Length == 0)
                         continue;
@@ -246,20 +273,7 @@ namespace Hadal.Game.Events
 
                     if (score == null || gained <= 0)
                         continue;
-                    score.Points += gained;
-                    score.UpdatedAt = now;
-                    if (live.Def.Template == EventTemplates.Alliance)
-                    {
-                        // Points count for the alliance the player is in when they earn them.
-                        score.AllianceId = allianceId;
-                        if (allianceId.Length > 0)
-                        {
-                            live.Alliances[allianceId] = (live.Alliances.TryGetValue(allianceId, out var total) ? total : 0) + gained;
-                            _dirtyAlliances.Add((live.Def.Id, allianceId));
-                        }
-                    }
-
-                    live.Dirty = true;
+                    AddPoints(live, score, allianceId, gained, now);
                     changed = true;
                 }
 
@@ -267,6 +281,38 @@ namespace Hadal.Game.Events
                     PushTo(session, now);
             }
         }
+
+        /// <summary>
+        /// Adds points to a player and, in alliance templates, to the alliance they are in when they earn them. Caller
+        /// holds the lock.
+        /// </summary>
+        private void AddPoints(Live live, EventScore score, string allianceId, long gained, DateTimeOffset now)
+        {
+            score.Points += gained;
+            score.UpdatedAt = now;
+            _dirtyScores.Add(score);
+            if (EventTemplates.ForAlliances(live.Def.Template))
+            {
+                score.AllianceId = allianceId;
+                if (allianceId.Length > 0)
+                {
+                    live.Alliances[allianceId] = (live.Alliances.TryGetValue(allianceId, out var total) ? total : 0) + gained;
+                    _dirtyAlliances.Add((live.Def.Id, allianceId));
+                }
+            }
+
+            live.Dirty = true;
+        }
+
+        /// <summary>The alliance's state in an event, made on first use. Caller holds the lock.</summary>
+        private EventAllianceState StateOf(Live live, string allianceId)
+        {
+            if (!live.States.TryGetValue(allianceId, out var state))
+                live.States[allianceId] = state = new EventAllianceState();
+            return state;
+        }
+
+        private void StateChanged(Live live, string allianceId) => _dirtyStates.Add((live.Def.Id, allianceId));
 
         /// <summary>Every tick: phase changes, daily sign-ins and batched writes, a few times a minute.</summary>
         public void Tick(DateTimeOffset now)
@@ -294,6 +340,9 @@ namespace Hadal.Game.Events
                     _nextCalendarRun = now + CalendarEvery;
                     phaseChanged |= RunCalendar(now) > 0;
                 }
+
+                // Duels that went live are paired (EventService.Duel).
+                phaseChanged |= PairDuels(now) > 0;
 
                 FlushBossHits();
                 RefreshBosses(now);
@@ -364,6 +413,9 @@ namespace Hadal.Game.Events
                         new() { EntityId = EntityIds.EventCalendar, Kind = EntityChangeKind.Update, Payload = _serializer.Serialize(dto) }
                     });
                     break;
+                case CommandType.MobilizationTask when TryDeserialize(envelope.Payload, out MobilizationTaskCommand? task):
+                    HandleMobilization(session, task!, now);
+                    break;
                 default:
                     session.Acknowledge(envelope.CommandId, envelope.ClientSequence, "MalformedCommand", now);
                     break;
@@ -376,7 +428,7 @@ namespace Hadal.Game.Events
             string? reject;
             lock (_gate)
             {
-                reject = TryClaimStage(session, command.EventId, command.Index, now, out rewards);
+                reject = TryClaimStage(session, command.EventId, command.Index, command.Day, now, out rewards);
                 if (reject == null)
                     PushTo(session, now);
             }
@@ -387,7 +439,7 @@ namespace Hadal.Game.Events
                 session.GrantEventRewards(command.CommandId, command.ClientSequence, rewards!, now);
         }
 
-        private string? TryClaimStage(PlayerSession session, string eventId, int index, DateTimeOffset now, out List<RewardData>? rewards)
+        private string? TryClaimStage(PlayerSession session, string eventId, int index, int day, DateTimeOffset now, out List<RewardData>? rewards)
         {
             rewards = null;
             if (!_events.TryGetValue(eventId ?? string.Empty, out var live) || !Sees(live.Def, session))
@@ -395,18 +447,38 @@ namespace Hadal.Game.Events
             var phase = PhaseOf(live.Def, now);
             if (phase is EventPhase.Upcoming or EventPhase.Closed)
                 return "NotOpen";
+            // After the end, whatever was still waiting goes out by mail (EventService.Payout).
+            if (phase == EventPhase.Ended || live.Def.PaidOutAt != null || live.Paying)
+                return "SentByMail";
             if (index < 0 || index >= live.Def.Stages.Count)
                 return "UnknownStage";
             var score = ScoreOf(live, session.PublicId, create: false);
             if (score == null)
                 return "NotReached";
-            if (score.Claimed.Contains(index))
+
+            // Duel chests count the points of one day: today's, or an earlier day of the week not yet taken.
+            var key = index;
+            bool reached;
+            if (live.Def.Template == EventTemplates.AllianceDuel)
+            {
+                var today = AllianceDuelRules.DayAt(live.Shape, now.ToUnixTimeMilliseconds());
+                var d = day > 0 ? day - 1 : today;
+                if (d < 0 || d >= AllianceDuelRules.Days || d > today)
+                    return "UnknownStage";
+                key = AllianceDuelRules.ChestKey(d, index);
+                reached = score.DayPoints[d] >= live.Def.Stages[index].Points;
+            }
+            else
+            {
+                reached = live.Def.Template == EventTemplates.Login ? index < score.LoginDays : score.Points >= live.Def.Stages[index].Points;
+            }
+
+            if (score.Claimed.Contains(key))
                 return "AlreadyClaimed";
-            var reached = live.Def.Template == EventTemplates.Login ? index < score.LoginDays : score.Points >= live.Def.Stages[index].Points;
             if (!reached)
                 return "NotReached";
 
-            score.Claimed.Add(index);
+            score.Claimed.Add(key);
             score.UpdatedAt = now;
             _dirtyScores.Add(score);
             Flush();
@@ -435,30 +507,24 @@ namespace Hadal.Game.Events
             }
         }
 
+        /// <summary>
+        /// Rank rewards are no longer claimed on the page: the payout mails them when the event ends (docs/29 §2.2). The
+        /// command stays for older clients and only explains why nothing happens.
+        /// </summary>
         private string? TryClaimRank(PlayerSession session, string eventId, DateTimeOffset now, out List<RewardData>? rewards)
         {
             rewards = null;
             if (!_events.TryGetValue(eventId ?? string.Empty, out var live) || !Sees(live.Def, session) || live.Def.Template == EventTemplates.Login)
                 return "UnknownEvent";
-            if (PhaseOf(live.Def, now) != EventPhase.Ended)
+            if (PhaseOf(live.Def, now) is EventPhase.Upcoming or EventPhase.Live && live.Def.PaidOutAt == null)
                 return "NotEnded";
             var score = ScoreOf(live, session.PublicId, create: false);
+            if (score is { RankClaimed: true })
+                return "AlreadyClaimed";
             if (score == null || score.Points <= 0 || score.Points < live.Def.MinRankPoints)
                 return "NoRank";
-            if (score.RankClaimed)
-                return "AlreadyClaimed";
-            Sort(live, now, force: true);
-            var rank = RankOf(live, score);
-            var band = BandFor(live.Def, rank);
-            if (band == null)
-                return "NoRank";
-
-            score.RankClaimed = true;
-            score.UpdatedAt = now;
-            _dirtyScores.Add(score);
-            Flush();
-            rewards = Rewards(band);
-            return null;
+            Sort(live, now, force: false);
+            return BandFor(live.Def, RankOf(live, score)) == null ? "NoRank" : "SentByMail";
         }
 
         private static List<RewardData> Rewards(EventTierConfig tier) =>
@@ -505,7 +571,7 @@ namespace Hadal.Game.Events
                     allianceId = score.AllianceId;
                 }
 
-                if (live.Def.Template == EventTemplates.Alliance)
+                if (EventTemplates.ForAlliances(live.Def.Template))
                 {
                     // Before they score, show the alliance they are in now.
                     var alliance = score != null && score.AllianceId.Length > 0 ? score.AllianceId : AllianceIdOf?.Invoke(session.PublicId) ?? string.Empty;
@@ -515,6 +581,12 @@ namespace Hadal.Game.Events
                         dto.AllianceRank = live.AllianceRanks != null && live.AllianceRanks.TryGetValue(alliance, out var r) ? r : 0;
                     }
                 }
+
+                dto.PaidOut = live.Def.PaidOutAt != null;
+                if (live.Def.Template == EventTemplates.Mobilization)
+                    dto.Mobilization = MobilizationView(live, session.PublicId, score, now);
+                else if (live.Def.Template == EventTemplates.AllianceDuel)
+                    dto.Duel = DuelView(live, session.PublicId, score, now);
 
                 events.Add(dto);
             }
@@ -531,7 +603,7 @@ namespace Hadal.Game.Events
                 if (!_events.TryGetValue(eventId ?? string.Empty, out var live))
                     return null;
                 Sort(live, now, force: false);
-                var result = new EventRankingDto { EventId = live.Def.Id, Alliance = live.Def.Template == EventTemplates.Alliance };
+                var result = new EventRankingDto { EventId = live.Def.Id, Alliance = EventTemplates.RanksAlliances(live.Def.Template) };
                 // Players see their own kingdom's ranking (docs/39); the Overseer (no player) sees every kingdom.
                 var kingdom = playerId == null ? null : Kingdom(playerId);
                 if (result.Alliance)
@@ -607,7 +679,7 @@ namespace Hadal.Game.Events
         /// <summary>The player's rank, or their alliance's in an alliance contest (0 = unranked).</summary>
         private static int RankOf(Live live, EventScore score)
         {
-            if (live.Def.Template == EventTemplates.Alliance)
+            if (EventTemplates.RanksAlliances(live.Def.Template))
                 return score.AllianceId.Length > 0 && live.AllianceRanks != null && live.AllianceRanks.TryGetValue(score.AllianceId, out var a) ? a : 0;
             return live.PlayerRanks != null && live.PlayerRanks.TryGetValue(score.PlayerId, out var r) ? r : 0;
         }
@@ -728,7 +800,7 @@ namespace Hadal.Game.Events
             live.Def.Clone(),
             live.Def.Status != EventStatus.Published ? live.Def.Status : PhaseOf(live.Def, now).ToString().ToLowerInvariant(),
             live.Scores.Count,
-            live.Def.Template == EventTemplates.Alliance ? live.Alliances.Values.DefaultIfEmpty(0).Max() : live.Scores.Values.Select(s => s.Points).DefaultIfEmpty(0).Max());
+            EventTemplates.RanksAlliances(live.Def.Template) ? live.Alliances.Values.DefaultIfEmpty(0).Max() : live.Scores.Values.Select(s => s.Points).DefaultIfEmpty(0).Max());
 
         /// <summary>Creates or replaces an event. Returns an error code, or the saved definition.</summary>
         public (string Error, EventDefinition? Saved) Save(EventDefinition input, string by, DateTimeOffset now)
@@ -747,8 +819,7 @@ namespace Hadal.Game.Events
                     def.Status = EventStatus.Draft;
                     def.CreatedBy = by;
                     def.CreatedAt = now;
-                    def.PaidBosses = new List<int>();
-                    def.BossProgress = new List<EventBossProgress>();
+                    ResetRuntime(def);
                     live = new Live();
                     _events[def.Id] = live;
                 }
@@ -766,6 +837,9 @@ namespace Hadal.Game.Events
                     def.CreatedAt = live.Def.CreatedAt;
                     def.PaidBosses = live.Def.PaidBosses.ToList(); // the Overseer cannot pay a boss twice
                     def.BossProgress = live.Def.BossProgress; // nor reset a boss's body or its damage
+                    def.DuelState = live.Def.DuelState; // nor re-pair a duel
+                    def.PaidOutAt = live.Def.PaidOutAt; // nor pay an event out twice
+                    def.PaidOutMails = live.Def.PaidOutMails;
                 }
 
                 def.UpdatedAt = now;
@@ -805,6 +879,9 @@ namespace Hadal.Game.Events
                 return "InvalidHours";
             if (PhaseOf(def, now) is EventPhase.Closed)
                 return "AlreadyOver";
+            // Once the payout went out (or is on its way) the result stands.
+            if (def.PaidOutAt != null || (_events.TryGetValue(def.Id, out var running) && running.Paying))
+                return "AlreadyPaid";
             def.EndsAt = def.EndsAt.AddHours(hours);
             return string.Empty;
         });
@@ -889,8 +966,25 @@ namespace Hadal.Game.Events
             def.BossParticipation ??= new List<EventRewardConfig>();
             def.PaidBosses ??= new List<int>();
             def.BossProgress ??= new List<EventBossProgress>();
+            def.Mobilization ??= new MobilizationConfig();
+            def.Mobilization.Kinds = (def.Mobilization.Kinds ?? new List<string>()).Distinct(StringComparer.Ordinal).ToList();
+            def.Duel ??= new DuelConfig();
+            def.Duel.Win ??= new List<EventRewardConfig>();
+            def.Duel.Loss ??= new List<EventRewardConfig>();
+            def.Duel.Draw ??= new List<EventRewardConfig>();
+            def.DuelState ??= new DuelState();
             foreach (var a in def.Actions.Concat(def.Phases.SelectMany(p => p.Actions)))
                 a.Per = Math.Max(1, a.Per);
+        }
+
+        /// <summary>What the server writes into a definition while it runs: a new event or a copy starts without any.</summary>
+        internal static void ResetRuntime(EventDefinition def)
+        {
+            def.PaidBosses = new List<int>();
+            def.BossProgress = new List<EventBossProgress>();
+            def.DuelState = new DuelState();
+            def.PaidOutAt = null;
+            def.PaidOutMails = 0;
         }
 
         /// <summary>Checks an event definition; returns an error code ("" when fine).</summary>
@@ -923,8 +1017,31 @@ namespace Hadal.Game.Events
             else
             {
                 var phases = def.Phases ?? new List<EventPhaseConfig>();
-                if (def.Actions.Count == 0 && phases.Count == 0)
+                // Mobilization scores its tasks, not an actions table.
+                if (def.Actions.Count == 0 && phases.Count == 0 && def.Template != EventTemplates.Mobilization)
                     return "NoActions";
+                if (def.Template == EventTemplates.Mobilization)
+                {
+                    var m = def.Mobilization ?? new MobilizationConfig();
+                    if (m.MinMembers is < 1 or > 200 || m.Slots is < 1 or > MobilizationRules.MaxSlots || m.RefillMinutes is < 0 or > 1440
+                        || m.TasksPerDay is < 1 or > 100 || m.RefreshesPerDay is < 0 or > 50 || m.RefreshCooldownMinutes is < 0 or > 1440
+                        || m.TargetPercent is < 10 or > 1000 || (m.Kinds ?? new List<string>()).Any(k => !MobilizationRules.IsKind(k)))
+                        return "InvalidMobilization";
+                }
+
+                if (def.Template == EventTemplates.AllianceDuel)
+                {
+                    // Six themed days, back to back from the start.
+                    var days = phases.OrderBy(p => p.StartHour).ToList();
+                    if (days.Count != AllianceDuelRules.Days || def.CyclePhases || days[0].StartHour != 0
+                        || days.Zip(days.Skip(1), (a, b) => Math.Abs(a.StartHour + a.Hours - b.StartHour) > 0.0001).Any(gap => gap))
+                        return "InvalidDuelDays";
+                    var duel = def.Duel ?? new DuelConfig();
+                    if (duel.MinMembers is < 1 or > 200
+                        || (duel.Win ?? new()).Concat(duel.Loss ?? new()).Concat(duel.Draw ?? new()).Any(r => !ValidReward(r, catalog))
+                        || (duel.Win?.Count ?? 0) > 10 || (duel.Loss?.Count ?? 0) > 10 || (duel.Draw?.Count ?? 0) > 10)
+                        return "InvalidDuelRewards";
+                }
                 foreach (var a in def.Actions.Concat(phases.SelectMany(p => p.Actions)))
                 {
                     if (!EventActions.IsKnown(a.Action) || a.Points <= 0 || a.Per < 1)
@@ -994,14 +1111,17 @@ namespace Hadal.Game.Events
         {
             if (_dirtyScores.Count > 0)
             {
-                var scores = _dirtyScores.Select(s => new EventScore
-                {
-                    EventId = s.EventId, PlayerId = s.PlayerId, AllianceId = s.AllianceId, Points = s.Points, Claimed = new HashSet<int>(s.Claimed),
-                    RankClaimed = s.RankClaimed, LoginDays = s.LoginDays, LastLoginDay = s.LastLoginDay, Carry = new Dictionary<string, long>(s.Carry),
-                    UpdatedAt = s.UpdatedAt
-                }).ToList();
+                var scores = _dirtyScores.Where(s => _events.ContainsKey(s.EventId)).Select(s => s.Copy()).ToList();
                 _dirtyScores.Clear();
                 Write(ct => _store.SaveScoresAsync(scores, ct));
+            }
+
+            if (_dirtyStates.Count > 0)
+            {
+                var states = _dirtyStates.Where(k => _events.TryGetValue(k.EventId, out var e) && e.States.ContainsKey(k.AllianceId))
+                    .Select(k => (k.EventId, k.AllianceId, _events[k.EventId].States[k.AllianceId].ToJson())).ToList();
+                _dirtyStates.Clear();
+                Write(ct => _store.SaveAllianceStatesAsync(states, ct));
             }
 
             if (_dirtyAlliances.Count > 0)

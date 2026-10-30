@@ -93,7 +93,9 @@ namespace Hadal.Game
                 TagOf = Social.TagOf,
                 AllianceInfo = Social.AllianceInfo,
                 DropGift = Social.DropGift,
-                KingdomIds = () => Kingdoms.List(_clock.UtcNow).Select(k => k.Kingdom.Id).ToList()
+                KingdomIds = () => Kingdoms.List(_clock.UtcNow).Select(k => k.Kingdom.Id).ToList(),
+                MemberCount = Social.MemberCount,
+                DuelEntrants = Social.DuelEntrants
             };
             WireMap(Map);
             Mail = new MailService(mailStore ?? new InMemoryMailStore(), serializer, logger)
@@ -449,6 +451,30 @@ namespace Hadal.Game
             }
         }
 
+        /// <summary>
+        /// Ended events: rank rewards, unclaimed stages and duel results go out by mail, each exactly once
+        /// (EventService.Payout); the event is marked paid only once its mails are stored.
+        /// </summary>
+        private void PayEvents(DateTimeOffset now)
+        {
+            foreach (var payout in Events.TakePayouts(now))
+                _ = SendPayoutAsync(payout, now);
+        }
+
+        private async Task SendPayoutAsync(Hadal.Game.Events.EventPayout payout, DateTimeOffset now)
+        {
+            try
+            {
+                var sent = await Mail.SendOnceAsync(payout.Mails, now, CancellationToken.None);
+                Events.ConfirmPayout(payout, sent.Count, now);
+            }
+            catch (Exception exception)
+            {
+                _logger.LogError(exception, "Payout mails of event {EventId} failed; retrying.", payout.EventId);
+                Events.PayoutFailed(payout.EventId, now);
+            }
+        }
+
         /// <summary>The battle reports the world settled, as mails to every side (docs/30 §5.5).</summary>
         private void SendBattleMails(DateTimeOffset now)
         {
@@ -675,6 +701,15 @@ namespace Hadal.Game
             catch (Exception exception)
             {
                 _logger.LogError(exception, "Paying event bosses failed.");
+            }
+
+            try
+            {
+                PayEvents(now);
+            }
+            catch (Exception exception)
+            {
+                _logger.LogError(exception, "Paying ended events failed.");
             }
 
             try

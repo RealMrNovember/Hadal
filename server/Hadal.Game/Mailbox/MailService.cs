@@ -170,6 +170,58 @@ namespace Hadal.Game.Mailbox
             return mails.Count;
         }
 
+        /// <summary>
+        /// Sends mails that must go out exactly once (event payouts): each key is stored with its mail in one transaction,
+        /// and a key used before sends nothing (MailRules: the key outlives the mail). Returns the keys sent now.
+        /// </summary>
+        public async Task<HashSet<string>> SendOnceAsync(IReadOnlyList<KeyedMail> keyed, DateTimeOffset now, CancellationToken cancellationToken)
+        {
+            var mails = keyed.Where(k => k.PlayerId.Length > 0 && k.Key.Length > 0).GroupBy(k => k.Key, StringComparer.Ordinal).Select(g => g.First())
+                .Select(k => (k.Key, Mail: new Mail
+                {
+                    Id = Guid.NewGuid().ToString("N"),
+                    PlayerId = k.PlayerId,
+                    Kind = MailKinds.IsValid(k.Draft.Kind) ? k.Draft.Kind : MailKinds.System,
+                    Sender = Clip(k.Draft.Sender, MailRules.MaxSender),
+                    SenderId = k.Draft.SenderId,
+                    Title = Clip(k.Draft.Title, MailRules.MaxTitle),
+                    Body = Clip(k.Draft.Body, MailRules.MaxBody),
+                    Attachments = k.Draft.Attachments,
+                    Report = k.Draft.Report,
+                    CreatedAt = now,
+                    ExpiresAt = now + MailRules.Lifetime
+                })).ToList();
+            if (mails.Count == 0)
+                return new HashSet<string>(StringComparer.Ordinal);
+
+            var sent = await _store.InsertOnceAsync(mails, cancellationToken);
+            var delivered = mails.Where(m => sent.Contains(m.Key)).Select(m => m.Mail).ToList();
+            if (delivered.Count == 0)
+                return sent;
+            Delivered?.Invoke(delivered);
+
+            lock (_gate)
+            {
+                foreach (var mail in delivered)
+                {
+                    var own = mail.Copy();
+                    if (_boxes.TryGetValue(own.PlayerId, out var box))
+                    {
+                        box.Add(own);
+                        if (_online.TryGetValue(own.PlayerId, out var session))
+                            session.Push(new List<EntityChangeDto> { Change(box, now) }, now);
+                    }
+                    else if (_arriving.TryGetValue(own.PlayerId, out var arriving))
+                    {
+                        arriving.Add(own);
+                    }
+                }
+            }
+
+            _logger.LogInformation("Mail: {Count} keyed mails sent ({Skipped} already sent before).", delivered.Count, mails.Count - delivered.Count);
+            return sent;
+        }
+
         // --- Commands -----------------------------------------------------------------------------
 
         public void Handle(PlayerSession session, CommandEnvelope envelope, DateTimeOffset now)
@@ -254,6 +306,7 @@ namespace Hadal.Game.Mailbox
                 // Marked before paying: a second claim, however quick, finds nothing left.
                 var amounts = new Dictionary<ResourceType, long>();
                 var items = new Dictionary<string, int>(StringComparer.Ordinal);
+                var shards = new Dictionary<string, long>(StringComparer.Ordinal);
                 foreach (var mail in taken)
                 {
                     mail.ClaimedAt = now;
@@ -266,11 +319,13 @@ namespace Hadal.Game.Mailbox
 
                     foreach (var pair in mail.Attachments.Items.Where(p => p.Value > 0))
                         items[pair.Key] = (items.TryGetValue(pair.Key, out var n) ? n : 0) + pair.Value;
+                    foreach (var pair in (mail.Attachments.Shards ?? new Dictionary<string, long>()).Where(p => p.Value > 0))
+                        shards[pair.Key] = (shards.TryGetValue(pair.Key, out var n) ? n : 0) + pair.Value;
                 }
 
                 Save(taken);
                 session.Push(new List<EntityChangeDto> { Change(box, now) }, now);
-                session.GrantMail(command.CommandId, command.ClientSequence, amounts, items, now);
+                session.GrantMail(command.CommandId, command.ClientSequence, amounts, items, now, shards);
                 _logger.LogInformation("Player {PlayerId} claimed {Count} mails.", session.PublicId, taken.Count);
             }
         }
@@ -464,6 +519,7 @@ namespace Hadal.Game.Mailbox
             Report = m.Report,
             Attachments = m.Attachments.Amounts.Where(p => p.Value > 0).Select(p => new RewardEntryDto { Type = "resource", Id = p.Key, Amount = p.Value })
                 .Concat(m.Attachments.Items.Where(p => p.Value > 0).Select(p => new RewardEntryDto { Type = "item", Id = p.Key, Amount = p.Value }))
+                .Concat((m.Attachments.Shards ?? new Dictionary<string, long>()).Where(p => p.Value > 0).Select(p => new RewardEntryDto { Type = "shards", Id = p.Key, Amount = p.Value }))
                 .ToArray()
         };
 

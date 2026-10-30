@@ -168,19 +168,35 @@ namespace Hadal.Game.Tests
             Tick();
             Assert.Equal(1, Event(firstConnection, id).MyRank);
             Assert.Equal(2, Event(secondConnection, id).MyRank);
+            Assert.True(Event(firstConnection, id).PaidOut);
 
-            Send(first, new ClaimEventRankCommand { CommandId = Id(), EventId = id }, CommandType.ClaimEventRank);
-            Assert.Equal(CommandResultCode.Accepted, LastAck(firstConnection).Result);
-            var report = Latest<RewardReportDto>(firstConnection, firstConnection.Messages.Select(m => m.Delta != null ? m.Delta() : null)
-                .Where(d => d != null).SelectMany(d => d!.Changes).Last(c => c.EntityId.StartsWith(EntityIds.RewardReport)).EntityId);
-            Assert.Contains(report.Rewards, r => r.Id == "cap_Titanium_9000" || r.Amount == 9000);
+            // The rank reward came by mail, in the Events tab; the page has nothing left to claim.
+            var mails = _world.Mail.MailsOf(first.PublicId, _clock.UtcNow).Where(m => m.Kind == Hadal.Game.Mailbox.MailKinds.Event).ToList();
+            var rank = Assert.Single(mails, m => m.Body.StartsWith("loc:mail.event.rank.body|", StringComparison.Ordinal));
+            Assert.Equal("loc:mail.event.rank.body|Depth Race|1|150", rank.Body);
+            Assert.Equal(9000, rank.Attachments.Amounts["Titanium"]);
+            Assert.Equal(MailRules.TabEvent, MailRules.TabOf(rank.Kind));
+            // Its two reached stages were never claimed: they came along in one mail.
+            var stages = Assert.Single(mails, m => m.Body.StartsWith("loc:mail.event.stages.body|", StringComparison.Ordinal));
+            Assert.Equal(5500, stages.Attachments.Amounts["Titanium"]);
+            Assert.True(Event(firstConnection, id).RankClaimed);
+            Assert.Equal(new[] { 0, 1 }, Event(firstConnection, id).Claimed);
+            Assert.False(EventRules.HasClaim(Event(firstConnection, id), _clock.UtcNow.ToUnixTimeMilliseconds()));
 
             Send(first, new ClaimEventRankCommand { CommandId = Id(), EventId = id }, CommandType.ClaimEventRank);
             Assert.Equal("AlreadyClaimed", LastAck(firstConnection).Reason);
+            Send(first, new ClaimEventStageCommand { CommandId = Id(), EventId = id, Index = 0 }, CommandType.ClaimEventStage);
+            Assert.Equal("SentByMail", LastAck(firstConnection).Reason);
 
-            // Fourth place is outside every band.
+            // Fourth place is outside every band: no rank mail.
+            Assert.DoesNotContain(_world.Mail.MailsOf(fourth.PublicId, _clock.UtcNow), m => m.Body.StartsWith("loc:mail.event.rank", StringComparison.Ordinal));
             Send(fourth, new ClaimEventRankCommand { CommandId = Id(), EventId = id }, CommandType.ClaimEventRank);
             Assert.Equal("NoRank", LastAck(fourthConnection).Reason);
+
+            // More ticks pay nothing more.
+            Tick();
+            Tick();
+            Assert.Equal(2, _world.Mail.MailsOf(first.PublicId, _clock.UtcNow).Count(m => m.Kind == Hadal.Game.Mailbox.MailKinds.Event));
 
             // After the claim window the event disappears.
             _clock.Advance(TimeSpan.FromDays(4));
@@ -271,8 +287,14 @@ namespace Hadal.Game.Tests
 
             _clock.Advance(TimeSpan.FromDays(2));
             Tick();
+            // Every member who scored gets the alliance's band by mail; the loner (no alliance, no alliance rank) does not.
+            var mail = Assert.Single(_world.Mail.MailsOf(diver.PublicId, _clock.UtcNow), m => m.Body.StartsWith("loc:mail.event.allianceRank.body|", StringComparison.Ordinal));
+            Assert.Equal("loc:mail.event.allianceRank.body|Depth Race|1|100", mail.Body);
+            Assert.Equal(9000, mail.Attachments.Amounts["Titanium"]);
+            Assert.Single(_world.Mail.MailsOf(leader.PublicId, _clock.UtcNow), m => m.Body.StartsWith("loc:mail.event.allianceRank.body|", StringComparison.Ordinal));
+            Assert.DoesNotContain(_world.Mail.MailsOf(loner.PublicId, _clock.UtcNow), m => m.Body.Contains("Rank.body", StringComparison.Ordinal));
             Send(diver, new ClaimEventRankCommand { CommandId = Id(), EventId = id }, CommandType.ClaimEventRank);
-            Assert.Equal(CommandResultCode.Accepted, LastAck(diverConnection).Result);
+            Assert.Equal("AlreadyClaimed", LastAck(diverConnection).Reason);
             Send(loner, new ClaimEventRankCommand { CommandId = Id(), EventId = id }, CommandType.ClaimEventRank);
             Assert.Equal("NoRank", LastAck(lonerConnection).Reason);
         }

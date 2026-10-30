@@ -44,9 +44,31 @@ namespace Hadal.Game.Events
                 schedules = DefaultSchedules.All(now);
                 foreach (var schedule in schedules)
                     await _store.SaveScheduleAsync(schedule, cancellationToken);
-                await _store.SaveOccurrencesAsync(new[] { (EventScheduleRules.SeedMarker, string.Empty, now) }, cancellationToken);
-                ledger.Add(EventScheduleRules.SeedMarker);
+                var markers = new List<(string, string, DateTimeOffset)> { (EventScheduleRules.SeedMarker, string.Empty, now) };
+                markers.AddRange(DefaultSchedules.Added(now).Select(s => (EventScheduleRules.SeedMarkerOf(s.Id), s.Id, now)));
+                await _store.SaveOccurrencesAsync(markers, cancellationToken);
+                ledger.UnionWith(markers.Select(m => m.Item1));
                 _logger.LogInformation("Event calendar: {Count} default schedules seeded.", schedules.Count);
+            }
+            else
+            {
+                // Defaults that came after the first seed are added once each, next to whatever the calendar holds: an
+                // existing schedule is never touched, and one the Overseer deleted (its marker is there) never returns.
+                foreach (var added in DefaultSchedules.Added(now))
+                {
+                    var marker = EventScheduleRules.SeedMarkerOf(added.Id);
+                    if (ledger.Contains(marker))
+                        continue;
+                    if (schedules.All(s => s.Id != added.Id))
+                    {
+                        await _store.SaveScheduleAsync(added, cancellationToken);
+                        schedules.Add(added);
+                        _logger.LogInformation("Event calendar: default schedule {Id} added.", added.Id);
+                    }
+
+                    await _store.SaveOccurrencesAsync(new[] { (marker, added.Id, now) }, cancellationToken);
+                    ledger.Add(marker);
+                }
             }
 
             lock (_gate)
@@ -238,8 +260,7 @@ namespace Hadal.Game.Events
             blueprint.ScheduleId = string.Empty;
             blueprint.Status = EventStatus.Draft;
             blueprint.StartsAt = blueprint.EndsAt = default;
-            blueprint.PaidBosses = new List<int>();
-            blueprint.BossProgress = new List<EventBossProgress>();
+            ResetRuntime(blueprint);
 
             lock (_gate)
             {

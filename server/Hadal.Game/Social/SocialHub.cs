@@ -1180,6 +1180,17 @@ namespace Hadal.Game.Social
             }
         }
 
+        /// <summary>
+        /// Every alliance with its kingdom (the leader's), power (members' sum, live for those online) and size: the Alliance
+        /// Duel pairs from this (docs/29 §4.3).
+        /// </summary>
+        public IReadOnlyList<Hadal.Game.Events.DuelEntrant> DuelEntrants()
+        {
+            lock (_gate)
+                return _alliances.Values.Select(a => new Hadal.Game.Events.DuelEntrant(a.Record.Id, Kingdom(a.Record.LeaderId),
+                    a.Members.Sum(m => _online.TryGetValue(m.PlayerId, out var s) ? s.Power : m.Power), a.Members.Count, a.Record.Tag, a.Record.Name)).ToList();
+        }
+
         /// <summary>Tag, name and emblem of an alliance (event rankings); null when it no longer exists.</summary>
         public (string Tag, string Name, string Emblem)? AllianceInfo(string allianceId)
         {

@@ -28,9 +28,32 @@ namespace Hadal.Gateway.Admin
                     heroes = catalog.Heroes.Select(h => new { id = h.Id, rarity = h.Rarity.id, basePower = h.Rarity.basePower }),
                     heroRules = new { maxStars = catalog.HeroRules.maxStars, levelCapPerStar = catalog.HeroRules.levelCapPerStar },
                     troops = new { types = catalog.Troops.types.Select(t => t.id), tiers = catalog.Troops.tiers.Length },
-                    rarities = catalog.Heroes.Select(h => h.Rarity.id).Distinct()
+                    rarities = catalog.Heroes.Select(h => h.Rarity.id).Distinct(),
+                    mobilizationKinds = MobilizationRules.Kinds.Select(k => new { id = k.Id, baseTarget = k.BaseTarget, actions = k.Actions }),
+                    duelThemes = AllianceDuelRules.Themes,
+                    duelDays = AllianceDuelRules.Days
                 });
             }).RequireAdmin(AdminRoles.Viewer);
+
+            // Live state of the alliance templates (docs/29 §6): Mobilization tables per alliance, duel pairings per kingdom.
+            api.MapGet("/events/{id}/live", (AdminPrincipal _, string id, GameWorld world, IClock clock) =>
+            {
+                var summary = world.Events.Get(id, clock.UtcNow);
+                if (summary == null)
+                    return Results.NotFound();
+                var now = clock.UtcNow;
+                return Results.Ok(new
+                {
+                    template = summary.Definition.Template,
+                    paidOutAt = summary.Definition.PaidOutAt,
+                    paidOutMails = summary.Definition.PaidOutMails,
+                    pairedAt = summary.Definition.DuelState.PairedAt,
+                    mobilization = world.Events.MobilizationPools(id, now),
+                    duel = world.Events.DuelPairings(id, now)
+                });
+            }).RequireAdmin(AdminRoles.Viewer);
+
+            MapAction(api, "pair", (world, id, now, _) => world.Events.RepairDuel(id, now));
 
             api.MapGet("/events", (AdminPrincipal _, GameWorld world, IClock clock) =>
                 Results.Ok(world.Events.List(clock.UtcNow).Select(EventJson))).RequireAdmin(AdminRoles.Viewer);

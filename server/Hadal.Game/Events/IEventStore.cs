@@ -31,6 +31,10 @@ namespace Hadal.Game.Events
         /// </summary>
         Task<HashSet<string>> LoadOccurrencesAsync(DateTimeOffset since, CancellationToken cancellationToken);
         Task SaveOccurrencesAsync(IReadOnlyList<(string OccurrenceId, string ScheduleId, DateTimeOffset StartsAt)> occurrences, CancellationToken cancellationToken);
+
+        /// <summary>Per event and alliance: the Mobilization pool and the duel's day points (EventAllianceState as JSON).</summary>
+        Task<List<(string EventId, string AllianceId, string Json)>> LoadAllianceStatesAsync(IReadOnlyCollection<string> eventIds, CancellationToken cancellationToken);
+        Task SaveAllianceStatesAsync(IReadOnlyList<(string EventId, string AllianceId, string Json)> states, CancellationToken cancellationToken);
     }
 
     public sealed class InMemoryEventStore : IEventStore
@@ -147,6 +151,29 @@ namespace Hadal.Game.Events
 
             return Task.CompletedTask;
         }
+
+        private readonly Dictionary<(string, string), string> _allianceStates = new();
+
+        public Task<List<(string EventId, string AllianceId, string Json)>> LoadAllianceStatesAsync(IReadOnlyCollection<string> eventIds, CancellationToken cancellationToken)
+        {
+            lock (_gate)
+            {
+                var ids = new HashSet<string>(eventIds, StringComparer.Ordinal);
+                return Task.FromResult(_allianceStates.Where(p => ids.Contains(p.Key.Item1) && _events.ContainsKey(p.Key.Item1))
+                    .Select(p => (p.Key.Item1, p.Key.Item2, p.Value)).ToList());
+            }
+        }
+
+        public Task SaveAllianceStatesAsync(IReadOnlyList<(string EventId, string AllianceId, string Json)> states, CancellationToken cancellationToken)
+        {
+            lock (_gate)
+            {
+                foreach (var s in states)
+                    _allianceStates[(s.EventId, s.AllianceId)] = s.Json;
+            }
+
+            return Task.CompletedTask;
+        }
     }
 
     public sealed class PostgresEventStore : IEventStore
@@ -192,7 +219,16 @@ CREATE TABLE IF NOT EXISTS hadal.event_occurrences (
     starts_at      timestamptz NOT NULL,
     created_at     timestamptz NOT NULL DEFAULT now()
 );
-CREATE INDEX IF NOT EXISTS event_occurrences_start ON hadal.event_occurrences (starts_at);";
+CREATE INDEX IF NOT EXISTS event_occurrences_start ON hadal.event_occurrences (starts_at);
+
+-- Per event and alliance: the Mobilization task pool and the Alliance Duel's points per day (docs/29 §4.3, §4.5).
+CREATE TABLE IF NOT EXISTS hadal.event_alliance_state (
+    event_id     text        NOT NULL REFERENCES hadal.events (event_id) ON DELETE CASCADE,
+    alliance_id  text        NOT NULL,
+    state        jsonb       NOT NULL DEFAULT '{}',
+    updated_at   timestamptz NOT NULL DEFAULT now(),
+    PRIMARY KEY (event_id, alliance_id)
+);";
 
         private readonly NpgsqlDataSource _dataSource;
 
@@ -369,6 +405,40 @@ INSERT INTO hadal.event_occurrences (occurrence_id, schedule_id, starts_at) VALU
                 command.Parameters.AddWithValue("o", o.OccurrenceId);
                 command.Parameters.AddWithValue("s", o.ScheduleId);
                 command.Parameters.AddWithValue("t", o.StartsAt);
+                batch.BatchCommands.Add(command);
+            }
+
+            await batch.ExecuteNonQueryAsync(cancellationToken);
+        }
+
+        public async Task<List<(string EventId, string AllianceId, string Json)>> LoadAllianceStatesAsync(IReadOnlyCollection<string> eventIds, CancellationToken cancellationToken)
+        {
+            var list = new List<(string, string, string)>();
+            if (eventIds.Count == 0)
+                return list;
+            await using var connection = await _dataSource.OpenConnectionAsync(cancellationToken);
+            await using var command = new NpgsqlCommand("SELECT event_id, alliance_id, state::text FROM hadal.event_alliance_state WHERE event_id = ANY(@ids)", connection);
+            command.Parameters.AddWithValue("ids", eventIds.ToArray());
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken);
+            while (await reader.ReadAsync(cancellationToken))
+                list.Add((reader.GetString(0), reader.GetString(1), reader.GetString(2)));
+            return list;
+        }
+
+        public async Task SaveAllianceStatesAsync(IReadOnlyList<(string EventId, string AllianceId, string Json)> states, CancellationToken cancellationToken)
+        {
+            if (states.Count == 0)
+                return;
+            await using var connection = await _dataSource.OpenConnectionAsync(cancellationToken);
+            await using var batch = new NpgsqlBatch(connection);
+            foreach (var s in states)
+            {
+                var command = new NpgsqlBatchCommand(@"
+INSERT INTO hadal.event_alliance_state (event_id, alliance_id, state, updated_at) VALUES (@e, @a, @s::jsonb, now())
+ON CONFLICT (event_id, alliance_id) DO UPDATE SET state = EXCLUDED.state, updated_at = now()");
+                command.Parameters.AddWithValue("e", s.EventId);
+                command.Parameters.AddWithValue("a", s.AllianceId);
+                command.Parameters.AddWithValue("s", s.Json);
                 batch.BatchCommands.Add(command);
             }
 

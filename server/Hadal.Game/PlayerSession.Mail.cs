@@ -16,17 +16,23 @@ namespace Hadal.Game
         /// hold arrive as capsules, the rest straight to the wallet past the cap, so nothing sent is lost.
         /// </summary>
         internal void GrantMail(string commandId, ulong sequence, IReadOnlyDictionary<ResourceType, long> amounts,
-            IReadOnlyDictionary<string, int> items, DateTimeOffset now)
+            IReadOnlyDictionary<string, int> items, DateTimeOffset now, IReadOnlyDictionary<string, long>? shards = null)
         {
             lock (_gate)
             {
                 AdvanceTo(now);
                 ApplyGrant(_state, amounts, asPackages: true, items);
                 _walletDirty = true;
+                // Hero cards (event rewards) go to the hero, or wait as cards until it is recruited.
+                var cards = (shards ?? new Dictionary<string, long>()).Where(p => p.Value > 0 && _catalog.TryGetHero(p.Key, out _))
+                    .Select(p => new ResolvedReward("shards", p.Key, p.Value)).ToList();
+                foreach (var card in cards)
+                    Grant(card);
                 var rewards = items.Select(p => new ResolvedReward("item", p.Key, p.Value))
                     .Concat(amounts.Where(p => p.Value > 0).Select(p => Capsules.Holds(p.Key)
                         ? new ResolvedReward("item", Capsules.Id(p.Key, p.Value), 1)
                         : new ResolvedReward("resource", p.Key.ToString(), p.Value)))
+                    .Concat(cards)
                     .ToList();
                 GrantAndReport(commandId, sequence, rewards, now, grant: false);
             }

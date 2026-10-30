@@ -60,5 +60,39 @@ namespace Hadal.Game.Tests
             Assert.Empty(await store.LoadAsync(player, now, default));
             Assert.True(await store.PurgeAsync(now, default) >= 1);
         }
+
+        [Fact]
+        public async Task Keyed_mails_are_stored_once_even_after_they_are_purged()
+        {
+            if (string.IsNullOrEmpty(ConnectionString))
+                return; // not configured on this machine
+
+            await using var dataSource = NpgsqlDataSource.Create(ConnectionString);
+            var store = new PostgresMailStore(dataSource);
+            await store.InitializeAsync(default);
+            var now = DateTimeOffset.UtcNow;
+            var player = "keytest" + Guid.NewGuid().ToString("N")[..8];
+            Mail Make() => new()
+            {
+                Id = Guid.NewGuid().ToString("N"), PlayerId = player, Kind = MailKinds.Event, Title = "loc:mail.event.rank.title|x", Body = "b",
+                Attachments = new MailAttachments { Shards = { ["hero_a"] = 5 } }, CreatedAt = now, ExpiresAt = now + MailRules.Lifetime
+            };
+            var key = "ev:test:" + player + ":rank";
+
+            var first = await store.InsertOnceAsync(new[] { (key, Make()), (key + "2", Make()) }, default);
+            Assert.Equal(new[] { key, key + "2" }.OrderBy(k => k), first.OrderBy(k => k));
+            Assert.Empty(await store.InsertOnceAsync(new[] { (key, Make()) }, default));
+            var stored = await store.LoadAsync(player, now, default);
+            Assert.Equal(2, stored.Count);
+            Assert.Equal(5, stored[0].Attachments.Shards["hero_a"]);
+
+            // Claimed, deleted and purged: the key still holds.
+            foreach (var m in stored)
+                m.Deleted = true;
+            await store.UpdateAsync(stored, default);
+            await store.PurgeAsync(now, default);
+            Assert.Empty(await store.InsertOnceAsync(new[] { (key, Make()) }, default));
+            Assert.Empty(await store.LoadAsync(player, now, default));
+        }
     }
 }

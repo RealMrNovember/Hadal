@@ -69,6 +69,9 @@ namespace Hadal.Game.Events
         /// <summary>The ledger key that marks the default schedules as seeded (so deleting them all does not bring them back).</summary>
         public const string SeedMarker = "seed:defaults";
 
+        /// <summary>The ledger key that marks one later default schedule as added ("seed:mobilization").</summary>
+        public static string SeedMarkerOf(string scheduleId) => "seed:" + scheduleId;
+
         /// <summary>
         /// Starts of the occurrences that begin in [<paramref name="from"/>, <paramref name="to"/>), earliest first, in
         /// UTC. A month or year boundary is nothing special: days are walked one by one.
@@ -130,8 +133,7 @@ namespace Hadal.Game.Events
                 def.MaxLevel = schedule.Brackets[bracket].MaxLevel;
             }
 
-            def.PaidBosses = new List<int>();
-            def.BossProgress = new List<EventBossProgress>();
+            EventService.ResetRuntime(def);
             def.CreatedBy = EventService.CalendarAuthor;
             def.CreatedAt = now;
             def.UpdatedAt = now;

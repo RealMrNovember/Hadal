@@ -83,9 +83,27 @@ namespace HADAL.Shared.Simulation
         /// <summary>Daily sign-in rewards (day 1 … n).</summary>
         public const string Login = "login";
 
-        public static readonly string[] All = { Points, Alliance, Login };
+        /// <summary>
+        /// Mobilization (docs/29 §4.5): a shared task pool per alliance; members take one task at a time and finish it by
+        /// playing. Task points go to the player and the alliance; alliances are ranked (MobilizationRules).
+        /// </summary>
+        public const string Mobilization = "mobilization";
+
+        /// <summary>
+        /// Alliance Duel (docs/29 §4.3): alliances of a kingdom paired 1-v-1 for six themed days; day wins are worth
+        /// 1/2/2/2/2/4 and the first to 7 wins the week (AllianceDuelRules).
+        /// </summary>
+        public const string AllianceDuel = "alliance_duel";
+
+        public static readonly string[] All = { Points, Alliance, Login, Mobilization, AllianceDuel };
 
         public static bool IsKnown(string template) => Array.IndexOf(All, template) >= 0;
+
+        /// <summary>Templates ranked by alliance: members' points add up to the alliance's.</summary>
+        public static bool RanksAlliances(string template) => template == Alliance || template == Mobilization;
+
+        /// <summary>Templates whose points also count for the player's alliance.</summary>
+        public static bool ForAlliances(string template) => template == Alliance || template == Mobilization || template == AllianceDuel;
     }
 
     /// <summary>Event arithmetic shared by the server (scoring, claims) and the client (what to show).</summary>
@@ -192,12 +210,16 @@ namespace HADAL.Shared.Simulation
             return en ?? tr ?? any ?? string.Empty;
         }
 
-        /// <summary>Whether something waits to be claimed (red dot): a reached stage, a login day, an unclaimed rank reward.</summary>
+        /// <summary>
+        /// Whether something waits to be claimed on the page (red dot): a reached stage, a login day, a duel chest. Only
+        /// while the event runs: at its end every reward still waiting (rank rewards too) is mailed.
+        /// </summary>
         public static bool HasClaim(EventDto e, long nowMs)
         {
-            var phase = Phase(e, nowMs);
-            if (phase is EventPhase.Upcoming or EventPhase.Closed)
+            if (Phase(e, nowMs) != EventPhase.Live)
                 return false;
+            if (e.Template == EventTemplates.AllianceDuel)
+                return e.Duel != null && AllianceDuelRules.ChestsWaiting(e.Duel, e.Stages) > 0;
             var claimed = new HashSet<int>(e.Claimed);
             if (e.Template == EventTemplates.Login)
             {
@@ -217,8 +239,7 @@ namespace HADAL.Shared.Simulation
                     return true;
             }
 
-            var rank = e.Template == EventTemplates.Alliance ? e.AllianceRank : e.MyRank;
-            return phase == EventPhase.Ended && !e.RankClaimed && e.MyPoints > 0 && e.MyPoints >= e.MinRankPoints && Band(e, rank) != null;
+            return false;
         }
     }
 
