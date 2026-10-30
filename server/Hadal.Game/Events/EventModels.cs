@@ -82,6 +82,12 @@ namespace Hadal.Game.Events
         /// <summary>The duel's pairings and final results, written by the server (never by the Overseer's form).</summary>
         public DuelState DuelState { get; set; } = new();
 
+        /// <summary>Trench Conquest settings (template "trench_conquest", docs/29 §4.6).</summary>
+        public TrenchConfig Trench { get; set; } = new();
+
+        /// <summary>The league's groups and round results, written by the server.</summary>
+        public TrenchState TrenchState { get; set; } = new();
+
         /// <summary>
         /// When the end-of-event payout was mailed (rank rewards, unclaimed stages, duel results; EventService.Payout), and
         /// how many mails it sent. Null until then; a paid event never pays again.
@@ -202,6 +208,59 @@ namespace Hadal.Game.Events
         public int TargetPercent { get; set; } = 100;
     }
 
+    /// <summary>Trench Conquest rules an event can change (TrenchRules has the defaults).</summary>
+    public sealed class TrenchConfig
+    {
+        /// <summary>The reactor level a member needs to register.</summary>
+        public int MinReactor { get; set; } = HADAL.Shared.Simulation.TrenchRules.DefaultMinReactor;
+
+        /// <summary>Registered teams an alliance needs when the groups are drawn to enter the league.</summary>
+        public int MinRegistered { get; set; } = HADAL.Shared.Simulation.TrenchRules.DefaultMinRegistered;
+
+        /// <summary>Fights a team may have in a lane per round.</summary>
+        public int FightsPerTeam { get; set; } = HADAL.Shared.Simulation.TrenchRules.DefaultFightsPerTeam;
+
+        /// <summary>Registration runs this long from the start; then the groups are drawn.</summary>
+        public int RegisterHours { get; set; } = 48;
+
+        /// <summary>The first round is fought this long after the draw, then one round every <see cref="RoundEveryHours"/>.</summary>
+        public int FirstRoundAfterHours { get; set; } = 12;
+        public int RoundEveryHours { get; set; } = 24;
+
+        /// <summary>Personal points per fight won (they feed the event's stages: the members' kill rewards).</summary>
+        public long PointsPerWin { get; set; } = 100;
+    }
+
+    /// <summary>The league: groups once drawn and every round fought.</summary>
+    public sealed class TrenchState
+    {
+        public DateTimeOffset? GroupedAt { get; set; }
+
+        /// <summary>Rounds fought so far (counted even when no group had a pairing).</summary>
+        public int RoundsFought { get; set; }
+        public List<TrenchGroup> Groups { get; set; } = new();
+        public List<TrenchRoundResult> Rounds { get; set; } = new();
+    }
+
+    public sealed class TrenchGroup
+    {
+        public string Kingdom { get; set; } = string.Empty;
+        public List<string> Alliances { get; set; } = new();
+    }
+
+    /// <summary>One pairing of one round: lane flags (TrenchRules flag values) and round points of both sides.</summary>
+    public sealed class TrenchRoundResult
+    {
+        public int Round { get; set; }
+        public string A { get; set; } = string.Empty;
+        public string B { get; set; } = string.Empty;
+        public int[] Lanes { get; set; } = new int[HADAL.Shared.Simulation.TrenchRules.Lanes];
+        public int APoints { get; set; }
+        public int BPoints { get; set; }
+        public int AWins { get; set; }
+        public int BWins { get; set; }
+    }
+
     /// <summary>Alliance Duel rules an event can change.</summary>
     public sealed class DuelConfig
     {
@@ -263,6 +322,9 @@ namespace Hadal.Game.Events
         /// <summary>Alliance Duel: the alliance's points on each day.</summary>
         public long[] DayPoints { get; set; } = new long[HADAL.Shared.Simulation.AllianceDuelRules.Days];
 
+        /// <summary>Trench Conquest: the registered teams (snapshots).</summary>
+        public List<HADAL.Shared.Simulation.TrenchRules.Team> Teams { get; set; } = new();
+
         public string ToJson() => JsonSerializer.Serialize(this, EventDefinition.Json);
 
         public static EventAllianceState FromJson(string? json)
@@ -271,6 +333,7 @@ namespace Hadal.Game.Events
             state.Pool ??= new List<MobilizationCard?>();
             state.Draws ??= new List<int>();
             state.ReadyAt ??= new List<DateTimeOffset>();
+            state.Teams ??= new List<HADAL.Shared.Simulation.TrenchRules.Team>();
             if (state.DayPoints == null || state.DayPoints.Length < HADAL.Shared.Simulation.AllianceDuelRules.Days)
             {
                 var days = new long[HADAL.Shared.Simulation.AllianceDuelRules.Days];

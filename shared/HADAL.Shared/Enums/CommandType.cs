@@ -83,5 +83,6 @@ namespace HADAL.Shared.Enums
         [ProtoEnum] VoteAlliancePoll = 75,
         [ProtoEnum] CloseAlliancePoll = 76,
         [ProtoEnum] MobilizationTask = 77,
+        [ProtoEnum] TrenchConquest = 78,
     }
 }

@@ -166,7 +166,7 @@ namespace Hadal.Game.Events
         }
 
         public static bool Handles(CommandType type) => type is CommandType.ClaimEventStage or CommandType.ClaimEventRank or CommandType.ViewEventRanking
-            or CommandType.ViewEventCalendar or CommandType.MobilizationTask;
+            or CommandType.ViewEventCalendar or CommandType.MobilizationTask or CommandType.TrenchConquest;
 
         public async Task InitializeAsync(DateTimeOffset now, CancellationToken cancellationToken)
         {
@@ -341,8 +341,9 @@ namespace Hadal.Game.Events
                     phaseChanged |= RunCalendar(now) > 0;
                 }
 
-                // Duels that went live are paired (EventService.Duel).
+                // Duels that went live are paired (EventService.Duel); leagues draw their groups and fight due rounds (EventService.Trench).
                 phaseChanged |= PairDuels(now) > 0;
+                phaseChanged |= RunTrench(now);
 
                 FlushBossHits();
                 RefreshBosses(now);
@@ -415,6 +416,9 @@ namespace Hadal.Game.Events
                     break;
                 case CommandType.MobilizationTask when TryDeserialize(envelope.Payload, out MobilizationTaskCommand? task):
                     HandleMobilization(session, task!, now);
+                    break;
+                case CommandType.TrenchConquest when TryDeserialize(envelope.Payload, out TrenchCommand? trench):
+                    HandleTrench(session, trench!, now);
                     break;
                 default:
                     session.Acknowledge(envelope.CommandId, envelope.ClientSequence, "MalformedCommand", now);
@@ -587,6 +591,8 @@ namespace Hadal.Game.Events
                     dto.Mobilization = MobilizationView(live, session.PublicId, score, now);
                 else if (live.Def.Template == EventTemplates.AllianceDuel)
                     dto.Duel = DuelView(live, session.PublicId, score, now);
+                else if (live.Def.Template == EventTemplates.TrenchConquest)
+                    dto.Trench = TrenchView(live, session.PublicId, now);
 
                 events.Add(dto);
             }
@@ -1017,9 +1023,17 @@ namespace Hadal.Game.Events
             else
             {
                 var phases = def.Phases ?? new List<EventPhaseConfig>();
-                // Mobilization scores its tasks, not an actions table.
-                if (def.Actions.Count == 0 && phases.Count == 0 && def.Template != EventTemplates.Mobilization)
+                // Mobilization scores its tasks and Trench Conquest its fights, not an actions table.
+                if (def.Actions.Count == 0 && phases.Count == 0 && def.Template != EventTemplates.Mobilization && def.Template != EventTemplates.TrenchConquest)
                     return "NoActions";
+                if (def.Template == EventTemplates.TrenchConquest)
+                {
+                    var t = def.Trench ?? new TrenchConfig();
+                    if (t.MinReactor is < 1 or > 60 || t.MinRegistered is < 1 or > 200 || t.FightsPerTeam is < 1 or > 5 || t.RegisterHours is < 1 or > 336
+                        || t.FirstRoundAfterHours is < 0 or > 168 || t.RoundEveryHours is < 1 or > 168 || t.PointsPerWin is < 0 or > 100_000
+                        || def.StartsAt.AddHours(t.RegisterHours + t.FirstRoundAfterHours) >= def.EndsAt)
+                        return "InvalidTrench";
+                }
                 if (def.Template == EventTemplates.Mobilization)
                 {
                     var m = def.Mobilization ?? new MobilizationConfig();

@@ -96,6 +96,9 @@ namespace HADAL.Shared.DTOs
 
         /// <summary>Set once the end-of-event payout went out: rank rewards and unclaimed stages arrive by mail.</summary>
         [ProtoMember(25)] public bool PaidOut { get; set; }
+
+        /// <summary>Trench Conquest: the player's league view (template "trench_conquest").</summary>
+        [ProtoMember(26)] public TrenchDto? Trench { get; set; }
     }
 
     /// <summary>One Mobilization task card (MobilizationRules): kind, colour tier, target and points.</summary>
@@ -207,6 +210,72 @@ namespace HADAL.Shared.DTOs
 
         /// <summary>Alliances paired this week in the kingdom (for "x duels this week").</summary>
         [ProtoMember(9)] public int Pairings { get; set; }
+    }
+
+    /// <summary>One alliance's line in a Trench Conquest group table.</summary>
+    [ProtoContract]
+    public sealed class TrenchStandingDto
+    {
+        [ProtoMember(1)] public string AllianceId { get; set; } = string.Empty;
+        [ProtoMember(2)] public string Tag { get; set; } = string.Empty;
+        [ProtoMember(3)] public string Name { get; set; } = string.Empty;
+        [ProtoMember(4)] public int Points { get; set; }
+        [ProtoMember(5)] public int Flags { get; set; }
+        [ProtoMember(6)] public int Wins { get; set; }
+        [ProtoMember(7)] public int Teams { get; set; }
+    }
+
+    /// <summary>One played round of the player's alliance: the rival, the lane flags and the points.</summary>
+    [ProtoContract]
+    public sealed class TrenchRoundDto
+    {
+        [ProtoMember(1)] public int Round { get; set; }
+        [ProtoMember(2)] public string RivalTag { get; set; } = string.Empty;
+        [ProtoMember(3)] public string RivalName { get; set; } = string.Empty;
+
+        /// <summary>Per lane, seen from the player's alliance: 0 nobody, 1 ours, 2 theirs.</summary>
+        [ProtoMember(4)] public int[] Lanes { get; set; } = System.Array.Empty<int>();
+        [ProtoMember(5)] public int Points { get; set; }
+        [ProtoMember(6)] public bool Bye { get; set; }
+    }
+
+    /// <summary>A registered team of the player's alliance (who, which lane, how strong).</summary>
+    [ProtoContract]
+    public sealed class TrenchMemberDto
+    {
+        [ProtoMember(1)] public string Name { get; set; } = string.Empty;
+        [ProtoMember(2)] public int Lane { get; set; }
+        [ProtoMember(3)] public long Power { get; set; }
+        [ProtoMember(4)] public bool Mine { get; set; }
+    }
+
+    /// <summary>The player's Trench Conquest view.</summary>
+    [ProtoContract]
+    public sealed class TrenchDto
+    {
+        /// <summary>Registration is open until this time; the league starts then.</summary>
+        [ProtoMember(1)] public long RegisterUntilMs { get; set; }
+
+        /// <summary>When the next round is fought (0 when none is left).</summary>
+        [ProtoMember(2)] public long NextRoundAtMs { get; set; }
+
+        /// <summary>Rounds fought so far.</summary>
+        [ProtoMember(3)] public int RoundsDone { get; set; }
+        [ProtoMember(4)] public int MinReactor { get; set; }
+        [ProtoMember(5)] public int MinRegistered { get; set; }
+
+        /// <summary>The player's own registration: the lane when <see cref="Registered"/>.</summary>
+        [ProtoMember(6)] public int MyLane { get; set; }
+        [ProtoMember(7)] public long MyPower { get; set; }
+
+        /// <summary>The alliance's registered teams and whether it made the league (enough teams when groups were drawn).</summary>
+        [ProtoMember(8)] public TrenchMemberDto[] Members { get; set; } = System.Array.Empty<TrenchMemberDto>();
+        [ProtoMember(9)] public bool InLeague { get; set; }
+
+        /// <summary>The group table, best first, and the alliance's rounds.</summary>
+        [ProtoMember(10)] public TrenchStandingDto[] Group { get; set; } = System.Array.Empty<TrenchStandingDto>();
+        [ProtoMember(11)] public TrenchRoundDto[] Rounds { get; set; } = System.Array.Empty<TrenchRoundDto>();
+        [ProtoMember(12)] public bool Registered { get; set; }
     }
 
     /// <summary>Every event the player can see: upcoming, live and ended ones still paying out.</summary>

@@ -44,6 +44,35 @@ namespace HADAL.Shared.Commands
         public const string View = "view";
     }
 
+    /// <summary>
+    /// A Trench Conquest move (docs/29 §4.6): register the player's team into lane <see cref="Lane"/> (again: a fresh
+    /// snapshot), move it to another lane, or just ask for the view (TrenchActions).
+    /// </summary>
+    [ProtoContract]
+    public sealed class TrenchCommand : ICommand
+    {
+        [ProtoMember(1)] public string CommandId { get; set; } = string.Empty;
+        [ProtoMember(2)] public ulong ClientSequence { get; set; }
+        [ProtoMember(3)] public string EventId { get; set; } = string.Empty;
+
+        /// <summary>TrenchActions.Register, Move, Withdraw or View.</summary>
+        [ProtoMember(4)] public string Action { get; set; } = string.Empty;
+
+        /// <summary>The lane, 0 to TrenchRules.Lanes - 1.</summary>
+        [ProtoMember(5)] public int Lane { get; set; }
+
+        /// <summary>The heroes to register (empty: the strongest, filled like a march).</summary>
+        [ProtoMember(6)] public string[] HeroIds { get; set; } = System.Array.Empty<string>();
+    }
+
+    public static class TrenchActions
+    {
+        public const string Register = "register";
+        public const string Move = "move";
+        public const string Withdraw = "withdraw";
+        public const string View = "view";
+    }
+
     /// <summary>Claims the rank reward of an ended event.</summary>
     [ProtoContract]
     public sealed class ClaimEventRankCommand : ICommand

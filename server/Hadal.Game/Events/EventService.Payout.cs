@@ -44,6 +44,9 @@ namespace Hadal.Game.Events
                     live.Paying = true;
                     if (def.Template == EventTemplates.AllianceDuel)
                         SettleDuel(live);
+                    // A league pays only after every round it has time for (a server that was down catches up here).
+                    if (def.Template == EventTemplates.TrenchConquest)
+                        AdvanceTrench(live, def.EndsAt);
                     Sort(live, now, force: true);
                     due.Add(new EventPayout(def.Id, PlanPayout(live)));
                 }

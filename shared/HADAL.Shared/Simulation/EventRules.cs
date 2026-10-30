@@ -95,12 +95,18 @@ namespace HADAL.Shared.Simulation
         /// </summary>
         public const string AllianceDuel = "alliance_duel";
 
-        public static readonly string[] All = { Points, Alliance, Login, Mobilization, AllianceDuel };
+        /// <summary>
+        /// Trench Conquest (docs/29 §4.6): members register a team snapshot into one of three lanes; alliances are grouped
+        /// six by six and meet in five league rounds of relay lane battles (TrenchRules). Alliances rank by league points.
+        /// </summary>
+        public const string TrenchConquest = "trench_conquest";
+
+        public static readonly string[] All = { Points, Alliance, Login, Mobilization, AllianceDuel, TrenchConquest };
 
         public static bool IsKnown(string template) => Array.IndexOf(All, template) >= 0;
 
         /// <summary>Templates ranked by alliance: members' points add up to the alliance's.</summary>
-        public static bool RanksAlliances(string template) => template == Alliance || template == Mobilization;
+        public static bool RanksAlliances(string template) => template == Alliance || template == Mobilization || template == TrenchConquest;
 
         /// <summary>Templates whose points also count for the player's alliance.</summary>
         public static bool ForAlliances(string template) => template == Alliance || template == Mobilization || template == AllianceDuel;

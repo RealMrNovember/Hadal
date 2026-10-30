@@ -15,22 +15,23 @@ namespace Hadal.Game.Events
         public const string LoginWeek = "login-week";
         public const string Mobilization = "mobilization";
         public const string AllianceDuel = "alliance-duel";
+        public const string TrenchConquest = "trench-conquest";
 
         /// <summary>Every default schedule's id (mails name their events by a localisation key "event.name.{id}").</summary>
-        public static readonly string[] Ids = { DepthRace, AllianceWeek, LoginWeek, Mobilization, AllianceDuel };
+        public static readonly string[] Ids = { DepthRace, AllianceWeek, LoginWeek, Mobilization, AllianceDuel, TrenchConquest };
 
         private static readonly int[] EveryDay = { 0, 1, 2, 3, 4, 5, 6 };
         private const int Monday = (int)DayOfWeek.Monday;
         private const int Thursday = (int)DayOfWeek.Thursday;
 
         /// <summary>Every default schedule: what a new, empty calendar is seeded with.</summary>
-        public static List<EventSchedule> All(DateTimeOffset now) => new() { Depth(now), Alliance(now), Login(now), Mobilize(now), Duel(now) };
+        public static List<EventSchedule> All(DateTimeOffset now) => new() { Depth(now), Alliance(now), Login(now), Mobilize(now), Duel(now), Trench(now) };
 
         /// <summary>
         /// Defaults that came after the first seed (roadmap §7, E6). A calendar seeded before them gets each once
         /// (EventService.Calendar, marker "seed:{id}"), without touching the schedules it has.
         /// </summary>
-        public static List<EventSchedule> Added(DateTimeOffset now) => new() { Mobilize(now), Duel(now) };
+        public static List<EventSchedule> Added(DateTimeOffset now) => new() { Mobilize(now), Duel(now), Trench(now) };
 
         /// <summary>
         /// Depth Race (docs/29 §4.4): every day 00:00–24:00 UTC, six 4-hour themes from the existing score kinds (gathering,
@@ -387,6 +388,66 @@ namespace Hadal.Game.Events
         /// <summary>The event languages, in the panel's order.</summary>
         internal static readonly string[] Languages =
             { "tr", "en", "de", "fr", "es", "it", "pt", "nl", "ru", "ar", "ja", "ko", "zh-Hans", "zh-Hant", "th", "vi", "id", "ms" };
+
+        /// <summary>
+        /// Trench Conquest (docs/29 §4.6): Monday 00:00 UTC for a week. Registration the first two days, the draw on
+        /// Wednesday 00:00, rounds at 12:00 UTC Wednesday to Sunday. Personal points per fight won (stages), alliance rank
+        /// rewards by league points to the registered members.
+        /// </summary>
+        private static EventSchedule Trench(DateTimeOffset now) => new()
+        {
+            Id = TrenchConquest,
+            Weekdays = new List<int> { Monday },
+            StartMinute = 0,
+            DurationHours = 7 * 24,
+            LeadHours = 24,
+            Note = "Default: weekly Trench Conquest league (3 lanes, groups of six, five rounds)",
+            CreatedBy = EventService.CalendarAuthor,
+            CreatedAt = now,
+            UpdatedAt = now,
+            Blueprint = new EventDefinition
+            {
+                Template = EventTemplates.TrenchConquest,
+                Banner = "abyss",
+                ClaimDays = 1,
+                MinRankPoints = 1,
+                Trench = new TrenchConfig(),
+                Title = T("Hendek Fethi", "Trench Conquest", "Grabeneroberung", "Conquête des tranchées", "Conquista de fosas", "Conquista delle fosse",
+                    "Conquista das fossas", "Troggenverovering", "Захват впадин", "غزو الخنادق", "海溝制圧", "해구 정복", "海沟征服", "海溝征服",
+                    "พิชิตร่องลึก", "Chinh phục rãnh sâu", "Penaklukan Palung", "Penaklukan Palung"),
+                Description = T(
+                    "İlk iki gün takımını üç hattan birine kaydet (reaktör 10+). Yeterli takımı olan ittifaklar altılı gruplara ayrılır ve beş tur karşılaşır. Her hatta takımlar en zayıftan başlayarak sırayla dövüşür; daha çok bayrak alan turu kazanır. Askerler ölmez.",
+                    "Register your team into one of three lanes in the first two days (reactor 10+). Alliances with enough teams are grouped six by six and meet over five rounds. In each lane teams fight in turn, weakest first; more flags wins the round. Troops never die.",
+                    "Melde dein Team in den ersten zwei Tagen in einer von drei Bahnen an (Reaktor 10+). Allianzen mit genug Teams werden in Sechsergruppen eingeteilt und treffen in fünf Runden aufeinander. In jeder Bahn kämpfen die Teams nacheinander, das schwächste zuerst; mehr Flaggen gewinnen die Runde. Truppen sterben nie.",
+                    "Inscrivez votre équipe dans l'un des trois couloirs les deux premiers jours (réacteur 10+). Les alliances avec assez d'équipes sont réparties en groupes de six et s'affrontent en cinq manches. Dans chaque couloir, les équipes combattent à tour de rôle, la plus faible d'abord ; le plus de drapeaux gagne la manche. Les troupes ne meurent jamais.",
+                    "Inscribe tu equipo en uno de los tres carriles los dos primeros días (reactor 10+). Las alianzas con suficientes equipos se agrupan de seis en seis y se enfrentan en cinco rondas. En cada carril los equipos luchan por turnos, el más débil primero; más banderas gana la ronda. Las tropas nunca mueren.",
+                    "Iscrivi la tua squadra in una delle tre corsie nei primi due giorni (reattore 10+). Le alleanze con abbastanza squadre sono divise in gironi da sei e si affrontano in cinque turni. In ogni corsia le squadre combattono a turno, la più debole per prima; più bandiere vincono il turno. Le truppe non muoiono mai.",
+                    "Inscreva sua equipe em uma das três faixas nos dois primeiros dias (reator 10+). Alianças com equipes suficientes são agrupadas de seis em seis e se enfrentam em cinco rodadas. Em cada faixa as equipes lutam em sequência, a mais fraca primeiro; mais bandeiras vencem a rodada. As tropas nunca morrem.",
+                    "Schrijf je team de eerste twee dagen in voor een van drie banen (reactor 10+). Allianties met genoeg teams worden in groepen van zes verdeeld en spelen vijf rondes. Per baan vechten teams om de beurt, de zwakste eerst; meer vlaggen wint de ronde. Troepen sterven nooit.",
+                    "В первые два дня запишите отряд на одну из трёх линий (реактор 10+). Альянсы с достаточным числом отрядов делятся на группы по шесть и встречаются в пяти раундах. На каждой линии отряды бьются по очереди, начиная со слабейшего; больше флагов — победа в раунде. Войска не гибнут.",
+                    "سجّل فريقك في أحد الممرات الثلاثة خلال أول يومين (المفاعل 10+). تُقسَّم التحالفات التي لديها فرق كافية إلى مجموعات من ستة وتتواجه في خمس جولات. في كل ممر تتقاتل الفرق بالتناوب بدءًا بالأضعف؛ صاحب الأعلام الأكثر يفوز بالجولة. لا تموت القوات.",
+                    "最初の2日間に3つのレーンのいずれかへ部隊を登録します（リアクター10以上）。十分な部隊数の同盟は6つずつのグループに分かれ、5ラウンド戦います。各レーンでは弱い部隊から順に戦い、旗を多く取った側がラウンドの勝者です。兵は死にません。",
+                    "처음 이틀 동안 세 개의 라인 중 하나에 부대를 등록하세요(원자로 10 이상). 부대가 충분한 연맹은 여섯씩 조를 이뤄 다섯 라운드를 치릅니다. 각 라인에서 부대는 약한 순서대로 차례로 싸우고, 깃발을 더 많이 얻은 쪽이 라운드에서 이깁니다. 병력은 죽지 않습니다.",
+                    "前两天将你的部队登记到三条战线之一（反应堆10级以上）。部队足够的联盟按六个一组分组，进行五轮对决。每条战线上部队从最弱的开始依次作战，夺旗多者赢得本轮。士兵不会阵亡。",
+                    "前兩天將你的部隊登記到三條戰線之一（反應爐10級以上）。部隊足夠的聯盟按六個一組分組，進行五輪對決。每條戰線上部隊從最弱的開始依次作戰，奪旗多者贏得本輪。士兵不會陣亡。",
+                    "ลงทะเบียนทีมของคุณในหนึ่งในสามเลนภายในสองวันแรก (เตาปฏิกรณ์ 10+) พันธมิตรที่มีทีมเพียงพอจะถูกแบ่งกลุ่มละหกและพบกันห้ารอบ ในแต่ละเลนทีมจะสู้กันตามลำดับโดยเริ่มจากทีมที่อ่อนที่สุด ได้ธงมากกว่าชนะรอบนั้น ทหารไม่ตาย",
+                    "Đăng ký đội của bạn vào một trong ba làn trong hai ngày đầu (lò phản ứng 10+). Các liên minh có đủ đội được chia nhóm sáu và đấu năm vòng. Ở mỗi làn các đội lần lượt chiến đấu, yếu nhất trước; nhiều cờ hơn thắng vòng. Quân không bao giờ chết.",
+                    "Daftarkan timmu ke salah satu dari tiga jalur dalam dua hari pertama (reaktor 10+). Aliansi dengan tim yang cukup dibagi dalam grup berisi enam dan bertemu dalam lima ronde. Di tiap jalur tim bertarung bergiliran, mulai dari yang terlemah; bendera terbanyak memenangkan ronde. Pasukan tidak pernah mati.",
+                    "Daftarkan pasukan anda ke salah satu daripada tiga lorong dalam dua hari pertama (reaktor 10+). Pakatan yang cukup pasukan dibahagi kepada kumpulan enam dan bertemu dalam lima pusingan. Di setiap lorong pasukan berlawan bergilir, bermula dengan yang paling lemah; lebih banyak bendera menang pusingan. Tentera tidak pernah mati."),
+                Stages =
+                {
+                    Stage(100, Res("Titanium", 10_000), Item("speed_any_5", 2)),
+                    Stage(300, Item("chest_bronze", 1)),
+                    Stage(600, Item("chest_silver", 1))
+                },
+                RankBands =
+                {
+                    Band(1, 1, Res("Hadalite", 150), Item("chest_gold", 1)),
+                    Band(2, 3, Res("Hadalite", 80), Item("chest_silver", 1)),
+                    Band(4, 10, Res("Hadalite", 30), Item("chest_bronze", 2))
+                }
+            }
+        };
 
         private static Dictionary<string, string> T(params string[] texts)
         {
