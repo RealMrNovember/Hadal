@@ -33,7 +33,7 @@ namespace Hadal.UI
                 return;
             }
 
-            var grid = UiFrames.Grid(_list, 3, 0.62f, 14f);
+            var grid = UiFrames.Grid(_list, 3, 0.7f, 14f);
             grid.GetComponent<UnityEngine.UI.GridLayoutGroup>().padding = new RectOffset(0, 0, 6, 6);
             foreach (var offer in offers)
             {
