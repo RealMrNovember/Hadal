@@ -27,7 +27,7 @@ namespace Hadal.UI.Hud
         private Image _alarmFill;
         private TMP_Text _alarmText;
         private GameObject _survivalCard;
-        private UiFrames.Sheet _survivalSheet;
+        private UiFrames.DialogSheet _survivalSheet;
         private TMP_Text _survivalTimer;
         private int _survivalCardVersion = -1;
         private string _knownEmergency;

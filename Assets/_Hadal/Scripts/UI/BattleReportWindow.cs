@@ -18,7 +18,7 @@ namespace Hadal.UI
     {
         private IStateSyncService _stateSync;
         private Canvas _canvas;
-        private UiFrames.Sheet _window;
+        private UiFrames.DialogSheet _window;
 
         public void Initialize(IStateSyncService stateSync)
         {

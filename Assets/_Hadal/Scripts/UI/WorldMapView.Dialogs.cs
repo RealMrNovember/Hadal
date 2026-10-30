@@ -14,14 +14,14 @@ namespace Hadal.UI
     /// </summary>
     public sealed partial class WorldMapView
     {
-        private UiFrames.Sheet _sheet;
+        private UiFrames.DialogSheet _sheet;
         private string _sheetKind = string.Empty;
 
         /// <summary>
         /// Opens the map's dialog of <paramref name="kind"/>, or empties the one already up for a refill (no new blur, no
         /// pop-in). Any other popup closes first.
         /// </summary>
-        private UiFrames.Sheet MapDialog(string kind, string title, float footer = 0f)
+        private UiFrames.DialogSheet MapDialog(string kind, string title, float footer = 0f)
         {
             if (_sheet is { IsOpen: true } && _popup == _sheet.Root.gameObject && _sheetKind == kind)
             {

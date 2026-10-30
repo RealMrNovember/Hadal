@@ -23,7 +23,7 @@ namespace Hadal.UI
         private ICommandDispatcher _commands;
         private ulong _sequence;
         private Canvas _canvas;
-        private UiFrames.Sheet _window;
+        private UiFrames.DialogSheet _window;
         private int _rendered = -1;
 
         private ClientStateView View => _stateSync.View;

@@ -8,14 +8,14 @@ namespace Hadal.UI
 {
     /// <summary>
     /// Dialog parts for the war, map and settings screens (Last Asylum's boost, settings, profile and result dialogs):
-    /// an opened <see cref="Sheet"/> that sizes itself to its content and refills in place, LA's ON/OFF switch and
+    /// an opened <see cref="DialogSheet"/> that sizes itself to its content and refills in place, LA's ON/OFF switch and
     /// check rows, icon tiles for a settings grid, stat pills, the navy icon bar under a card, and the blue-red
     /// versus banner of a battle result.
     /// </summary>
     public static partial class UiFrames
     {
         /// <summary>An open dialog: the backdrop (destroy it to close), the card, its chrome and the column to fill.</summary>
-        public sealed class Sheet
+        public sealed class DialogSheet
         {
             public RectTransform Root;
             public RectTransform Card;
@@ -54,10 +54,10 @@ namespace Hadal.UI
         /// <paramref name="footer"/> reserves a strip (reference px) for buttons that stay put, <paramref name="top"/> one
         /// over the scroll for tabs.
         /// </summary>
-        public static Sheet OpenSheet(Transform canvas, string title, Action close, float height = 0f, float footer = 0f, float maxShare = 0.82f,
+        public static DialogSheet OpenSheet(Transform canvas, string title, Action close, float height = 0f, float footer = 0f, float maxShare = 0.82f,
             float width = 0.94f, float top = 0f)
         {
-            var sheet = new Sheet { Height = height, FooterHeight = footer * UiKit.Scale, TopHeight = top * UiKit.Scale, MaxShare = maxShare };
+            var sheet = new DialogSheet { Height = height, FooterHeight = footer * UiKit.Scale, TopHeight = top * UiKit.Scale, MaxShare = maxShare };
             sheet.Root = Dim(canvas, close);
             var image = UiKit.Box("Card", sheet.Root, Navy);
             var card = image.rectTransform;
@@ -116,7 +116,7 @@ namespace Hadal.UI
         }
 
         /// <summary>Empties the sheet for a refill: no new backdrop capture, no pop-in, the scroll stays where it was.</summary>
-        public static void ClearSheet(Sheet sheet)
+        public static void ClearSheet(DialogSheet sheet)
         {
             EmptyRect(sheet.Content);
             if (sheet.Footer != null)
@@ -137,7 +137,7 @@ namespace Hadal.UI
         }
 
         /// <summary>Sizes a content-sized sheet to its rows (capped; beyond the cap it scrolls).</summary>
-        public static void FitSheet(Sheet sheet)
+        public static void FitSheet(DialogSheet sheet)
         {
             if (sheet.Height > 0f || sheet.Card == null)
                 return;

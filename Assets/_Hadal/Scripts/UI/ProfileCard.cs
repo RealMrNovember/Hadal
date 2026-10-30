@@ -43,7 +43,7 @@ namespace Hadal.UI
         private ulong _sequence;
 
         private Canvas _canvas;
-        private UiFrames.Sheet _sheet;
+        private UiFrames.DialogSheet _sheet;
         private bool _picking;
         private string _playerId = string.Empty;
         private string _nameHint = string.Empty;

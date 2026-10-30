@@ -23,7 +23,7 @@ namespace Hadal.UI
     /// </summary>
     public sealed partial class PvpCenter
     {
-        private UiFrames.Sheet _boost;
+        private UiFrames.DialogSheet _boost;
         private int _boostTab;
         private string _boostKey = string.Empty;
         private readonly List<(TMP_Text Label, long AtMs, string Format)> _boostClocks = new();

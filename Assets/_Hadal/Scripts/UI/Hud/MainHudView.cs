@@ -684,7 +684,7 @@ namespace Hadal.UI.Hud
             if (_popup != null)
                 Destroy(_popup);
 
-            UiFrames.Sheet sheet = null;
+            UiFrames.DialogSheet sheet = null;
             sheet = UiFrames.OpenSheet(_canvas.transform, title, () =>
             {
                 sheet.Close();

@@ -51,7 +51,7 @@ namespace Hadal.UI
         private bool _guardsKnown;
 
         private Canvas _windowCanvas;
-        private UiFrames.Sheet _room;
+        private UiFrames.DialogSheet _room;
         private int _tab;
         private float _nextWarRequest;
         private int _renderedLog = -1;
@@ -282,7 +282,7 @@ namespace Hadal.UI
         // --- Results and the away summary (docs/30 §5.5) ------------------------------------------
 
         private readonly Queue<PvpReportDto> _results = new();
-        private UiFrames.Sheet _result;
+        private UiFrames.DialogSheet _result;
         private int _checkedLog = -1;
 
         private string SeenKey => "hadal.pvp.seen." + View.PlayerId;
