@@ -101,8 +101,10 @@ namespace Hadal.Gameplay.Buildings
                 // A first construction (level 0) shows as a rising hologram; it is swapped for the real
                 // model when the server completes it.
                 var hologram = building.level == 0 && building.IsUnderConstruction;
+                // A level that crosses into the next look tier swaps the model (docs/rehber/04_bina_evrimi.md).
+                var tier = HADAL.Shared.Simulation.BuildingVisuals.TierFor(building.level);
                 if (!_instances.TryGetValue(building.instanceKey, out var instance) || instance.Go == null
-                    || instance.DefinitionId != building.definitionId || instance.Hologram != hologram)
+                    || instance.DefinitionId != building.definitionId || instance.Hologram != hologram || instance.Tier != tier)
                 {
                     if (instance.Go != null)
                         Destroy(instance.Go);
@@ -110,12 +112,12 @@ namespace Hadal.Gameplay.Buildings
                     var go = CreateVisual(building);
                     if (hologram)
                         MakeHologram(go);
-                    instance = new Instance(go, building.definitionId, hologram, building.constructionEndsAt, building.constructionSeconds);
+                    instance = new Instance(go, building.definitionId, hologram, building.constructionEndsAt, building.constructionSeconds, tier);
                     _instances[building.instanceKey] = instance;
                 }
                 else if (hologram)
                 {
-                    instance = new Instance(instance.Go, instance.DefinitionId, true, building.constructionEndsAt, building.constructionSeconds);
+                    instance = new Instance(instance.Go, instance.DefinitionId, true, building.constructionEndsAt, building.constructionSeconds, instance.Tier);
                     _instances[building.instanceKey] = instance;
                 }
 
@@ -322,7 +324,7 @@ namespace Hadal.Gameplay.Buildings
         private GameObject CreateVisual(BuildingSaveEntry building)
         {
             var root = _buildingsRoot != null ? _buildingsRoot : transform;
-            var prefab = _buildingDatabase != null ? _buildingDatabase.GetById(building.definitionId)?.Prefab : null;
+            var prefab = _buildingDatabase != null ? _buildingDatabase.GetById(building.definitionId)?.PrefabFor(building.level) : null;
             if (prefab != null)
             {
                 var go = Instantiate(prefab, root, false);
@@ -361,9 +363,11 @@ namespace Hadal.Gameplay.Buildings
             public readonly bool Hologram;
             public readonly float EndsAt;
             public readonly float Seconds;
+            public readonly int Tier;
 
-            public Instance(GameObject go, string definitionId, bool hologram, float endsAt, float seconds)
+            public Instance(GameObject go, string definitionId, bool hologram, float endsAt, float seconds, int tier)
             {
+                Tier = tier;
                 Go = go;
                 DefinitionId = definitionId;
                 Hologram = hologram;

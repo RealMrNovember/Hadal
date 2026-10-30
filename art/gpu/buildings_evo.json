@@ -1,0 +1,73 @@
+{
+  "_note": "Building evolution pilot (docs/rehber/04_bina_evrimi.md §2, §10): the Core Reactor's six tiers. One seed for every tier and the same short function words first, then the tier's material and light keys (§10 prompt guide), so the six read as one building growing. SDXL reads 77 tokens: asset prompt plus style stay under that, the tier keys come before the style. Height grows by the tier's silhouette factor (1, 1.15, 1.32, 1.52, 1.75, 2.01 of tier I) from 3.2 m (today's reactor stands 2.8 m on a 4.7 m base). props.py: motion static (origin at the bottom), budget 3000-5500 triangles by tier, 1024 px bake.",
+  "style": "single game building, three-quarter view, plain light grey background, hand-painted, deep sea sci-fi",
+  "negative": "multiple objects, cropped, text, logo, watermark, people, scenery, water surface, floor, shadow on floor, blurry, photo",
+  "assets": [
+    {
+      "id": "core_reactor_t1",
+      "kind": "building",
+      "height": 3.2,
+      "seed": 5101,
+      "yaw": 0,
+      "prompt": "core reactor, round housing, glowing core on top, salvaged mismatched hull plates, hazard orange paint, exposed cables, scaffolding, amber lamps",
+      "motion": "static",
+      "budget": 3000,
+      "texture": 1024
+    },
+    {
+      "id": "core_reactor_t2",
+      "kind": "building",
+      "height": 3.7,
+      "seed": 5101,
+      "yaw": 0,
+      "prompt": "core reactor, round housing, glowing core on top, riveted titanium panels, bolted flanges, yellow foam blocks, tidy cyan LED strips",
+      "motion": "static",
+      "budget": 3500,
+      "texture": 1024
+    },
+    {
+      "id": "core_reactor_t3",
+      "kind": "building",
+      "height": 4.2,
+      "seed": 5101,
+      "yaw": 0,
+      "prompt": "core reactor, round housing, glowing core on top, heavy titanium pressure spheres, conical acrylic viewports, ring stiffeners, warm inner light",
+      "motion": "static",
+      "budget": 4000,
+      "texture": 1024
+    },
+    {
+      "id": "core_reactor_t4",
+      "kind": "building",
+      "height": 4.9,
+      "seed": 5101,
+      "yaw": 0,
+      "prompt": "tall core reactor tower, glowing core on top, dark bronze heat-blued superalloy plating, sonar dishes, finned heat exchangers, violet accent lights",
+      "motion": "static",
+      "budget": 4500,
+      "texture": 1024
+    },
+    {
+      "id": "core_reactor_t5",
+      "kind": "building",
+      "height": 5.6,
+      "seed": 5101,
+      "yaw": 0,
+      "prompt": "tall core reactor tower, glowing core on top, biomechanical chitin ribs over metal hull, basalt foundation, glowing teal veins, violet crystals",
+      "motion": "static",
+      "budget": 5000,
+      "texture": 1024
+    },
+    {
+      "id": "core_reactor_t6",
+      "kind": "building",
+      "height": 6.4,
+      "seed": 5101,
+      "yaw": 0,
+      "prompt": "tall core reactor tower, blazing core on top, glowing translucent membranes, crystal crown, cyan-white light, violet halo, radiant pulse",
+      "motion": "static",
+      "budget": 5500,
+      "texture": 1024
+    }
+  ]
+}

@@ -26,6 +26,12 @@ namespace Hadal.Data.Config
         [SerializeField] private GameObject _prefab;
         [SerializeField] private GameObject _ghostPrefab;
 
+        /// <summary>
+        /// The building's evolution (docs/rehber/04_bina_evrimi.md): one model per look tier, tier 1 first. A tier
+        /// without its own model shows the closest lower one; with none at all the single <see cref="Prefab"/> stays.
+        /// </summary>
+        [SerializeField] private List<GameObject> _tierPrefabs = new();
+
         public string Id => _id;
         public string DisplayName => _displayName;
         public BuildingCategory Category => _category;
@@ -42,6 +48,18 @@ namespace Hadal.Data.Config
         public float PressureResistanceBonus => _pressureResistanceBonus;
         public GameObject Prefab => _prefab;
         public GameObject GhostPrefab => _ghostPrefab != null ? _ghostPrefab : _prefab;
+
+        /// <summary>The model for a building at <paramref name="level"/>: its tier's (or the closest lower tier's), else the single prefab.</summary>
+        public GameObject PrefabFor(int level)
+        {
+            for (var tier = HADAL.Shared.Simulation.BuildingVisuals.TierFor(level); tier >= 1; tier--)
+            {
+                if (tier - 1 < _tierPrefabs.Count && _tierPrefabs[tier - 1] != null)
+                    return _tierPrefabs[tier - 1];
+            }
+
+            return _prefab;
+        }
 
         public bool MatchesSlotType(GridSlotType slotType)
         {

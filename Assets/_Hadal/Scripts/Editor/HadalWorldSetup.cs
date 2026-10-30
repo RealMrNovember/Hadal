@@ -109,6 +109,14 @@ namespace Hadal.EditorTools
                 if (asset != null)
                     models.Add(new Hadal.Core.Catalog.CharacterLibrary.ModelEntry { id = "bld_" + id, prefab = asset });
             }
+
+            // The reactor's evolution tiers (docs/rehber/04_bina_evrimi.md): the map maquette follows the reactor level.
+            for (var t = 1; t <= HADAL.Shared.Simulation.BuildingVisuals.Tiers; t++)
+            {
+                var asset = AssetDatabase.LoadAssetAtPath<GameObject>(HadalArtImporter.BuildingTiersRoot + "core_reactor_t" + t + ".fbx");
+                if (asset != null)
+                    models.Add(new Hadal.Core.Catalog.CharacterLibrary.ModelEntry { id = "bld_core_reactor_t" + t, prefab = asset });
+            }
             var portraits = new List<Hadal.Core.Catalog.CharacterLibrary.PortraitEntry>();
             foreach (var guid in AssetDatabase.FindAssets("t:Texture2D", new[] { "Assets/_Hadal/Art/Portraits" }))
             {

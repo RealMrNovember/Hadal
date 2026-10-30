@@ -273,6 +273,13 @@ namespace Hadal.UI
                     entry = (BuildBase(b), BuildPlate());
                     _bases[b.PlayerId] = entry;
                 }
+                else if (entry.Model.name != BaseName(b))
+                {
+                    // The reactor grew into another look tier (or gained a building): rebuild the maquette.
+                    Destroy(entry.Model);
+                    entry = (BuildBase(b), entry.Plate);
+                    _bases[b.PlayerId] = entry;
+                }
 
                 entry.Model.transform.position = TileToWorld(b.X, b.Y);
                 StylePlate(entry.Plate, b, view);
@@ -293,23 +300,32 @@ namespace Hadal.UI
             ApplyMonsters(view);
         }
 
+        /// <summary>The maquette's name carries what shapes it (tier and level), so a change is seen and it is rebuilt.</summary>
+        private static string BaseName(WorldBaseDto b) => "Base_" + b.PlayerId + "_" + b.Level;
+
         private GameObject BuildBase(WorldBaseDto b)
         {
-            var root = new GameObject("Base_" + b.PlayerId);
+            var root = new GameObject(BaseName(b));
             root.transform.SetParent(_root, false);
             var library = CharacterLibrary.Instance;
-            void Part(string id, Vector3 offset, float scale)
+            bool Part(string id, Vector3 offset, float scale)
             {
                 var prefab = library?.Model(id);
                 if (prefab == null)
-                    return;
+                    return false;
                 var part = Instantiate(prefab, root.transform);
                 part.transform.localPosition = offset;
                 part.transform.localScale = Vector3.one * scale;
+                return true;
             }
 
-            // Bigger bases look bigger: a reactor, then domes and towers as the reactor grows.
-            Part("bld_core_reactor", Vector3.zero, 1.5f);
+            // Bigger bases look bigger: the reactor in its look tier (docs/rehber/04_bina_evrimi.md, the closest
+            // lower tier when one has no model yet), then domes and towers as the reactor grows.
+            var reactor = false;
+            for (var tier = HADAL.Shared.Simulation.BuildingVisuals.TierFor(b.Level); tier >= 1 && !reactor; tier--)
+                reactor = Part("bld_core_reactor_t" + tier, Vector3.zero, 1.3f);
+            if (!reactor)
+                Part("bld_core_reactor", Vector3.zero, 1.5f);
             if (b.Level >= 3)
                 Part("bld_oxygen_plant", new Vector3(3.4f, 0, -1.2f), 1f);
             if (b.Level >= 5)

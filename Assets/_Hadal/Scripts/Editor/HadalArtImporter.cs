@@ -25,6 +25,9 @@ namespace Hadal.EditorTools
         /// <summary>World-map creatures (props.py --out-dir, art/gpu/creatures.json): imported like props.</summary>
         public const string CreaturesRoot = ArtRoot + "Creatures/";
 
+        /// <summary>Building evolution tiers (props.py --out-dir, art/gpu/buildings_evo.json): textured like props.</summary>
+        public const string BuildingTiersRoot = ArtRoot + "BuildingTiers/";
+
         /// <summary>Clips that cycle; everything else (Wave, Death, HitReact...) plays once.</summary>
         public static readonly string[] LoopingClips =
         {
@@ -33,7 +36,7 @@ namespace Hadal.EditorTools
 
         private static bool IsFbx(string path) => path.EndsWith(".fbx", StringComparison.OrdinalIgnoreCase);
         private static bool IsCharacter(string path) => path.StartsWith(CharactersRoot) && IsFbx(path);
-        private static bool IsProp(string path) => (path.StartsWith(PropsRoot) || path.StartsWith(CreaturesRoot)) && IsFbx(path);
+        private static bool IsProp(string path) => (path.StartsWith(PropsRoot) || path.StartsWith(CreaturesRoot) || path.StartsWith(BuildingTiersRoot)) && IsFbx(path);
         private static bool IsHadalArt(string path) => path.StartsWith(ArtRoot) && IsFbx(path) && !IsCharacter(path) && !IsProp(path);
 
         /// <summary>"crew_engineer|Walk" (Blender take name) -> "Walk".</summary>
@@ -151,7 +154,7 @@ namespace Hadal.EditorTools
                 return;
             }
 
-            if (assetPath.StartsWith(CreaturesRoot) && assetPath.EndsWith("_albedo.png", StringComparison.OrdinalIgnoreCase))
+            if ((assetPath.StartsWith(CreaturesRoot) || assetPath.StartsWith(BuildingTiersRoot)) && assetPath.EndsWith("_albedo.png", StringComparison.OrdinalIgnoreCase))
             {
                 // Map creatures: bosses and the big monsters carry a 1024 bake, the small ones 512 (props.py sizes the PNG).
                 var creature = (TextureImporter)assetImporter;
