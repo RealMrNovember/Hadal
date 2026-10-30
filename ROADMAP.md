@@ -1,7 +1,7 @@
 # HADAL — Proje Yol Haritası
 
 **Güncelleme:** 2026-10-30
-**Yayındaki sürüm:** istemci **0.9.5** (Android, `hadal.cicibyte.com/download/hadal.apk`); sunucu `main` @ `6ce09af` (CT 160), katalog v13 (canlı v60). 0.9.5: bütün arayüz Last Asylum pencere düzeninde (`docs/41`), krallıklar (`docs/39`), sekmeli posta (`docs/37`), telefon bildirimleri (`docs/36`).
+**Yayındaki sürüm:** istemci **0.9.6** (Android, `hadal.cicibyte.com/download/hadal.apk`); sunucu `main` @ `15e560a` (CT 160), katalog v13 (canlı v60). 0.9.6: haftalık etkinlik takvimi ve takvim sekmesi, ittifak görev izinleri, oylamalar, zaman dilimi oylaması, lider devri (docs/29 E2). 0.9.5: bütün arayüz Last Asylum pencere düzeninde (`docs/41`), krallıklar, sekmeli posta, telefon bildirimleri.
 **Sürüm kuralı:** Oyun 1.0'a kadar **0.x** ile ilerler. Android sürüm kodu `1.000.000 + major·10000 + minor·100 + patch`.
 
 **Kaynaklar:**
