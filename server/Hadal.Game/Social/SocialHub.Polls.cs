@@ -4,6 +4,7 @@ using HADAL.Shared.Commands;
 using HADAL.Shared.DTOs;
 using HADAL.Shared.Protocol;
 using HADAL.Shared.Simulation;
+using Microsoft.Extensions.Logging;
 
 namespace Hadal.Game.Social
 {

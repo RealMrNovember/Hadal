@@ -247,6 +247,44 @@ namespace Hadal.Game.Tests
         }
 
         [Fact]
+        public async Task Alliance_polls_are_listed_and_closed_or_deleted_with_an_audit_line()
+        {
+            var world = _factory.Services.GetRequiredService<GameWorld>();
+            var tag = "P" + Guid.NewGuid().ToString("N")[..3].ToUpperInvariant();
+            var connection = new RecordingConnection();
+            var session = await world.ConnectAsync("poll-admin-" + tag, connection, default, "poll-admin-" + tag);
+            foreach (var type in Enum.GetValues<ResourceType>().Where(t => t != ResourceType.Unknown))
+                session.StateForTests.Wallet[type] = 1_000_000;
+            void Send<T>(T command, HADAL.Shared.Enums.CommandType type) where T : HADAL.Shared.Commands.ICommand =>
+                world.HandleCommand(session, HADAL.Shared.Serialization.EnvelopeBuilder.WrapCommand(command, type, TestSupport.Serializer.Serialize(command)));
+            Send(new HADAL.Shared.Commands.CreateAllianceCommand { CommandId = Guid.NewGuid().ToString("N"), Name = "Polls " + tag, Tag = tag },
+                HADAL.Shared.Enums.CommandType.CreateAlliance);
+            Assert.NotEmpty(world.Social.AllianceIdOf(session.PublicId));
+            foreach (var question in new[] { "Abuse one", "Abuse two" })
+                Send(new HADAL.Shared.Commands.CreateAlliancePollCommand
+                {
+                    CommandId = Guid.NewGuid().ToString("N"), Kind = AlliancePollRules.KindPoll, Question = question, Options = new[] { "a", "b" }
+                }, HADAL.Shared.Enums.CommandType.CreateAlliancePoll);
+
+            var viewer = await LoginAsync(AdminRoles.Viewer);
+            var listed = await Proxied(viewer).GetFromJsonAsync<JsonArray>($"/admin/api/polls?q={tag}");
+            Assert.Equal(2, listed!.Count);
+            var ids = listed.Select(p => p!["id"]!.GetValue<string>()).ToList();
+            Assert.Equal(HttpStatusCode.Forbidden, (await Proxied(viewer).PostAsync($"/admin/api/polls/{ids[0]}/close", null)).StatusCode);
+
+            var gm = await LoginAsync(AdminRoles.GameMaster);
+            Assert.Equal(HttpStatusCode.OK, (await Proxied(gm).PostAsync($"/admin/api/polls/{ids[0]}/close", null)).StatusCode);
+            Assert.Equal(HttpStatusCode.NotFound, (await Proxied(gm).PostAsync($"/admin/api/polls/{ids[0]}/close", null)).StatusCode);
+            Assert.Equal(HttpStatusCode.OK, (await Proxied(gm).DeleteAsync($"/admin/api/polls/{ids[1]}")).StatusCode);
+            var left = await Proxied(gm).GetFromJsonAsync<JsonArray>($"/admin/api/polls?q={tag}");
+            Assert.Equal("overseer", Assert.Single(left!)!["closedBy"]!.GetValue<string>());
+
+            var audit = await Proxied(gm).GetFromJsonAsync<JsonArray>("/admin/api/audit");
+            Assert.Contains(audit!, e => e!["action"]!.GetValue<string>() == "poll.close" && e["target"]!.GetValue<string>() == ids[0]);
+            Assert.Contains(audit!, e => e!["action"]!.GetValue<string>() == "poll.delete" && e["details"]!.GetValue<string>().Contains("Abuse"));
+        }
+
+        [Fact]
         public async Task Roles_AreEnforced()
         {
             var viewer = await LoginAsync(AdminRoles.Viewer);
