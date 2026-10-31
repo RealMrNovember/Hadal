@@ -7,6 +7,7 @@ const EVENT_TEMPLATES = {
   login: "Giriş ödülü (günlük)",
   mobilization: "Seferberlik (ittifak görev havuzu)",
   alliance_duel: "İttifak Düellosu (haftalık 1'e 1)",
+  trench_conquest: "Hendek Fethi (ittifak ligi, 3 hendek)",
 };
 
 // Mobilization task kinds (MobilizationRules.Kinds) and the duel's six day themes (AllianceDuelRules).
@@ -105,6 +106,7 @@ const EVENT_ERRORS = {
   UnknownSchedule: "Program bulunamadı.",
   NoOccurrence: "Önümüzdeki 8 günde oluşturulacak bir tekrar yok; hepsi zaten var.",
   InvalidMobilization: "Seferberlik ayarları geçersiz (üye 1–200, kart 1–16, yenilenme 0–1440 dk, günlük görev 1–100, yenileme 0–50, hedef %10–1000).",
+  InvalidTrench: "Hendek Fethi ayarları geçersiz (reaktör 1–60, kayıtlı üye 1–200, takım başına dövüş 1–5, kayıt 1–336 saat, ilk tur 0–168 saat sonra, tur arası 1–168 saat, galibiyet puanı 0–100000; kayıt + ilk tur bitişten önce bitmeli).",
   InvalidDuelDays: "Düelloda arka arkaya 6 tema günü olmalı (0. saatten başlar, döngü yok).",
   InvalidDuelRewards: "Düello sonuç ödülleri geçersiz (her biri en çok 10 ödül) ya da en az üye sayısı 1–200 değil.",
   AlreadyPaid: "Ödüller postayla gönderildi; süre artık uzatılamaz.",
@@ -305,6 +307,7 @@ async function eventDetail(root, id) {
   const r = data.event;
   const d = r.definition;
   const team = d.template === "mobilization" || d.template === "alliance_duel";
+  const trench = d.template === "trench_conquest";
   const live = team ? await api(`events/${id}/live`) : null;
   const act = (path, body, done) => api(`events/${id}/${path}`, { method: "POST", body }).then(() => { toast(done); route(); }, (e) => toast(e.message, true));
   const hours = el("input", { type: "number", min: "1", value: "24", style: "width:80px" });
@@ -343,7 +346,8 @@ async function eventDetail(root, id) {
           el("div", { class: "v small" }, d.paidOutAt ? `${fmtDate(d.paidOutAt)} · ${fmtNum(d.paidOutMails)} posta` : r.phase === "ended" ? "gönderiliyor…" : "bitişte"))),
       buttons),
     live ? liveSection(d, live) : null,
-    d.template !== "login" ? [
+    trench ? trenchSection(d) : null,
+    d.template !== "login" && !trench ? [
       el("h2", {}, "Puan kazanma"),
       d.phases && d.phases.length
         ? el("div", { class: "grid2" }, d.phases.map((p) => el("div", { class: "card" },
@@ -367,6 +371,39 @@ async function eventDetail(root, id) {
         el("thead", {}, el("tr", {}, ["Sıra", data.alliance ? "İttifak" : "Oyuncu", "Etiket", "Puan"].map((h) => el("th", {}, h)))),
         el("tbody", {}, data.ranking.length === 0 ? el("tr", {}, el("td", { class: "muted", colspan: "4" }, "Henüz puan yok.")) :
           data.ranking.map((e) => el("tr", {}, el("td", {}, e.rank), el("td", {}, e.name), el("td", { class: "mono" }, e.tag), el("td", { class: "mono" }, fmtNum(e.points))))))] : null);
+}
+
+/** Trench Conquest: the rules and the league as drawn (groups per kingdom, round results). */
+function trenchSection(d) {
+  const t = d.trench || {};
+  const st = d.trenchState || {};
+  const groups = st.groups || [];
+  const rounds = st.rounds || [];
+  const flag = (f) => ["–", "A", "B"][f] || "–";
+  const side = (id) => (id === "~bye" ? "(boş)" : id);
+  const table = (g) => {
+    const pts = {};
+    for (const a of g.alliances) pts[a] = 0;
+    for (const r of rounds) {
+      if (r.a in pts) pts[r.a] += r.aPoints;
+      if (r.b in pts) pts[r.b] += r.bPoints;
+    }
+    return g.alliances.slice().sort((x, y) => pts[y] - pts[x]).map((a) => `${a} ${pts[a]}`).join(" · ");
+  };
+  return el("div", { class: "card" },
+    el("h2", {}, "Hendek Fethi — lig"),
+    el("p", { class: "muted" }, `Reaktör ${t.minReactor}+ · ittifak başına en az ${t.minRegistered} kayıtlı takım · takım başına ${t.fightsPerTeam} dövüş · ` +
+      `kayıt ${t.registerHours} saat, ilk tur ${t.firstRoundAfterHours} saat sonra, sonra her ${t.roundEveryHours} saatte bir (5 tur) · galibiyet başına ${fmtNum(t.pointsPerWin)} kişisel puan`),
+    el("p", { class: "muted" }, st.groupedAt ? `Gruplar çekildi: ${fmtDate(st.groupedAt)} · oynanan tur: ${st.roundsFought || 0}/5` : "Kayıt süresi bitince gruplar çekilir."),
+    groups.length === 0 ? null : el("table", {},
+      el("thead", {}, el("tr", {}, ["Krallık", "Grup (lig puanı)"].map((h) => el("th", {}, h)))),
+      el("tbody", {}, groups.map((g) => el("tr", {}, el("td", { class: "mono" }, g.kingdom), el("td", { class: "mono small" }, table(g)))))),
+    rounds.length === 0 ? null : el("table", {},
+      el("thead", {}, el("tr", {}, ["Tur", "A", "B", "Hendekler", "Puan", "Galibiyet"].map((h) => el("th", {}, h)))),
+      el("tbody", {}, rounds.map((r) => el("tr", {},
+        el("td", {}, r.round), el("td", { class: "mono" }, side(r.a)), el("td", { class: "mono" }, side(r.b)),
+        el("td", { class: "mono" }, (r.lanes || []).map(flag).join(" ")),
+        el("td", { class: "mono" }, `${r.aPoints} – ${r.bPoints}`), el("td", { class: "mono" }, `${r.aWins} – ${r.bWins}`))))));
 }
 
 /** Live state of Mobilization (each alliance's task table) and the duel (pairings per kingdom, days, week points). */
@@ -418,6 +455,7 @@ async function eventEditor(root, id) {
   model.bossParticipation = model.bossParticipation || [];
   model.mobilization = Object.assign({ minMembers: 15, slots: 8, refillMinutes: 5, tasksPerDay: 8, refreshesPerDay: 3, refreshCooldownMinutes: 10, kinds: [], targetPercent: 100 }, model.mobilization || {});
   model.duel = Object.assign({ minMembers: 3, win: [], loss: [], draw: [] }, model.duel || {});
+  model.trench = Object.assign({ minReactor: 10, minRegistered: 15, fightsPerTeam: 2, registerHours: 48, firstRoundAfterHours: 12, roundEveryHours: 24, pointsPerWin: 100 }, model.trench || {});
 
   const draw = () => render(root, form());
 
@@ -474,7 +512,7 @@ async function eventEditor(root, id) {
   }
 
   async function save() {
-    const noScoring = model.template === "login" || model.template === "mobilization";
+    const noScoring = model.template === "login" || model.template === "mobilization" || model.template === "trench_conquest";
     const body = Object.assign({}, model, {
       startsAt: new Date(model.startsAt).toISOString(), endsAt: new Date(model.endsAt).toISOString(),
       phases: noScoring ? [] : model.phases, actions: noScoring || model.template === "alliance_duel" ? [] : model.actions,
@@ -504,6 +542,11 @@ async function eventEditor(root, id) {
           el("label", {}, "Tür", el("select", { onchange: (e) => {
             model.template = e.target.value;
             // A duel is six back-to-back themed days: fill them in (editable), and the window to match.
+            // A league needs registration, the draw and five rounds inside the window.
+            if (model.template === "trench_conquest") {
+              const t = model.trench;
+              model.endsAt = new Date(new Date(model.startsAt).getTime() + (t.registerHours + t.firstRoundAfterHours + 4 * t.roundEveryHours + 2) * HOUR);
+            }
             if (model.template === "alliance_duel" && model.phases.length !== 6) {
               model.phases = duelPhases(24);
               model.cyclePhases = false;
@@ -541,6 +584,18 @@ async function eventEditor(root, id) {
             model.mobilization.kinds = e.target.checked ? model.mobilization.kinds.concat(k) : model.mobilization.kinds.filter((x) => x !== k);
           } }), " " + label)))) : null,
 
+      model.template === "trench_conquest" ? el("div", { class: "card" },
+        el("h2", {}, "Hendek Fethi ayarları"),
+        el("p", { class: "muted" }, "Üyeler kayıt süresinde 3 hendekten birine bir takım kaydeder (takım o anki hâliyle kopyalanır, askerler ölmez). Kayıt bitince ittifaklar güce göre altışarlı gruplara ayrılır; 5 lig turunda her hendekte takımlar güç sırasıyla bayrak yarışı gibi dövüşür. Daha çok hendek alan kazanır (3 puan), beraberlik 1 puan. Aşama ödülleri üyenin galibiyet puanıyla açılır, sıralama ödülleri ittifakın lig sırasıdır. Bitiş, kayıt + ilk tur + 4 tur arasından sonra olmalı."),
+        el("div", { class: "row" },
+          ...[["minReactor", "En düşük reaktör"], ["minRegistered", "İttifak için en az kayıtlı takım"], ["fightsPerTeam", "Takım başına dövüş (tur)"],
+            ["registerHours", "Kayıt süresi (saat)"], ["firstRoundAfterHours", "İlk tur, kayıttan sonra (saat)"], ["roundEveryHours", "Tur arası (saat)"], ["pointsPerWin", "Galibiyet başına kişisel puan"]]
+            .map(([k, label]) => el("label", {}, label, el("input", { type: "number", min: "0", value: model.trench[k], onchange: (e) => (model.trench[k] = Number(e.target.value)) })))),
+        el("button", { onclick: () => {
+          const t = model.trench;
+          model.endsAt = new Date(new Date(model.startsAt).getTime() + (t.registerHours + t.firstRoundAfterHours + 4 * t.roundEveryHours + 2) * HOUR);
+          draw(); } }, "Bitişi 5 tura göre ayarla")) : null,
+
       model.template === "alliance_duel" ? el("div", { class: "card" },
         el("h2", {}, "Düello ayarları"),
         el("p", { class: "muted" }, "Etkinlik canlı olunca her krallığın ittifakları güce göre ikişer eşleşir; tek kalan, krallığın günlük ortalamasıyla oynayan Derinlik Yankısı'yla eşleşir. 6 gün = 6 tema (aşağıda); gün kazanmak 1/2/2/2/2/4 puan, 7'ye ulaşan kazanır. Aşama ödülleri her günün kişisel puanıyla açılan günlük sandıklardır."),
@@ -552,7 +607,7 @@ async function eventEditor(root, id) {
         el("p", {}, el("b", {}, "Beraberlikte iki tarafa")), rewardsEditor(model.duel.draw),
         el("p", { class: "muted" }, "Sonuç postası, ittifakı için en az \"sıralama ödülü için en az puan\" kadar kazanan her üyeye gider.")) : null,
 
-      login || model.template === "mobilization" ? null : el("div", { class: "card" },
+      login || model.template === "mobilization" || model.template === "trench_conquest" ? null : el("div", { class: "card" },
         el("h2", {}, "Puan kazanma yolları"),
         el("label", { class: "check" }, el("input", { type: "checkbox", checked: model.phases.length > 0, onchange: (e) => {
           model.phases = e.target.checked ? [{ title: { tr: "1. tema", en: "Theme 1" }, startHour: 0, hours: 4, actions: model.actions.length ? model.actions : [{ action: "gather", points: 1, per: 1000 }] }] : [];
@@ -584,7 +639,7 @@ async function eventEditor(root, id) {
           draw(); } }, login ? "+ gün" : "+ aşama")),
 
       login || model.template === "alliance_duel" ? null : el("div", { class: "card" },
-        el("h2", {}, model.template === "alliance" || model.template === "mobilization" ? "Sıralama ödülleri (ittifak sırası; ödülü puan kazanan her üye postayla alır)" : "Sıralama ödülleri (bitişte postayla)"),
+        el("h2", {}, model.template === "alliance" || model.template === "mobilization" || model.template === "trench_conquest" ? "Sıralama ödülleri (ittifak sırası; ödülü puan kazanan her üye postayla alır)" : "Sıralama ödülleri (bitişte postayla)"),
         el("table", {}, el("tbody", {}, model.rankBands.map((b, i) => el("tr", {},
           el("td", {}, el("input", { type: "number", min: "1", value: b.from, onchange: (e) => (b.from = Number(e.target.value)) }), " – ",
             el("input", { type: "number", min: "1", value: b.to, onchange: (e) => (b.to = Number(e.target.value)) }), ". sıra"),
