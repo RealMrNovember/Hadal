@@ -289,7 +289,10 @@ def run_trellis(args, image, stats):
             try:
                 out["mesh"] = on_gpu(["slat_decoder_mesh"], pipe.models["slat_decoder_mesh"], slat)
                 break
-            except torch.OutOfMemoryError:
+            except (torch.OutOfMemoryError, RuntimeError) as e:
+                # spconv/cumm report an exhausted card as a plain RuntimeError ("cuda failed with error 2 out of memory").
+                if not isinstance(e, torch.OutOfMemoryError) and "out of memory" not in str(e):
+                    raise
                 if attempt == args.voxel_retries:
                     raise
                 max_voxels = int(coords.shape[0] * 0.85)
