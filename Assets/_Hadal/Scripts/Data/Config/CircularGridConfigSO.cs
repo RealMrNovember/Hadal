@@ -20,6 +20,9 @@ namespace Hadal.Data.Config
         [SerializeField] private int _outerRingSectorIncrement = 2;
         [SerializeField] private int _outerRingMaxSectors = 16;
 
+        [Tooltip("Metres between the expansion rings past the last defined one: a building is 4.7 m wide.")]
+        [SerializeField] private float _outerRingSpacing = 7f;
+
         [Header("Ring Definitions")]
         [SerializeField] private List<RingDefinition> _rings = new();
 
@@ -64,7 +67,18 @@ namespace Hadal.Data.Config
         public float GetRingRadius(int ringIndex)
         {
             var ring = GetRing(ringIndex);
-            return ring != null ? ring.Radius : ringIndex * 4f;
+            if (ring != null)
+                return ring.Radius;
+
+            // Expansion rings continue outwards from the last defined ring (ring 5 used to land inside ring 4).
+            RingDefinition last = null;
+            foreach (var r in _rings)
+            {
+                if (r != null && r.RingIndex < ringIndex && (last == null || r.RingIndex > last.RingIndex))
+                    last = r;
+            }
+
+            return last == null ? ringIndex * _outerRingSpacing : last.Radius + (ringIndex - last.RingIndex) * _outerRingSpacing;
         }
     }
 

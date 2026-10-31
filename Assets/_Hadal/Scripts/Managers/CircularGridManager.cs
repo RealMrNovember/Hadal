@@ -107,6 +107,7 @@ namespace Hadal.Managers
             if (_model == null)
                 return;
 
+            Hadal.Core.State.CameraFocus.Reach = Config != null ? Config.GetRingRadius(_model.UnlockedRingCount) : 0f;
             foreach (var slot in _model.GetAllSlots())
             {
                 if (slot.IsOccupied)

@@ -46,14 +46,14 @@ namespace Hadal.Gameplay.Art
         private void OnSettle()
         {
             var keep = _distance;
-            _distance = Mathf.Min(_maxDistance, keep * 1.45f);
+            _distance = Mathf.Min(MaxDistance, keep * 1.45f);
             _glideTo = transform.position;
             _glideDistance = keep;
         }
 
         private void OnFocus(Vector3 world, float? distance)
         {
-            _glideTo = Vector3.ClampMagnitude(new Vector3(world.x, 0f, world.z), _panLimit);
+            _glideTo = Vector3.ClampMagnitude(new Vector3(world.x, 0f, world.z), PanLimit);
             _glideDistance = distance ?? _distance;
         }
 
@@ -157,15 +157,19 @@ namespace Hadal.Gameplay.Art
             var yawRotation = Quaternion.Euler(0f, _yaw, 0f);
             var move = yawRotation * new Vector3(-screenDelta.x, 0f, -screenDelta.y) * scale;
             var p = transform.position + move;
-            transform.position = Vector3.ClampMagnitude(new Vector3(p.x, 0f, p.z), _panLimit);
+            transform.position = Vector3.ClampMagnitude(new Vector3(p.x, 0f, p.z), PanLimit);
         }
+
+        // A grown base (more rings unlocked) widens the pan and the zoom-out with it.
+        private float PanLimit => Mathf.Max(_panLimit, Hadal.Core.State.CameraFocus.Reach + 6f);
+        private float MaxDistance => Mathf.Max(_maxDistance, Hadal.Core.State.CameraFocus.Reach * 1.6f);
 
         private void Apply()
         {
             if (_camera == null)
                 return;
 
-            _distance = Mathf.Clamp(_distance, _minDistance, _maxDistance);
+            _distance = Mathf.Clamp(_distance, _minDistance, MaxDistance);
             var rotation = Quaternion.Euler(_pitch, _yaw, 0f);
             _camera.transform.SetPositionAndRotation(transform.position - rotation * Vector3.forward * _distance, rotation);
         }

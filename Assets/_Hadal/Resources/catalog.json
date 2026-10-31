@@ -11684,7 +11684,7 @@
       },
       {
         "ring": 1,
-        "radius": 5,
+        "radius": 7,
         "sectorCount": 3,
         "defaultSlotType": "Production",
         "sectors": [
@@ -11695,7 +11695,7 @@
       },
       {
         "ring": 2,
-        "radius": 10,
+        "radius": 13.5,
         "sectorCount": 3,
         "defaultSlotType": "Research",
         "sectors": [
@@ -11706,7 +11706,7 @@
       },
       {
         "ring": 3,
-        "radius": 15,
+        "radius": 20,
         "sectorCount": 3,
         "defaultSlotType": "Military",
         "sectors": [
@@ -11715,7 +11715,7 @@
           {"sector": 2, "slotType": "Military", "preferredBuildingId": "radar_center"}
         ]
       },
-      {"ring": 4, "radius": 22, "sectorCount": 6, "defaultSlotType": "Universal", "expandable": true}
+      {"ring": 4, "radius": 27, "sectorCount": 6, "defaultSlotType": "Universal", "expandable": true}
     ]
   },
   "reactorRequirements": [

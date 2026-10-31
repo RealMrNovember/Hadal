@@ -9,6 +9,9 @@ namespace Hadal.Core.State
     /// </summary>
     public static class CameraFocus
     {
+        /// <summary>The outermost unlocked ring's radius: the base camera may pan and zoom out that far.</summary>
+        public static float Reach { get; set; }
+
         public static event Action<Vector3, float?> Requested;
 
         public static void Request(Vector3 world, float? distance = null) => Requested?.Invoke(world, distance);
