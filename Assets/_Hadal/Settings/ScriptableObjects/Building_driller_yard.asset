@@ -31,9 +31,9 @@ MonoBehaviour:
   _prefab: {fileID: 919132149155446097, guid: 5d5ad49fb17d5a3c7916ac036f3e9dc0, type: 3}
   _ghostPrefab: {fileID: 0}
   _tierPrefabs:
-  - {fileID: 0}
-  - {fileID: 0}
-  - {fileID: 0}
+  - {fileID: 919132149155446097, guid: 71cb20cc03b46b95b9a2d7b8f5daa997, type: 3}
+  - {fileID: 919132149155446097, guid: f0e2c9f289eddff42a5fb73272699e60, type: 3}
+  - {fileID: 919132149155446097, guid: b4b766e4972c46e3488d213f31c0a83e, type: 3}
   - {fileID: 0}
   - {fileID: 0}
   - {fileID: 0}
