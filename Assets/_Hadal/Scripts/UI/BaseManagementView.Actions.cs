@@ -62,6 +62,10 @@ namespace Hadal.UI
 
             AddMilitaryActions(definition, building, items);
 
+            // Any building but the reactor moves (or swaps) for free, keeping its level.
+            if (definition.Id != BuildingProgression.ReactorId)
+                items.Add(new TargetMenu.Item("g_teleport", Loc.T("base.move"), () => StartMove(building)));
+
             if (definition.Id == ResearchRules.CenterId && building.level > 0)
                 items.Add(new TargetMenu.Item("g_research", Loc.T("hud.research"), () =>
                 {

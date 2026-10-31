@@ -49,7 +49,17 @@ ALTER TABLE hadal.buildings ADD COLUMN IF NOT EXISTS construction_ends_at timest
 ALTER TABLE hadal.buildings ADD COLUMN IF NOT EXISTS construction_seconds integer NOT NULL DEFAULT 0;
 
 -- Research and building functions (docs/24): one JSON document, see PlayerExtras.
-ALTER TABLE hadal.players ADD COLUMN IF NOT EXISTS extras jsonb NOT NULL DEFAULT '{}'::jsonb;";
+ALTER TABLE hadal.players ADD COLUMN IF NOT EXISTS extras jsonb NOT NULL DEFAULT '{}'::jsonb;
+
+-- Moving buildings swaps two slots in one save: the slot rule is checked at commit.
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'buildings_player_id_ring_sector_key' AND NOT condeferrable) THEN
+        ALTER TABLE hadal.buildings DROP CONSTRAINT buildings_player_id_ring_sector_key;
+        ALTER TABLE hadal.buildings ADD CONSTRAINT buildings_player_id_ring_sector_key
+            UNIQUE (player_id, ring, sector) DEFERRABLE INITIALLY DEFERRED;
+    END IF;
+END $$;";
 
         private readonly NpgsqlDataSource _dataSource;
 
@@ -208,6 +218,7 @@ ORDER BY p.created_at");
                                                    construction_ends_at, construction_seconds)
                       VALUES (@b, @p, @d, @r, @s, @l, @o, @e, @c)
                       ON CONFLICT (building_id) DO UPDATE SET level = EXCLUDED.level,
+                          ring = EXCLUDED.ring, sector = EXCLUDED.sector,
                           construction_ends_at = EXCLUDED.construction_ends_at,
                           construction_seconds = EXCLUDED.construction_seconds", connection, transaction);
                 command.Parameters.AddWithValue("b", building.BuildingId);

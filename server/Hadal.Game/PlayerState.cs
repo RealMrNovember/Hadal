@@ -7,8 +7,8 @@ namespace Hadal.Game
     {
         public string BuildingId { get; init; } = string.Empty;
         public string DefinitionId { get; init; } = string.Empty;
-        public int Ring { get; init; }
-        public int Sector { get; init; }
+        public int Ring { get; set; }
+        public int Sector { get; set; }
         /// <summary>Working level: 0 while first under construction, otherwise the level that produces.</summary>
         public int Level { get; set; } = 1;
         public int RotationSteps { get; init; }

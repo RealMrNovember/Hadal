@@ -152,6 +152,10 @@ namespace Hadal.Game
                         RemoveBuilding(remove!, now);
                         break;
 
+                    case CommandType.MoveBuilding when TryDeserialize(envelope.Payload, out MoveBuildingCommand? move):
+                        MoveBuilding(move!, now);
+                        break;
+
                     case CommandType.UnlockRing when TryDeserialize(envelope.Payload, out UnlockRingCommand? unlock):
                         UnlockRing(unlock!, now);
                         break;
@@ -262,7 +266,7 @@ namespace Hadal.Game
 
                     default:
                         var known = envelope.Type is CommandType.PlaceBuilding or CommandType.UpgradeBuilding or CommandType.FinishConstruction
-                            or CommandType.RemoveBuilding or CommandType.UnlockRing or CommandType.StartResearch or CommandType.FinishResearch
+                            or CommandType.RemoveBuilding or CommandType.MoveBuilding or CommandType.UnlockRing or CommandType.StartResearch or CommandType.FinishResearch
                             or CommandType.BoostBuilding or CommandType.Overdrive or CommandType.StartSalvage or CommandType.ExecuteGacha
                             or CommandType.LevelUpHero or CommandType.PromoteHero or CommandType.AssignHero
                             or CommandType.ClaimQuest or CommandType.ClaimDailyChest or CommandType.OpenItem or CommandType.RecruitHero
@@ -595,6 +599,42 @@ namespace Hadal.Game
                 ProductionChange(now),
                 Accepted(command.CommandId, command.ClientSequence)
             });
+        }
+
+        /// <summary>Moves a building to another slot, or swaps two buildings: free, everything about them kept.</summary>
+        private void MoveBuilding(MoveBuildingCommand command, DateTimeOffset now)
+        {
+            var building = FindBuilding(command.BuildingEntityId);
+            if (building == null)
+            {
+                Reject(command.CommandId, command.ClientSequence, PlacementRejectReason.UnknownBuilding.ToString(), now);
+                return;
+            }
+
+            var occupant = _state.Buildings.FirstOrDefault(b => b != building && b.Ring == command.RingIndex && b.Sector == command.SectorIndex);
+            var verdict = PlacementRules.ValidateMove(_catalog, building.DefinitionId, building.Ring, building.Sector,
+                command.RingIndex, command.SectorIndex, _state.UnlockedRings, occupant?.DefinitionId);
+            if (verdict != PlacementRejectReason.None)
+            {
+                Reject(command.CommandId, command.ClientSequence, verdict.ToString(), now);
+                return;
+            }
+
+            var changes = new List<EntityChangeDto>();
+            if (occupant != null)
+            {
+                occupant.Ring = building.Ring;
+                occupant.Sector = building.Sector;
+                MarkChanged(occupant);
+                changes.Add(BuildingChange(occupant, now));
+            }
+
+            building.Ring = command.RingIndex;
+            building.Sector = command.SectorIndex;
+            MarkChanged(building);
+            changes.Add(BuildingChange(building, now));
+            changes.Add(Accepted(command.CommandId, command.ClientSequence));
+            SendDelta(now, changes);
         }
 
         private void UnlockRing(UnlockRingCommand command, DateTimeOffset now)

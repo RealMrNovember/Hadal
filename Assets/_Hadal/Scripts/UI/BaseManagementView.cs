@@ -379,6 +379,9 @@ namespace Hadal.UI
 
         private void OnSlotTapped(BaseSlotTappedEvent tap)
         {
+            if (TryMoveTo(tap.Ring, tap.Sector))
+                return;
+
             // A building gets the round action menu (Last Asylum pattern); a free slot the build list.
             var tapped = Buildings().FirstOrDefault(b => !string.IsNullOrEmpty(tap.BuildingInstanceKey) && b.instanceKey == tap.BuildingInstanceKey);
             if (!string.IsNullOrEmpty(tapped.instanceKey))
@@ -425,8 +428,8 @@ namespace Hadal.UI
         private void OnCommandResolved(CommandResolvedEvent result)
         {
             if (result.Type is not (CommandType.PlaceBuilding or CommandType.UpgradeBuilding or CommandType.FinishConstruction
-                or CommandType.RemoveBuilding or CommandType.UnlockRing or CommandType.StartResearch or CommandType.FinishResearch
-                or CommandType.BoostBuilding or CommandType.Overdrive or CommandType.StartSalvage
+                or CommandType.RemoveBuilding or CommandType.MoveBuilding or CommandType.UnlockRing or CommandType.StartResearch
+                or CommandType.FinishResearch or CommandType.BoostBuilding or CommandType.Overdrive or CommandType.StartSalvage
                 or CommandType.TrainTroops or CommandType.CancelTraining or CommandType.HealTroops or CommandType.CancelHeal
                 or CommandType.RepairEmergency))
                 return;
@@ -441,6 +444,7 @@ namespace Hadal.UI
             {
                 CommandType.FinishConstruction => Loc.T("base.done"),
                 CommandType.RemoveBuilding => Loc.T("base.removed"),
+                CommandType.MoveBuilding => Loc.T("base.moved"),
                 CommandType.UnlockRing => Loc.T("base.expand.done"),
                 CommandType.TrainTroops => Loc.T("train.started"),
                 CommandType.CancelTraining => Loc.T("train.cancelled"),

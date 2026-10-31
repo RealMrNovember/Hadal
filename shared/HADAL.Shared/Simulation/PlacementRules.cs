@@ -19,6 +19,10 @@ namespace HADAL.Shared.Simulation
         InsufficientResources = 9,
         ReactorLevelTooLow = 10,
         LimitReached = 11,
+        /// <summary>Moving: the building in the target slot does not fit the moving building's slot.</summary>
+        SwapNotAllowed = 12,
+        /// <summary>Moving: the reactor stays at the centre, and a building cannot move onto its own slot.</summary>
+        CannotMove = 13,
     }
 
     /// <summary>
@@ -77,6 +81,55 @@ namespace HADAL.Shared.Simulation
             if (!BuildingProgression.CanAfford(BuildingProgression.Cost(building, 1, catalog.Progression), wallet))
                 return PlacementRejectReason.InsufficientResources;
 
+            return PlacementRejectReason.None;
+        }
+
+        /// <summary>
+        /// Moving a building (free, level kept): the target slot must exist, be open and suit the building like a
+        /// placement does; a building already there swaps into the mover's slot and must suit that slot in turn.
+        /// Counts, reactor level and cost do not apply: nothing new is built.
+        /// </summary>
+        public static PlacementRejectReason ValidateMove(
+            GameCatalog catalog,
+            string buildingId,
+            int fromRing,
+            int fromSector,
+            int ring,
+            int sector,
+            int unlockedRings,
+            string? occupantId)
+        {
+            if (!catalog.TryGetBuilding(buildingId, out var building))
+                return PlacementRejectReason.UnknownBuilding;
+            if (buildingId == BuildingProgression.ReactorId || occupantId == BuildingProgression.ReactorId
+                || (ring == fromRing && sector == fromSector))
+                return PlacementRejectReason.CannotMove;
+
+            var verdict = Fits(catalog, building, ring, sector, unlockedRings);
+            if (verdict != PlacementRejectReason.None || occupantId == null)
+                return verdict;
+
+            if (!catalog.TryGetBuilding(occupantId, out var occupant))
+                return PlacementRejectReason.UnknownBuilding;
+            return Fits(catalog, occupant, fromRing, fromSector, unlockedRings) == PlacementRejectReason.None
+                ? PlacementRejectReason.None
+                : PlacementRejectReason.SwapNotAllowed;
+        }
+
+        private static PlacementRejectReason Fits(GameCatalog catalog, BuildingDefinition building, int ring, int sector, int unlockedRings)
+        {
+            if (!catalog.SlotExists(ring, sector))
+                return PlacementRejectReason.SlotDoesNotExist;
+            if (ring > unlockedRings)
+                return PlacementRejectReason.RingLocked;
+            if (catalog.SectorStartsLocked(ring, sector))
+                return PlacementRejectReason.SectorLocked;
+            if (ring < building.MinRing || ring > building.MaxRing)
+                return PlacementRejectReason.RingNotAllowed;
+            if (!building.MatchesSlotType(catalog.GetSlotType(ring, sector)))
+                return PlacementRejectReason.SlotTypeMismatch;
+            if (!catalog.SectorAllowsBuilding(ring, sector, building.Id))
+                return PlacementRejectReason.SectorRestricted;
             return PlacementRejectReason.None;
         }
 
