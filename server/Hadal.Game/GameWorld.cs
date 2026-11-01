@@ -95,6 +95,7 @@ namespace Hadal.Game
                 DropGift = Social.DropGift,
                 KingdomIds = () => Kingdoms.List(_clock.UtcNow).Select(k => k.Kingdom.Id).ToList(),
                 MemberCount = Social.MemberCount,
+                AllianceRole = id => (Social.RankOf(id), Social.RoleOf(id)),
                 DuelEntrants = Social.DuelEntrants
             };
             WireMap(Map);

@@ -101,15 +101,22 @@ namespace HADAL.Shared.Simulation
         /// </summary>
         public const string TrenchConquest = "trench_conquest";
 
-        public static readonly string[] All = { Points, Alliance, Login, Mobilization, AllianceDuel, TrenchConquest };
+        /// <summary>
+        /// Lure Trap (docs/29 §4.1, LureTrapRules): each alliance charges and schedules two traps; members' damage on the
+        /// Gulper is their points, alliances rank by their members' damage, and the damage over both traps sets the
+        /// alliance's tier reward.
+        /// </summary>
+        public const string LureTrap = "lure_trap";
+
+        public static readonly string[] All = { Points, Alliance, Login, Mobilization, AllianceDuel, TrenchConquest, LureTrap };
 
         public static bool IsKnown(string template) => Array.IndexOf(All, template) >= 0;
 
         /// <summary>Templates ranked by alliance: members' points add up to the alliance's.</summary>
-        public static bool RanksAlliances(string template) => template == Alliance || template == Mobilization || template == TrenchConquest;
+        public static bool RanksAlliances(string template) => template == Alliance || template == Mobilization || template == TrenchConquest || template == LureTrap;
 
         /// <summary>Templates whose points also count for the player's alliance.</summary>
-        public static bool ForAlliances(string template) => template == Alliance || template == Mobilization || template == AllianceDuel;
+        public static bool ForAlliances(string template) => template == Alliance || template == Mobilization || template == AllianceDuel || template == LureTrap;
     }
 
     /// <summary>Event arithmetic shared by the server (scoring, claims) and the client (what to show).</summary>

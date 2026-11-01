@@ -93,7 +93,7 @@ namespace Hadal.Game.Tests
                 Assert.DoesNotContain(kinds, k => k.EventOnly);
             }
 
-            Assert.Equal(new[] { "chasm_maw", "depth_kraken" }, MonsterRules.Kinds.Where(k => k.EventOnly).Select(k => k.Id));
+            Assert.Equal(new[] { "chasm_maw", "depth_kraken", "gulper" }, MonsterRules.Kinds.Where(k => k.EventOnly).Select(k => k.Id));
             Assert.Equal(5, MonsterRules.Roaming.Length);
             Assert.Equal("abyss_crawler", MonsterRules.Kinds[0].Id); // TerritoryRules' garrison stand-in
         }

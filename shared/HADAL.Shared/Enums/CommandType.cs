@@ -85,5 +85,6 @@ namespace HADAL.Shared.Enums
         [ProtoEnum] MobilizationTask = 77,
         [ProtoEnum] TrenchConquest = 78,
         [ProtoEnum] MoveBuilding = 79,
+        [ProtoEnum] LureTrap = 80,
     }
 }

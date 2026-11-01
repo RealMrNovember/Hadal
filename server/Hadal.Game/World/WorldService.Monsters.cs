@@ -35,6 +35,10 @@ namespace Hadal.Game.World
 
         public bool IsBoss => EventId.Length > 0;
 
+        /// <summary>A Lure Trap Gulper: the only alliance that sees and hits it, and its trap's extra damage on every hit.</summary>
+        public string AllianceId { get; set; } = string.Empty;
+        public double AttackBonus { get; set; }
+
         /// <summary>A boss's place in its event's list, who brought it down, and whether its outcome went to the event.</summary>
         public int BossIndex { get; set; }
         public string KillerId { get; set; } = string.Empty;
@@ -133,8 +137,9 @@ namespace Hadal.Game.World
         private WorldMonsterDto[] MonstersInView(int cx, int cy, int radius, DateTimeOffset now, string viewer = "")
         {
             var troops = Catalog.Troops;
+            var mine = viewer.Length > 0 ? _social.AllianceIdOf(viewer) : string.Empty;
             return _monsters.Values
-                .Where(m => WorldRules.InView(m.X, m.Y, cx, cy, radius) && !Gone(m, now))
+                .Where(m => WorldRules.InView(m.X, m.Y, cx, cy, radius) && !Gone(m, now) && (m.AllianceId.Length == 0 || m.AllianceId == mine))
                 .Select(m => new WorldMonsterDto
                 {
                     Id = m.Id, Type = m.Type, Level = m.Level, X = m.X, Y = m.Y, Busy = m.EngagedUntil > now,
@@ -152,6 +157,7 @@ namespace Hadal.Game.World
                 MaintainMonsters(now);
                 var me = Upsert(session);
                 var reason = !_monsters.TryGetValue(command.MonsterId ?? string.Empty, out var monster) || Gone(monster, now) ? AttackRejectReason.UnknownMonster
+                    : monster.AllianceId.Length > 0 && _social.AllianceIdOf(session.PublicId) != monster.AllianceId ? AttackRejectReason.NotYourTrap
                     : monster.IsBoss ? (monster.HpLeft > 0 ? AttackRejectReason.None : AttackRejectReason.MonsterBusy)
                     : monster.EngagedUntil > now ? AttackRejectReason.MonsterBusy
                     : AttackRejectReason.None;
@@ -161,7 +167,8 @@ namespace Hadal.Game.World
                     return;
                 }
 
-                var (march, _, _) = session.TryStartAttack(new MonsterOffer(monster!.Id, monster.Type, monster.Level, monster.X, monster.Y, monster.IsBoss ? monster.HpLeft : 0),
+                var (march, _, _) = session.TryStartAttack(new MonsterOffer(monster!.Id, monster.Type, monster.Level, monster.X, monster.Y, monster.IsBoss ? monster.HpLeft : 0,
+                        monster.AllianceId.Length > 0, monster.AttackBonus),
                     me.X, me.Y, command.CommandId, command.ClientSequence, now, command.HeroIds ?? Array.Empty<string>());
                 if (march == null)
                     return;

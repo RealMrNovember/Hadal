@@ -209,6 +209,8 @@ namespace Hadal.Game.Events
                 }
             }
 
+            if (def.Template == EventTemplates.LureTrap)
+                PlanLurePayout(live, name, mails);
             return mails;
         }
 

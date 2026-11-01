@@ -99,6 +99,9 @@ namespace HADAL.Shared.DTOs
 
         /// <summary>Trench Conquest: the player's league view (template "trench_conquest").</summary>
         [ProtoMember(26)] public TrenchDto? Trench { get; set; }
+
+        /// <summary>Lure Trap: the alliance's trap (template "lure_trap").</summary>
+        [ProtoMember(27)] public LureTrapDto? LureTrap { get; set; }
     }
 
     /// <summary>One Mobilization task card (MobilizationRules): kind, colour tier, target and points.</summary>
@@ -276,6 +279,44 @@ namespace HADAL.Shared.DTOs
         [ProtoMember(10)] public TrenchStandingDto[] Group { get; set; } = System.Array.Empty<TrenchStandingDto>();
         [ProtoMember(11)] public TrenchRoundDto[] Rounds { get; set; } = System.Array.Empty<TrenchRoundDto>();
         [ProtoMember(12)] public bool Registered { get; set; }
+    }
+
+    /// <summary>One of the alliance's traps: when it is set, how hard, how it went, and the alliance's best hitters on it.</summary>
+    [ProtoContract]
+    public sealed class LureTrapSlotDto
+    {
+        /// <summary>0 = not scheduled.</summary>
+        [ProtoMember(1)] public long StartsAtMs { get; set; }
+        [ProtoMember(2)] public long EndsAtMs { get; set; }
+        [ProtoMember(3)] public int Difficulty { get; set; }
+
+        /// <summary>The Gulper's id on the map while it is up ("" otherwise).</summary>
+        [ProtoMember(4)] public string MonsterId { get; set; } = string.Empty;
+        [ProtoMember(5)] public long Damage { get; set; }
+        [ProtoMember(6)] public long MyDamage { get; set; }
+        [ProtoMember(7)] public BossBoardEntryDto[] Board { get; set; } = System.Array.Empty<BossBoardEntryDto>();
+        [ProtoMember(8)] public bool Done { get; set; }
+    }
+
+    /// <summary>The player's Lure Trap view: the alliance's bait and trap level, both traps, and what the player may do.</summary>
+    [ProtoContract]
+    public sealed class LureTrapDto
+    {
+        [ProtoMember(1)] public long Bait { get; set; }
+        [ProtoMember(2)] public int Level { get; set; }
+        [ProtoMember(3)] public LureTrapSlotDto[] Traps { get; set; } = System.Array.Empty<LureTrapSlotDto>();
+
+        /// <summary>The leader or a war-duty officer: may schedule and cancel.</summary>
+        [ProtoMember(4)] public bool CanSchedule { get; set; }
+        [ProtoMember(5)] public int MinMembers { get; set; }
+        [ProtoMember(6)] public int Members { get; set; }
+        [ProtoMember(7)] public int FightMinutes { get; set; }
+
+        /// <summary>Alliance damage over both traps, the tier it reached and the tier thresholds.</summary>
+        [ProtoMember(8)] public long AllianceDamage { get; set; }
+        [ProtoMember(9)] public int Tier { get; set; }
+        [ProtoMember(10)] public long[] TierThresholds { get; set; } = System.Array.Empty<long>();
+        [ProtoMember(11)] public bool InAlliance { get; set; }
     }
 
     /// <summary>Every event the player can see: upcoming, live and ended ones still paying out.</summary>

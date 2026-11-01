@@ -4,8 +4,12 @@ using HADAL.Shared.Simulation;
 
 namespace Hadal.Game
 {
-    /// <summary>A monster as the world hands it to a session that wants to attack it; for an event boss, what is left of its body.</summary>
-    public sealed record MonsterOffer(string Id, string Type, int Level, int X, int Y, long BossLeft = 0);
+    /// <summary>
+    /// A monster as the world hands it to a session that wants to attack it; for an event boss, what is left of its body.
+    /// A Lure Trap Gulper is <paramref name="Harmless"/> (the team loses nothing) and takes <paramref name="AttackBonus"/>
+    /// more damage from every hit.
+    /// </summary>
+    public sealed record MonsterOffer(string Id, string Type, int Level, int X, int Y, long BossLeft = 0, bool Harmless = false, double AttackBonus = 0);
 
     /// <summary>
     /// Attacks on map monsters (docs/rehber 09 §5, 07 §4): the team pays Sonar Energy, travels, fights on arrival and
@@ -62,8 +66,13 @@ namespace Hadal.Game
                 // build the attack setup previews). An event boss fields only what earlier hits have left of its body.
                 var troops = _catalog.Troops;
                 var heroPowers = team.Select(h => _catalog.TryGetHero(h.HeroId, out var d) ? HeroRules.Power(d, h.Level, h.Stars) : 0).ToList();
-                var enemy = MonsterBattle.Enemy(kind, monster.Level, monster.BossLeft);
+                // A Gulper fields only the front of its body against each hit (LureTrapRules.Front).
+                var enemy = MonsterBattle.Enemy(kind, monster.Level, monster.Harmless ? LureTrapRules.Front(monster.Level, monster.BossLeft) : monster.BossLeft);
+                if (monster.Harmless)
+                    enemy.AtkScale = 0; // it never strikes back: the team hits for every round
                 var result = CombatRules.Resolve(troops, MonsterBattle.Team(aboard, heroPowers), enemy);
+                if (monster.Harmless)
+                    result = Harmless(result, enemy, monster.AttackBonus, monster.BossLeft);
 
                 var firstWin = result.AttackerWon && !kind.EventOnly && !_state.MonsterWins.Contains(monster.Level);
                 var rewards = result.AttackerWon ? MonsterRules.Rewards(kind, monster.Level, firstWin, Random.Shared.Next)
@@ -113,6 +122,23 @@ namespace Hadal.Game
                 SendDelta(now, new List<EntityChangeDto> { MarchesChange(now), ArmyChange(now), Accepted(commandId, sequence) });
                 return (march, MarchRejectReason.None, AttackRejectReason.None);
             }
+        }
+
+        /// <summary>
+        /// A Lure Trap hit: the Gulper never fights back, so the team loses nothing and the trap's level adds to what it
+        /// kills (never more than the front fielded). It is won only when the hit takes what is left of the whole body.
+        /// </summary>
+        private static BattleResult Harmless(BattleResult fought, BattleSide enemy, double bonus, long bodyLeft)
+        {
+            var result = new BattleResult { Rounds = fought.Rounds };
+            foreach (var (key, lost) in fought.DefenderLost)
+            {
+                var fielded = enemy.Troops.TryGetValue(key, out var n) ? (long)Math.Round(n) : lost;
+                result.DefenderLost[key] = Math.Min(fielded, (long)Math.Round(lost * (1 + Math.Max(0, bonus))));
+            }
+
+            result.AttackerWon = result.DefenderLost.Sum(p => p.Value) >= bodyLeft;
+            return result;
         }
 
         /// <summary>

@@ -71,22 +71,26 @@ namespace Hadal.Game.World
             var live = new HashSet<string>(StringComparer.Ordinal);
             foreach (var spawn in wanted)
             {
-                if (spawn.EndsAt <= now || MonsterRules.Kind(spawn.Kind) is not { EventOnly: true } kind)
+                // A Lure Trap Gulper waits for its trap's start.
+                if (spawn.EndsAt <= now || spawn.StartsAt > now || MonsterRules.Kind(spawn.Kind) is not { EventOnly: true } kind)
                     continue;
                 var id = BossId(spawn.EventId, spawn.Index);
                 live.Add(id);
                 if (_monsters.TryGetValue(id, out var known))
                 {
                     known.EndsAt = spawn.EndsAt; // an extended event keeps its boss longer
+                    known.AttackBonus = spawn.AttackBonus; // more bait, a stronger trap
                     continue;
                 }
 
-                if (FreeTileNear(spawn.X, spawn.Y) is not { } tile)
+                var (atX, atY) = spawn.X >= 0 ? (spawn.X, spawn.Y) : RallyPointOf(spawn.AllianceId, spawn.Anchor) ?? (-1, -1);
+                if (atX < 0 || FreeTileNear(atX, atY) is not { } tile)
                     continue;
                 var level = Math.Clamp(spawn.Level, kind.MinLevel, kind.MaxLevel);
                 var boss = new WorldMonster
                 {
                     Id = id, Type = kind.Id, Level = level, X = tile.X, Y = tile.Y, EventId = spawn.EventId, EndsAt = spawn.EndsAt, BossIndex = spawn.Index,
+                    AllianceId = spawn.AllianceId, AttackBonus = spawn.AttackBonus,
                     HpMax = MonsterRules.Count(kind, level), HpLeft = MonsterRules.Count(kind, level)
                 };
                 // Back after a restart: the body it had left and who hit it; a body already spent pays out at once.
@@ -120,6 +124,14 @@ namespace Hadal.Game.World
                 if (_monsterAt.TryGetValue((boss.X, boss.Y), out var at) && at == boss)
                     _monsterAt.Remove((boss.X, boss.Y));
             }
+        }
+
+        /// <summary>An alliance's rally point (its hub, else <paramref name="anchor"/>'s base); null when neither is on this map.</summary>
+        private (int X, int Y)? RallyPointOf(string allianceId, string anchor)
+        {
+            if (allianceId.Length > 0 && HubOf(allianceId) is { } hub)
+                return (hub.X, hub.Y);
+            return anchor.Length > 0 && _bases.TryGetValue(anchor, out var b) ? (b.X, b.Y) : null;
         }
 
         /// <summary>The asked tile, or the nearest free one within 6 tiles (a base or node may stand on it).</summary>

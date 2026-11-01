@@ -73,6 +73,35 @@ namespace HADAL.Shared.Commands
         public const string View = "view";
     }
 
+    /// <summary>
+    /// A Lure Trap move (docs/29 §4.1, LureTrapRules): the leader or a war-duty officer schedules trap
+    /// <see cref="Trap"/> (a start time and a difficulty) or calls a scheduled one off before it starts; anyone may view.
+    /// </summary>
+    [ProtoContract]
+    public sealed class LureTrapCommand : ICommand
+    {
+        [ProtoMember(1)] public string CommandId { get; set; } = string.Empty;
+        [ProtoMember(2)] public ulong ClientSequence { get; set; }
+        [ProtoMember(3)] public string EventId { get; set; } = string.Empty;
+
+        /// <summary>LureTrapActions.Schedule, Cancel or View.</summary>
+        [ProtoMember(4)] public string Action { get; set; } = string.Empty;
+
+        /// <summary>The trap, 0 to LureTrapRules.Traps - 1.</summary>
+        [ProtoMember(5)] public int Trap { get; set; }
+
+        /// <summary>Schedule: when the Gulper rises (Unix ms) and how hard it is (1 to LureTrapRules.MaxDifficulty).</summary>
+        [ProtoMember(6)] public long StartsAtMs { get; set; }
+        [ProtoMember(7)] public int Difficulty { get; set; }
+    }
+
+    public static class LureTrapActions
+    {
+        public const string Schedule = "schedule";
+        public const string Cancel = "cancel";
+        public const string View = "view";
+    }
+
     /// <summary>Claims the rank reward of an ended event.</summary>
     [ProtoContract]
     public sealed class ClaimEventRankCommand : ICommand

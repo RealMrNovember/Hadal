@@ -42,7 +42,10 @@ namespace HADAL.Shared.Simulation
         None = 0,
         UnknownMonster = 1,
         MonsterBusy = 2,
-        NotEnoughSonar = 3
+        NotEnoughSonar = 3,
+
+        /// <summary>A Lure Trap Gulper of another alliance.</summary>
+        NotYourTrap = 4
     }
 
     /// <summary>
@@ -67,7 +70,10 @@ namespace HADAL.Shared.Simulation
 
             // Event bosses: one colossal body that a whole alliance takes turns on.
             new() { Id = "chasm_maw", CountsAs = "armored", AtkScale = 1.3, DefScale = 1.4, HpScale = 2.5, MinLevel = 10, MaxLevel = 35, Sonar = 80, CountScale = 6, RewardScale = 4, EventOnly = true },
-            new() { Id = "depth_kraken", CountsAs = "arc", AtkScale = 1.6, DefScale = 1.2, HpScale = 2.2, MinLevel = 15, MaxLevel = 35, Sonar = 100, CountScale = 8, RewardScale = 5, EventOnly = true }
+            new() { Id = "depth_kraken", CountsAs = "arc", AtkScale = 1.6, DefScale = 1.2, HpScale = 2.2, MinLevel = 15, MaxLevel = 35, Sonar = 100, CountScale = 8, RewardScale = 5, EventOnly = true },
+
+            // The Lure Trap's Gulper (LureTrapRules): a vast, slow body that only takes hits, sized for an alliance's half hour.
+            new() { Id = "gulper", CountsAs = "armored", AtkScale = 0.6, DefScale = 1.3, HpScale = 2.4, MinLevel = 5, MaxLevel = 35, Sonar = 30, CountScale = 500, RewardScale = 3, EventOnly = true }
         };
 
         public static MonsterKind? Kind(string id) => Kinds.FirstOrDefault(k => k.Id == id);

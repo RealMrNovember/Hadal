@@ -88,6 +88,9 @@ namespace Hadal.Game.Events
         /// <summary>The league's groups and round results, written by the server.</summary>
         public TrenchState TrenchState { get; set; } = new();
 
+        /// <summary>Lure Trap settings (template "lure_trap", docs/29 §4.1).</summary>
+        public LureTrapConfig LureTrap { get; set; } = new();
+
         /// <summary>
         /// When the end-of-event payout was mailed (rank rewards, unclaimed stages, duel results; EventService.Payout), and
         /// how many mails it sent. Null until then; a paid event never pays again.
@@ -158,10 +161,13 @@ namespace Hadal.Game.Events
 
     /// <summary>
     /// A boss of a live event as the world map places it; after a restart it comes back with the body it had left
-    /// (<paramref name="Left"/>, -1 = untouched) and its damage by player.
+    /// (<paramref name="Left"/>, -1 = untouched) and its damage by player. A Lure Trap Gulper also names its alliance (only
+    /// its members see and hit it), when it rises, its trap's attack bonus, and the member whose base it rises near when
+    /// the alliance has no hub; its X and Y are -1 (the rally point).
     /// </summary>
     public sealed record EventBossSpawn(string EventId, int Index, string Kind, int Level, int X, int Y, DateTimeOffset EndsAt,
-        long Left = -1, IReadOnlyDictionary<string, long>? Damage = null, string Kingdom = "w1");
+        long Left = -1, IReadOnlyDictionary<string, long>? Damage = null, string Kingdom = "w1", string AllianceId = "",
+        DateTimeOffset? StartsAt = null, double AttackBonus = 0, string Anchor = "");
 
     /// <summary>A boss's stored progress (EventDefinition.BossProgress).</summary>
     public sealed class EventBossProgress
@@ -229,6 +235,41 @@ namespace Hadal.Game.Events
 
         /// <summary>Personal points per fight won (they feed the event's stages: the members' kill rewards).</summary>
         public long PointsPerWin { get; set; } = 100;
+    }
+
+    /// <summary>Lure Trap rules an event can change (LureTrapRules has the defaults).</summary>
+    public sealed class LureTrapConfig
+    {
+        /// <summary>Members an alliance needs to schedule a trap.</summary>
+        public int MinMembers { get; set; } = HADAL.Shared.Simulation.LureTrapRules.DefaultMinMembers;
+
+        /// <summary>How long a Gulper stays up.</summary>
+        public int FightMinutes { get; set; } = HADAL.Shared.Simulation.LureTrapRules.DefaultFightMinutes;
+
+        /// <summary>Bait one beaten map monster adds to the member's alliance trap.</summary>
+        public int BaitPerKill { get; set; } = 1;
+
+        /// <summary>
+        /// Alliance tiers: damage over both traps (ascending) and what every member who hit a Gulper gets by mail at the
+        /// end; the top hitter of each trap gets the tier's rewards <see cref="TopHitterMultiplier"/> times.
+        /// </summary>
+        public List<EventTierConfig> Tiers { get; set; } = new();
+        public int TopHitterMultiplier { get; set; } = 2;
+    }
+
+    /// <summary>One trap of an alliance: when it is set, how hard, where its Gulper's index is, and who hit it how hard.</summary>
+    public sealed class LureTrapSlot
+    {
+        public DateTimeOffset? StartsAt { get; set; }
+        public int Difficulty { get; set; }
+
+        /// <summary>Who set it and their kingdom: the Gulper rises on that map, at the hub or else near that base.</summary>
+        public string ScheduledBy { get; set; } = string.Empty;
+        public string Kingdom { get; set; } = string.Empty;
+        public Dictionary<string, long> Damage { get; set; } = new(StringComparer.Ordinal);
+
+        /// <summary>The Gulper came and went (killed or out of time): its damage is final.</summary>
+        public bool Done { get; set; }
     }
 
     /// <summary>The league: groups once drawn and every round fought.</summary>
@@ -325,6 +366,11 @@ namespace Hadal.Game.Events
         /// <summary>Trench Conquest: the registered teams (snapshots).</summary>
         public List<HADAL.Shared.Simulation.TrenchRules.Team> Teams { get; set; } = new();
 
+        /// <summary>Lure Trap: bait charged, the traps, and the first of the alliance's Gulper indices (0 = none yet).</summary>
+        public long Bait { get; set; }
+        public List<LureTrapSlot> Traps { get; set; } = Enumerable.Range(0, HADAL.Shared.Simulation.LureTrapRules.Traps).Select(_ => new LureTrapSlot()).ToList();
+        public int LureIndex { get; set; }
+
         public string ToJson() => JsonSerializer.Serialize(this, EventDefinition.Json);
 
         public static EventAllianceState FromJson(string? json)
@@ -334,6 +380,11 @@ namespace Hadal.Game.Events
             state.Draws ??= new List<int>();
             state.ReadyAt ??= new List<DateTimeOffset>();
             state.Teams ??= new List<HADAL.Shared.Simulation.TrenchRules.Team>();
+            state.Traps ??= new List<LureTrapSlot>();
+            while (state.Traps.Count < HADAL.Shared.Simulation.LureTrapRules.Traps)
+                state.Traps.Add(new LureTrapSlot());
+            foreach (var trap in state.Traps)
+                trap.Damage ??= new Dictionary<string, long>(StringComparer.Ordinal);
             if (state.DayPoints == null || state.DayPoints.Length < HADAL.Shared.Simulation.AllianceDuelRules.Days)
             {
                 var days = new long[HADAL.Shared.Simulation.AllianceDuelRules.Days];

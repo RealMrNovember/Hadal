@@ -102,7 +102,8 @@ namespace Hadal.Game.Events
                             progress == null ? null : new Dictionary<string, long>(progress.Damage, StringComparer.Ordinal),
                             e.Def.Kingdoms.FirstOrDefault() ?? HADAL.Shared.Simulation.AllianceLandRules.DefaultWorld);
                     })
-                    .Where(b => !e.Def.PaidBosses.Contains(b.Index)))
+                    .Where(b => !e.Def.PaidBosses.Contains(b.Index))
+                    .Concat(e.Def.Template == EventTemplates.LureTrap ? LureSpawns(e) : Enumerable.Empty<EventBossSpawn>()))
                 .ToArray();
 
         private readonly ConcurrentQueue<(string EventId, int Index, string PlayerId, long Delta, long Left)> _bossHits = new();
@@ -126,6 +127,8 @@ namespace Hadal.Game.Events
                 if (progress == null)
                     live.Def.BossProgress.Add(progress = new EventBossProgress { Index = hit.Index });
                 progress.Left = Math.Max(0, hit.Left);
+                if (live.Def.Template == EventTemplates.LureTrap)
+                    RecordLureHit(live, hit.Index, hit.PlayerId, hit.Delta, DateTimeOffset.UtcNow);
                 var total = (progress.Damage.TryGetValue(hit.PlayerId, out var had) ? had : 0) + hit.Delta;
                 if (total > 0)
                     progress.Damage[hit.PlayerId] = total;
@@ -158,6 +161,14 @@ namespace Hadal.Game.Events
                 RefreshBosses(now);
                 var copy = def.Clone();
                 Write(ct => _store.SaveEventAsync(copy, ct));
+                // A Gulper pays nothing by itself: its damage became points, and the tier mail goes out at the end.
+                if (def.Template == EventTemplates.LureTrap && outcome.Index >= LureIndexBase)
+                {
+                    FinishLureTrap(live, outcome.Index);
+                    Flush();
+                    return new List<BossPrize>();
+                }
+
                 var prizes = EventBossRewards.Plan(outcome, def.BossRanks, def.BossParticipation);
                 _logger.LogInformation("Event {Id} boss {Index} ({Kind}) {How}: {Count} players rewarded.", def.Id, outcome.Index, outcome.Kind,
                     outcome.Killed ? "killed" : "left", prizes.Count);
@@ -166,7 +177,7 @@ namespace Hadal.Game.Events
         }
 
         public static bool Handles(CommandType type) => type is CommandType.ClaimEventStage or CommandType.ClaimEventRank or CommandType.ViewEventRanking
-            or CommandType.ViewEventCalendar or CommandType.MobilizationTask or CommandType.TrenchConquest;
+            or CommandType.ViewEventCalendar or CommandType.MobilizationTask or CommandType.TrenchConquest or CommandType.LureTrap;
 
         public async Task InitializeAsync(DateTimeOffset now, CancellationToken cancellationToken)
         {
@@ -251,6 +262,13 @@ namespace Hadal.Game.Events
                     if (live.Def.Template == EventTemplates.AllianceDuel)
                     {
                         changed |= RecordDuel(live, session.PublicId, allianceId, actions, now);
+                        continue;
+                    }
+
+                    // The Lure Trap scores Gulper damage (RecordLureHit); monster kills only charge the bait.
+                    if (live.Def.Template == EventTemplates.LureTrap)
+                    {
+                        changed |= RecordLureBait(live, allianceId, actions, now);
                         continue;
                     }
 
@@ -419,6 +437,9 @@ namespace Hadal.Game.Events
                     break;
                 case CommandType.TrenchConquest when TryDeserialize(envelope.Payload, out TrenchCommand? trench):
                     HandleTrench(session, trench!, now);
+                    break;
+                case CommandType.LureTrap when TryDeserialize(envelope.Payload, out LureTrapCommand? lure):
+                    HandleLure(session, lure!, now);
                     break;
                 default:
                     session.Acknowledge(envelope.CommandId, envelope.ClientSequence, "MalformedCommand", now);
@@ -593,6 +614,8 @@ namespace Hadal.Game.Events
                     dto.Duel = DuelView(live, session.PublicId, score, now);
                 else if (live.Def.Template == EventTemplates.TrenchConquest)
                     dto.Trench = TrenchView(live, session.PublicId, now);
+                else if (live.Def.Template == EventTemplates.LureTrap)
+                    dto.LureTrap = LureView(live, session.PublicId, now);
 
                 events.Add(dto);
             }
@@ -979,6 +1002,10 @@ namespace Hadal.Game.Events
             def.Duel.Loss ??= new List<EventRewardConfig>();
             def.Duel.Draw ??= new List<EventRewardConfig>();
             def.DuelState ??= new DuelState();
+            def.LureTrap ??= new LureTrapConfig();
+            def.LureTrap.Tiers = (def.LureTrap.Tiers ?? new List<EventTierConfig>()).OrderBy(t => t.Points).ToList();
+            foreach (var tier in def.LureTrap.Tiers)
+                tier.Rewards ??= new List<EventRewardConfig>();
             foreach (var a in def.Actions.Concat(def.Phases.SelectMany(p => p.Actions)))
                 a.Per = Math.Max(1, a.Per);
         }
@@ -1024,7 +1051,8 @@ namespace Hadal.Game.Events
             {
                 var phases = def.Phases ?? new List<EventPhaseConfig>();
                 // Mobilization scores its tasks and Trench Conquest its fights, not an actions table.
-                if (def.Actions.Count == 0 && phases.Count == 0 && def.Template != EventTemplates.Mobilization && def.Template != EventTemplates.TrenchConquest)
+                if (def.Actions.Count == 0 && phases.Count == 0 && def.Template != EventTemplates.Mobilization && def.Template != EventTemplates.TrenchConquest
+                    && def.Template != EventTemplates.LureTrap)
                     return "NoActions";
                 if (def.Template == EventTemplates.TrenchConquest)
                 {
@@ -1034,6 +1062,17 @@ namespace Hadal.Game.Events
                         || def.StartsAt.AddHours(t.RegisterHours + t.FirstRoundAfterHours) >= def.EndsAt)
                         return "InvalidTrench";
                 }
+                if (def.Template == EventTemplates.LureTrap)
+                {
+                    var l = def.LureTrap ?? new LureTrapConfig();
+                    var tiers = l.Tiers ?? new List<EventTierConfig>();
+                    if (l.MinMembers is < 1 or > 200 || l.FightMinutes is < 5 or > 240 || l.BaitPerKill is < 0 or > 1000 || l.TopHitterMultiplier is < 1 or > 10
+                        || tiers.Count > 10 || tiers.Any(t => t.Points <= 0 || (t.Rewards?.Count ?? 0) > 10)
+                        || tiers.Select(t => t.Points).Distinct().Count() != tiers.Count
+                        || def.StartsAt.AddMinutes(LureTrapRules.MinLeadMinutes + l.FightMinutes) >= def.EndsAt)
+                        return "InvalidLureTrap";
+                }
+
                 if (def.Template == EventTemplates.Mobilization)
                 {
                     var m = def.Mobilization ?? new MobilizationConfig();
