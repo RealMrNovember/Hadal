@@ -172,7 +172,8 @@ namespace Hadal.Game.Tests
             Assert.Equal(LureTrapRules.GulperKind, gulper.Type);
             var (lx, ly) = _world.Map.PositionOf(leader.PublicId)!.Value;
             Assert.True(Math.Max(Math.Abs(gulper.X - lx), Math.Abs(gulper.Y - ly)) <= 6);
-            Assert.Equal(gulper.Id, Trap(leader, leaderLink, eventId).Traps[0].MonsterId);
+            var up = Trap(leader, leaderLink, eventId).Traps[0];
+            Assert.Equal((gulper.Id, gulper.X, gulper.Y), (up.MonsterId, up.X, up.Y));
 
             // Only the alliance sees and hits it.
             Send(outsider, new ViewWorldCommand { CommandId = "v" + Id(), X = gulper.X, Y = gulper.Y }, CommandType.ViewWorld);

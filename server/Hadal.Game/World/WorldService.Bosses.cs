@@ -22,6 +22,11 @@ namespace Hadal.Game.World
 
         public static string BossId(string eventId, int index) => $"e:{eventId}:{index}";
 
+        /// <summary>Where each boss on this map stands, readable without the world lock (the Lure Trap page shows it).</summary>
+        private readonly System.Collections.Concurrent.ConcurrentDictionary<string, (int X, int Y)> _bossAt = new(StringComparer.Ordinal);
+
+        public (int X, int Y)? BossPosition(string bossId) => _bossAt.TryGetValue(bossId, out var at) ? at : null;
+
         private readonly List<BossOutcome> _bossOutcomes = new();
 
         /// <summary>
@@ -105,6 +110,7 @@ namespace Hadal.Game.World
 
                 _monsters[id] = boss;
                 _monsterAt[tile] = boss;
+                _bossAt[id] = tile;
                 _logger.LogInformation("Event boss {Kind} level {Level} is at {X}:{Y} until {EndsAt}.", kind.Id, level, tile.X, tile.Y, spawn.EndsAt);
             }
 
@@ -121,6 +127,7 @@ namespace Hadal.Game.World
             foreach (var boss in _monsters.Values.Where(m => m.IsBoss && (!live.Contains(m.Id) || m.EndsAt <= now)).ToList())
             {
                 _monsters.Remove(boss.Id);
+                _bossAt.TryRemove(boss.Id, out _);
                 if (_monsterAt.TryGetValue((boss.X, boss.Y), out var at) && at == boss)
                     _monsterAt.Remove((boss.X, boss.Y));
             }

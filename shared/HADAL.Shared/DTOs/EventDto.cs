@@ -296,6 +296,10 @@ namespace HADAL.Shared.DTOs
         [ProtoMember(6)] public long MyDamage { get; set; }
         [ProtoMember(7)] public BossBoardEntryDto[] Board { get; set; } = System.Array.Empty<BossBoardEntryDto>();
         [ProtoMember(8)] public bool Done { get; set; }
+
+        /// <summary>Where the Gulper is while it is up (with <see cref="MonsterId"/>).</summary>
+        [ProtoMember(9)] public int X { get; set; }
+        [ProtoMember(10)] public int Y { get; set; }
     }
 
     /// <summary>The player's Lure Trap view: the alliance's bait and trap level, both traps, and what the player may do.</summary>

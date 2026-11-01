@@ -98,6 +98,7 @@ namespace Hadal.Game
                 AllianceRole = id => (Social.RankOf(id), Social.RoleOf(id)),
                 DuelEntrants = Social.DuelEntrants
             };
+            Events.BossPosition = id => _maps.Values.Select(m => m.BossPosition(id)).FirstOrDefault(p => p != null);
             WireMap(Map);
             Mail = new MailService(mailStore ?? new InMemoryMailStore(), serializer, logger)
             {

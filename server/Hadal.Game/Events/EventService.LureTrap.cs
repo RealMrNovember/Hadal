@@ -21,6 +21,9 @@ namespace Hadal.Game.Events
         /// <summary>A member's rank and duty (the leader or a war-duty officer schedules); set by the world.</summary>
         public Func<string, (int Rank, string Role)>? AllianceRole { get; set; }
 
+        /// <summary>Where a boss stands on its map (WorldService.BossPosition, lock-free); set by the world.</summary>
+        public Func<string, (int X, int Y)?>? BossPosition { get; set; }
+
         private static TimeSpan Fight(EventDefinition def) => TimeSpan.FromMinutes(Math.Clamp(def.LureTrap.FightMinutes, 5, 240));
 
         private void HandleLure(PlayerSession session, LureTrapCommand command, DateTimeOffset now)
@@ -262,8 +265,9 @@ namespace Hadal.Game.Events
                 {
                     slot.StartsAtMs = start.ToUnixTimeMilliseconds();
                     slot.EndsAtMs = Min(start + fight, def.EndsAt).ToUnixTimeMilliseconds();
-                    if (!trap.Done && start <= now && now.ToUnixTimeMilliseconds() < slot.EndsAtMs)
-                        slot.MonsterId = WorldService.BossId(def.Id, state.LureIndex + t);
+                    var id = WorldService.BossId(def.Id, state.LureIndex + t);
+                    if (!trap.Done && start <= now && now.ToUnixTimeMilliseconds() < slot.EndsAtMs && BossPosition?.Invoke(id) is { } at)
+                        (slot.MonsterId, slot.X, slot.Y) = (id, at.X, at.Y);
                 }
 
                 return slot;
