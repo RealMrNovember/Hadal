@@ -103,7 +103,11 @@ case "${1:-}" in
   exec)
     # Run a static editor method, e.g. Hadal.EditorTools.HadalProjectSetup.CreateBootstrapScene
     METHOD="${2:?usage: unity.sh exec <Namespace.Class.Method>}"
-    run unity-editor -batchmode -nographics -quit -projectPath /project -executeMethod "${METHOD}" \
+    # The android module opens the editor on Android: editor code under #if UNITY_ANDROID (HadalAndroidGradle)
+    # is compiled only then. Switching platform inside the build method is too late on a fresh Library.
+    TARGET=()
+    [[ "${UNITY_MODULE}" == android ]] && TARGET=(-buildTarget Android)
+    run unity-editor -batchmode -nographics -quit -projectPath /project "${TARGET[@]}" -executeMethod "${METHOD}" \
       -logFile /project/artifacts/exec.log || { grep -E "error CS|Exception|executeMethod" "${ARTIFACTS}/exec.log" | head -30; exit 1; }
     grep -E "^\[Hadal\]" "${ARTIFACTS}/exec.log" || true
     ;;
