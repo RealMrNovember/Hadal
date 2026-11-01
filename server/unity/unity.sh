@@ -86,7 +86,7 @@ case "${1:-}" in
       -v hadal_unity_license:/root/.local/share/unity3d \
       -v hadal_unity_config:/root/.config/unity3d \
       "${HUB_IMAGE}"
-    echo "Hub running. Tunnel: ssh -J cicibyte@dl380 -L 6080:127.0.0.1:6080 root@<ct-ip>, then open http://localhost:6080/vnc.html"
+    echo "Hub running. Tunnel: ssh -L 6080:127.0.0.1:6080 cicibyte@doku, then open http://localhost:6080/vnc.html"
     ;;
   hub-stop)
     docker rm -f hadal-unity-hub

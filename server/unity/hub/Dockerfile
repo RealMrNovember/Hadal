@@ -21,7 +21,9 @@ COPY chrome-wrapper.sh /usr/local/bin/hub-chrome
 COPY unityhub-wrapper.sh /usr/local/bin/unityhub
 COPY hub-chrome.desktop /usr/share/applications/hub-chrome.desktop
 COPY start-hub.sh /start-hub.sh
-RUN chmod +x /start-hub.sh /usr/local/bin/hub-chrome /usr/local/bin/unityhub \
+# A Windows checkout copies these with CRLF: xdg-open then reads an empty Exec and sign-in hangs.
+RUN sed -i 's/\r$//' /start-hub.sh /usr/local/bin/hub-chrome /usr/local/bin/unityhub /usr/share/applications/hub-chrome.desktop \
+ && chmod +x /start-hub.sh /usr/local/bin/hub-chrome /usr/local/bin/unityhub \
  && update-desktop-database /usr/share/applications \
  && for t in x-scheme-handler/http x-scheme-handler/https text/html; do xdg-mime default hub-chrome.desktop "$t"; done
 
