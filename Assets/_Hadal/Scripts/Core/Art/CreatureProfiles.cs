@@ -114,7 +114,8 @@ namespace Hadal.Core.Art
             "abyss_angler" => "creature_abyss_angler",
             "lantern_maw" => "creature_lantern_maw",
             "armored_crab" => "creature_armored_crab",
-            "chasm_maw" => "creature_chasm_maw",
+            // The Lure Trap's Gulper borrows the maw's body until it has its own.
+            "chasm_maw" or "gulper" => "creature_chasm_maw",
             "depth_kraken" => "creature_depth_kraken",
             "siren_swarm" => "creature_siren",
             _ => "creature_crawler"
@@ -124,7 +125,7 @@ namespace Hadal.Core.Art
         public static int GroupSize(string monsterType) => monsterType switch
         {
             "lantern_maw" => 2,
-            "armored_crab" or "chasm_maw" or "depth_kraken" => 1,
+            "armored_crab" or "chasm_maw" or "depth_kraken" or "gulper" => 1,
             _ => 3
         };
     }

@@ -147,6 +147,16 @@ Our Cheese Trap. A Gulper (Yutucu) is lured to the alliance's trap by biolumines
   with a free slot in the last 20 seconds.
 - **Rewards**: personal by damage; alliance tier by combined damage of both traps (unlocks the next difficulty);
   the top dealer of each trap gets 1–10× the alliance reward. Trap levels reset after the event.
+- **As built (E4, first cut)**: template `lure_trap` (LureTrapRules, EventService.LureTrap). Bait comes from every map
+  monster a member beats while the event is live (no bait item yet); levels 1–5 at 50/150/300/500/800 bait, +5 % per
+  level on every hit. The leader or a war-duty officer sets each trap (start at least 10 minutes ahead, difficulty
+  1–10 = Gulper level 5–32, the two fights may not overlap) or moves/calls it off before it starts; the alliance needs
+  `MinMembers` (default schedule 5). The Gulper is an event boss at the alliance hub (else near the scheduler's base),
+  seen and hit by the alliance only, for `FightMinutes` (30). Any team may hit it (rallies are not required yet); it
+  never strikes back (no losses) and each hit fights only its front (20 swarms of its level). Damage is personal points
+  (stages) and alliance points (rank bands); at the end every hitter gets the tier the alliance's damage over both traps
+  reached, each trap's top hitter `TopHitterMultiplier` (2) times. Default schedule Tuesday and Saturday, 48 h.
+  Still to come: rally-only fights with the war-duty bonus, the offline opt-in, difficulty unlocks, a Gulper model.
 
 ### 4.2 Abyss Siege (Derinlik Kuşatması) — alliance started, defence
 Creatures rise in 20 waves against every member base. Officer picks difficulty (1–20, reactor minimums). Waves 10 and

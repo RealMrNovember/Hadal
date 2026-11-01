@@ -33,7 +33,7 @@ namespace Hadal.UI
         private void TickAllianceEvent(EventDto e)
         {
             if (e == null || (e.Template != EventTemplates.Mobilization && e.Template != EventTemplates.AllianceDuel
-                    && e.Template != EventTemplates.TrenchConquest)
+                    && e.Template != EventTemplates.TrenchConquest && e.Template != EventTemplates.LureTrap)
                 || EventRules.Phase(e, NowMs) != EventPhase.Live)
                 return;
             if (_allianceEventAskedFor == e.Id && Time.unscaledTime - _allianceEventAskedAt < AllianceEventRefreshSeconds)
@@ -42,6 +42,8 @@ namespace Hadal.UI
             _allianceEventAskedAt = Time.unscaledTime;
             if (e.Template == EventTemplates.TrenchConquest)
                 TrenchMove(e.Id, TrenchActions.View);
+            else if (e.Template == EventTemplates.LureTrap)
+                LureMove(e.Id, LureTrapActions.View);
             else
                 _commands.Dispatch(new MobilizationTaskCommand { CommandId = NewId(), ClientSequence = NextSequence(), EventId = e.Id, Action = MobilizationActions.View });
         }

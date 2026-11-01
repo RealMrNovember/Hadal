@@ -182,6 +182,7 @@ namespace Hadal.Core.Network
                 CloseAlliancePollCommand => CommandType.CloseAlliancePoll,
                 MobilizationTaskCommand => CommandType.MobilizationTask,
                 TrenchCommand => CommandType.TrenchConquest,
+                LureTrapCommand => CommandType.LureTrap,
                 MarchAttackCommand => CommandType.MarchAttack,
                 MarchPvpCommand => CommandType.MarchPvp,
                 ViewWarCommand => CommandType.ViewWar,
