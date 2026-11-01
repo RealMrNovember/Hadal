@@ -16,22 +16,25 @@ namespace Hadal.Game.Events
         public const string Mobilization = "mobilization";
         public const string AllianceDuel = "alliance-duel";
         public const string TrenchConquest = "trench-conquest";
+        public const string LureTrap = "lure-trap";
 
         /// <summary>Every default schedule's id (mails name their events by a localisation key "event.name.{id}").</summary>
-        public static readonly string[] Ids = { DepthRace, AllianceWeek, LoginWeek, Mobilization, AllianceDuel, TrenchConquest };
+        public static readonly string[] Ids = { DepthRace, AllianceWeek, LoginWeek, Mobilization, AllianceDuel, TrenchConquest, LureTrap };
 
         private static readonly int[] EveryDay = { 0, 1, 2, 3, 4, 5, 6 };
         private const int Monday = (int)DayOfWeek.Monday;
+        private const int Tuesday = (int)DayOfWeek.Tuesday;
         private const int Thursday = (int)DayOfWeek.Thursday;
+        private const int Saturday = (int)DayOfWeek.Saturday;
 
         /// <summary>Every default schedule: what a new, empty calendar is seeded with.</summary>
-        public static List<EventSchedule> All(DateTimeOffset now) => new() { Depth(now), Alliance(now), Login(now), Mobilize(now), Duel(now), Trench(now) };
+        public static List<EventSchedule> All(DateTimeOffset now) => new() { Depth(now), Alliance(now), Login(now), Mobilize(now), Duel(now), Trench(now), Lure(now) };
 
         /// <summary>
         /// Defaults that came after the first seed (roadmap §7, E6). A calendar seeded before them gets each once
         /// (EventService.Calendar, marker "seed:{id}"), without touching the schedules it has.
         /// </summary>
-        public static List<EventSchedule> Added(DateTimeOffset now) => new() { Mobilize(now), Duel(now), Trench(now) };
+        public static List<EventSchedule> Added(DateTimeOffset now) => new() { Mobilize(now), Duel(now), Trench(now), Lure(now) };
 
         /// <summary>
         /// Depth Race (docs/29 §4.4): every day 00:00–24:00 UTC, six 4-hour themes from the existing score kinds (gathering,
@@ -445,6 +448,74 @@ namespace Hadal.Game.Events
                     Band(1, 1, Res("Hadalite", 150), Item("chest_gold", 1)),
                     Band(2, 3, Res("Hadalite", 80), Item("chest_silver", 1)),
                     Band(4, 10, Res("Hadalite", 30), Item("chest_bronze", 2))
+                }
+            }
+        };
+
+        /// <summary>
+        /// Lure Trap (docs/29 §4.1): Tuesday and Saturday 00:00 UTC for two days. Members' hunts charge the alliance's
+        /// bait; the leader or a war officer schedules two traps; damage on the Gulper is the members' points (stages), and
+        /// the alliance's damage over both traps sets its tier mail. Small alliances count: five members schedule.
+        /// </summary>
+        private static EventSchedule Lure(DateTimeOffset now) => new()
+        {
+            Id = LureTrap,
+            Weekdays = new List<int> { Tuesday, Saturday },
+            StartMinute = 0,
+            DurationHours = 48,
+            LeadHours = 24,
+            Note = "Default: Lure Trap twice a week (two traps per alliance, 30-minute Gulper, tiers by damage)",
+            CreatedBy = EventService.CalendarAuthor,
+            CreatedAt = now,
+            UpdatedAt = now,
+            Blueprint = new EventDefinition
+            {
+                Template = EventTemplates.LureTrap,
+                Banner = "leviathan",
+                ClaimDays = 1,
+                MinRankPoints = 1,
+                LureTrap = new LureTrapConfig
+                {
+                    MinMembers = 5,
+                    Tiers =
+                    {
+                        Stage(20_000, Res("Titanium", 20_000), Item("speed_any_5", 2)),
+                        Stage(100_000, Item("chest_bronze", 1), Res("Hadalite", 20)),
+                        Stage(400_000, Item("chest_silver", 1), Res("Hadalite", 50)),
+                        Stage(1_500_000, Item("chest_gold", 1), Res("Hadalite", 120))
+                    }
+                },
+                Title = T("Yem Kapanı", "Lure Trap", "Köderfalle", "Piège à appât", "Trampa de cebo", "Trappola d'esca", "Armadilha de isca", "Lokaasval", "Ловушка-приманка", "فخ الطُّعم", "ルアートラップ", "미끼 덫", "诱饵陷阱", "誘餌陷阱", "กับดักเหยื่อ", "Bẫy mồi", "Perangkap Umpan", "Perangkap Umpan"),
+                Description = T(
+                    "Yaratık avla, ittifakının kapanına yem ekle: her kapan seviyesi vuruşlara %5 ekler. Lider ya da savaş görevlisi iki kapanın saatini ve zorluğunu seçer. Saati gelince ittifakın toplanma noktasında 30 dakikalığına bir Yutucu belirir; yalnızca siz görür ve vurursunuz, karşılık vermez, asker kaybetmezsin. Hasarın puanındır; iki kapanın toplam hasarı ittifak ödül kademesini belirler.",
+                    "Hunt creatures to bait your alliance's trap: each trap level adds 5% to every hit. The leader or a war officer picks the time and difficulty of two traps. When the time comes a Gulper rises at the alliance's rally point for 30 minutes; only your alliance sees and hits it, it never strikes back and you lose no troops. Your damage is your points; the damage over both traps sets the alliance's reward tier.",
+                    "Jage Kreaturen, um die Falle deiner Allianz zu ködern: Jede Fallenstufe gibt jedem Treffer 5 % mehr. Anführer oder Kriegsoffizier wählen Zeit und Schwierigkeit zweier Fallen. Zur Zeit taucht am Sammelpunkt der Allianz für 30 Minuten ein Schlinger auf; nur deine Allianz sieht und trifft ihn, er schlägt nie zurück und du verlierst keine Truppen. Dein Schaden sind deine Punkte; der Schaden beider Fallen bestimmt die Belohnungsstufe der Allianz.",
+                    "Chassez des créatures pour appâter le piège de votre alliance : chaque niveau de piège ajoute 5 % à chaque coup. Le chef ou un officier de guerre choisit l'heure et la difficulté de deux pièges. À l'heure dite, un Avaleur surgit au point de ralliement pour 30 minutes ; seule votre alliance le voit et le frappe, il ne riposte jamais et vous ne perdez aucune troupe. Vos dégâts sont vos points ; les dégâts des deux pièges fixent le palier de récompense de l'alliance.",
+                    "Caza criaturas para cebar la trampa de tu alianza: cada nivel de trampa añade un 5 % a cada golpe. El líder o un oficial de guerra elige la hora y la dificultad de dos trampas. A la hora, un Engullidor surge en el punto de reunión durante 30 minutos; solo tu alianza lo ve y lo golpea, nunca contraataca y no pierdes tropas. Tu daño son tus puntos; el daño de ambas trampas fija el nivel de recompensa de la alianza.",
+                    "Caccia creature per innescare la trappola della tua alleanza: ogni livello della trappola aggiunge il 5% a ogni colpo. Il capo o un ufficiale di guerra sceglie orario e difficoltà di due trappole. All'ora stabilita un Divoratore emerge al punto di raduno per 30 minuti; solo la tua alleanza lo vede e lo colpisce, non risponde mai e non perdi truppe. Il tuo danno sono i tuoi punti; il danno delle due trappole fissa il livello di ricompensa dell'alleanza.",
+                    "Cace criaturas para iscar a armadilha da sua aliança: cada nível da armadilha soma 5% a cada golpe. O líder ou um oficial de guerra escolhe horário e dificuldade de duas armadilhas. Na hora, um Engolidor surge no ponto de reunião por 30 minutos; só sua aliança o vê e o ataca, ele nunca revida e você não perde tropas. Seu dano são seus pontos; o dano das duas armadilhas define o nível de recompensa da aliança.",
+                    "Jaag op wezens om de val van je alliantie te lokken: elk valniveau geeft elke treffer 5% extra. De leider of een oorlogsofficier kiest tijd en moeilijkheid van twee vallen. Op het tijdstip verschijnt een Slokker 30 minuten bij het verzamelpunt; alleen jouw alliantie ziet en raakt hem, hij slaat nooit terug en je verliest geen troepen. Je schade is je score; de schade van beide vallen bepaalt de beloningstrede van de alliantie.",
+                    "Охотьтесь на существ, чтобы наполнить ловушку альянса приманкой: каждый уровень ловушки добавляет 5% к каждому удару. Лидер или офицер войны выбирает время и сложность двух ловушек. В назначенный час у точки сбора на 30 минут всплывает Глотатель; его видит и бьёт только ваш альянс, он не отвечает, и вы не теряете войска. Ваш урон — ваши очки; урон по обеим ловушкам задаёт ступень награды альянса.",
+                    "اصطد المخلوقات لتطعيم فخ تحالفك: كل مستوى للفخ يضيف 5% إلى كل ضربة. يختار القائد أو ضابط الحرب وقت وصعوبة فخّين. عند الموعد يظهر البلّاع عند نقطة تجمع التحالف لمدة 30 دقيقة؛ تحالفك وحده يراه ويضربه، لا يرد الهجوم ولا تخسر جنودًا. ضررك هو نقاطك؛ وضرر الفخّين معًا يحدد مستوى مكافأة التحالف.",
+                    "クリーチャーを狩って同盟のトラップに餌を集めよう。トラップのレベルごとに攻撃が5%増えます。盟主か戦争担当の幹部が2つのトラップの時刻と難易度を決めます。時刻になると同盟の集合地点に30分間ガルパーが現れ、自分の同盟だけが見て攻撃できます。反撃はなく、兵は失いません。与えたダメージがポイントになり、2つのトラップの合計ダメージで同盟の報酬段階が決まります。",
+                    "생물을 사냥해 연맹 덫에 미끼를 채우세요. 덫 레벨마다 모든 공격이 5% 강해집니다. 맹주나 전쟁 담당 간부가 두 덫의 시간과 난이도를 정합니다. 시간이 되면 연맹 집결지에 30분 동안 걸퍼가 나타나며, 우리 연맹만 보고 공격할 수 있습니다. 반격하지 않으니 병력을 잃지 않습니다. 입힌 피해가 점수이며, 두 덫의 총 피해로 연맹 보상 단계가 정해집니다.",
+                    "猎杀海怪为联盟陷阱积攒诱饵：陷阱每升一级，每次攻击伤害提高5%。盟主或战争官员为两个陷阱选择时间和难度。时间一到，吞噬者会在联盟集结点出现30分钟；只有本联盟能看见并攻击它，它从不反击，你不会损失士兵。你的伤害就是积分；两个陷阱的总伤害决定联盟奖励档位。",
+                    "獵殺海怪為聯盟陷阱積攢誘餌：陷阱每升一級，每次攻擊傷害提高5%。盟主或戰爭官員為兩個陷阱選擇時間和難度。時間一到，吞噬者會在聯盟集結點出現30分鐘；只有本聯盟能看見並攻擊它，它從不反擊，你不會損失士兵。你的傷害就是積分；兩個陷阱的總傷害決定聯盟獎勵檔位。",
+                    "ล่าสัตว์ประหลาดเพื่อเติมเหยื่อให้กับดักของพันธมิตร: กับดักแต่ละเลเวลเพิ่มความเสียหายทุกครั้ง 5% หัวหน้าหรือนายทหารฝ่ายสงครามเลือกเวลาและความยากของกับดักสองอัน เมื่อถึงเวลา ตัวกลืนจะโผล่ที่จุดรวมพลของพันธมิตร 30 นาที มีเพียงพันธมิตรของคุณที่เห็นและโจมตีได้ มันไม่โต้กลับและคุณไม่เสียทหาร ความเสียหายของคุณคือคะแนน ความเสียหายรวมของกับดักทั้งสองกำหนดระดับรางวัลของพันธมิตร",
+                    "Săn sinh vật để thêm mồi cho bẫy của liên minh: mỗi cấp bẫy cộng 5% cho mọi đòn. Thủ lĩnh hoặc sĩ quan chiến tranh chọn giờ và độ khó của hai bẫy. Đến giờ, một Kẻ Nuốt trồi lên ở điểm tập hợp của liên minh trong 30 phút; chỉ liên minh của bạn thấy và đánh được, nó không bao giờ phản công và bạn không mất quân. Sát thương là điểm của bạn; tổng sát thương hai bẫy quyết định bậc thưởng của liên minh.",
+                    "Buru makhluk untuk mengisi umpan perangkap aliansimu: tiap level perangkap menambah 5% pada setiap serangan. Pemimpin atau perwira perang memilih waktu dan tingkat kesulitan dua perangkap. Saat waktunya tiba, seekor Penelan muncul di titik kumpul aliansi selama 30 menit; hanya aliansimu yang melihat dan menyerangnya, ia tidak pernah membalas dan kamu tidak kehilangan pasukan. Kerusakanmu adalah poinmu; total kerusakan kedua perangkap menentukan tingkat hadiah aliansi.",
+                    "Buru makhluk untuk mengisi umpan perangkap pakatan anda: setiap tahap perangkap menambah 5% pada setiap serangan. Ketua atau pegawai perang memilih masa dan kesukaran dua perangkap. Apabila tiba masanya, seekor Penelan muncul di titik himpunan pakatan selama 30 minit; hanya pakatan anda yang melihat dan menyerangnya, ia tidak pernah membalas dan anda tidak kehilangan tentera. Kerosakan anda ialah mata anda; jumlah kerosakan kedua-dua perangkap menentukan tahap ganjaran pakatan."),
+                Stages =
+                {
+                    Stage(2_000, Res("Titanium", 10_000)),
+                    Stage(10_000, Item("speed_any_5", 2)),
+                    Stage(40_000, Item("chest_bronze", 1))
+                },
+                RankBands =
+                {
+                    Band(1, 1, Res("Hadalite", 100), Item("chest_silver", 1)),
+                    Band(2, 3, Res("Hadalite", 60), Item("chest_bronze", 1)),
+                    Band(4, 10, Res("Hadalite", 25))
                 }
             }
         };
