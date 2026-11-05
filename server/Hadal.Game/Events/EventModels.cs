@@ -91,6 +91,9 @@ namespace Hadal.Game.Events
         /// <summary>Lure Trap settings (template "lure_trap", docs/29 §4.1).</summary>
         public LureTrapConfig LureTrap { get; set; } = new();
 
+        /// <summary>Abyss Siege settings (template "abyss_siege", docs/29 §4.2).</summary>
+        public AbyssSiegeConfig AbyssSiege { get; set; } = new();
+
         /// <summary>
         /// When the end-of-event payout was mailed (rank rewards, unclaimed stages, duel results; EventService.Payout), and
         /// how many mails it sent. Null until then; a paid event never pays again.
@@ -272,6 +275,33 @@ namespace Hadal.Game.Events
         public bool Done { get; set; }
     }
 
+    /// <summary>Abyss Siege rules an event can change (AbyssSiegeRules has the defaults).</summary>
+    public sealed class AbyssSiegeConfig
+    {
+        /// <summary>Members an alliance needs to set a siege.</summary>
+        public int MinMembers { get; set; } = HADAL.Shared.Simulation.AbyssSiegeRules.DefaultMinMembers;
+
+        /// <summary>The reactor level a base needs to take part.</summary>
+        public int MinReactor { get; set; } = HADAL.Shared.Simulation.AbyssSiegeRules.DefaultMinReactor;
+
+        /// <summary>Alliance points per difficulty step for a hub wave held.</summary>
+        public long HubHoldPoints { get; set; } = 500;
+    }
+
+    /// <summary>An alliance's siege: when it was set for, how far it got, and each member's breaches.</summary>
+    public sealed class AbyssSiegeState
+    {
+        public DateTimeOffset? StartsAt { get; set; }
+        public int Difficulty { get; set; }
+
+        /// <summary>The officer's kingdom: the siege is fought on that map.</summary>
+        public string Kingdom { get; set; } = string.Empty;
+        public int WavesDone { get; set; }
+        public Dictionary<string, int> Breaches { get; set; } = new(StringComparer.Ordinal);
+        public int HubHeld { get; set; }
+        public int HubLost { get; set; }
+    }
+
     /// <summary>The league: groups once drawn and every round fought.</summary>
     public sealed class TrenchState
     {
@@ -371,6 +401,9 @@ namespace Hadal.Game.Events
         public List<LureTrapSlot> Traps { get; set; } = Enumerable.Range(0, HADAL.Shared.Simulation.LureTrapRules.Traps).Select(_ => new LureTrapSlot()).ToList();
         public int LureIndex { get; set; }
 
+        /// <summary>Abyss Siege: the alliance's siege.</summary>
+        public AbyssSiegeState Siege { get; set; } = new();
+
         public string ToJson() => JsonSerializer.Serialize(this, EventDefinition.Json);
 
         public static EventAllianceState FromJson(string? json)
@@ -380,6 +413,8 @@ namespace Hadal.Game.Events
             state.Draws ??= new List<int>();
             state.ReadyAt ??= new List<DateTimeOffset>();
             state.Teams ??= new List<HADAL.Shared.Simulation.TrenchRules.Team>();
+            state.Siege ??= new AbyssSiegeState();
+            state.Siege.Breaches ??= new Dictionary<string, int>(StringComparer.Ordinal);
             state.Traps ??= new List<LureTrapSlot>();
             while (state.Traps.Count < HADAL.Shared.Simulation.LureTrapRules.Traps)
                 state.Traps.Add(new LureTrapSlot());

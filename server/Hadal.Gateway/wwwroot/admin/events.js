@@ -9,6 +9,7 @@ const EVENT_TEMPLATES = {
   alliance_duel: "İttifak Düellosu (haftalık 1'e 1)",
   trench_conquest: "Hendek Fethi (ittifak ligi, 3 hendek)",
   lure_trap: "Yem Kapanı (ittifak kapanı, Yutucu)",
+  abyss_siege: "Derinlik Kuşatması (20 dalga, ittifak savunması)",
 };
 
 // Mobilization task kinds (MobilizationRules.Kinds) and the duel's six day themes (AllianceDuelRules).
@@ -107,6 +108,7 @@ const EVENT_ERRORS = {
   UnknownSchedule: "Program bulunamadı.",
   NoOccurrence: "Önümüzdeki 8 günde oluşturulacak bir tekrar yok; hepsi zaten var.",
   InvalidMobilization: "Seferberlik ayarları geçersiz (üye 1–200, kart 1–16, yenilenme 0–1440 dk, günlük görev 1–100, yenileme 0–50, hedef %10–1000).",
+  InvalidAbyssSiege: "Derinlik Kuşatması ayarları geçersiz (üye 1–200, reaktör 1–60, merkez puanı 0–10000000; etkinlik 20 dalga ve 10 dk hazırlık süresinden uzun olmalı).",
   InvalidLureTrap: "Yem Kapanı ayarları geçersiz (üye 1–200, savaş 5–240 dk, av başına yem 0–1000, en çok vuran katı 1–10, en çok 10 kademe, eşikler farklı ve pozitif; etkinlik en az 10 dk + savaş süresi kadar sürmeli).",
   InvalidTrench: "Hendek Fethi ayarları geçersiz (reaktör 1–60, kayıtlı üye 1–200, takım başına dövüş 1–5, kayıt 1–336 saat, ilk tur 0–168 saat sonra, tur arası 1–168 saat, galibiyet puanı 0–100000; kayıt + ilk tur bitişten önce bitmeli).",
   InvalidDuelDays: "Düelloda arka arkaya 6 tema günü olmalı (0. saatten başlar, döngü yok).",
@@ -350,7 +352,8 @@ async function eventDetail(root, id) {
     live ? liveSection(d, live) : null,
     trench ? trenchSection(d) : null,
     d.template === "lure_trap" ? lureSection(d) : null,
-    d.template !== "login" && !trench && d.template !== "lure_trap" ? [
+    d.template === "abyss_siege" ? siegeSection(d) : null,
+    d.template !== "login" && !trench && d.template !== "lure_trap" && d.template !== "abyss_siege" ? [
       el("h2", {}, "Puan kazanma"),
       d.phases && d.phases.length
         ? el("div", { class: "grid2" }, d.phases.map((p) => el("div", { class: "card" },
@@ -374,6 +377,14 @@ async function eventDetail(root, id) {
         el("thead", {}, el("tr", {}, ["Sıra", data.alliance ? "İttifak" : "Oyuncu", "Etiket", "Puan"].map((h) => el("th", {}, h)))),
         el("tbody", {}, data.ranking.length === 0 ? el("tr", {}, el("td", { class: "muted", colspan: "4" }, "Henüz puan yok.")) :
           data.ranking.map((e) => el("tr", {}, el("td", {}, e.rank), el("td", {}, e.name), el("td", { class: "mono" }, e.tag), el("td", { class: "mono" }, fmtNum(e.points))))))] : null);
+}
+
+/** Abyss Siege: the rules of this event. */
+function siegeSection(d) {
+  const a = d.abyssSiege || {};
+  return el("div", { class: "card" },
+    el("h2", {}, "Derinlik Kuşatması — kurallar"),
+    el("p", { class: "muted" }, `Kuşatma kurmak için en az ${a.minMembers} üye · üs için reaktör ${a.minReactor}+ · 2 dakikada bir, 20 dalga · tutulan merkez dalgası zorluk başına ${fmtNum(a.hubHoldPoints)} ittifak puanı`));
 }
 
 /** Lure Trap: the rules and the alliance tiers (damage over both traps → what every hitter gets). */
@@ -469,6 +480,7 @@ async function eventEditor(root, id) {
   model.bossParticipation = model.bossParticipation || [];
   model.mobilization = Object.assign({ minMembers: 15, slots: 8, refillMinutes: 5, tasksPerDay: 8, refreshesPerDay: 3, refreshCooldownMinutes: 10, kinds: [], targetPercent: 100 }, model.mobilization || {});
   model.duel = Object.assign({ minMembers: 3, win: [], loss: [], draw: [] }, model.duel || {});
+  model.abyssSiege = Object.assign({ minMembers: 5, minReactor: 10, hubHoldPoints: 500 }, model.abyssSiege || {});
   model.lureTrap = Object.assign({ minMembers: 20, fightMinutes: 30, baitPerKill: 1, topHitterMultiplier: 2, tiers: [] }, model.lureTrap || {});
   model.trench = Object.assign({ minReactor: 10, minRegistered: 15, fightsPerTeam: 2, registerHours: 48, firstRoundAfterHours: 12, roundEveryHours: 24, pointsPerWin: 100 }, model.trench || {});
 
@@ -527,7 +539,7 @@ async function eventEditor(root, id) {
   }
 
   async function save() {
-    const noScoring = model.template === "login" || model.template === "mobilization" || model.template === "trench_conquest" || model.template === "lure_trap";
+    const noScoring = model.template === "login" || model.template === "mobilization" || model.template === "trench_conquest" || model.template === "lure_trap" || model.template === "abyss_siege";
     const body = Object.assign({}, model, {
       startsAt: new Date(model.startsAt).toISOString(), endsAt: new Date(model.endsAt).toISOString(),
       phases: noScoring ? [] : model.phases, actions: noScoring || model.template === "alliance_duel" ? [] : model.actions,
@@ -599,6 +611,13 @@ async function eventEditor(root, id) {
             model.mobilization.kinds = e.target.checked ? model.mobilization.kinds.concat(k) : model.mobilization.kinds.filter((x) => x !== k);
           } }), " " + label)))) : null,
 
+      model.template === "abyss_siege" ? el("div", { class: "card" },
+        el("h2", {}, "Derinlik Kuşatması ayarları"),
+        el("p", { class: "muted" }, "Lider ya da savaş görevlisi saati ve zorluğu (1–10) seçer; sonra 2 dakikada bir, 20 dalga yaratık gelir. 7, 14 ve 17. dalgalar seçkindir, yalnızca çevrimiçi üyelere gelir; 10 ve 20. dalgalar ittifak merkezini vurur. Kalkan korumaz, kaynak kaybolmaz, asker ölmez; iki kez yarılan üs düşer. Öldürmeler kişisel ve ittifak puanıdır (takviyede yarısı)."),
+        el("div", { class: "row" },
+          ...[["minMembers", "Kuşatma için en az üye"], ["minReactor", "Üs için en düşük reaktör"], ["hubHoldPoints", "Tutulan merkez dalgası puanı (zorluk başına)"]]
+            .map(([k, label]) => el("label", {}, label, el("input", { type: "number", min: "0", value: model.abyssSiege[k], onchange: (e) => (model.abyssSiege[k] = Number(e.target.value)) }))))) : null,
+
       model.template === "lure_trap" ? el("div", { class: "card" },
         el("h2", {}, "Yem Kapanı ayarları"),
         el("p", { class: "muted" }, "Üyelerin avladığı her yaratık ittifak kapanına yem ekler (seviye başına vuruşlara +%5). Lider ya da savaş görevlisi iki kapanın saatini ve zorluğunu seçer; saati gelince ittifakın toplanma noktasında yalnızca o ittifakın gördüğü, karşılık vermeyen bir Yutucu belirir. Hasar kişisel puandır (aşama ödülleri) ve ittifak puanıdır (sıralama ödülleri). Etkinlik bitince Yutucu'yu vuran herkes, ittifakın iki kapandaki toplam hasarıyla ulaştığı kademenin ödülünü alır."),
@@ -638,7 +657,7 @@ async function eventEditor(root, id) {
         el("p", {}, el("b", {}, "Beraberlikte iki tarafa")), rewardsEditor(model.duel.draw),
         el("p", { class: "muted" }, "Sonuç postası, ittifakı için en az \"sıralama ödülü için en az puan\" kadar kazanan her üyeye gider.")) : null,
 
-      login || model.template === "mobilization" || model.template === "trench_conquest" || model.template === "lure_trap" ? null : el("div", { class: "card" },
+      login || model.template === "mobilization" || model.template === "trench_conquest" || model.template === "lure_trap" || model.template === "abyss_siege" ? null : el("div", { class: "card" },
         el("h2", {}, "Puan kazanma yolları"),
         el("label", { class: "check" }, el("input", { type: "checkbox", checked: model.phases.length > 0, onchange: (e) => {
           model.phases = e.target.checked ? [{ title: { tr: "1. tema", en: "Theme 1" }, startHour: 0, hours: 4, actions: model.actions.length ? model.actions : [{ action: "gather", points: 1, per: 1000 }] }] : [];
@@ -670,7 +689,7 @@ async function eventEditor(root, id) {
           draw(); } }, login ? "+ gün" : "+ aşama")),
 
       login || model.template === "alliance_duel" ? null : el("div", { class: "card" },
-        el("h2", {}, model.template === "alliance" || model.template === "mobilization" || model.template === "trench_conquest" || model.template === "lure_trap" ? "Sıralama ödülleri (ittifak sırası; ödülü puan kazanan her üye postayla alır)" : "Sıralama ödülleri (bitişte postayla)"),
+        el("h2", {}, model.template === "alliance" || model.template === "mobilization" || model.template === "trench_conquest" || model.template === "lure_trap" || model.template === "abyss_siege" ? "Sıralama ödülleri (ittifak sırası; ödülü puan kazanan her üye postayla alır)" : "Sıralama ödülleri (bitişte postayla)"),
         el("table", {}, el("tbody", {}, model.rankBands.map((b, i) => el("tr", {},
           el("td", {}, el("input", { type: "number", min: "1", value: b.from, onchange: (e) => (b.from = Number(e.target.value)) }), " – ",
             el("input", { type: "number", min: "1", value: b.to, onchange: (e) => (b.to = Number(e.target.value)) }), ". sıra"),

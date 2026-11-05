@@ -163,6 +163,16 @@ Creatures rise in 20 waves against every member base. Officer picks difficulty (
 20 hit the Alliance Hub (reinforce it); waves 7, 14, 17 are elite and target online players only. Shields do not
 help; a base breached twice drops out. Points: kills at your own base 100 %, while reinforcing 50 %. No resources
 lost. Charge: clue points from scouting and monster kills, carried over.
+- **As built (E5, first cut)**: template `abyss_siege` (AbyssSiegeRules, EventService.AbyssSiege, WorldService.Siege). The
+  leader or a war-duty officer sets the start (at least 10 minutes ahead, all waves inside the event) and a difficulty of
+  1–10, or calls it off before it starts; one siege per alliance per event, `MinMembers` needed (default 5). Twenty
+  waves, two minutes apart, fight each member's troops at home plus the teams reinforcing that base (`MinReactor` 10).
+  Waves 7, 14, 17 are half again as large and hit only members online; waves 10 and 20 hit the hub, held by the teams
+  reinforcing it (no teams = lost; no hub = skipped; held pays `HubHoldPoints` per difficulty step to the alliance).
+  Everyone who falls is wounded, Med Bay room or not; shields are ignored; two breaches and a base drops out. Kills are
+  points: own base in full, reinforcing 50 %. Waves send no battle mail (twenty per base would bury the mailbox); the
+  event page shows the siege. Default schedule Sunday 00:00 UTC, 24 h. Still to come: the clue-point charge, difficulty
+  gates by reactor, a report at the end.
 
 ### 4.3 Alliance Duel (İttifak Düellosu) — server, weekly
 Matched 1-v-1 by alliance power. Day themes: 1 Gathering, 2 Base Growth, 3 Research, 4 Heroes, 5 Total

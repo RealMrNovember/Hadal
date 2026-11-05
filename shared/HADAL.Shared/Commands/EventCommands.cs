@@ -102,6 +102,32 @@ namespace HADAL.Shared.Commands
         public const string View = "view";
     }
 
+    /// <summary>
+    /// An Abyss Siege move (docs/29 §4.2, AbyssSiegeRules): the leader or a war-duty officer sets the start and the
+    /// difficulty, or calls the siege off before it starts; anyone may view.
+    /// </summary>
+    [ProtoContract]
+    public sealed class AbyssSiegeCommand : ICommand
+    {
+        [ProtoMember(1)] public string CommandId { get; set; } = string.Empty;
+        [ProtoMember(2)] public ulong ClientSequence { get; set; }
+        [ProtoMember(3)] public string EventId { get; set; } = string.Empty;
+
+        /// <summary>AbyssSiegeActions.Schedule, Cancel or View.</summary>
+        [ProtoMember(4)] public string Action { get; set; } = string.Empty;
+
+        /// <summary>Schedule: when the first wave strikes (Unix ms) and how hard (1 to AbyssSiegeRules.MaxDifficulty).</summary>
+        [ProtoMember(5)] public long StartsAtMs { get; set; }
+        [ProtoMember(6)] public int Difficulty { get; set; }
+    }
+
+    public static class AbyssSiegeActions
+    {
+        public const string Schedule = "schedule";
+        public const string Cancel = "cancel";
+        public const string View = "view";
+    }
+
     /// <summary>Claims the rank reward of an ended event.</summary>
     [ProtoContract]
     public sealed class ClaimEventRankCommand : ICommand

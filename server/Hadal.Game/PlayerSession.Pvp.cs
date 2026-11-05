@@ -310,7 +310,7 @@ namespace Hadal.Game
         /// the plunder leaves the wallet. Returns (dead, wounded).
         /// </summary>
         internal (long Dead, long Wounded) ApplyBaseLosses(IReadOnlyDictionary<string, long> lost, IReadOnlyDictionary<ResourceType, long> plunder,
-            DateTimeOffset now)
+            DateTimeOffset now, bool spare = false)
         {
             lock (_gate)
             {
@@ -326,7 +326,8 @@ namespace Hadal.Game
                     _state.Troops[pair.Key] = have - fall;
                     if (_state.Troops[pair.Key] <= 0)
                         _state.Troops.Remove(pair.Key);
-                    var hurt = Math.Min(room, fall);
+                    // PvE (an Abyss Siege) never kills: everyone who falls is wounded, Med Bay room or not.
+                    var hurt = spare ? fall : Math.Min(room, fall);
                     room -= hurt;
                     if (hurt > 0)
                         _state.Wounded[pair.Key] = (_state.Wounded.TryGetValue(pair.Key, out var w) ? w : 0) + hurt;
@@ -349,14 +350,14 @@ namespace Hadal.Game
         /// reinforcement that still has troops). Marks the battle settled. Returns (dead, wounded).
         /// </summary>
         internal (long Dead, long Wounded) SettleTeam(string marchId, DateTimeOffset at, IReadOnlyDictionary<string, long> lost,
-            IReadOnlyDictionary<ResourceType, long> plunder, bool turnHome, DateTimeOffset now)
+            IReadOnlyDictionary<ResourceType, long> plunder, bool turnHome, DateTimeOffset now, bool spare = false)
         {
             lock (_gate)
             {
                 var march = _state.Marches.FirstOrDefault(m => m.Id == marchId);
                 if (march == null)
                     return (0, 0);
-                var (dead, wounded) = TakeLosses(march, lost, AttackingTeam(march));
+                var (dead, wounded) = TakeLosses(march, lost, AttackingTeam(march), spare);
                 foreach (var pair in plunder.Where(p => p.Value > 0))
                     march.Cargo[pair.Key] = (march.Cargo.TryGetValue(pair.Key, out var c) ? c : 0) + pair.Value;
 
@@ -389,7 +390,7 @@ namespace Hadal.Game
         /// A team out on the map loses troops: they ride home wounded while the Med Bay has room, the rest die; attackers
         /// always lose a quarter of their fallen (docs/33 §2). Caller holds the lock.
         /// </summary>
-        private (long Dead, long Wounded) TakeLosses(MarchState march, IReadOnlyDictionary<string, long> lost, bool attacking)
+        private (long Dead, long Wounded) TakeLosses(MarchState march, IReadOnlyDictionary<string, long> lost, bool attacking, bool spare = false)
         {
             long dead = 0, wounded = 0;
             var room = MedBayRoom();
@@ -402,7 +403,7 @@ namespace Hadal.Game
                 march.Troops[pair.Key] = have - fall;
                 if (march.Troops[pair.Key] <= 0)
                     march.Troops.Remove(pair.Key);
-                var (d, w) = PvpRules.Split(fall, room, attacking);
+                var (d, w) = spare ? (0L, fall) : PvpRules.Split(fall, room, attacking);
                 room -= w;
                 dead += d;
                 wounded += w;

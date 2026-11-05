@@ -1168,6 +1168,13 @@ namespace Hadal.Game.Social
         }
 
         /// <summary>A player's alliance mates, leader and officers first (alliance teleports); empty without one.</summary>
+        /// <summary>Every member of an alliance (none for an unknown id).</summary>
+        public IReadOnlyList<string> MembersOf(string allianceId)
+        {
+            lock (_gate)
+                return _alliances.TryGetValue(allianceId, out var alliance) ? alliance.Members.Select(m => m.PlayerId).ToList() : Array.Empty<string>();
+        }
+
         public IReadOnlyList<string> AllianceMatesOf(string playerId)
         {
             lock (_gate)
