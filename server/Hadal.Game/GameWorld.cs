@@ -98,6 +98,7 @@ namespace Hadal.Game
                 KingdomIds = () => Kingdoms.List(_clock.UtcNow).Select(k => k.Kingdom.Id).ToList(),
                 MemberCount = Social.MemberCount,
                 AllianceRole = id => (Social.RankOf(id), Social.RoleOf(id)),
+                AllianceMembers = Social.MembersOf,
                 DuelEntrants = Social.DuelEntrants
             };
             Events.BossPosition = id => _maps.Values.Select(m => m.BossPosition(id)).FirstOrDefault(p => p != null);
@@ -443,6 +444,20 @@ namespace Hadal.Game
         }
 
         /// <summary>
+        /// The Abyss Siege waves that are due: each is fought on its kingdom's map. A wave waits for a later tick while
+        /// the offline members' sessions load (WorldService.FightSiegeWave answers null).
+        /// </summary>
+        private void RunSieges(DateTimeOffset now)
+        {
+            foreach (var wave in Events.TakeSiegeWaves(now))
+            {
+                var map = _maps.TryGetValue(wave.Kingdom, out var found) ? found : Map;
+                if (map.FightSiegeWave(wave, now) is { } result)
+                    Events.CompleteSiegeWave(result, now);
+            }
+        }
+
+        /// <summary>
         /// Event bosses that died or whose event ended: each contributor's prize (ranked by damage inside their alliance,
         /// EventBossRewards) goes out by mail. EventService marks the boss paid before anything is sent, so it pays once.
         /// </summary>
@@ -715,6 +730,15 @@ namespace Hadal.Game
             catch (Exception exception)
             {
                 _logger.LogError(exception, "Paying event bosses failed.");
+            }
+
+            try
+            {
+                RunSieges(now);
+            }
+            catch (Exception exception)
+            {
+                _logger.LogError(exception, "Running abyss sieges failed.");
             }
 
             try

@@ -34,7 +34,7 @@ namespace Hadal.UI
             Open(Page.Events);
         }
 
-        private string EventsKey() => $"{View.EventsVersion}|{View.EventRankingVersion}|{_eventId}|{View.EventCalendarVersion}|{_calendarDay}|{_previewId}|{LureKey}";
+        private string EventsKey() => $"{View.EventsVersion}|{View.EventRankingVersion}|{_eventId}|{View.EventCalendarVersion}|{_calendarDay}|{_previewId}|{LureKey}|{SiegeKey}";
 
         private long NowMs => View.ServerNowMs;
 
@@ -148,6 +148,10 @@ namespace Hadal.UI
             else if (!preview && e.Template == EventTemplates.LureTrap && e.LureTrap != null)
             {
                 LureBody(e);
+            }
+            else if (!preview && e.Template == EventTemplates.AbyssSiege && e.AbyssSiege != null)
+            {
+                SiegeBody(e);
             }
             else
             {

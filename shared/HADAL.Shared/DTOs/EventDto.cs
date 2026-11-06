@@ -102,6 +102,9 @@ namespace HADAL.Shared.DTOs
 
         /// <summary>Lure Trap: the alliance's trap (template "lure_trap").</summary>
         [ProtoMember(27)] public LureTrapDto? LureTrap { get; set; }
+
+        /// <summary>Abyss Siege: the alliance's siege (template "abyss_siege").</summary>
+        [ProtoMember(28)] public AbyssSiegeDto? AbyssSiege { get; set; }
     }
 
     /// <summary>One Mobilization task card (MobilizationRules): kind, colour tier, target and points.</summary>
@@ -321,6 +324,37 @@ namespace HADAL.Shared.DTOs
         [ProtoMember(9)] public int Tier { get; set; }
         [ProtoMember(10)] public long[] TierThresholds { get; set; } = System.Array.Empty<long>();
         [ProtoMember(11)] public bool InAlliance { get; set; }
+    }
+
+    /// <summary>The player's Abyss Siege view: where the alliance's siege stands and how the player's base is holding.</summary>
+    [ProtoContract]
+    public sealed class AbyssSiegeDto
+    {
+        [ProtoMember(1)] public bool InAlliance { get; set; }
+
+        /// <summary>The leader or a war-duty officer: may schedule and cancel.</summary>
+        [ProtoMember(2)] public bool CanSchedule { get; set; }
+        [ProtoMember(3)] public int MinMembers { get; set; }
+        [ProtoMember(4)] public int Members { get; set; }
+        [ProtoMember(5)] public int MinReactor { get; set; }
+
+        /// <summary>0 = not scheduled.</summary>
+        [ProtoMember(6)] public long StartsAtMs { get; set; }
+        [ProtoMember(7)] public int Difficulty { get; set; }
+        [ProtoMember(8)] public int WavesDone { get; set; }
+
+        /// <summary>When the next wave strikes (0 when the siege is over or not set).</summary>
+        [ProtoMember(9)] public long NextWaveAtMs { get; set; }
+
+        /// <summary>Breaches of the player's base; at AbyssSiegeRules.BreachLimit it takes no more waves.</summary>
+        [ProtoMember(10)] public int MyBreaches { get; set; }
+
+        /// <summary>Hub waves held and lost.</summary>
+        [ProtoMember(11)] public int HubHeld { get; set; }
+        [ProtoMember(12)] public int HubLost { get; set; }
+
+        /// <summary>Members whose bases dropped out.</summary>
+        [ProtoMember(13)] public int DroppedOut { get; set; }
     }
 
     /// <summary>Every event the player can see: upcoming, live and ended ones still paying out.</summary>

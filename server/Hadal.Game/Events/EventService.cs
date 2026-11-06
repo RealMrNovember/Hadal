@@ -177,7 +177,7 @@ namespace Hadal.Game.Events
         }
 
         public static bool Handles(CommandType type) => type is CommandType.ClaimEventStage or CommandType.ClaimEventRank or CommandType.ViewEventRanking
-            or CommandType.ViewEventCalendar or CommandType.MobilizationTask or CommandType.TrenchConquest or CommandType.LureTrap;
+            or CommandType.ViewEventCalendar or CommandType.MobilizationTask or CommandType.TrenchConquest or CommandType.LureTrap or CommandType.AbyssSiege;
 
         public async Task InitializeAsync(DateTimeOffset now, CancellationToken cancellationToken)
         {
@@ -441,6 +441,9 @@ namespace Hadal.Game.Events
                 case CommandType.LureTrap when TryDeserialize(envelope.Payload, out LureTrapCommand? lure):
                     HandleLure(session, lure!, now);
                     break;
+                case CommandType.AbyssSiege when TryDeserialize(envelope.Payload, out AbyssSiegeCommand? siege):
+                    HandleSiege(session, siege!, now);
+                    break;
                 default:
                     session.Acknowledge(envelope.CommandId, envelope.ClientSequence, "MalformedCommand", now);
                     break;
@@ -616,6 +619,8 @@ namespace Hadal.Game.Events
                     dto.Trench = TrenchView(live, session.PublicId, now);
                 else if (live.Def.Template == EventTemplates.LureTrap)
                     dto.LureTrap = LureView(live, session.PublicId, now);
+                else if (live.Def.Template == EventTemplates.AbyssSiege)
+                    dto.AbyssSiege = SiegeView(live, session.PublicId, now);
 
                 events.Add(dto);
             }
@@ -1002,6 +1007,7 @@ namespace Hadal.Game.Events
             def.Duel.Loss ??= new List<EventRewardConfig>();
             def.Duel.Draw ??= new List<EventRewardConfig>();
             def.DuelState ??= new DuelState();
+            def.AbyssSiege ??= new AbyssSiegeConfig();
             def.LureTrap ??= new LureTrapConfig();
             def.LureTrap.Tiers = (def.LureTrap.Tiers ?? new List<EventTierConfig>()).OrderBy(t => t.Points).ToList();
             foreach (var tier in def.LureTrap.Tiers)
@@ -1052,7 +1058,7 @@ namespace Hadal.Game.Events
                 var phases = def.Phases ?? new List<EventPhaseConfig>();
                 // Mobilization scores its tasks and Trench Conquest its fights, not an actions table.
                 if (def.Actions.Count == 0 && phases.Count == 0 && def.Template != EventTemplates.Mobilization && def.Template != EventTemplates.TrenchConquest
-                    && def.Template != EventTemplates.LureTrap)
+                    && def.Template != EventTemplates.LureTrap && def.Template != EventTemplates.AbyssSiege)
                     return "NoActions";
                 if (def.Template == EventTemplates.TrenchConquest)
                 {
@@ -1062,6 +1068,14 @@ namespace Hadal.Game.Events
                         || def.StartsAt.AddHours(t.RegisterHours + t.FirstRoundAfterHours) >= def.EndsAt)
                         return "InvalidTrench";
                 }
+                if (def.Template == EventTemplates.AbyssSiege)
+                {
+                    var a = def.AbyssSiege ?? new AbyssSiegeConfig();
+                    if (a.MinMembers is < 1 or > 200 || a.MinReactor is < 1 or > 60 || a.HubHoldPoints is < 0 or > 10_000_000
+                        || (def.EndsAt - def.StartsAt).TotalMilliseconds <= AbyssSiegeRules.LengthMs + AbyssSiegeRules.MinLeadMinutes * 60_000L)
+                        return "InvalidAbyssSiege";
+                }
+
                 if (def.Template == EventTemplates.LureTrap)
                 {
                     var l = def.LureTrap ?? new LureTrapConfig();

@@ -17,24 +17,26 @@ namespace Hadal.Game.Events
         public const string AllianceDuel = "alliance-duel";
         public const string TrenchConquest = "trench-conquest";
         public const string LureTrap = "lure-trap";
+        public const string AbyssSiege = "abyss-siege";
 
         /// <summary>Every default schedule's id (mails name their events by a localisation key "event.name.{id}").</summary>
-        public static readonly string[] Ids = { DepthRace, AllianceWeek, LoginWeek, Mobilization, AllianceDuel, TrenchConquest, LureTrap };
+        public static readonly string[] Ids = { DepthRace, AllianceWeek, LoginWeek, Mobilization, AllianceDuel, TrenchConquest, LureTrap, AbyssSiege };
 
         private static readonly int[] EveryDay = { 0, 1, 2, 3, 4, 5, 6 };
         private const int Monday = (int)DayOfWeek.Monday;
         private const int Tuesday = (int)DayOfWeek.Tuesday;
         private const int Thursday = (int)DayOfWeek.Thursday;
         private const int Saturday = (int)DayOfWeek.Saturday;
+        private const int Sunday = (int)DayOfWeek.Sunday;
 
         /// <summary>Every default schedule: what a new, empty calendar is seeded with.</summary>
-        public static List<EventSchedule> All(DateTimeOffset now) => new() { Depth(now), Alliance(now), Login(now), Mobilize(now), Duel(now), Trench(now), Lure(now) };
+        public static List<EventSchedule> All(DateTimeOffset now) => new() { Depth(now), Alliance(now), Login(now), Mobilize(now), Duel(now), Trench(now), Lure(now), Siege(now) };
 
         /// <summary>
         /// Defaults that came after the first seed (roadmap §7, E6). A calendar seeded before them gets each once
         /// (EventService.Calendar, marker "seed:{id}"), without touching the schedules it has.
         /// </summary>
-        public static List<EventSchedule> Added(DateTimeOffset now) => new() { Mobilize(now), Duel(now), Trench(now), Lure(now) };
+        public static List<EventSchedule> Added(DateTimeOffset now) => new() { Mobilize(now), Duel(now), Trench(now), Lure(now), Siege(now) };
 
         /// <summary>
         /// Depth Race (docs/29 §4.4): every day 00:00–24:00 UTC, six 4-hour themes from the existing score kinds (gathering,
@@ -510,6 +512,63 @@ namespace Hadal.Game.Events
                     Stage(2_000, Res("Titanium", 10_000)),
                     Stage(10_000, Item("speed_any_5", 2)),
                     Stage(40_000, Item("chest_bronze", 1))
+                },
+                RankBands =
+                {
+                    Band(1, 1, Res("Hadalite", 100), Item("chest_silver", 1)),
+                    Band(2, 3, Res("Hadalite", 60), Item("chest_bronze", 1)),
+                    Band(4, 10, Res("Hadalite", 25))
+                }
+            }
+        };
+
+        /// <summary>
+        /// Abyss Siege (docs/29 §4.2): Sunday 00:00 UTC for a day. The leader or a war officer sets the start and the
+        /// difficulty; twenty waves follow. Kills are the members' points (stages) and rank the alliances.
+        /// </summary>
+        private static EventSchedule Siege(DateTimeOffset now) => new()
+        {
+            Id = AbyssSiege,
+            Weekdays = new List<int> { Sunday },
+            StartMinute = 0,
+            DurationHours = 24,
+            LeadHours = 24,
+            Note = "Default: weekly Abyss Siege (twenty waves against the alliance's bases and hub)",
+            CreatedBy = EventService.CalendarAuthor,
+            CreatedAt = now,
+            UpdatedAt = now,
+            Blueprint = new EventDefinition
+            {
+                Template = EventTemplates.AbyssSiege,
+                Banner = "abyss",
+                ClaimDays = 1,
+                MinRankPoints = 1,
+                AbyssSiege = new AbyssSiegeConfig(),
+                Title = T("Derinlik Kuşatması", "Abyss Siege", "Abgrundbelagerung", "Siège des abysses", "Asedio abisal", "Assedio degli abissi", "Cerco abissal", "Afgrondbeleg", "Осада бездны", "حصار الأعماق", "深淵包囲戦", "심연 공성전", "深渊围攻", "深淵圍攻", "การล้อมห้วงลึก", "Vây hãm vực sâu", "Pengepungan Abisal", "Kepungan Abisal"),
+                Description = T(
+                    "Lider ya da savaş görevlisi saati ve zorluğu seçer. Sonra 2 dakikada bir, toplam 20 dalga yaratık her üyenin üssüne saldırır. 7., 14. ve 17. dalgalar seçkindir ve yalnızca çevrimiçi üyelere gelir; 10. ve 20. dalgalar ittifak merkezine saldırır, takviyeyle savunun. Kalkan korumaz, kaynak kaybolmaz, asker ölmez; iki kez yarılan üs kuşatmadan düşer. Kendi üssündeki öldürmeler tam, takviyedeyken yarım puan verir.",
+                    "The leader or a war officer picks the time and difficulty. Then 20 waves of creatures strike every member's base, one every 2 minutes. Waves 7, 14 and 17 are elite and hit only online members; waves 10 and 20 hit the Alliance Hub, so reinforce it. Shields do not help, no resources are lost and no troops die; a base breached twice drops out. Kills at your own base score in full, kills while reinforcing score half.",
+                    "Anführer oder Kriegsoffizier wählen Zeit und Schwierigkeit. Dann greifen alle 2 Minuten insgesamt 20 Wellen von Kreaturen die Basis jedes Mitglieds an. Die Wellen 7, 14 und 17 sind Elitewellen und treffen nur Mitglieder, die online sind; die Wellen 10 und 20 treffen die Allianzzentrale, also verstärkt sie. Schilde helfen nicht, keine Ressourcen gehen verloren, keine Truppen sterben; eine zweimal durchbrochene Basis scheidet aus. Abschüsse an der eigenen Basis zählen voll, bei Verstärkung halb.",
+                    "Le chef ou un officier de guerre choisit l'heure et la difficulté. Puis 20 vagues de créatures frappent la base de chaque membre, une toutes les 2 minutes. Les vagues 7, 14 et 17 sont d'élite et ne touchent que les membres en ligne ; les vagues 10 et 20 frappent le QG d'alliance, renforcez-le. Les boucliers n'aident pas, aucune ressource n'est perdue et aucune troupe ne meurt ; une base percée deux fois est éliminée. Les éliminations à votre base comptent en entier, en renfort à moitié.",
+                    "El líder o un oficial de guerra elige la hora y la dificultad. Luego 20 oleadas de criaturas atacan la base de cada miembro, una cada 2 minutos. Las oleadas 7, 14 y 17 son de élite y solo golpean a los miembros conectados; las oleadas 10 y 20 atacan el centro de la alianza, refuérzalo. Los escudos no ayudan, no se pierden recursos y no mueren tropas; una base rota dos veces queda fuera. Las bajas en tu base cuentan enteras; como refuerzo, la mitad.",
+                    "Il capo o un ufficiale di guerra sceglie orario e difficoltà. Poi 20 ondate di creature colpiscono la base di ogni membro, una ogni 2 minuti. Le ondate 7, 14 e 17 sono d'élite e colpiscono solo i membri online; le ondate 10 e 20 colpiscono il centro dell'alleanza, rinforzalo. Gli scudi non aiutano, non si perdono risorse e non muoiono truppe; una base sfondata due volte è fuori. Le uccisioni alla tua base contano per intero, come rinforzo la metà.",
+                    "O líder ou um oficial de guerra escolhe o horário e a dificuldade. Depois 20 ondas de criaturas atacam a base de cada membro, uma a cada 2 minutos. As ondas 7, 14 e 17 são de elite e só atingem membros online; as ondas 10 e 20 atacam o centro da aliança, reforce-o. Escudos não ajudam, nenhum recurso é perdido e nenhuma tropa morre; uma base rompida duas vezes sai do cerco. Abates na sua base contam inteiros; como reforço, metade.",
+                    "De leider of een oorlogsofficier kiest tijd en moeilijkheid. Daarna vallen 20 golven wezens de basis van elk lid aan, één per 2 minuten. Golven 7, 14 en 17 zijn elite en treffen alleen leden die online zijn; golven 10 en 20 treffen het alliantiecentrum, dus versterk het. Schilden helpen niet, er gaan geen grondstoffen verloren en er sterven geen troepen; een basis die twee keer doorbroken is, valt af. Doden bij je eigen basis tellen volledig, als versterking de helft.",
+                    "Лидер или офицер войны выбирает время и сложность. Затем 20 волн существ атакуют базу каждого участника, по одной каждые 2 минуты. Волны 7, 14 и 17 элитные и бьют только по участникам в сети; волны 10 и 20 идут на центр альянса, усильте его. Щиты не помогают, ресурсы не теряются, войска не гибнут; база, прорванная дважды, выбывает. Убийства у своей базы считаются полностью, в подкреплении наполовину.",
+                    "يختار القائد أو ضابط الحرب الوقت والصعوبة. ثم تهاجم 20 موجة من المخلوقات قاعدة كل عضو، موجة كل دقيقتين. الموجات 7 و14 و17 نخبوية ولا تصيب إلا الأعضاء المتصلين؛ والموجتان 10 و20 تهاجمان مركز التحالف، فادعمه. الدروع لا تنفع، ولا تضيع موارد ولا تموت قوات؛ والقاعدة المخترقة مرتين تخرج من الحصار. القتل في قاعدتك يُحسب كاملًا، وأثناء الدعم نصفه.",
+                    "盟主か戦争担当の幹部が時刻と難易度を決めます。その後、2分ごとに計20波のクリーチャーが全メンバーの基地を襲います。第7・14・17波は精鋭で、オンラインのメンバーだけを襲います。第10・20波は同盟本部を襲うので増援を送りましょう。シールドは効きません。資源は失われず、兵も死にません。2回突破された基地は脱落します。自分の基地での撃破は満点、増援中は半分です。",
+                    "맹주나 전쟁 담당 간부가 시간과 난이도를 정합니다. 그 후 2분마다 총 20개 파도의 생물이 모든 연맹원의 기지를 공격합니다. 7, 14, 17번째 파도는 정예로 접속 중인 연맹원만 공격하고, 10, 20번째 파도는 연맹 본부를 공격하니 지원군을 보내세요. 보호막은 소용없고 자원은 잃지 않으며 병력도 죽지 않습니다. 두 번 돌파된 기지는 탈락합니다. 자기 기지에서의 처치는 전부, 지원 중에는 절반의 점수를 얻습니다.",
+                    "盟主或战争官员选择时间和难度。之后每2分钟一波，共20波海怪进攻每位成员的基地。第7、14、17波为精英波，只攻击在线成员；第10、20波进攻联盟中心，请派兵增援。护盾无效，不会损失资源，士兵也不会阵亡；被攻破两次的基地将退出围攻。在自己基地的击杀计全分，增援时计一半。",
+                    "盟主或戰爭官員選擇時間和難度。之後每2分鐘一波，共20波海怪進攻每位成員的基地。第7、14、17波為精英波，只攻擊在線成員；第10、20波進攻聯盟中心，請派兵增援。護盾無效，不會損失資源，士兵也不會陣亡；被攻破兩次的基地將退出圍攻。在自己基地的擊殺計全分，增援時計一半。",
+                    "หัวหน้าหรือนายทหารฝ่ายสงครามเลือกเวลาและความยาก จากนั้นสัตว์ประหลาด 20 ระลอกจะโจมตีฐานของสมาชิกทุกคน ทุก 2 นาที ระลอก 7, 14 และ 17 เป็นระดับหัวกะทิและโจมตีเฉพาะสมาชิกที่ออนไลน์ ระลอก 10 และ 20 โจมตีศูนย์พันธมิตร จึงควรส่งกำลังเสริม โล่ใช้ไม่ได้ ทรัพยากรไม่หาย ทหารไม่ตาย ฐานที่ถูกเจาะสองครั้งจะออกจากการล้อม การสังหารที่ฐานตัวเองได้คะแนนเต็ม ขณะเสริมกำลังได้ครึ่งเดียว",
+                    "Thủ lĩnh hoặc sĩ quan chiến tranh chọn giờ và độ khó. Sau đó 20 đợt sinh vật tấn công căn cứ của mọi thành viên, mỗi 2 phút một đợt. Đợt 7, 14 và 17 là tinh nhuệ, chỉ đánh thành viên đang trực tuyến; đợt 10 và 20 đánh trung tâm liên minh, hãy tăng viện. Khiên không có tác dụng, không mất tài nguyên, quân không chết; căn cứ bị phá hai lần sẽ bị loại. Hạ gục ở căn cứ của mình tính đủ điểm, khi tăng viện tính một nửa.",
+                    "Pemimpin atau perwira perang memilih waktu dan tingkat kesulitan. Lalu 20 gelombang makhluk menyerang markas setiap anggota, satu tiap 2 menit. Gelombang 7, 14 dan 17 adalah elite dan hanya menyerang anggota yang online; gelombang 10 dan 20 menyerang pusat aliansi, jadi perkuat. Perisai tidak membantu, sumber daya tidak hilang dan pasukan tidak mati; markas yang ditembus dua kali tersingkir. Kill di markas sendiri dihitung penuh, saat memperkuat setengah.",
+                    "Ketua atau pegawai perang memilih masa dan kesukaran. Kemudian 20 gelombang makhluk menyerang pangkalan setiap ahli, satu setiap 2 minit. Gelombang 7, 14 dan 17 ialah elit dan hanya menyerang ahli dalam talian; gelombang 10 dan 20 menyerang pusat pakatan, jadi perkuatkan. Perisai tidak membantu, sumber tidak hilang dan tentera tidak mati; pangkalan yang ditembusi dua kali tersingkir. Bunuhan di pangkalan sendiri dikira penuh, semasa memperkuat separuh."),
+                Stages =
+                {
+                    Stage(500, Res("Titanium", 10_000)),
+                    Stage(3_000, Item("speed_any_5", 2)),
+                    Stage(15_000, Item("chest_bronze", 1))
                 },
                 RankBands =
                 {
