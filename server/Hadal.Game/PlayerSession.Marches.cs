@@ -309,7 +309,7 @@ namespace Hadal.Game
         private static bool AwaitsBattle(MarchState march) => march.Pvp is { Settled: false } p && p.Mode != PvpRules.Reinforce;
 
         /// <summary>Unloads a march that reached home. Caller holds the lock (economy step).</summary>
-        private void CompleteMarch(MarchState march)
+        private void CompleteMarch(MarchState march, DateTimeOffset at)
         {
             _state.Marches.Remove(march);
             foreach (var pair in march.Battle?.Rewards ?? new Dictionary<string, int>())
@@ -334,8 +334,10 @@ namespace Hadal.Game
             }
 
             // Gathered resources are not held back by the storage cap (docs/rehber 09 §4.7, rule 5).
+            var walletBefore = WalletSnapshot();
             foreach (var pair in cargo.Where(p => p.Value > 0))
                 WalletOps.Credit(_state.Wallet, pair.Key, pair.Value);
+            LogWalletDelta("march_loot", walletBefore, at);
             Score(EventActions.Gather, cargo.Values.Where(v => v > 0).Sum());
             _walletDirty = true;
             _marchesDirty = true;

@@ -295,7 +295,7 @@ namespace Hadal.Gateway.Admin
                 return deleted ? Results.Ok(new { ok = true }) : Results.NotFound();
             }).RequireAdmin(AdminRoles.GameMaster);
 
-            // --- Alliance polls and time-slot votes (docs/29 §5) -------------------------------
+            // --- Alliance polls and time-slot votes (docs/29 Â§5) -------------------------------
 
             api.MapPollEndpoints();
 
@@ -304,14 +304,21 @@ namespace Hadal.Gateway.Admin
             api.MapEventEndpoints();
             api.MapCalendarEndpoints();
 
-            // --- Mail (docs/29 §2.1) ----------------------------------------------------------
+            // --- Mail (docs/29 Â§2.1) ----------------------------------------------------------
 
             api.MapMailEndpoints();
             api.MapKingdomEndpoints();
 
             // --- First-session guide funnel (docs/34) ------------------------------------------
 
+            // --- Economy ledger (docs/30) ---------------------------------------------------------
+
+            api.MapEconomyFlowEndpoints();
             api.MapOnboardingEndpoints();
+
+            // --- Client crash/error reports ----------------------------------------------
+
+            api.MapClientLogEndpoints();
 
             // --- Coupons --------------------------------------------------------------------
 

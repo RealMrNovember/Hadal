@@ -28,7 +28,9 @@ namespace Hadal.Game
             var power = ComputePower();
             var recommended = ExpeditionRules.RecommendedPower(expedition, chapter, command.Stage);
             var won = power >= recommended;
+            var walletBeforeDive = WalletSnapshot();
             _state.Wallet[ResourceType.Oxygen] = oxygen - chapter.oxygen + (won ? 0 : ExpeditionRules.Refund(expedition, chapter));
+            LogWalletDelta("dive", walletBeforeDive, now);
             _walletDirty = true;
 
             var report = new DiveReportDto
@@ -75,7 +77,7 @@ namespace Hadal.Game
                 ? new ResolvedReward("item", Capsules.Id(res, r.Amount), 1)
                 : r).ToList();
             foreach (var r in rewards)
-                Grant(r);
+                Grant(r, now);
             report.Rewards = rewards.Select(r => new RewardEntryDto { Type = r.Type, Id = r.Id, Amount = r.Amount }).ToArray();
 
             SendDelta(now, new List<EntityChangeDto>

@@ -472,7 +472,7 @@ TEST_FILTER="FullyQualifiedName~EconomySafety" bash server/tests/run-ct-tests.sh
   silently skipping the store tests), and drops the database on exit.
 - The store tests refuse a connection string whose database is `hadal` (`PostgresTest`). Before 2026-10-29 the deploy
   ran them against the live database: they reset the live-ops settings, briefly published a test catalog and left
-  rows behind (see §14.7). `remote-deploy.sh` now uses its own `hadal_test_deploy_<time>` database the same way.
+  rows behind (see §14.9). `remote-deploy.sh` now uses its own `hadal_test_deploy_<time>` database the same way.
 - Leftover check (should print nothing):
   `docker exec hadal-postgres psql -U hadal_app -d postgres -Atc "SELECT datname FROM pg_database WHERE datname ~ '^hadal_(test|restore)_'"`
 
@@ -484,7 +484,7 @@ Plain `pg_dump` of the `hadal` database, without `--create` (so a restore can ne
 docker exec hadal-postgres pg_dump -U hadal_app -d hadal > /opt/hadal/backups/before-<what>-$(date +%Y%m%d-%H%M).sql
 ```
 
-Take one before every deploy that changes the schema or the catalog. There is no scheduled backup yet (§14.7).
+Take one before every deploy that changes the schema or the catalog. There is no scheduled backup yet (§14.9).
 
 ### 14.3 Restore drill (throwaway database, nothing live is changed)
 
@@ -540,13 +540,46 @@ Only when the live database is lost or corrupted. The gateway must be stopped so
 - The drill also checks that the older version still loads under today's code; a version that no longer validates
   cannot be rolled back to.
 
-### 14.6 Disbanded alliances
+### 14.6 Maintenance message flow (bakım)
+
+Putting the game in maintenance means flipping one persisted switch; clients pick it up on their next start.
+
+1. Overseer → Canlı Operasyon → **Bakım modu = Açık**, **Bakım mesajı** = short human text (≤500 chars, shown verbatim). Save.
+   Same thing with the API: `PUT /admin/api/liveops` `{ "maintenance": true, "maintenanceMessage": "…", "announcement": "…" }`
+   (GameMaster+; persisted in `hadal.live_ops`, read by `LiveOpsCache` on every manifest request).
+2. Verify from the host (the gateway binds 127.0.0.1:19001 and is not proxied through the public vhost):
+   `ssh doku` then `curl -fs http://127.0.0.1:19001/manifest/version.json`
+   must show `"maintenance":true` and your message. The public `hadal.cicibyte.com/manifest/version.json` is intentionally not routed (404 is expected).
+3. Behaviour:
+   - New client starts: manifest check fails with the maintenance verdict → title screen shows the message (`title.maintenance` / `ServerMaintenanceEvent`), no socket is opened, client retries every ~60 s.
+   - Already-connected players are NOT kicked: the manifest is read only at connect; the world keeps running. If the maintenance includes a schema or catalog change, reconnect happens anyway at deploy time.
+   - `minClientVersion` / `latestClientVersion` in the same panel can force an update instead of maintenance (OTA). Do not set both "force update" and maintenance expecting both to show.
+4. Take maintenance down the same way (**Bakım modu = Kapalı**, message cleared). Verify the manifest again.
+5. Gotcha found 2026-10-29: deploy-time tests briefly set maintenance on and then reset the whole live-ops row, wiping any live announcement. After every deploy, check Overseer → Canlı Operasyon and re-enter the announcement if it is gone (see §14.9).
+6. Env alternative `HADAL_MAINTENANCE=true` works for a gateway started with it (or via `docker-compose.hadal.yml`), but the Overseer switch is the day-to-day tool — the env flag ORs with the stored one and cannot be cleared from the panel.
+
+Automated coverage: `AdminApiTests.LiveOps_DriveTheManifest` (toggle on → manifest shows it → toggle off). Switch is expected to be **off** in production outside maintenance windows.
+
+### 14.7 Disbanded alliances
 
 Documents of an alliance (`hadal.alliance_docs` keys `a:<allianceId>:log|battle|gifts|research|kills`) are deleted
 when the last member leaves, and on every start-up any left without an alliance are deleted. A player's own purse
 (`p:<playerId>:coins`) stays. Nothing to do by hand.
 
-### 14.7 Open items
+### 14.8 Economy ledger (`hadal.economy_events`)
+
+- Every wallet mutation since the Overseer economy telemetry rollout appends a row:
+  `(player_id, source, resource, amount, at)` with a **signed** `amount` (positive = faucet, negative = sink).
+  `player_id` is `Guid.ToString("N")`, not the account.
+- Written fire-and-forget from `EconomyFlowLog`; failures are logged, never block play.
+  Table and `economy_events_at` index are created at gateway start (`GameTickService` → `Economy.InitializeAsync` →
+  `PostgresSchema.ApplyAsync`, idempotent). A plain `pg_dump` includes the table — no manual migration step.
+- Read by Overseer `GET /admin/api/economy/flow?days=1..365` (Viewer role, `days` clamped to 1…365) and shown on the
+  "Ekonomi Akış" page. Loads at most 500k events per query, aggregates in memory.
+- Verify from the host like any other endpoint: `ssh doku` → `curl -fs "http://127.0.0.1:19001/admin/api/economy/flow?days=7"` (needs an admin session cookie).
+- Live `hadal.economy_events` is **read-only for humans**; tests that touch Postgres use throwaway `hadal_test_*` DBs (§14.1).
+
+### 14.9 Open items
 
 - Traces of the old deploy-time tests in the live database (found read-only on 2026-10-29): 45 `admin_audit` rows
   with action `test` by `pg-…` admins (2026-10-25 → 2026-10-29 19:17), and the `catalog_versions` sequence stands at
@@ -558,6 +591,6 @@ when the last member leaves, and on every start-up any left without an alliance 
 
 ---
 
-**Document Version:** 3.1  
-**Last Updated:** 2026-06-19  
+**Document Version:** 3.2  
+**Last Updated:** 2026-11-05  
 **Owner:** HADAL Platform Team

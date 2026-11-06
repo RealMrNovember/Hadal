@@ -21,13 +21,15 @@ namespace Hadal.Game
             lock (_gate)
             {
                 AdvanceTo(now);
+                var walletBefore = WalletSnapshot();
                 ApplyGrant(_state, amounts, asPackages: true, items);
+                LogWalletDelta("mail_attachment", walletBefore, now);
                 _walletDirty = true;
                 // Hero cards (event rewards) go to the hero, or wait as cards until it is recruited.
                 var cards = (shards ?? new Dictionary<string, long>()).Where(p => p.Value > 0 && _catalog.TryGetHero(p.Key, out _))
                     .Select(p => new ResolvedReward("shards", p.Key, p.Value)).ToList();
                 foreach (var card in cards)
-                    Grant(card);
+                    Grant(card, now);
                 var rewards = items.Select(p => new ResolvedReward("item", p.Key, p.Value))
                     .Concat(amounts.Where(p => p.Value > 0).Select(p => Capsules.Holds(p.Key)
                         ? new ResolvedReward("item", Capsules.Id(p.Key, p.Value), 1)
@@ -62,11 +64,13 @@ namespace Hadal.Game
                         return "InsufficientResources";
                 }
 
+                var walletBefore = WalletSnapshot();
                 foreach (var pair in amounts)
                 {
                     _state.Wallet[pair.Key] -= pair.Value;
                     _state.MailSent[pair.Key] = MailSentToday(pair.Key) + pair.Value;
                 }
+                LogWalletDelta("mail_sent", walletBefore, now);
 
                 _state.MailsSent++;
                 _state.IsDirty = true;
@@ -83,12 +87,14 @@ namespace Hadal.Game
         {
             lock (_gate)
             {
+                var walletBefore = WalletSnapshot();
                 foreach (var pair in amounts)
                 {
                     WalletOps.Credit(_state.Wallet, pair.Key, pair.Value);
                     if (_state.MailDay == MailRules.Day(now))
                         _state.MailSent[pair.Key] = Math.Max(0, MailSentToday(pair.Key) - pair.Value);
                 }
+                LogWalletDelta("refund", walletBefore, now);
 
                 if (_state.MailDay == MailRules.Day(now))
                     _state.MailsSent = Math.Max(0, _state.MailsSent - 1);

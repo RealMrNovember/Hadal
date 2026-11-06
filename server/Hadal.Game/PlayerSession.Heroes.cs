@@ -51,7 +51,7 @@ namespace Hadal.Game
                     return;
                 }
 
-                BuildingProgression.Charge(cost, _state.Wallet);
+                Spend("gacha", cost, now);
             }
             else
             {
@@ -108,7 +108,7 @@ namespace Hadal.Game
                 return;
             }
 
-            BuildingProgression.Charge(HeroRules.LevelCost(_catalog, hero!, owned!.Level), _state.Wallet);
+            Spend("hero", HeroRules.LevelCost(_catalog, hero!, owned!.Level), now);
             owned.Level += 1;
             Record("heroTrain");
             Score(EventActions.HeroLevel, 1);

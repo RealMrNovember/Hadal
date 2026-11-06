@@ -16,7 +16,7 @@ namespace Hadal.Game
         /// Removes copies above the limit for the current reactor level and refunds their full cost. Returns the
         /// refunds (empty when the base was within its limits). Caller holds the lock.
         /// </summary>
-        private List<ResolvedReward> EnforceBuildingLimits()
+        private List<ResolvedReward> EnforceBuildingLimits(DateTimeOffset at)
         {
             var refunds = new Dictionary<ResourceType, long>();
             var reactor = ReactorLevel();
@@ -45,6 +45,7 @@ namespace Hadal.Game
                 }
             }
 
+            var walletBeforeEnforce = WalletSnapshot();
             var rewards = new List<ResolvedReward>();
             foreach (var pair in refunds.Where(p => p.Value > 0))
             {
@@ -61,6 +62,7 @@ namespace Hadal.Game
                     rewards.Add(new ResolvedReward("resource", pair.Key.ToString(), pair.Value));
                 }
             }
+            LogWalletDelta("refund", walletBeforeEnforce, at);
 
             if (rewards.Count > 0)
                 RefreshModifiers();
@@ -81,7 +83,7 @@ namespace Hadal.Game
         internal List<ResolvedReward> EnforceBuildingLimitsForTests()
         {
             lock (_gate)
-                return EnforceBuildingLimits();
+                return EnforceBuildingLimits(DateTimeOffset.UtcNow);
         }
     }
 }

@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using Hadal.Game.Economy;
 using Hadal.Game.Events;
 using Hadal.Game.Kingdoms;
 using HADAL.Shared.DTOs;
@@ -69,6 +70,7 @@ namespace Hadal.Game
             IEventStore? eventStore = null,
             IMailStore? mailStore = null,
             IOnboardingStore? onboardingStore = null,
+            IEconomyFlowStore? economyStore = null,
             IKingdomStore? kingdomStore = null)
         {
             _runtime = runtime;
@@ -110,6 +112,7 @@ namespace Hadal.Game
             Social.MailTo = (ids, title, body) => _ = Task.Run(() => Mail.SendAsync(ids,
                 new MailDraft(MailKinds.Alliance, "HADAL", title, body, new MailAttachments()), _clock.UtcNow, CancellationToken.None));
             Onboarding = new OnboardingLog(onboardingStore ?? new InMemoryOnboardingStore(), logger);
+            Economy = new EconomyFlowLog(economyStore ?? new InMemoryEconomyFlowStore(), logger);
             Push = new PushService(clock, logger)
             {
                 IsOnline = id => _byPublic.TryGetValue(id, out var s) && s.Connection != null,
@@ -158,6 +161,9 @@ namespace Hadal.Game
 
         /// <summary>The first-session guide's funnel log (docs/34).</summary>
         public OnboardingLog Onboarding { get; }
+
+        /// <summary>Every player's wallet movement, for the Overseer's faucet/sink view (docs/30).</summary>
+        public EconomyFlowLog Economy { get; }
 
         /// <summary>The mailbox: system, Overseer, event and alliance mails with attachments (docs/29 §2.1).</summary>
         public MailService Mail { get; }
@@ -314,7 +320,10 @@ namespace Hadal.Game
                 var state = await _repository.LoadByIdentityAsync(identityKey, cancellationToken);
                 if (state == null)
                     return "UnknownPlayer";
+                var walletBefore = new Dictionary<ResourceType, long>(state.Wallet);
                 var reason = PlayerSession.PayRename(state, now);
+                if (reason == null)
+                    RecordWalletDiff(state.PlayerId.ToString("N"), "rename", walletBefore, state.Wallet, now);
                 if (reason != null)
                     return reason;
                 state.ExtrasJson = PlayerExtras.Write(state);
@@ -375,7 +384,9 @@ namespace Hadal.Game
                 var state = await _repository.LoadByIdentityAsync(identityKey, cancellationToken);
                 if (state == null)
                     return false;
+                var walletBefore = new Dictionary<ResourceType, long>(state.Wallet);
                 PlayerSession.ApplyPurchase(state, pack);
+                RecordWalletDiff(state.PlayerId.ToString("N"), "purchase", walletBefore, state.Wallet, _clock.UtcNow);
                 state.ExtrasJson = PlayerExtras.Write(state);
                 await _repository.SaveAsync(state, cancellationToken);
                 Social.DropGift(state.PlayerId.ToString("N"), AllianceGiftRules.Purchase, pack.Hadalite, _clock.UtcNow);
@@ -402,8 +413,9 @@ namespace Hadal.Game
                 var state = await _repository.LoadByIdentityAsync(identityKey, cancellationToken);
                 if (state == null)
                     return false;
-
+                var walletBefore = new Dictionary<ResourceType, long>(state.Wallet);
                 PlayerSession.ApplyGrant(state, amounts, asPackages, items);
+                RecordWalletDiff(state.PlayerId.ToString("N"), "grant", walletBefore, state.Wallet, _clock.UtcNow);
                 // Packages live in the extras document: write it again or the bag change is lost on save.
                 state.ExtrasJson = PlayerExtras.Write(state);
                 await _repository.SaveAsync(state, cancellationToken);
@@ -564,7 +576,7 @@ namespace Hadal.Game
                     var state = await _repository.LoadByIdentityAsync(identityKey, cancellationToken)
                                 ?? await CreatePlayerAsync(identityKey, cancellationToken);
 
-                    session = new PlayerSession(state, _runtime, _serializer) { OnboardingLog = Onboarding.Record };
+                    session = new PlayerSession(state, _runtime, _serializer) { OnboardingLog = Onboarding.Record, EconomyLog = Economy.Record };
                     await JoinKingdomAsync(session, _clock.UtcNow, cancellationToken);
                     _sessions[identityKey] = session;
                     _byPublic[session.PublicId] = session;
@@ -764,7 +776,7 @@ namespace Hadal.Game
                     var state = await _repository.LoadByIdentityAsync(identity, cancellationToken);
                     if (state == null)
                         return;
-                    var session = new PlayerSession(state, _runtime, _serializer) { OnboardingLog = Onboarding.Record };
+                    var session = new PlayerSession(state, _runtime, _serializer) { OnboardingLog = Onboarding.Record, EconomyLog = Economy.Record };
                     await JoinKingdomAsync(session, _clock.UtcNow, cancellationToken);
                     _sessions[identity] = session;
                     _byPublic[session.PublicId] = session;
@@ -842,6 +854,8 @@ namespace Hadal.Game
 
             foreach (var pair in _catalog.StartingWallet())
                 state.Wallet[pair.Key] = pair.Value;
+            foreach (var pair in state.Wallet)
+                Economy.Record(new EconomyFlowEvent(state.PlayerId.ToString("N"), "starting_wallet", pair.Key.ToString(), pair.Value, _clock.UtcNow));
 
             await _repository.CreateAsync(state, cancellationToken);
 
@@ -866,6 +880,29 @@ namespace Hadal.Game
 
             _logger.LogInformation("Created player {PlayerId} for identity {IdentityKey}.", state.PlayerId, identityKey);
             return state;
+        }
+
+        private void RecordWalletDiff(string playerId, string source, IReadOnlyDictionary<ResourceType, long> before,
+            IReadOnlyDictionary<ResourceType, long> after, DateTimeOffset at)
+        {
+            var keys = new HashSet<ResourceType>(before.Keys);
+            foreach (var key in after.Keys)
+                keys.Add(key);
+
+            foreach (var key in keys)
+            {
+                var beforeValue = before.TryGetValue(key, out var old) ? old : 0;
+                var afterValue = after.TryGetValue(key, out var current) ? current : 0;
+                var delta = SaturatedDelta(afterValue, beforeValue);
+                if (delta != 0)
+                    Economy.Record(new EconomyFlowEvent(playerId, source, key.ToString(), delta, at));
+            }
+        }
+
+        private static long SaturatedDelta(long after, long before)
+        {
+            var delta = (Int128)after - before;
+            return delta > long.MaxValue ? long.MaxValue : delta < long.MinValue ? long.MinValue : (long)delta;
         }
     }
 }

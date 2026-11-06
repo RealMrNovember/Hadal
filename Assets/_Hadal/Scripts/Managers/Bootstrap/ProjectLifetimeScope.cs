@@ -60,6 +60,7 @@ namespace Hadal.Managers.Bootstrap
 
             builder.RegisterEntryPoint<CommandReconciliationSystem>();
             builder.RegisterEntryPoint<NetworkStateReceiver>();
+            builder.RegisterEntryPoint<ClientLogger>();
 
             // The real server (CT 160 gateway) owns placement and the economy. The in-process
             // stub server is opt-in for offline dev loops (GameConfigSO.UseLocalSimulation /

@@ -100,7 +100,9 @@ namespace Hadal.Game
         {
             lock (_gate)
             {
+                var walletBefore = WalletSnapshot();
                 ApplyPurchase(_state, pack);
+                LogWalletDelta("purchase", walletBefore, now);
                 RefreshModifiers();
                 _walletDirty = true;
                 SendDelta(now, new List<EntityChangeDto> { WalletChange(), VipChange(now), ProductionChange(now) });
@@ -126,7 +128,9 @@ namespace Hadal.Game
                 var price = TeleportRules.HadaliteFor(mode);
                 if ((_state.Wallet.TryGetValue(ResourceType.Hadalite, out var hadalite) ? hadalite : 0) < price)
                     return "NotEnoughHadalite";
+                var walletBefore = WalletSnapshot();
                 _state.Wallet[ResourceType.Hadalite] = hadalite - price;
+                LogWalletDelta("teleport", walletBefore, now);
                 _state.IsDirty = true;
                 Score(EventActions.HadaliteSpent, price);
                 SendDelta(now, new List<EntityChangeDto> { WalletChange() });

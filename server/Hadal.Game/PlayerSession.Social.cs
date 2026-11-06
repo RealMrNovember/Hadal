@@ -67,7 +67,7 @@ namespace Hadal.Game
         }
 
         /// <summary>Charges <paramref name="cost"/> if affordable and pushes the wallet.</summary>
-        internal bool TryCharge(IReadOnlyList<KeyValuePair<HADAL.Shared.Enums.ResourceType, long>> cost, DateTimeOffset now)
+        internal bool TryCharge(IReadOnlyList<KeyValuePair<HADAL.Shared.Enums.ResourceType, long>> cost, DateTimeOffset now, string source = "alliance")
         {
             lock (_gate)
             {
@@ -76,7 +76,7 @@ namespace Hadal.Game
                 if (cost.Any(p => p.Value < 0) || !BuildingProgression.CanAfford(cost, _state.Wallet))
                     return false;
 
-                BuildingProgression.Charge(cost, _state.Wallet);
+                Spend(source, cost, now);
                 _state.IsDirty = true;
                 SendDelta(now, new List<EntityChangeDto> { WalletChange() });
                 return true;

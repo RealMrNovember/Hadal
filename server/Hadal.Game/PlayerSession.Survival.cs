@@ -261,7 +261,7 @@ namespace Hadal.Game
                 return;
             }
 
-            BuildingProgression.Charge(cost, _state.Wallet);
+            Spend("repair", cost, now);
             var seconds = Math.Max(0, SurvivalCatalog.emergencies.repairSeconds);
             if (seconds == 0)
             {

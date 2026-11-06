@@ -67,7 +67,7 @@ namespace Hadal.Game
                 AdvanceTo(now);
                 EnsureOnboarding(now);
                 // A base built before the copy limits applied is brought within them first.
-                var refunds = EnforceBuildingLimits();
+                var refunds = EnforceBuildingLimits(now);
                 _lastReplicatedAt = now;
                 _lastReplicatedTick = _state.ServerTick;
                 _walletDirty = false;
@@ -299,7 +299,7 @@ namespace Hadal.Game
                 EnsureStarterHero();
                 RefreshModifiers();
                 var before = _state.Buildings.Select(b => b.BuildingId).ToList();
-                var refunds = EnforceBuildingLimits();
+                var refunds = EnforceBuildingLimits(now);
                 var changes = new List<EntityChangeDto> { WalletChange(), ProductionChange(now), ResearchChange(now), HeroesChange(now) };
                 if (refunds.Count > 0)
                 {
@@ -358,7 +358,9 @@ namespace Hadal.Game
             lock (_gate)
             {
                 AdvanceTo(now);
+                var walletBefore = WalletSnapshot();
                 ApplyGrant(_state, amounts, asPackages, items);
+                LogWalletDelta("grant", walletBefore, now);
                 _state.IsDirty = true;
                 SendDelta(now, new List<EntityChangeDto> { WalletChange(), InventoryChange(), ProductionChange(now) });
             }
@@ -462,7 +464,7 @@ namespace Hadal.Game
             }
 
             _catalog.TryGetBuilding(command.BuildingDefinitionId, out var definition);
-            BuildingProgression.Charge(BuildingProgression.Cost(definition, 1, _catalog.Progression), _state.Wallet);
+            Spend("building", BuildingProgression.Cost(definition, 1, _catalog.Progression), now);
             var seconds = Slowed(_modifiers.BuildSeconds(BuildingProgression.Seconds(definition, 1, _catalog.Progression)), now);
 
             // A new building works only once its first construction completes (level 0 until then).
@@ -515,7 +517,7 @@ namespace Hadal.Game
 
             _catalog.TryGetBuilding(building.DefinitionId, out var definition);
             var target = building.Level + 1;
-            BuildingProgression.Charge(BuildingProgression.Cost(definition, target, _catalog.Progression), _state.Wallet);
+            Spend("building", BuildingProgression.Cost(definition, target, _catalog.Progression), now);
             var seconds = Slowed(_modifiers.BuildSeconds(BuildingProgression.Seconds(definition, target, _catalog.Progression)), now);
 
             Record("upgrade");
@@ -585,7 +587,9 @@ namespace Hadal.Game
 
             // Cancelling a first construction refunds it all; a finished building gives back a share.
             var refund = BaseRules.Refund(definition, building.IsUnderConstruction ? 0 : building.Level, _catalog.Progression);
+            var walletBefore = WalletSnapshot();
             WalletOps.Add(_state.Wallet, refund.ToDictionary(p => p.Key, p => p.Value), Capacities());
+            LogWalletDelta("refund", walletBefore, now);
 
             _state.Buildings.Remove(building);
             _state.UnsavedBuildings.Remove(building);
@@ -648,7 +652,7 @@ namespace Hadal.Game
             }
 
             _catalog.TryGetRingUnlock(command.Ring, out var unlock);
-            BuildingProgression.Charge(unlock.Cost, _state.Wallet);
+            Spend("unlock", unlock.Cost, now);
             _state.UnlockedRings = command.Ring;
             _state.IsDirty = true;
 
@@ -675,7 +679,7 @@ namespace Hadal.Game
 
             _catalog.TryGetResearch(command.NodeId, out var node);
             var target = (_state.ResearchLevels.TryGetValue(node.Id, out var level) ? level : 0) + 1;
-            BuildingProgression.Charge(ResearchRules.Cost(node, target, _catalog.Research), _state.Wallet);
+            Spend("research", ResearchRules.Cost(node, target, _catalog.Research), now);
             var seconds = Slowed(_modifiers.ResearchSeconds(ResearchRules.BaseSeconds(node, target, _catalog.Research)), now);
 
             Record("research");
@@ -728,7 +732,7 @@ namespace Hadal.Game
                 return;
             }
 
-            BuildingProgression.Charge(_catalog.BoostCost, _state.Wallet);
+            Spend("boost", _catalog.BoostCost, now);
             building!.BoostEndsAt = now.AddSeconds(Math.Max(1, _catalog.Boost.seconds));
             Record("boost");
             _state.IsDirty = true;
@@ -845,7 +849,7 @@ namespace Hadal.Game
 
                     if (building.MissionEndsAt <= at)
                     {
-                        reports.Add(CompleteSalvage(building));
+                        reports.Add(CompleteSalvage(building, at));
                         changed = true;
                     }
 
@@ -857,7 +861,7 @@ namespace Hadal.Game
                     reports.Add(Fight(march));
 
                 foreach (var march in _state.Marches.Where(m => m.HomeAt <= at && !AwaitsBattle(m)).ToList())
-                    CompleteMarch(march);
+                    CompleteMarch(march, at);
 
                 foreach (var training in _state.Training.Where(t => t.EndsAt <= at).ToList())
                     CompleteTraining(training);
@@ -963,7 +967,7 @@ namespace Hadal.Game
         }
 
         /// <summary>Delivers a finished salvage run (capped at storage) and returns its report.</summary>
-        private EntityChangeDto CompleteSalvage(PlacedBuilding building)
+        private EntityChangeDto CompleteSalvage(PlacedBuilding building, DateTimeOffset at)
         {
             var rewards = new Dictionary<ResourceType, long>();
             if (_catalog.TryGetSalvageMission(building.MissionId, out var mission))
@@ -973,7 +977,9 @@ namespace Hadal.Game
                 var hadalite = BuildingFunctions.SalvageHadalite(mission, building.MissionSeed);
                 if (hadalite > 0)
                     rewards[ResourceType.Hadalite] = (rewards.TryGetValue(ResourceType.Hadalite, out var h) ? h : 0) + hadalite;
+                var walletBeforeSalvage = WalletSnapshot();
                 WalletOps.Add(_state.Wallet, rewards, Capacities());
+                LogWalletDelta("salvage", walletBeforeSalvage, at);
                 _walletDirty = true;
             }
 
@@ -1012,7 +1018,9 @@ namespace Hadal.Game
                 ? until
                 : _state.LastSimulatedAt.AddSeconds(SimulationTick.SecondsFromTicks(granted));
 
+            var walletBefore = WalletSnapshot();
             AdvanceStores(from, granted);
+            TrackProductionDelta(walletBefore, until);
             _state.ServerTick += granted;
             _state.IsDirty = true;
         }

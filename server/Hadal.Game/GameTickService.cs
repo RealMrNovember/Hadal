@@ -1,4 +1,5 @@
 using Hadal.Game.Persistence;
+using Hadal.Game.Telemetry;
 using HADAL.Shared.Simulation;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -16,23 +17,28 @@ namespace Hadal.Game
         private readonly IPlayerRepository _repository;
         private readonly GameOptions _options;
         private readonly ILogger<GameTickService> _logger;
+        private readonly IClientLogStore _clientLog;
 
-        public GameTickService(GameWorld world, IPlayerRepository repository, IOptions<GameOptions> options, ILogger<GameTickService> logger)
+        public GameTickService(GameWorld world, IPlayerRepository repository, IOptions<GameOptions> options,
+            ILogger<GameTickService> logger, IClientLogStore clientLog)
         {
             _world = world;
             _repository = repository;
             _options = options.Value;
             _logger = logger;
+            _clientLog = clientLog;
         }
 
         public override async Task StartAsync(CancellationToken cancellationToken)
         {
             await _repository.InitializeAsync(cancellationToken);
+            await _clientLog.InitializeAsync(cancellationToken);
             await _world.Social.InitializeAsync(cancellationToken);
             await _world.InitializeWorldAsync(cancellationToken);
             await _world.Events.InitializeAsync(DateTimeOffset.UtcNow, cancellationToken);
             await _world.Mail.InitializeAsync(DateTimeOffset.UtcNow, cancellationToken);
             await _world.Onboarding.InitializeAsync(cancellationToken);
+            await _world.Economy.InitializeAsync(cancellationToken);
             await base.StartAsync(cancellationToken);
         }
 

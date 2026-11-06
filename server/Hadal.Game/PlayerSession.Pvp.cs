@@ -334,8 +334,10 @@ namespace Hadal.Game
                     dead += fall - hurt;
                 }
 
+                var walletBeforePlunder = WalletSnapshot();
                 foreach (var pair in plunder.Where(p => p.Value > 0))
                     _state.Wallet[pair.Key] = Math.Max(0, (_state.Wallet.TryGetValue(pair.Key, out var have) ? have : 0) - pair.Value);
+                LogWalletDelta("plunder", walletBeforePlunder, now);
                 _walletDirty = true;
                 _state.IsDirty = true;
                 SendDelta(now, new List<EntityChangeDto> { ArmyChange(now), WalletChange(), ProductionChange(now) });
@@ -535,7 +537,9 @@ namespace Hadal.Game
                 }
                 else
                 {
+                    var walletBeforeShield = WalletSnapshot();
                     _state.Wallet[ResourceType.Hadalite] = hadalite - price;
+                    LogWalletDelta("shield", walletBeforeShield, now);
                     Score(EventActions.HadaliteSpent, price);
                     changes.Add(WalletChange());
                 }

@@ -15,6 +15,7 @@ namespace Hadal.Gateway.Auth
         private const string RefreshPolicy = "auth-refresh";
         private const string TransferPolicy = "auth-transfer";
         private const string AccountPolicy = "account";
+        private const string TelemetryPolicy = "telemetry";
 
         public static IServiceCollection AddHadalAuth(this IServiceCollection services, IConfiguration configuration)
         {
@@ -46,6 +47,9 @@ namespace Hadal.Gateway.Auth
 
                 limiter.AddPolicy(AccountPolicy, context => RateLimitPartition.GetFixedWindowLimiter(ClientIp(context),
                     _ => new FixedWindowRateLimiterOptions { PermitLimit = 30, Window = TimeSpan.FromMinutes(1) }));
+
+                limiter.AddPolicy(TelemetryPolicy, context => RateLimitPartition.GetFixedWindowLimiter(ClientIp(context),
+                    _ => new FixedWindowRateLimiterOptions { PermitLimit = 60, Window = TimeSpan.FromMinutes(1) }));
             });
 
             return services;
@@ -221,7 +225,7 @@ namespace Hadal.Gateway.Auth
         private static async Task<bool> IsBannedAsync(string accountId, IAdminStore admin, IClock clock, CancellationToken ct) =>
             Guid.TryParse(accountId, out var id) && await admin.GetActiveBanAsync(id, clock.UtcNow, ct) != null;
 
-        private static async Task<Guid?> AuthenticateAsync(HttpContext http, TokenService tokens)
+        internal static async Task<Guid?> AuthenticateAsync(HttpContext http, TokenService tokens)
         {
             var header = http.Request.Headers.Authorization.ToString();
             const string prefix = "Bearer ";

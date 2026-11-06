@@ -395,7 +395,7 @@ ON CONFLICT (id) DO UPDATE SET world_id = EXCLUDED.world_id, alliance_id = EXCLU
                 return "StarterZone";
             if (!FreeForStructure(x, y))
                 return "TileTaken";
-            if (!session.TryCharge(new[] { new KeyValuePair<ResourceType, long>(ResourceType.Titanium, AllianceLandRules.BeaconCost(placed)) }, now))
+            if (!session.TryCharge(new[] { new KeyValuePair<ResourceType, long>(ResourceType.Titanium, AllianceLandRules.BeaconCost(placed)) }, now, "beacon"))
                 return "InsufficientResources";
             Add(new AllianceStructure
             {
@@ -466,7 +466,7 @@ ON CONFLICT (id) DO UPDATE SET world_id = EXCLUDED.world_id, alliance_id = EXCLU
             for (var l = hub.Level; l < AllianceLandRules.MaxHubLevel; l++)
                 room += AllianceLandRules.HubPoints(l);
             amount = Math.Min(amount, room - hub.Points);
-            if (!session.TryCharge(new[] { new KeyValuePair<ResourceType, long>(type, amount) }, now))
+            if (!session.TryCharge(new[] { new KeyValuePair<ResourceType, long>(type, amount) }, now, "alliance_gift"))
                 return "InsufficientResources";
             hub.Points += amount;
             while (hub.Level < AllianceLandRules.MaxHubLevel && hub.Points >= AllianceLandRules.HubPoints(hub.Level))

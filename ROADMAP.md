@@ -1,6 +1,6 @@
 # HADAL — Proje Yol Haritası
 
-**Güncelleme:** 2026-10-30
+**Güncelleme:** 2026-11-05
 **Yayındaki sürüm:** istemci **0.9.10** (Android, `hadal.cicibyte.com/download/hadal.apk`); sunucu `main` @ `eb35db5` (Doku; 2026-11-01'den beri DL380 CT 160 yerine), katalog v13 (canlı v60). 0.9.10 (ilk derleme Doku'nun yeni anahtarıyla imzalandığı için geri çekildi; DL380'den kurtarılan eski anahtarla yeniden imzalandı): Yem Kapanı (docs/29 §4.1; salı ve cumartesi 48 saat, iki kapan, ittifaka özel Yutucu, hasar kademeleri), Hendek Fethi ve Yem Kapanı yönetim paneli formları. 0.9.9: 13 binaya daha I–III. katman görünümü (toplam 42 katman modeli; Zırh Atölyesi ile 8 GB karta sığmayan 13 katman alt katmanın modelini kullanır). 0.9.8: Hendek Fethi (docs/29 §4.6), binalar ücretsiz taşınır ya da seviyesini koruyarak yer değiştirir, üs halkaları 7 m aralıklı (binalar artık üst üste binmiyor), Çekirdek Reaktör seviyesine göre görünüm değiştirir (docs/rehber/04_bina_evrimi.md; I, IV, V, VI. katman modelli). 0.9.7: Seferberlik, İttifak Düellosu, etkinlik ödülleri postayla (docs/29 E6). 0.9.6: haftalık etkinlik takvimi ve takvim sekmesi, ittifak görev izinleri, oylamalar, zaman dilimi oylaması, lider devri (docs/29 E2). 0.9.5: bütün arayüz Last Asylum pencere düzeninde (`docs/41`), krallıklar, sekmeli posta, telefon bildirimleri.
 **Sürüm kuralı:** Oyun 1.0'a kadar **0.x** ile ilerler. Android sürüm kodu `1.000.000 + major·10000 + minor·100 + patch`.
 
@@ -62,11 +62,11 @@ Ayrıntılar aşağıda, aynı sırayla.
 - ✅ Zamanlayıcılar (`9d27726`, `TimerSafetyTests`): inşaat, araştırma, eğitim, iyileştirme, sefer, kalkan ve etkinlik uygulama kapalıyken sunucu saatiyle biter; erken talep ve sunucu saatinin ileri ya da geri sıçraması hiçbir şeyi iki kez ödemez. İstemci saati hiçbir şeye karışmaz.
 - ✅ Ağ (`9d27726`, `NetworkResilienceTests`): gerçek ağ geçidi üzerinden kopan bağlantı, yeniden bağlanınca tekrar gönderilen komut, zaman aşımı sonrası çift zarf, eski ve yeni soketten aynı komut. Oyuncu hiçbir şeyi iki kez ödemez.
 - ⬜ Mobil: düşük bellek, eski cihaz, arka plan/ön plan geçişi. Kritik çökme ve UI taşması yok.
-- ⬜ Hata ve çökme izleme, temel analitik: oturum, ilerleme hunisi, ekonomi akışı.
+- 🟡 Hata ve çökme izleme, temel analitik: ✅ istemci hata izleme (clientlog: `POST /telemetry/clientlog` → Postgres, Overseer "İstemci Hataları" sayfası; Unity `ClientLogger` 60 sn/10 kayıt flush, kuyruk ≤100; tam suite 473/473) · ✅ oturum hunisi (`onboarding_events` + Overseer "İlk Oturum Hunisi") · ✅ ekonomi akışı panosu (`hadal.economy_events` + Overseer "Ekonomi Akış" sayfası, runbook §14.8; tam suite 477/477).
 - 🟡 Operasyon (el kitabı: `docs/HADAL_SERVER_INFRASTRUCTURE.md` §14):
   - ✅ yedekten geri yükleme provası (`a803c24`, 29.10.2026 denendi: `server/tests/run-restore-drill.sh`)
   - ✅ denge geri alma provası (aynı prova; yeniden başlatmada `HADAL_PUBLISH_CATALOG_UP_TO` sabitlenmeli)
-  - ⬜ bakım mesajı akışı
+  - ✅ bakım mesajı akışı (runbook §14.6: Overseer anahtarı → manifest → istemci title ekranı + 60 sn yeniden deneme; `AdminApiTests.LiveOps_DriveTheManifest`; deploy sonrası duyuru silinmesi uyarısı §14.9)
   - ✅ dağılan ittifak belgelerinin temizlenmesi (`1607453`)
 - ✅ Postgres mağaza testleri CT'de gerçekten çalışıyor (`a803c24`): her koşu `hadal-postgres` içinde geçici bir veritabanı açar ve siler (`server/tests/run-ct-tests.sh`). Dağıtım testleri artık canlı veritabanına dokunmuyor.
 
@@ -300,6 +300,7 @@ Ayrıntılar aşağıda, aynı sırayla.
 - ✅ Kuponlar, bakım modu ve duyuru, denge kataloğu yayınlama ve geri alma
 - ✅ Etkinlik sayfası, mağaza paketi kredilendirme
 - ✅ Posta gönderme: tek oyuncuya ya da herkese
+- ✅ "Ekonomi Akış" sayfası: kaynak/eylem bazında giren-çıkan-net akış ve günlük eğilim (`GET /admin/api/economy/flow?days=`, Viewer rolü; `hadal.economy_events`)
 
 ### Sunum
 - ✅ UI tasarım sistemi (çizilmiş kaplama, Fredoka yazı tipi), HUD, logo, açılış ekranı

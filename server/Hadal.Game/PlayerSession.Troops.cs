@@ -56,7 +56,7 @@ namespace Hadal.Game
 
             var tier = TroopRules.Tier(troops, command.Tier)!;
             var cost = TroopRules.Cost(tier, command.Count);
-            BuildingProgression.Charge(cost, _state.Wallet);
+            Spend("troop", cost, now);
             var seconds = Slowed(TroopRules.Seconds(troops, tier, command.Count, building!.Level), now);
             _state.Training.Add(new TrainingState
             {
@@ -77,8 +77,10 @@ namespace Hadal.Game
             }
 
             _state.Training.Remove(training);
+            var walletBefore = WalletSnapshot();
             foreach (var pair in training.Cost)
                 WalletOps.Credit(_state.Wallet, pair.Key, pair.Value);
+            LogWalletDelta("refund", walletBefore, now);
             _state.IsDirty = true;
             SendDelta(now, new List<EntityChangeDto> { WalletChange(), ArmyChange(now), Accepted(command.CommandId, command.ClientSequence) });
         }
@@ -111,7 +113,7 @@ namespace Hadal.Game
             }
 
             var cost = TroopRules.HealCost(troops, request);
-            BuildingProgression.Charge(cost, _state.Wallet);
+            Spend("heal", cost, now);
             foreach (var pair in request)
             {
                 _state.Wounded[pair.Key] -= pair.Value;
@@ -139,8 +141,10 @@ namespace Hadal.Game
             _state.Healing = null;
             foreach (var pair in healing.Troops)
                 _state.Wounded[pair.Key] = (_state.Wounded.TryGetValue(pair.Key, out var n) ? n : 0) + pair.Value;
+            var walletBefore = WalletSnapshot();
             foreach (var pair in healing.Cost)
                 WalletOps.Credit(_state.Wallet, pair.Key, pair.Value);
+            LogWalletDelta("refund", walletBefore, now);
             _state.IsDirty = true;
             SendDelta(now, new List<EntityChangeDto> { WalletChange(), ArmyChange(now), Accepted(command.CommandId, command.ClientSequence) });
         }

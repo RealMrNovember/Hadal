@@ -225,7 +225,7 @@ namespace Hadal.Game.World
             for (var l = s.Level; l < AllianceLandRules.MaxBuildingLevel; l++)
                 room += AllianceLandRules.BuildingPoints(l);
             amount = Math.Min(amount, room - s.Points);
-            if (!session.TryCharge(new[] { new KeyValuePair<HADAL.Shared.Enums.ResourceType, long>(type, amount) }, now))
+            if (!session.TryCharge(new[] { new KeyValuePair<HADAL.Shared.Enums.ResourceType, long>(type, amount) }, now, "alliance_gift"))
                 return "InsufficientResources";
             var durability = DurabilityOf(s, now);
             s.Points += amount;

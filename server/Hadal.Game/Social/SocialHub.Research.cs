@@ -72,7 +72,7 @@ namespace Hadal.Game.Social
             if (purse.DonationsToday >= AllianceResearchRules.DonationsPerDay)
                 return SocialRejectReason.DonationLimit;
             var cost = new List<KeyValuePair<ResourceType, long>> { new(node.Resource, AllianceResearchRules.DonationCost(level)) };
-            if (!session.TryCharge(cost, now))
+            if (!session.TryCharge(cost, now, "alliance_research"))
                 return SocialRejectReason.InsufficientResources;
 
             purse.DonationsToday++;

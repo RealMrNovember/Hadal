@@ -166,7 +166,9 @@ namespace Hadal.Game
                 TakeItem(command.ItemId, count);
                 Record("open", count);
                 var total = WalletOps.Product(capsuleAmount, count);
+                var walletBefore = WalletSnapshot();
                 WalletOps.Credit(_state.Wallet, capsuleResource, total);
+                LogWalletDelta("capsule_open", walletBefore, now);
                 _walletDirty = true;
                 GrantAndReport(command.CommandId, command.ClientSequence,
                     new List<ResolvedReward> { new("resource", capsuleResource.ToString(), total) }, now, grant: false);
@@ -311,7 +313,7 @@ namespace Hadal.Game
                     ? new ResolvedReward("item", Capsules.Id(res, r.Amount), 1)
                     : r).ToList();
                 foreach (var r in rewards)
-                    Grant(r);
+                    Grant(r, now);
             }
 
             _state.IsDirty = true;
@@ -339,12 +341,14 @@ namespace Hadal.Game
             SendDelta(now, changes);
         }
 
-        private void Grant(ResolvedReward reward)
+        private void Grant(ResolvedReward reward, DateTimeOffset at)
         {
             switch (reward.Type)
             {
                 case "resource" when GameCatalog.TryParseResource(reward.Id, out var resource):
+                    var before = WalletSnapshot();
                     WalletOps.Add(_state.Wallet, new Dictionary<ResourceType, long> { [resource] = reward.Amount }, Capacities());
+                    LogWalletDelta("reward", before, at);
                     _walletDirty = true;
                     break;
                 case "item":

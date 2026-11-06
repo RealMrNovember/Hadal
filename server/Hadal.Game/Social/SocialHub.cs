@@ -371,7 +371,7 @@ namespace Hadal.Game.Social
                 return SocialRejectReason.NameTaken;
             if (_alliances.Values.Any(a => string.Equals(a.Record.Tag, tag, StringComparison.OrdinalIgnoreCase)))
                 return SocialRejectReason.TagTaken;
-            if (!session.TryCharge(Catalog.AllianceCreateCost, now))
+            if (!session.TryCharge(Catalog.AllianceCreateCost, now, "alliance_create"))
                 return SocialRejectReason.InsufficientResources;
 
             var description = SocialRules.CleanMessage(command.Description, new HADAL.Shared.Catalog.ChatCatalogData { maxLength = 200 });

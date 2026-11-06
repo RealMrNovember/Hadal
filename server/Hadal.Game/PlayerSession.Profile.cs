@@ -16,7 +16,10 @@ namespace Hadal.Game
             {
                 var hadCard = _state.Items.TryGetValue(RenameRules.Item, out var cards) && cards > 0;
                 var hadalite = _state.Wallet.TryGetValue(ResourceType.Hadalite, out var h) ? h : 0;
+                var walletBeforeRename = WalletSnapshot();
                 var reason = PayRename(_state, now);
+                if (reason == null)
+                    LogWalletDelta("rename", walletBeforeRename, now);
                 if (reason != null)
                     return reason;
                 _displayName = name;

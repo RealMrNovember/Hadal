@@ -4,6 +4,7 @@ using Hadal.Game.Mailbox;
 using Hadal.Game.Onboarding;
 using Hadal.Game.Persistence;
 using Hadal.Game.Social;
+using Hadal.Game.Telemetry;
 using Hadal.Game.World;
 using Hadal.Gateway;
 using Hadal.Gateway.Admin;
@@ -35,9 +36,11 @@ if (string.IsNullOrWhiteSpace(connectionString))
     builder.Services.AddSingleton<ISocialStore, InMemorySocialStore>();
     builder.Services.AddSingleton<IWorldStore, InMemoryWorldStore>();
     builder.Services.AddSingleton<Hadal.Game.Kingdoms.IKingdomStore, Hadal.Game.Kingdoms.InMemoryKingdomStore>();
+    builder.Services.AddSingleton<Hadal.Game.Economy.IEconomyFlowStore, Hadal.Game.Economy.InMemoryEconomyFlowStore>();
     builder.Services.AddSingleton<IEventStore, InMemoryEventStore>();
     builder.Services.AddSingleton<IMailStore, InMemoryMailStore>();
     builder.Services.AddSingleton<IOnboardingStore, InMemoryOnboardingStore>();
+    builder.Services.AddSingleton<IClientLogStore, InMemoryClientLogStore>();
 }
 else
 {
@@ -48,9 +51,11 @@ else
     builder.Services.AddSingleton<ISocialStore, PostgresSocialStore>();
     builder.Services.AddSingleton<IWorldStore, PostgresWorldStore>();
     builder.Services.AddSingleton<Hadal.Game.Kingdoms.IKingdomStore, Hadal.Game.Kingdoms.PostgresKingdomStore>();
+    builder.Services.AddSingleton<Hadal.Game.Economy.IEconomyFlowStore, Hadal.Game.Economy.PostgresEconomyFlowStore>();
     builder.Services.AddSingleton<IEventStore, PostgresEventStore>();
     builder.Services.AddSingleton<IMailStore, PostgresMailStore>();
     builder.Services.AddSingleton<IOnboardingStore, PostgresOnboardingStore>();
+    builder.Services.AddSingleton<IClientLogStore, PostgresClientLogStore>();
 }
 
 builder.Services.AddHadalAuth(builder.Configuration);
@@ -59,7 +64,9 @@ builder.Services.AddHadalAdmin(builder.Configuration);
 builder.Services.AddSingleton(sp => new GameWorld(
     sp.GetRequiredService<CatalogRuntime>(), sp.GetRequiredService<IPlayerRepository>(), sp.GetRequiredService<ISocialStore>(), sp.GetRequiredService<IWorldStore>(), sp.GetRequiredService<IClock>(),
     sp.GetRequiredService<INetworkSerializer>(), sp.GetRequiredService<ILogger<GameWorld>>(), sp.GetRequiredService<IEventStore>(),
-    sp.GetRequiredService<IMailStore>(), sp.GetRequiredService<IOnboardingStore>(), sp.GetRequiredService<Hadal.Game.Kingdoms.IKingdomStore>()));
+    sp.GetRequiredService<IMailStore>(), sp.GetRequiredService<IOnboardingStore>(),
+    economyStore: sp.GetRequiredService<Hadal.Game.Economy.IEconomyFlowStore>(),
+    kingdomStore: sp.GetRequiredService<Hadal.Game.Kingdoms.IKingdomStore>()));
 builder.Services.AddHostedService<GameTickService>();
 builder.Services.AddSingleton<GatewaySessionHandler>();
 
@@ -83,6 +90,7 @@ app.UseWebSockets(new WebSocketOptions { KeepAliveInterval = TimeSpan.FromSecond
 
 app.MapHadalAdmin();
 app.MapHadalAuth();
+app.MapHadalTelemetry();
 
 // Public health — no internal data (HADAL_SERVER_INFRASTRUCTURE.md §3).
 app.MapGet("/health", () => Results.Ok(new { status = "ok", schema = SchemaVersion.Current }));

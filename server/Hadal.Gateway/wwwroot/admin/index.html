@@ -1,19 +1,19 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="tr">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="robots" content="noindex, nofollow">
-  <title>HADAL · Overseer</title>
+  <title>HADAL Â· Overseer</title>
   <link rel="stylesheet" href="app.css">
 </head>
 <body>
   <main id="login" class="login hidden">
     <form id="login-form" class="card narrow" autocomplete="off">
       <div class="brand">HADAL <span>Overseer</span></div>
-      <label>Kullanıcı adı<input id="login-user" required autocomplete="username"></label>
-      <label>Şifre<input id="login-pass" type="password" required autocomplete="current-password"></label>
-      <button type="submit" class="primary">Giriş</button>
+      <label>KullanÄ±cÄ± adÄ±<input id="login-user" required autocomplete="username"></label>
+      <label>Åifre<input id="login-pass" type="password" required autocomplete="current-password"></label>
+      <button type="submit" class="primary">GiriÅŸ</button>
       <p id="login-error" class="error"></p>
     </form>
   </main>
@@ -21,20 +21,21 @@
   <div id="app" class="app hidden">
     <nav class="sidebar">
       <div class="brand">HADAL <span>Overseer</span></div>
-      <a href="#/overview" data-page="overview">Özet</a>
+      <a href="#/overview" data-page="overview">Ã–zet</a>
       <a href="#/players" data-page="players">Oyuncular</a>
-      <a href="#/kingdoms" data-page="kingdoms">Krallıklar</a>
-      <a href="#/coupons" data-page="coupons">Hediye Kuponları</a>
+      <a href="#/kingdoms" data-page="kingdoms">KrallÄ±klar</a>
+      <a href="#/coupons" data-page="coupons">Hediye KuponlarÄ±</a>
       <a href="#/events" data-page="events">Etkinlikler</a>
       <a href="#/mail" data-page="mail">Posta</a>
-      <a href="#/onboarding" data-page="onboarding">İlk Oturum Hunisi</a>
-      <a href="#/liveops" data-page="liveops">Canlı Operasyon</a>
-      <a href="#/balance" data-page="balance">Denge · Seviyeler</a>
+      <a href="#/onboarding" data-page="onboarding">Ä°lk Oturum Hunisi</a>
+      <a href="#/economy" data-page="economy">Ekonomi Akış</a>
+      <a href="#/liveops" data-page="liveops">CanlÄ± Operasyon</a>
+      <a href="#/balance" data-page="balance">Denge Â· Seviyeler</a>
       <a href="#/chat" data-page="chat">Sohbet</a>
-      <a href="#/polls" data-page="polls">İttifak Oylamaları</a>
-      <a href="#/audit" data-page="audit">Denetim Kaydı</a>
-      <a href="#/admins" data-page="admins" class="owner-only">Yöneticiler</a>
-      <div class="who"><span id="who"></span><button id="logout" class="ghost">Çıkış</button></div>
+      <a href="#/polls" data-page="polls">Ä°ttifak OylamalarÄ±</a>
+      <a href="#/audit" data-page="audit">Denetim KaydÄ±</a>
+      <a href="#/admins" data-page="admins" class="owner-only">YÃ¶neticiler</a>
+      <div class="who"><span id="who"></span><button id="logout" class="ghost">Ã‡Ä±kÄ±ÅŸ</button></div>
     </nav>
     <section id="page" class="page"></section>
   </div>
@@ -42,6 +43,8 @@
   <div id="toast" class="toast"></div>
   <script src="events.js"></script>
   <script src="onboarding.js"></script>
+  <script src="economy.js"></script>
+  <script src="logs.js"></script>
   <script src="polls.js"></script>
   <script src="app.js"></script>
 </body>
