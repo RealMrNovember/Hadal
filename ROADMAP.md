@@ -1,7 +1,7 @@
 # HADAL — Proje Yol Haritası
 
 **Güncelleme:** 2026-11-06
-**Yayındaki sürüm:** istemci **0.9.11** (Android, `hadal.cicibyte.com/download/hadal.apk`); sunucu `feat/abyss-siege` @ `1741938` (Doku; 2026-11-01'den beri DL380 CT 160 yerine), katalog v13 (canlı v60). 0.9.11: Derinlik Kuşatması (docs/29 §4.2; pazar 24 saat, 20 dalga, seçkin ve merkez dalgaları). 0.9.10 (ilk derleme Doku'nun yeni anahtarıyla imzalandığı için geri çekildi; DL380'den kurtarılan eski anahtarla yeniden imzalandı): Yem Kapanı (docs/29 §4.1; salı ve cumartesi 48 saat, iki kapan, ittifaka özel Yutucu, hasar kademeleri), Hendek Fethi ve Yem Kapanı yönetim paneli formları. 0.9.9: 13 binaya daha I–III. katman görünümü (toplam 42 katman modeli; Zırh Atölyesi ile 8 GB karta sığmayan 13 katman alt katmanın modelini kullanır). 0.9.8: Hendek Fethi (docs/29 §4.6), binalar ücretsiz taşınır ya da seviyesini koruyarak yer değiştirir, üs halkaları 7 m aralıklı (binalar artık üst üste binmiyor), Çekirdek Reaktör seviyesine göre görünüm değiştirir (docs/rehber/04_bina_evrimi.md; I, IV, V, VI. katman modelli). 0.9.7: Seferberlik, İttifak Düellosu, etkinlik ödülleri postayla (docs/29 E6). 0.9.6: haftalık etkinlik takvimi ve takvim sekmesi, ittifak görev izinleri, oylamalar, zaman dilimi oylaması, lider devri (docs/29 E2). 0.9.5: bütün arayüz Last Asylum pencere düzeninde (`docs/41`), krallıklar, sekmeli posta, telefon bildirimleri.
+**Yayındaki sürüm:** istemci **0.9.11** (Android, `hadal.cicibyte.com/download/hadal.apk`); sunucu `main` @ `8527b83` (Doku; 2026-11-01'den beri DL380 CT 160 yerine), katalog v13 (canlı v60). 0.9.11: Derinlik Kuşatması (docs/29 §4.2; pazar 24 saat, 20 dalga, seçkin ve merkez dalgaları). 0.9.10 (ilk derleme Doku'nun yeni anahtarıyla imzalandığı için geri çekildi; DL380'den kurtarılan eski anahtarla yeniden imzalandı): Yem Kapanı (docs/29 §4.1; salı ve cumartesi 48 saat, iki kapan, ittifaka özel Yutucu, hasar kademeleri), Hendek Fethi ve Yem Kapanı yönetim paneli formları. 0.9.9: 13 binaya daha I–III. katman görünümü (toplam 42 katman modeli; Zırh Atölyesi ile 8 GB karta sığmayan 13 katman alt katmanın modelini kullanır). 0.9.8: Hendek Fethi (docs/29 §4.6), binalar ücretsiz taşınır ya da seviyesini koruyarak yer değiştirir, üs halkaları 7 m aralıklı (binalar artık üst üste binmiyor), Çekirdek Reaktör seviyesine göre görünüm değiştirir (docs/rehber/04_bina_evrimi.md; I, IV, V, VI. katman modelli). 0.9.7: Seferberlik, İttifak Düellosu, etkinlik ödülleri postayla (docs/29 E6). 0.9.6: haftalık etkinlik takvimi ve takvim sekmesi, ittifak görev izinleri, oylamalar, zaman dilimi oylaması, lider devri (docs/29 E2). 0.9.5: bütün arayüz Last Asylum pencere düzeninde (`docs/41`), krallıklar, sekmeli posta, telefon bildirimleri.
 **Sürüm kuralı:** Oyun 1.0'a kadar **0.x** ile ilerler. Android sürüm kodu `1.000.000 + major·10000 + minor·100 + patch`.
 
 **Kaynaklar:**
@@ -40,7 +40,7 @@ Sıralama araştırmanın ana önerisine göre yapıldı (§16): önce **kaynak 
 | **4** | Yeni deniz yaratıkları ve etkinlik boss'ları | Tamamlandı; boss hasar tablosu ve katkı ödülü sonra. | ✅ |
 | **5** | İlk oturum akışı ve öğretici | 0.9.3 ile yayında; ödüller ilk huni verisiyle ayarlanacak (docs/34). | ✅ |
 | **6** | Hayatta kalma döngüsü (oksijen, enerji, acil durum) | Yayında: 0.9.4 ve katalog v13 (`7a5b926`, docs/35). | ✅ |
-| **7** | Etkinlik takvimi ve ittifak etkinlikleri | Günlük geri dönüş ve ortak hedef (§6.2, docs/29 E2–E6). | 🟡 |
+| **7** | Etkinlik takvimi ve ittifak etkinlikleri | Tamamlandı: E2–E6 etkinliklerinin hepsi yayında; küçük ekler bölümde. | ✅ |
 | **8** | Asenkron arena ve düello | Kısa oturumlu, adil PvP (§5.1, §13.1). | ⬜ |
 | **9** | Gerçek ödeme ve mağaza | Play Billing ve makbuz doğrulama (§7). | ⬜ |
 | **10** | Seferler, basınç ve sonar; denizaltı filosu | Derin keşif fantezisi (docs/07, 08). | ⬜ |
@@ -62,7 +62,7 @@ Ayrıntılar aşağıda, aynı sırayla.
 - ✅ Zamanlayıcılar (`9d27726`, `TimerSafetyTests`): inşaat, araştırma, eğitim, iyileştirme, sefer, kalkan ve etkinlik uygulama kapalıyken sunucu saatiyle biter; erken talep ve sunucu saatinin ileri ya da geri sıçraması hiçbir şeyi iki kez ödemez. İstemci saati hiçbir şeye karışmaz.
 - ✅ Ağ (`9d27726`, `NetworkResilienceTests`): gerçek ağ geçidi üzerinden kopan bağlantı, yeniden bağlanınca tekrar gönderilen komut, zaman aşımı sonrası çift zarf, eski ve yeni soketten aynı komut. Oyuncu hiçbir şeyi iki kez ödemez.
 - ⬜ Mobil: düşük bellek, eski cihaz, arka plan/ön plan geçişi. Kritik çökme ve UI taşması yok.
-- 🟡 Hata ve çökme izleme, temel analitik: ✅ istemci hata izleme (clientlog: `POST /telemetry/clientlog` → Postgres, Overseer "İstemci Hataları" sayfası; Unity `ClientLogger` 60 sn/10 kayıt flush, kuyruk ≤100; tam suite 473/473) · ✅ oturum hunisi (`onboarding_events` + Overseer "İlk Oturum Hunisi") · ✅ ekonomi akışı panosu (`hadal.economy_events` + Overseer "Ekonomi Akış" sayfası, runbook §14.8; tam suite 477/477).
+- 🟡 Hata ve çökme izleme, temel analitik: 🟡 istemci hata izleme (`POST /api/v1/telemetry/client-log` → Postgres, Overseer "İstemci Hataları" sayfası; Unity `ClientLogger` 60 sn/10 kayıt flush, kuyruk ≤100; sunucu tarafı canlıda, istemci kısmı 0.9.12 ile gelecek) · ✅ oturum hunisi (`onboarding_events` + Overseer "İlk Oturum Hunisi") · ✅ ekonomi akışı panosu (`hadal.economy_events` + Overseer "Ekonomi Akış" sayfası, runbook §14.8; canlıda; tam suite 484/484).
 - 🟡 Operasyon (el kitabı: `docs/HADAL_SERVER_INFRASTRUCTURE.md` §14):
   - ✅ yedekten geri yükleme provası (`a803c24`, 29.10.2026 denendi: `server/tests/run-restore-drill.sh`)
   - ✅ denge geri alma provası (aynı prova; yeniden başlatmada `HADAL_PUBLISH_CATALOG_UP_TO` sabitlenmeli)
@@ -166,24 +166,26 @@ Ayrıntılar aşağıda, aynı sırayla.
 - ✅ Acil durumlar (`7a5b926`): sızıntı (oksijen üretiminin %20'si) ve arıza (bir üretici durur). Yalnızca çevrimiçiyken, oyuncu ve saat başına tohumlu zar (%10), rehber sürerken ve reaktör 5 altında yok, en fazla bir tane ve 6 saat arayla, 4 saatte kendiliğinden biter. `RepairEmergency`: bir saatlik Titanyum gelirinin %10'u ve 10 dk; ittifak yardımı alır; aynı CommandId bir kez çalışır. Binada uyarı ışığı, sızıntıda kabarcık; başlayınca ve bitince bildirim.
 - ✅ Cezanın toparlanabilir olması: bina kaybı ve asker ölümü yok, sebep gidince anında normale döner. Katalog anahtarları `survival.enabled` ve `survival.emergencies.enabled` canlıda kapatır (katalog tasarımı v13; bölümsüz eski katalog döngüyü kapalı çalıştırır).
 - ✅ Testler: sunucu 367/367 (24 yeni `SurvivalTests`), Unity EditMode 169/169 (`SurvivalClientTests`, 18 dil)
-- ⬜ Yayın: istemci ile birlikte; `/opt/hadal/server/.env` içinde `HADAL_PUBLISH_CATALOG_UP_TO` 12 → 13
+- ✅ Yayın: 0.9.4 ile; `/opt/hadal/server/.env` içinde `HADAL_PUBLISH_CATALOG_UP_TO=13`
 
 **Çıkış kriteri:** Kaynak yönetimi hatası oyuncuyu gerçekten zorlar ama oyundan koparmaz.
 
 ---
 
-## 7. Etkinlik takvimi ve ittifak etkinlikleri 🟡
+## 7. Etkinlik takvimi ve ittifak etkinlikleri ✅
 
 **Hedef:** Araştırma §6.2 ve `docs/29` E2–E6.
 
 - ✅ Etkinlik motoru ve admin sayfası: bireysel ve ittifak yarışmaları, giriş ödülleri, aşamalar, sıralama (`docs/29` E1)
 - ✅ Haftalık döngü takvimi ve hazır etkinlik şablonları: haftalık programlar her krallık için etkinliği başlangıçtan önce kendisi oluşturur (sabit kimlik, kayıt defteri; yeniden başlatmada çift oluşmaz). Hazır programlar: her gün Derinlik Yarışı (4 saatlik 6 tema, her gün kayar), pazartesi başlayan İttifak Haftası ve 7 günlük Dalış Günlüğü. Admin'de takvim (7 günlük ızgara, aç/kapat, gün/saat/süre, etkinlikten program, sıradakini şimdi oluştur); oyunda etkinlik merkezinde Takvim sekmesi (`docs/29` §2.5). Hafta sonu bonus penceresi bonus şablonuyla gelecek.
 - ✅ Görev izinleri, oylama ve zaman dilimi seçimi (E2): lider her şeyi yapar, R4 görevine göre — savaş zaman oylaması açar, lojistik merkez/şamandıra/ittifak binası kurar, diplomasi anket açar ve duyuruyu yazar (keşif için harita işareti henüz yok). Anketler (2–6 seçenek, 1–72 saat, tek/çoklu, gizli/açık; açıkken oy değiştirilebilir, sonuç canlı) ve etkinlik zaman oylaması (2–5 saat, 24 saat oylama, kazanan sunucu saatiyle sabitlenir ve sonraki etkinlik adımı için saklanır); kapanınca özet ittifak sohbetine düşer. Lider 14 gün girmezse liderlik en güçlü aktif R4'e geçer, sohbet ve postayla duyurulur. Oyunda ittifak merkezinde Oylamalar sayfası, adminde oylama listesi (kapat/sil, denetim kaydıyla). Bağışlar zaten vardı (`docs/29` §2.3, §5.1).
-- 🟡 Hendek Fethi, Derinlik Kuşatması, İttifak Düellosu, Seferberlik (E3–E6): İttifak Düellosu ve Seferberlik hazır (E6), Hendek Fethi 0.9.8'de yayında (yönetim paneli formu da hazır), Yem Kapanı 0.9.10'da yayında (toplanma şartı, çevrimdışı katılım ve zorluk kilidi sonra), Derinlik Kuşatması 0.9.11'de yayında (ipucu şarjı sonra).
+- ✅ Hendek Fethi, Derinlik Kuşatması, İttifak Düellosu, Seferberlik (E3–E6): İttifak Düellosu ve Seferberlik hazır (E6), Hendek Fethi 0.9.8'de yayında (yönetim paneli formu da hazır), Yem Kapanı 0.9.10'da yayında (toplanma şartı, çevrimdışı katılım ve zorluk kilidi sonra), Derinlik Kuşatması 0.9.11'de yayında (ipucu şarjı sonra).
   - **Seferberlik**: 15+ üyeli her ittifaka 8 kartlık ortak görev havuzu (toplama, eğitim, araştırma, inşaat gücü, yaratık, iyileştirme, hızlandırma, kahraman seviyesi, yardım, Derinlik Haritası); kartlar yeşil/mavi/mor/altın (×1/×2/×3/×5 hedef, 100/200/340/560 puan). Üye bir seferde bir görev alır, oynayarak bitirir; puan kendisine ve ittifakına yazılır. Bırak, günde 3 yenile (10 dk ara), günde 8 görev. Kişisel puan sandıkları ve ittifak sıralaması. Varsayılan program perşembe 00:00 UTC, 3 gün.
   - **İttifak Düellosu**: her pazartesi 00:00 UTC, 6 gün; krallık içinde güce göre 1'e 1 eşleşme, tek kalan krallığın günlük ortalamasıyla oynayan Derinlik Yankısı'yla eşleşir. Altı temalı gün (toplama, üs büyütme, araştırma, kahramanlar, topyekûn seferberlik, av), gün kazanmak 1/2/2/2/2/4, 7'ye ilk ulaşan kazanır. Günlük kişisel sandıklar, hafta sonucu postası (kazanan/kaybeden/berabere ödülü), son düellolar. İttifak Haftası yanında ayrı puanla sürer.
   - Oyunda etkinlik merkezinde kendi sekmeleri ve ittifak merkezinde Düello / Seferberlik kutucukları; adminde form ayarları, canlı havuzlar ve eşleşmeler, yeniden eşleştirme (denetim kaydıyla). Yeni varsayılan programlar canlı takvime bir kez eklenir, mevcut programlara dokunulmaz (`docs/29` §2.5, §4.3, §4.5).
 - ✅ Savaş raporlarının ve etkinlik ödüllerinin postayla gelmesi: savaş raporları sekmeli postada (0.9.5); etkinlik bitince sıralama ödülleri, alınmamış aşama ödülleri, giriş günleri ve düello sandıkları Etkinlikler sekmesine postayla gelir (kahraman kartları dahil). Her posta bir kez gider: yeniden başlatma, yarıda kalan gönderim ya da silinip temizlenen posta iki kez ödetmez (`docs/29` §2.2).
+
+- ⬜ Küçük ekler: hafta sonu bonus şablonu; Yem Kapanı toplanma şartı, çevrimdışı katılım ve zorluk kilidi; Derinlik Kuşatması ipucu şarjı.
 
 **Çıkış kriteri:** Her gün yapılacak süreli bir etkinlik ve haftada bir ittifak hedefi var.
 
